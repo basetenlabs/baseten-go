@@ -1,0 +1,1491 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Baseten inference API",
+        "version": "1.0.0",
+        "description": "API for invoking models and chains deployed on Baseten. Model endpoints use the `model-{model_id}` subdomain; chain endpoints use the `chain-{chain_id}` subdomain. All other path and query semantics are identical across both.\n\nFor regional environments, the environment name is embedded in the hostname (e.g. `model-{model_id}-{env_name}.api.baseten.co`) and the path is bare (e.g. `/predict` instead of `/environments/{env_name}/predict`). See the \"Regional\" tagged endpoints. Path-based routes (`/production/*`, `/development/*`, `/environments/*`, `/deployment/*`) are not available on regional hostnames."
+    },
+    "servers": [
+        {
+            "url": "https://model-{model_id}.api.baseten.co",
+            "description": "Deployed model endpoints",
+            "variables": {
+                "model_id": {
+                    "description": "The model's alphanumeric ID, found in your model dashboard.",
+                    "default": "{model_id}"
+                }
+            }
+        },
+        {
+            "url": "https://chain-{chain_id}.api.baseten.co",
+            "description": "Deployed chain endpoints",
+            "variables": {
+                "chain_id": {
+                    "description": "The chain's alphanumeric ID, found in your chain dashboard.",
+                    "default": "{chain_id}"
+                }
+            }
+        },
+        {
+            "url": "https://model-{model_id}-{env_name}.api.baseten.co",
+            "description": "Regional model endpoints",
+            "variables": {
+                "model_id": {
+                    "description": "The model's alphanumeric ID.",
+                    "default": "{model_id}"
+                },
+                "env_name": {
+                    "description": "The regional environment name (e.g. `prod-us`).",
+                    "default": "{env_name}"
+                }
+            }
+        },
+        {
+            "url": "https://chain-{chain_id}-{env_name}.api.baseten.co",
+            "description": "Regional chain endpoints",
+            "variables": {
+                "chain_id": {
+                    "description": "The chain's alphanumeric ID.",
+                    "default": "{chain_id}"
+                },
+                "env_name": {
+                    "description": "The regional environment name (e.g. `prod-us`).",
+                    "default": "{env_name}"
+                }
+            }
+        }
+    ],
+    "security": [
+        {
+            "ApiKeyAuth": []
+        }
+    ],
+    "paths": {
+        "/production/predict": {
+            "post": {
+                "operationId": "predictProduction",
+                "summary": "Call the production environment of a model.",
+                "description": "Sends a synchronous predict request to the deployment promoted to the production environment. The request body is forwarded directly to the model's `predict` function.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/PredictInput"
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/PredictOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "504": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/development/predict": {
+            "post": {
+                "operationId": "predictDevelopment",
+                "summary": "Call the development deployment of a model.",
+                "description": "Sends a synchronous predict request to the development deployment.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/PredictInput"
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/PredictOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "504": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/environments/{env_name}/predict": {
+            "post": {
+                "operationId": "predict",
+                "summary": "Call the model deployment associated with a specified environment.",
+                "description": "Sends a synchronous predict request to the deployment promoted to the specified environment.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/env_name"
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/PredictInput"
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/PredictOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "504": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/deployment/{deployment_id}/predict": {
+            "post": {
+                "operationId": "predictDeployment",
+                "summary": "Call a specific deployment of a model by deployment ID.",
+                "description": "Sends a synchronous predict request to the specified deployment.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/deployment_id"
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/PredictInput"
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/PredictOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "504": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/production/run_remote": {
+            "post": {
+                "operationId": "runRemoteProduction",
+                "summary": "Call the production environment of a chain.",
+                "description": "Sends a synchronous request to the chain deployment promoted to the production environment. The request body is forwarded to the chain's `run_remote` entrypoint.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/RunRemoteInput"
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/RunRemoteOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "504": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/development/run_remote": {
+            "post": {
+                "operationId": "runRemoteDevelopment",
+                "summary": "Call the development deployment of a chain.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/RunRemoteInput"
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/RunRemoteOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "504": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/environments/{env_name}/run_remote": {
+            "post": {
+                "operationId": "runRemote",
+                "summary": "Call the chain deployment associated with a specified environment.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/env_name"
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/RunRemoteInput"
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/RunRemoteOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "504": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/deployment/{deployment_id}/run_remote": {
+            "post": {
+                "operationId": "runRemoteDeployment",
+                "summary": "Call a specific chain deployment by deployment ID.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/deployment_id"
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/RunRemoteInput"
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/RunRemoteOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "504": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/production/async_predict": {
+            "post": {
+                "operationId": "asyncPredictProduction",
+                "summary": "Asynchronously call the production environment of a model.",
+                "description": "Enqueues an asynchronous predict request for the deployment promoted to the production environment. Returns a request ID that can be used to poll for status or cancel the request.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/AsyncPredictInput"
+                },
+                "responses": {
+                    "201": {
+                        "$ref": "#/components/responses/AsyncPredictOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/development/async_predict": {
+            "post": {
+                "operationId": "asyncPredictDevelopment",
+                "summary": "Asynchronously call the development deployment of a model.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/AsyncPredictInput"
+                },
+                "responses": {
+                    "201": {
+                        "$ref": "#/components/responses/AsyncPredictOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/environments/{env_name}/async_predict": {
+            "post": {
+                "operationId": "asyncPredict",
+                "summary": "Asynchronously call a named environment of a model.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/env_name"
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/AsyncPredictInput"
+                },
+                "responses": {
+                    "201": {
+                        "$ref": "#/components/responses/AsyncPredictOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/deployment/{deployment_id}/async_predict": {
+            "post": {
+                "operationId": "asyncPredictDeployment",
+                "summary": "Asynchronously call a specific deployment of a model.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/deployment_id"
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/AsyncPredictInput"
+                },
+                "responses": {
+                    "201": {
+                        "$ref": "#/components/responses/AsyncPredictOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/production/async_run_remote": {
+            "post": {
+                "operationId": "asyncRunRemoteProduction",
+                "summary": "Asynchronously call the production environment of a chain.",
+                "description": "Enqueues an asynchronous request for the chain deployment promoted to the production environment.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/AsyncRunRemoteInput"
+                },
+                "responses": {
+                    "201": {
+                        "$ref": "#/components/responses/AsyncRunRemoteOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/development/async_run_remote": {
+            "post": {
+                "operationId": "asyncRunRemoteDevelopment",
+                "summary": "Asynchronously call the development deployment of a chain.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/AsyncRunRemoteInput"
+                },
+                "responses": {
+                    "201": {
+                        "$ref": "#/components/responses/AsyncRunRemoteOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/environments/{env_name}/async_run_remote": {
+            "post": {
+                "operationId": "asyncRunRemote",
+                "summary": "Asynchronously call a named environment of a chain.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/env_name"
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/AsyncRunRemoteInput"
+                },
+                "responses": {
+                    "201": {
+                        "$ref": "#/components/responses/AsyncRunRemoteOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/deployment/{deployment_id}/async_run_remote": {
+            "post": {
+                "operationId": "asyncRunRemoteDeployment",
+                "summary": "Asynchronously call a specific deployment of a chain.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/deployment_id"
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/AsyncRunRemoteInput"
+                },
+                "responses": {
+                    "201": {
+                        "$ref": "#/components/responses/AsyncRunRemoteOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/async_request/{request_id}": {
+            "get": {
+                "operationId": "getAsyncRequestStatus",
+                "summary": "Get the status of an async request.",
+                "description": "Returns the current status of an async model or chain request. Rate limited to 20 requests per second.",
+                "tags": [],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/request_id"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/GetAsyncRequestStatusOutput"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "cancelAsyncRequest",
+                "summary": "Cancel a queued async request.",
+                "description": "Cancels an async request. Only requests with `QUEUED` status may be canceled. Rate limited to 20 requests per second.",
+                "tags": [],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/request_id"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/CancelAsyncRequestOutput"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/production/async_queue_status": {
+            "get": {
+                "operationId": "getAsyncQueueStatusProduction",
+                "summary": "Get async queue status for the production environment.",
+                "description": "Returns the number of queued and in-progress async requests for the deployment promoted to the production environment. Rate limited to 20 requests per second.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/GetAsyncQueueStatusOutput"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/development/async_queue_status": {
+            "get": {
+                "operationId": "getAsyncQueueStatusDevelopment",
+                "summary": "Get async queue status for the development deployment.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/GetAsyncQueueStatusOutput"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/environments/{env_name}/async_queue_status": {
+            "get": {
+                "operationId": "getAsyncQueueStatus",
+                "summary": "Get async queue status for a named environment.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/env_name"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/GetAsyncQueueStatusOutput"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/deployment/{deployment_id}/async_queue_status": {
+            "get": {
+                "operationId": "getAsyncQueueStatusDeployment",
+                "summary": "Get async queue status for a specific deployment.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/deployment_id"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/GetAsyncQueueStatusOutput"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/production/wake": {
+            "post": {
+                "operationId": "wakeProduction",
+                "summary": "Wake the production environment of a model.",
+                "description": "Triggers a wake for the deployment promoted to the production environment. Returns immediately with 202 Accepted.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Wake request accepted."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/development/wake": {
+            "post": {
+                "operationId": "wakeDevelopment",
+                "summary": "Wake the development deployment of a model.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Wake request accepted."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/environments/{env_name}/wake": {
+            "post": {
+                "operationId": "wake",
+                "summary": "Wake a named environment of a model.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/env_name"
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Wake request accepted."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/deployment/{deployment_id}/wake": {
+            "post": {
+                "operationId": "wakeDeployment",
+                "summary": "Wake a specific deployment of a model by deployment ID.",
+                "tags": [
+                    "Non-Regional"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/deployment_id"
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Wake request accepted."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/predict": {
+            "post": {
+                "operationId": "predictRegional",
+                "summary": "Call a regional environment of a model.",
+                "description": "Sends a synchronous predict request via a regional hostname. The environment is determined by the hostname, not the path.",
+                "tags": [
+                    "Regional"
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/PredictInput"
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/PredictOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "504": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/run_remote": {
+            "post": {
+                "operationId": "runRemoteRegional",
+                "summary": "Call a regional environment of a chain.",
+                "description": "Sends a synchronous run_remote request via a regional hostname. The environment is determined by the hostname, not the path.",
+                "tags": [
+                    "Regional"
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/RunRemoteInput"
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/RunRemoteOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "504": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/async_predict": {
+            "post": {
+                "operationId": "asyncPredictRegional",
+                "summary": "Asynchronously call a regional environment of a model.",
+                "description": "Enqueues an asynchronous predict request via a regional hostname. The environment is determined by the hostname, not the path.",
+                "tags": [
+                    "Regional"
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/AsyncPredictInput"
+                },
+                "responses": {
+                    "201": {
+                        "$ref": "#/components/responses/AsyncPredictOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/async_run_remote": {
+            "post": {
+                "operationId": "asyncRunRemoteRegional",
+                "summary": "Asynchronously call a regional environment of a chain.",
+                "description": "Enqueues an asynchronous run_remote request via a regional hostname. The environment is determined by the hostname, not the path.",
+                "tags": [
+                    "Regional"
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/AsyncRunRemoteInput"
+                },
+                "responses": {
+                    "201": {
+                        "$ref": "#/components/responses/AsyncRunRemoteOutput"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/async_queue_status": {
+            "get": {
+                "operationId": "getAsyncQueueStatusRegional",
+                "summary": "Get async queue status for a regional environment.",
+                "tags": [
+                    "Regional"
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/GetAsyncQueueStatusOutput"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/wake": {
+            "post": {
+                "operationId": "wakeRegional",
+                "summary": "Wake a regional environment of a model.",
+                "tags": [
+                    "Regional"
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Wake request accepted."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "ApiKeyAuth": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "Authorization",
+                "description": "API key with the `Api-Key` prefix, e.g. `Authorization: Api-Key abcd1234.abcd1234`."
+            }
+        },
+        "parameters": {
+            "env_name": {
+                "name": "env_name",
+                "in": "path",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                },
+                "description": "The name of the environment (e.g. `production`, `staging`)."
+            },
+            "deployment_id": {
+                "name": "deployment_id",
+                "in": "path",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                },
+                "description": "The alphanumeric ID of the deployment."
+            },
+            "request_id": {
+                "name": "request_id",
+                "in": "path",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                },
+                "description": "The ID of the async request."
+            }
+        },
+        "requestBodies": {
+            "PredictInput": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "description": "JSON-serializable model input. The shape is defined by the model's `predict` function.",
+                            "type": "object"
+                        }
+                    },
+                    "application/octet-stream": {
+                        "schema": {
+                            "type": "string",
+                            "format": "binary",
+                            "description": "Binary model input."
+                        }
+                    },
+                    "multipart/form-data": {
+                        "schema": {
+                            "type": "object",
+                            "description": "Multipart model input."
+                        }
+                    }
+                }
+            },
+            "RunRemoteInput": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "description": "JSON input matching the chain's `run_remote` method signature.",
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "AsyncPredictInput": {
+                "required": true,
+                "description": "There is a 256 KiB size limit on async predict request payloads.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/AsyncPredictRequest"
+                        }
+                    }
+                }
+            },
+            "AsyncRunRemoteInput": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "description": "JSON input matching the chain's `run_remote` method signature.",
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "responses": {
+            "PredictOutput": {
+                "description": "Successful synchronous prediction.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "description": "JSON-serializable output. The shape is defined by the model.",
+                            "type": "object"
+                        }
+                    },
+                    "application/octet-stream": {
+                        "schema": {
+                            "type": "string",
+                            "format": "binary",
+                            "description": "Binary or streaming output. Streaming responses use `transfer-encoding: chunked`."
+                        }
+                    }
+                },
+                "headers": {
+                    "X-BASETEN-REQUEST-ID": {
+                        "$ref": "#/components/headers/X-BASETEN-REQUEST-ID"
+                    }
+                }
+            },
+            "RunRemoteOutput": {
+                "description": "Successful synchronous chain execution.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "description": "JSON-serializable output. The shape is defined by the chain.",
+                            "type": "object"
+                        }
+                    }
+                },
+                "headers": {
+                    "X-BASETEN-REQUEST-ID": {
+                        "$ref": "#/components/headers/X-BASETEN-REQUEST-ID"
+                    }
+                }
+            },
+            "AsyncPredictOutput": {
+                "description": "Async predict request enqueued.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "request_id"
+                            ],
+                            "properties": {
+                                "request_id": {
+                                    "type": "string",
+                                    "description": "The ID of the async request."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "AsyncRunRemoteOutput": {
+                "description": "Async run remote request enqueued.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "request_id"
+                            ],
+                            "properties": {
+                                "request_id": {
+                                    "type": "string",
+                                    "description": "The ID of the async request."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "GetAsyncRequestStatusOutput": {
+                "description": "Current status of an async request.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/AsyncRequestStatusResponse"
+                        }
+                    }
+                }
+            },
+            "CancelAsyncRequestOutput": {
+                "description": "Result of an async request cancellation.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "request_id",
+                                "canceled",
+                                "message"
+                            ],
+                            "properties": {
+                                "request_id": {
+                                    "type": "string",
+                                    "description": "The ID of the async request."
+                                },
+                                "canceled": {
+                                    "type": "boolean",
+                                    "description": "Whether the request was canceled."
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "description": "Additional details about whether the request was canceled."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "GetAsyncQueueStatusOutput": {
+                "description": "Async queue status for a deployment.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "model_id",
+                                "deployment_id",
+                                "num_queued_requests",
+                                "num_in_progress_requests"
+                            ],
+                            "properties": {
+                                "model_id": {
+                                    "type": "string",
+                                    "description": "The ID of the model."
+                                },
+                                "deployment_id": {
+                                    "type": "string",
+                                    "description": "The ID of the deployment."
+                                },
+                                "num_queued_requests": {
+                                    "type": "integer",
+                                    "description": "Number of requests with QUEUED status awaiting processing."
+                                },
+                                "num_in_progress_requests": {
+                                    "type": "integer",
+                                    "description": "Number of requests currently being processed by the model."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "Error": {
+                "description": "Error response.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "schemas": {
+            "AsyncPredictRequest": {
+                "type": "object",
+                "required": [
+                    "model_input"
+                ],
+                "properties": {
+                    "model_input": {
+                        "type": "object",
+                        "description": "JSON-serializable model input."
+                    },
+                    "webhook_endpoint": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "HTTPS URL to receive the prediction result via webhook. Both HTTP/2 and HTTP/1.1 are supported. If omitted, the model must save outputs so they can be accessed later."
+                    },
+                    "priority": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2,
+                        "default": 0,
+                        "description": "Priority of the request. Lower values are higher priority."
+                    },
+                    "max_time_in_queue_seconds": {
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 259200,
+                        "default": 600,
+                        "description": "Maximum time in seconds a request will spend in the queue before expiring. Must be between 10 seconds and 72 hours."
+                    },
+                    "inference_retry_config": {
+                        "$ref": "#/components/schemas/InferenceRetryConfig"
+                    }
+                }
+            },
+            "InferenceRetryConfig": {
+                "type": "object",
+                "description": "Exponential backoff parameters for retrying predict requests.",
+                "properties": {
+                    "max_attempts": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10,
+                        "default": 3,
+                        "description": "Number of predict request attempts."
+                    },
+                    "initial_delay_ms": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 10000,
+                        "default": 1000,
+                        "description": "Minimum time between retries in milliseconds."
+                    },
+                    "max_delay_ms": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 60000,
+                        "default": 5000,
+                        "description": "Maximum time between retries in milliseconds."
+                    }
+                }
+            },
+            "AsyncRequestStatusResponse": {
+                "type": "object",
+                "required": [
+                    "request_id",
+                    "deployment_id",
+                    "status",
+                    "webhook_status",
+                    "created_at",
+                    "status_at",
+                    "errors"
+                ],
+                "properties": {
+                    "request_id": {
+                        "type": "string",
+                        "description": "The ID of the async request."
+                    },
+                    "model_id": {
+                        "type": "string",
+                        "description": "The ID of the model that executed the request. Present for model requests."
+                    },
+                    "chain_id": {
+                        "type": "string",
+                        "description": "The ID of the chain that executed the request. Present for chain requests."
+                    },
+                    "deployment_id": {
+                        "type": "string",
+                        "description": "The ID of the deployment that executed the request."
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "QUEUED",
+                            "IN_PROGRESS",
+                            "SUCCEEDED",
+                            "FAILED",
+                            "EXPIRED",
+                            "CANCELED",
+                            "WEBHOOK_FAILED"
+                        ],
+                        "description": "The status of the async request."
+                    },
+                    "webhook_status": {
+                        "type": "string",
+                        "enum": [
+                            "PENDING",
+                            "SUCCEEDED",
+                            "FAILED",
+                            "CANCELED",
+                            "NO_WEBHOOK_PROVIDED"
+                        ],
+                        "description": "The status of sending the prediction result to the provided webhook."
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "description": "The time in UTC at which the async request was created."
+                    },
+                    "status_at": {
+                        "type": "string",
+                        "description": "The time in UTC at which the async request's status was last updated."
+                    },
+                    "errors": {
+                        "type": "array",
+                        "default": [],
+                        "items": {
+                            "$ref": "#/components/schemas/AsyncRequestError"
+                        },
+                        "description": "Errors that occurred while processing the async request. Empty if no errors occurred."
+                    }
+                }
+            },
+            "AsyncRequestError": {
+                "type": "object",
+                "required": [
+                    "code",
+                    "message"
+                ],
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "enum": [
+                            "MODEL_PREDICT_ERROR",
+                            "MODEL_PREDICT_TIMEOUT",
+                            "MODEL_NOT_READY",
+                            "MODEL_DOES_NOT_EXIST",
+                            "MODEL_UNAVAILABLE",
+                            "MODEL_INVALID_INPUT",
+                            "ASYNC_REQUEST_NOT_SUPPORTED",
+                            "INTERNAL_SERVER_ERROR"
+                        ],
+                        "description": "The type of error that occurred."
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Details of the error."
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "description": "Human-readable error message."
+                    },
+                    "error_code": {
+                        "type": "string",
+                        "description": "Machine-readable error code.",
+                        "enum": [
+                            "timeout",
+                            "client_error",
+                            "model_unavailable",
+                            "model_not_ready",
+                            "model_does_not_exist",
+                            "rate_limited",
+                            "payload_too_large",
+                            "unauthorized",
+                            "application_error",
+                            "internal_baseten_error"
+                        ]
+                    },
+                    "detail": {
+                        "type": "string",
+                        "description": "Additional error details, if available."
+                    }
+                }
+            }
+        },
+        "headers": {
+            "X-BASETEN-REQUEST-ID": {
+                "schema": {
+                    "type": "string"
+                },
+                "description": "Unique identifier for the request."
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Non-Regional",
+            "description": "Endpoints that use path-based routing (e.g. `/production/predict`, `/environments/{env_name}/predict`). Only available on standard hostnames (`model-{model_id}.api.baseten.co`), not regional hostnames."
+        },
+        {
+            "name": "Regional",
+            "description": "Endpoints that use bare paths (e.g. `/predict`, `/wake`). Only available on regional hostnames (`model-{model_id}-{env_name}.api.baseten.co`), where the environment is determined by the hostname."
+        }
+    ]
+}
