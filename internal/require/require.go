@@ -81,6 +81,27 @@ func MapEqual[K comparable, V comparable](t testing.TB, m map[K]V, key K, expect
 	}
 }
 
+func True(t testing.TB, val bool, msg string, args ...any) {
+	t.Helper()
+	if !val {
+		t.Fatalf(msg, args...)
+	}
+}
+
+func False(t testing.TB, val bool, msg string, args ...any) {
+	t.Helper()
+	if val {
+		t.Fatalf(msg, args...)
+	}
+}
+
+func NotEqual[T comparable](t testing.TB, unexpected, actual T) {
+	t.Helper()
+	if unexpected == actual {
+		t.Fatalf("expected value to differ from %v", unexpected)
+	}
+}
+
 func Nil(t testing.TB, val any) {
 	t.Helper()
 	if val != nil {
