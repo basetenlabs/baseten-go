@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Lint
+        run: |
+          go mod tidy
+          go fmt ./...
+          cd internal/tools/apigen && go run . && cd ../../..
+          git diff --exit-code
+
+      - name: Test
+        env:
+          # Forks won't have these secrets so e2e tests skip, but pushes
+          # to main will run them.
+          BASETEN_E2E_TEST_API_KEY: ${{ secrets.BASETEN_E2E_TEST_API_KEY }}
+          BASETEN_E2E_TEST_DOMAIN: ${{ secrets.BASETEN_E2E_TEST_DOMAIN }}
+          BASETEN_E2E_TEST_MODEL_ID: ${{ secrets.BASETEN_E2E_TEST_MODEL_ID }}
+        run: go test ./...
