@@ -303,6 +303,7 @@ func (e V1InteractiveSessionAuthProvider) Valid() bool {
 // Defines values for V1InteractiveSessionProvider.
 const (
 	Cursor V1InteractiveSessionProvider = "cursor"
+	Ssh    V1InteractiveSessionProvider = "ssh"
 	VsCode V1InteractiveSessionProvider = "vs_code"
 )
 
@@ -310,6 +311,8 @@ const (
 func (e V1InteractiveSessionProvider) Valid() bool {
 	switch e {
 	case Cursor:
+		return true
+	case Ssh:
 		return true
 	case VsCode:
 		return true
@@ -421,6 +424,27 @@ type AuthCode struct {
 
 	// WorkingDirectory The working directory of the session.
 	WorkingDirectory *string `json:"working_directory,omitempty"`
+}
+
+// AuthDeviceAuthorizeResponse Standard OAuth 2.0 Device Authorization Response (RFC 8628).
+type AuthDeviceAuthorizeResponse struct {
+	// DeviceCode Device code for polling
+	DeviceCode string `json:"device_code"`
+
+	// ExpiresIn Seconds until the device code expires
+	ExpiresIn int `json:"expires_in"`
+
+	// Interval Recommended polling interval in seconds
+	Interval int `json:"interval"`
+
+	// UserCode Code to display to the user
+	UserCode string `json:"user_code"`
+
+	// VerificationUri URI where the user authorizes the device
+	VerificationUri string `json:"verification_uri"`
+
+	// VerificationUriComplete Complete URI with user code pre-filled
+	VerificationUriComplete string `json:"verification_uri_complete"`
 }
 
 // AutoscalingSettings Autoscaling settings for a deployment.
@@ -786,6 +810,9 @@ type CreateLLMModelRequest struct {
 
 	// Resources Resources allocated to the model
 	Resources map[string]interface{} `json:"resources"`
+
+	// Weights Weight configurations for BDN model weight distribution
+	Weights *[]map[string]interface{} `json:"weights,omitempty"`
 }
 
 // CreateLLMModelVersionRequest A request to create a BIS LLM model version
@@ -810,6 +837,9 @@ type CreateLLMModelVersionRequest struct {
 
 	// Resources Resources allocated to the model
 	Resources map[string]interface{} `json:"resources"`
+
+	// Weights Weight configurations for BDN model weight distribution
+	Weights *[]map[string]interface{} `json:"weights,omitempty"`
 }
 
 // CreateLibraryListingRequest Request to create a new library listing.
@@ -855,6 +885,9 @@ type CreateModelWeightSnapshotRequest struct {
 type CreateTrainingJob struct {
 	// Compute Configuration to specify the compute for a training job.
 	Compute *CreateTrainingJobCompute `json:"compute,omitempty"`
+
+	// EnableBasetenWorkdir When enabled, uses /b10/workspace as the working directory instead of the image WORKDIR.
+	EnableBasetenWorkdir *bool `json:"enable_baseten_workdir,omitempty"`
 
 	// Image Configuration to create a training job image.
 	Image CreateTrainingJobImage `json:"image"`
@@ -1358,6 +1391,12 @@ type GetLogsResponse struct {
 	Logs []Log `json:"logs"`
 }
 
+// GetTrainingGpuCapacityResponse Response for the training GPU capacity endpoint.
+type GetTrainingGpuCapacityResponse struct {
+	// GpuCapacities GPU capacity limits and current usage per GPU type
+	GpuCapacities []TrainingGpuCapacityItem `json:"gpu_capacities"`
+}
+
 // GetTrainingJobCheckpointFilesResponse A response to fetch presigned URLs for checkpoint files of a training job.
 type GetTrainingJobCheckpointFilesResponse struct {
 	// NextPageToken Token to use for fetching the next page of results. None when there are no more results.
@@ -1684,6 +1723,9 @@ type Log struct {
 	// Replica The replica the log line was emitted from.
 	Replica *string `json:"replica"`
 
+	// RequestId The request ID associated with an inference request.
+	RequestId *string `json:"request_id,omitempty"`
+
 	// Timestamp Epoch nanosecond timestamp of the log message.
 	Timestamp string `json:"timestamp"`
 }
@@ -1997,6 +2039,30 @@ type Secrets struct {
 	Secrets []Secret `json:"secrets"`
 }
 
+// SignSSHCertificateRequest Request to sign an SSH certificate for accessing a workload pod.
+type SignSSHCertificateRequest struct {
+	// PublicKey The user's SSH public key (e.g., 'ssh-ed25519 AAAA... user@host').
+	PublicKey string `json:"public_key"`
+
+	// ReplicaId The replica to connect to (e.g. '0' for training, hash for inference).
+	ReplicaId string `json:"replica_id"`
+}
+
+// SignSSHCertificateResponse Response containing a signed SSH certificate for proxy authentication.
+type SignSSHCertificateResponse struct {
+	// Jwt Signed JWT (ES256) for SSH proxy authorization.
+	Jwt string `json:"jwt"`
+
+	// ProxyAddress Address of the SSH proxy to connect to (host:port).
+	ProxyAddress string `json:"proxy_address"`
+
+	// SshCertExpiresAt When the certificate expires, in ISO 8601 format.
+	SshCertExpiresAt time.Time `json:"ssh_cert_expires_at"`
+
+	// SshCertificate The signed SSH certificate in OpenSSH format.
+	SshCertificate string `json:"ssh_certificate"`
+}
+
 // SignalPromotionResponse The response to a request to signal a rolling promotion.
 type SignalPromotionResponse struct {
 	// Success Whether the signal was successfully sent
@@ -2048,6 +2114,21 @@ type Teams struct {
 type TerminateReplicaResponse struct {
 	// Success Whether the replica was successfully terminated
 	Success *bool `json:"success,omitempty"`
+}
+
+// TrainingGpuCapacityItem GPU capacity and current usage for one GPU type.
+type TrainingGpuCapacityItem struct {
+	// Baseline Baseline GPU allocation; jobs below this threshold are expected to run immediately. 0 if not configured.
+	Baseline int `json:"baseline"`
+
+	// GpuType GPU type identifier (e.g. H100, A100-40GB)
+	GpuType string `json:"gpu_type"`
+
+	// Limit Maximum concurrent GPUs of this type for this org
+	Limit int `json:"limit"`
+
+	// UsageCount GPUs currently in use by active training jobs
+	UsageCount int `json:"usage_count"`
 }
 
 // TrainingItem defines model for TrainingItem.
@@ -2470,6 +2551,21 @@ type User struct {
 	Email *string `json:"email,omitempty"`
 }
 
+// UserInfo A Baseten user.
+type UserInfo struct {
+	// Email Email address of the user
+	Email *string `json:"email,omitempty"`
+
+	// Name Display name of the user
+	Name *string `json:"name,omitempty"`
+
+	// UserId Unique identifier for the user
+	UserId string `json:"user_id"`
+
+	// WorkspaceName Name of the user's workspace
+	WorkspaceName *string `json:"workspace_name,omitempty"`
+}
+
 // V1InteractiveSessionAuthProvider defines model for V1InteractiveSessionAuthProvider.
 type V1InteractiveSessionAuthProvider string
 
@@ -2514,6 +2610,9 @@ type TrainingProjectId = string
 
 // UserDefinedListingId defines model for user_defined_listing_id.
 type UserDefinedListingId = string
+
+// UserId defines model for user_id.
+type UserId = string
 
 // VersionTag defines model for version_tag.
 type VersionTag = string
@@ -2593,6 +2692,9 @@ type PostV1SecretsJSONRequestBody = UpsertSecretRequest
 // PostV1TeamsTeamIdApiKeysJSONRequestBody defines body for PostV1TeamsTeamIdApiKeys for application/json ContentType.
 type PostV1TeamsTeamIdApiKeysJSONRequestBody = CreateAPIKeyRequest
 
+// PostV1TeamsTeamIdLlmModelsJSONRequestBody defines body for PostV1TeamsTeamIdLlmModels for application/json ContentType.
+type PostV1TeamsTeamIdLlmModelsJSONRequestBody = CreateLLMModelRequest
+
 // PostV1TeamsTeamIdSecretsJSONRequestBody defines body for PostV1TeamsTeamIdSecrets for application/json ContentType.
 type PostV1TeamsTeamIdSecretsJSONRequestBody = UpsertSecretRequest
 
@@ -2616,6 +2718,9 @@ type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdLogsJSONRequestBody
 
 // PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdMetricsJSONRequestBody defines body for PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdMetrics for application/json ContentType.
 type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdMetricsJSONRequestBody = GetTrainingJobMetricsRequest
+
+// PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdSshSignJSONRequestBody defines body for PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdSshSign for application/json ContentType.
+type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdSshSignJSONRequestBody = SignSSHCertificateRequest
 
 // PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody defines body for PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStop for application/json ContentType.
 type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody = StopTrainingJobRequest
