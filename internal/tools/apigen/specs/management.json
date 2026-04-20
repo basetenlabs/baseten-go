@@ -6,7 +6,7 @@
     },
     "servers": [
         {
-            "url": "http://api.localhost:8000"
+            "url": "https://api.baseten.co"
         }
     ],
     "security": [

@@ -72,4 +72,22 @@ func TestNewInferenceClient(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, c.API())
 	})
+
+	t.Run("DeferAuthSucceedsWithoutAPIKey", func(t *testing.T) {
+		c, err := client.NewInferenceClient(client.InferenceClientOptions{
+			DeferAuth: true,
+			ModelID:   "abc123",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, c.API())
+	})
+
+	t.Run("DeferAuthRejectsAPIKey", func(t *testing.T) {
+		_, err := client.NewInferenceClient(client.InferenceClientOptions{
+			APIKey:    "test-key",
+			DeferAuth: true,
+			ModelID:   "abc123",
+		})
+		require.Error(t, err)
+	})
 }
