@@ -10,7 +10,8 @@ import (
 
 // InferenceClientOptions configures an InferenceClient.
 type InferenceClientOptions struct {
-	// APIKey is the Baseten API key used for authentication. Required.
+	// APIKey is the Baseten API key used for authentication. Required
+	// unless DeferAuth is true.
 	APIKey string
 
 	// ModelID is the model to target. Mutually exclusive with ChainID.
@@ -32,6 +33,11 @@ type InferenceClientOptions struct {
 	HTTPClient interface {
 		Do(*http.Request) (*http.Response, error)
 	}
+
+	// DeferAuth, when true, skips the APIKey requirement and does not set
+	// any Authorization header. The caller is expected to provide an
+	// HTTPClient that injects the appropriate auth header.
+	DeferAuth bool
 }
 
 // InferenceClient provides access to the Baseten inference API for a specific
@@ -63,7 +69,10 @@ func InferenceClientDefaultBaseURL(modelID, chainID, environment string) (string
 
 // NewInferenceClient creates a new InferenceClient.
 func NewInferenceClient(opts InferenceClientOptions) (*InferenceClient, error) {
-	if opts.APIKey == "" {
+	if opts.DeferAuth && opts.APIKey != "" {
+		return nil, fmt.Errorf("APIKey and DeferAuth are mutually exclusive")
+	}
+	if opts.APIKey == "" && !opts.DeferAuth {
 		return nil, fmt.Errorf("APIKey is required")
 	}
 
@@ -86,10 +95,15 @@ func NewInferenceClient(opts InferenceClientOptions) (*InferenceClient, error) {
 		httpClient = http.DefaultClient
 	}
 
+	var headers http.Header
+	if opts.APIKey != "" {
+		headers = http.Header{"Authorization": {"Api-Key " + opts.APIKey}}
+	}
+
 	return &InferenceClient{api: &inferenceapi.Client{
 		BaseURL:    baseURL,
 		HTTPClient: httpClient,
-		Headers:    http.Header{"Authorization": {"Api-Key " + opts.APIKey}},
+		Headers:    headers,
 	}}, nil
 }
 

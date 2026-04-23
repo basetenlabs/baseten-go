@@ -510,6 +510,18 @@ func (c *Client) GetTeamsSecrets(ctx context.Context, teamId string) (*Secrets, 
 	})
 }
 
+// GetTrainingCapacity: Get training GPU capacity.
+func (c *Client) GetTrainingCapacity(ctx context.Context) (*GetTrainingGpuCapacityResponse, error) {
+	return doJSON[GetTrainingGpuCapacityResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/training/capacity",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetTrainingProjects: List training projects.
 func (c *Client) GetTrainingProjects(ctx context.Context) (*ListTrainingProjectsResponse, error) {
 	return doJSON[ListTrainingProjectsResponse](c, ctx, apiRequest{
@@ -612,6 +624,18 @@ func (c *Client) GetTrainingProjectsTrainingProjectId(ctx context.Context, train
 		method:      "GET",
 		pathFmt:     "/v1/training_projects/%s",
 		pathArgs:    []any{trainingProjectId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetUsers: Gets a user by ID
+func (c *Client) GetUsers(ctx context.Context, userId string) (*UserInfo, error) {
+	return doJSON[UserInfo](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/users/%s",
+		pathArgs:    []any{userId},
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1134,6 +1158,18 @@ func (c *Client) PostTeamsApiKeys(ctx context.Context, teamId string, body Creat
 	})
 }
 
+// PostTeamsLlmModels: Creates a new BIS LLM deployment
+func (c *Client) PostTeamsLlmModels(ctx context.Context, teamId string, body CreateLLMModelRequest) (*LLMModel, error) {
+	return doJSON[LLMModel](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/teams/%s/llm_models",
+		pathArgs:    []any{teamId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PostTeamsSecrets: Upserts a secret in a team
 func (c *Client) PostTeamsSecrets(ctx context.Context, teamId string, body UpsertSecretRequest) (*Secret, error) {
 	return doJSON[Secret](c, ctx, apiRequest{
@@ -1230,6 +1266,18 @@ func (c *Client) PostTrainingProjectsJobsRecreate(ctx context.Context, trainingP
 	})
 }
 
+// PostTrainingProjectsJobsSshSign: Sign an SSH certificate for a training job.
+func (c *Client) PostTrainingProjectsJobsSshSign(ctx context.Context, trainingProjectId string, trainingJobId string, body SignSSHCertificateRequest) (*SignSSHCertificateResponse, error) {
+	return doJSON[SignSSHCertificateResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/training_projects/%s/jobs/%s/ssh/sign",
+		pathArgs:    []any{trainingProjectId, trainingJobId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PostTrainingProjectsJobsStop: Stop a training job.
 func (c *Client) PostTrainingProjectsJobsStop(ctx context.Context, trainingProjectId string, trainingJobId string, body StopTrainingJobRequest) (*StopTrainingJobResponse, error) {
 	return doJSON[StopTrainingJobResponse](c, ctx, apiRequest{
@@ -1237,6 +1285,18 @@ func (c *Client) PostTrainingProjectsJobsStop(ctx context.Context, trainingProje
 		pathFmt:     "/v1/training_projects/%s/jobs/%s/stop",
 		pathArgs:    []any{trainingProjectId, trainingJobId},
 		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostUsersAuthDeviceAuthorize: Initiates device authorization flow
+func (c *Client) PostUsersAuthDeviceAuthorize(ctx context.Context) (*AuthDeviceAuthorizeResponse, error) {
+	return doJSON[AuthDeviceAuthorizeResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/users/auth/device/authorize",
+		pathArgs:    nil,
+		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
 	})

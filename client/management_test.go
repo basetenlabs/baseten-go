@@ -18,4 +18,18 @@ func TestNewManagementClient(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, c.API())
 	})
+
+	t.Run("DeferAuthSucceedsWithoutAPIKey", func(t *testing.T) {
+		c, err := client.NewManagementClient(client.ManagementClientOptions{DeferAuth: true})
+		require.NoError(t, err)
+		require.NotNil(t, c.API())
+	})
+
+	t.Run("DeferAuthRejectsAPIKey", func(t *testing.T) {
+		_, err := client.NewManagementClient(client.ManagementClientOptions{
+			APIKey:    "test-key",
+			DeferAuth: true,
+		})
+		require.Error(t, err)
+	})
 }
