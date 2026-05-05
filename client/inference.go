@@ -38,6 +38,10 @@ type InferenceClientOptions struct {
 	// any Authorization header. The caller is expected to provide an
 	// HTTPClient that injects the appropriate auth header.
 	DeferAuth bool
+
+	// Headers are added to every request. The map is cloned at construction,
+	// so later mutations by the caller do not affect the live client.
+	Headers http.Header
 }
 
 // InferenceClient provides access to the Baseten inference API for a specific
@@ -95,10 +99,14 @@ func NewInferenceClient(opts InferenceClientOptions) (*InferenceClient, error) {
 		httpClient = http.DefaultClient
 	}
 
-	var headers http.Header
-	if opts.APIKey != "" {
-		headers = http.Header{"Authorization": {"Api-Key " + opts.APIKey}}
+	headers := opts.Headers.Clone()
+	if headers == nil {
+		headers = http.Header{}
 	}
+	if opts.APIKey != "" {
+		headers.Set("Authorization", "Api-Key "+opts.APIKey)
+	}
+	ApplyUserAgentHeader(headers)
 
 	return &InferenceClient{api: &inferenceapi.Client{
 		BaseURL:    baseURL,

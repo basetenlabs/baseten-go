@@ -30,6 +30,10 @@ type ManagementClientOptions struct {
 	// custom RoundTripper). This is intended for CLI use where auth may
 	// come from OAuth tokens or other credential sources.
 	DeferAuth bool
+
+	// Headers are added to every request. The map is cloned at construction,
+	// so later mutations by the caller do not affect the live client.
+	Headers http.Header
 }
 
 // ManagementClient provides access to the Baseten management API.
@@ -56,10 +60,14 @@ func NewManagementClient(opts ManagementClientOptions) (*ManagementClient, error
 		httpClient = http.DefaultClient
 	}
 
-	var headers http.Header
-	if opts.APIKey != "" {
-		headers = http.Header{"Authorization": {"Api-Key " + opts.APIKey}}
+	headers := opts.Headers.Clone()
+	if headers == nil {
+		headers = http.Header{}
 	}
+	if opts.APIKey != "" {
+		headers.Set("Authorization", "Api-Key "+opts.APIKey)
+	}
+	ApplyUserAgentHeader(headers)
 
 	return &ManagementClient{api: &managementapi.Client{
 		BaseURL:    baseURL,
