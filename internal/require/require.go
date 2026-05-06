@@ -5,6 +5,7 @@ package require
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"testing"
 )
 
@@ -99,6 +100,17 @@ func NotEqual[T comparable](t testing.TB, unexpected, actual T) {
 	t.Helper()
 	if unexpected == actual {
 		t.Fatalf("expected value to differ from %v", unexpected)
+	}
+}
+
+func Regexp(t testing.TB, pattern, s string) {
+	t.Helper()
+	matched, err := regexp.MatchString(pattern, s)
+	if err != nil {
+		t.Fatalf("invalid regexp %q: %v", pattern, err)
+	}
+	if !matched {
+		t.Fatalf("expected %q to match %q", s, pattern)
 	}
 }
 
