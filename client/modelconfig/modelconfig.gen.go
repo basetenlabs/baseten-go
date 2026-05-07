@@ -785,7 +785,7 @@ type SecretToPathMapping map[string]string
 
 // Declare secrets your model needs at runtime, such as API keys or access tokens.
 // Use null as a placeholder; store actual values in your organization settings.
-type Secrets map[string]string
+type Secrets map[string]interface{}
 
 type TRTLLMConfiguration interface{}
 

@@ -288,55 +288,67 @@ func propIsNullable(prop map[string]any) bool {
 }
 
 func collapseNullables(node any) {
+	collapseNullablesImpl(node, false)
+}
+
+// collapseNullablesImpl walks the schema collapsing anyOf-null and type-array-null.
+// When skipTop is true, the top-level anyOf/type of the current node is left
+// alone, but children are still processed. We set skipTop when descending into
+// an `additionalProperties` schema, because nullability there carries meaning
+// (e.g. `secrets` allows null placeholder values per the truss schema; collapsing
+// would produce map[string]string which can't represent JSON null).
+func collapseNullablesImpl(node any, skipTop bool) {
 	switch v := node.(type) {
 	case map[string]any:
-		if anyOf, ok := v["anyOf"].([]any); ok {
-			var nonNull []any
-			for _, item := range anyOf {
-				if m, ok := item.(map[string]any); ok {
-					if t, ok := m["type"].(string); ok && t == "null" && len(m) == 1 {
-						continue
+		if !skipTop {
+			if anyOf, ok := v["anyOf"].([]any); ok {
+				var nonNull []any
+				for _, item := range anyOf {
+					if m, ok := item.(map[string]any); ok {
+						if t, ok := m["type"].(string); ok && t == "null" && len(m) == 1 {
+							continue
+						}
+					}
+					nonNull = append(nonNull, item)
+				}
+				if len(nonNull) != len(anyOf) {
+					if len(nonNull) == 1 {
+						delete(v, "anyOf")
+						if remaining, ok := nonNull[0].(map[string]any); ok {
+							maps.Copy(v, remaining)
+						}
+					} else {
+						v["anyOf"] = nonNull
 					}
 				}
-				nonNull = append(nonNull, item)
 			}
-			if len(nonNull) != len(anyOf) {
-				if len(nonNull) == 1 {
-					delete(v, "anyOf")
-					if remaining, ok := nonNull[0].(map[string]any); ok {
-						maps.Copy(v, remaining)
+			if t, ok := v["type"].([]any); ok {
+				var nonNull []string
+				for _, item := range t {
+					if s, ok := item.(string); ok && s != "null" {
+						nonNull = append(nonNull, s)
 					}
-				} else {
-					v["anyOf"] = nonNull
+				}
+				switch {
+				case len(nonNull) == 1:
+					v["type"] = nonNull[0]
+				case len(nonNull) > 1:
+					arr := make([]any, len(nonNull))
+					for i, s := range nonNull {
+						arr[i] = s
+					}
+					v["type"] = arr
+				default:
+					delete(v, "type")
 				}
 			}
 		}
-		if t, ok := v["type"].([]any); ok {
-			var nonNull []string
-			for _, item := range t {
-				if s, ok := item.(string); ok && s != "null" {
-					nonNull = append(nonNull, s)
-				}
-			}
-			switch {
-			case len(nonNull) == 1:
-				v["type"] = nonNull[0]
-			case len(nonNull) > 1:
-				arr := make([]any, len(nonNull))
-				for i, s := range nonNull {
-					arr[i] = s
-				}
-				v["type"] = arr
-			default:
-				delete(v, "type")
-			}
-		}
-		for _, child := range v {
-			collapseNullables(child)
+		for k, child := range v {
+			collapseNullablesImpl(child, k == "additionalProperties")
 		}
 	case []any:
 		for _, child := range v {
-			collapseNullables(child)
+			collapseNullablesImpl(child, false)
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package separatemoduletests_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/basetenlabs/baseten-go/client/modelconfig"
@@ -44,6 +45,48 @@ secrets:
 	require.Equal(t, "A100", string(*cfg.Resources.Accelerator))
 	require.NotNil(t, cfg.Runtime)
 	require.Equal(t, 128, cfg.Runtime.PredictConcurrency)
+	require.Equal(t, 1, len(cfg.Secrets))
+	tok, ok := cfg.Secrets["hf_access_token"]
+	require.True(t, ok, "expected hf_access_token key in secrets")
+	require.Nil(t, tok)
+}
+
+// TestSecretsJSONRoundTrip verifies that the Secrets map (anyOf [string, null]
+// values) correctly distinguishes "key absent", "key present with null", and
+// "key present with string" through encoding/json. The truss schema documents
+// null as the canonical placeholder ("store actual values in your organization
+// settings"), so JSON null must round-trip.
+func TestSecretsJSONRoundTrip(t *testing.T) {
+	var cfg modelconfig.ModelConfig
+	require.NoError(t, json.Unmarshal([]byte(`{
+		"secrets": {
+			"placeholder": null,
+			"explicit": "actual-value"
+		}
+	}`), &cfg))
+	require.Equal(t, 2, len(cfg.Secrets))
+
+	placeholder, hasPlaceholder := cfg.Secrets["placeholder"]
+	require.True(t, hasPlaceholder, "placeholder key missing")
+	require.Nil(t, placeholder)
+
+	explicit, hasExplicit := cfg.Secrets["explicit"]
+	require.True(t, hasExplicit, "explicit key missing")
+	explicitStr, ok := explicit.(string)
+	require.True(t, ok, "explicit value should be a string")
+	require.Equal(t, "actual-value", explicitStr)
+
+	_, hasMissing := cfg.Secrets["missing"]
+	require.False(t, hasMissing, "missing key should not be present")
+
+	encoded, err := json.Marshal(cfg.Secrets)
+	require.NoError(t, err)
+	var decoded map[string]any
+	require.NoError(t, json.Unmarshal(encoded, &decoded))
+	require.Nil(t, decoded["placeholder"])
+	decodedExplicit, ok := decoded["explicit"].(string)
+	require.True(t, ok, "decoded explicit should be a string")
+	require.Equal(t, "actual-value", decodedExplicit)
 }
 
 func TestWhisperConfig(t *testing.T) {
