@@ -66,6 +66,8 @@ func run() error {
 	return nil
 }
 
+// generateModelConfig generates the modelconfig package (Baseten model config,
+// also known as Truss config) from the upstream Truss config JSON Schema.
 func generateModelConfig(apigenDir, schemaFile, clientDir string) error {
 	const pkgName = "modelconfig"
 	fmt.Printf("Generating %s from %s\n", pkgName, schemaFile)
