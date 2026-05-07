@@ -14,6 +14,7 @@ import (
 const (
 	defaultManagementSpecURL = "https://api.baseten.co/v1/spec"
 	defaultInferenceSpecURL  = "https://api.baseten.co/inference-spec"
+	trussConfigSchemaURL     = "https://raw.githubusercontent.com/basetenlabs/truss/main/truss/config.schema.json"
 )
 
 func main() {
@@ -35,6 +36,7 @@ func run() error {
 
 	managementSpecFile := filepath.Join(specsDir, "management.json")
 	inferenceSpecFile := filepath.Join(specsDir, "inference.json")
+	configSchemaFile := filepath.Join(specsDir, "config.schema.json")
 
 	if *updateSpecs {
 		fmt.Println("Updating specs from remote URLs...")
@@ -46,6 +48,10 @@ func run() error {
 			return fmt.Errorf("updating inference spec: %w", err)
 		}
 		fmt.Printf("  %s -> %s\n", defaultInferenceSpecURL, inferenceSpecFile)
+		if err := downloadSpecToFile(trussConfigSchemaURL, configSchemaFile); err != nil {
+			return fmt.Errorf("updating truss config schema: %w", err)
+		}
+		fmt.Printf("  %s -> %s\n", trussConfigSchemaURL, configSchemaFile)
 	}
 
 	if err := generateAPI(apigenDir, managementSpecFile, clientDir, "managementapi"); err != nil {
@@ -54,6 +60,68 @@ func run() error {
 	if err := generateAPI(apigenDir, inferenceSpecFile, clientDir, "inferenceapi"); err != nil {
 		return fmt.Errorf("generating inference API: %w", err)
 	}
+	if err := generateModelConfig(apigenDir, configSchemaFile, clientDir); err != nil {
+		return fmt.Errorf("generating modelconfig: %w", err)
+	}
+	return nil
+}
+
+func generateModelConfig(apigenDir, schemaFile, clientDir string) error {
+	const pkgName = "modelconfig"
+	fmt.Printf("Generating %s from %s\n", pkgName, schemaFile)
+	outDir := filepath.Join(clientDir, pkgName)
+	if err := os.MkdirAll(outDir, 0o755); err != nil {
+		return err
+	}
+
+	data, err := os.ReadFile(schemaFile)
+	if err != nil {
+		return err
+	}
+	data, err = preprocessConfigSchema(data)
+	if err != nil {
+		return fmt.Errorf("preprocessing config schema: %w", err)
+	}
+	tmp, err := os.CreateTemp("", "apigen-config-schema-*.json")
+	if err != nil {
+		return fmt.Errorf("creating temp file: %w", err)
+	}
+	defer os.Remove(tmp.Name())
+	if _, err := tmp.Write(data); err != nil {
+		tmp.Close()
+		return err
+	}
+	if err := tmp.Close(); err != nil {
+		return err
+	}
+
+	outFile := filepath.Join(outDir, pkgName+".gen.go")
+	cmd := exec.Command("go", "tool", "go-jsonschema",
+		"--only-models",
+		"--struct-name-from-title",
+		"--tags", "json,yaml",
+		"--package", pkgName,
+		"--output", outFile,
+		tmp.Name(),
+	)
+	cmd.Dir = apigenDir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("running go-jsonschema: %w", err)
+	}
+	src, err := os.ReadFile(outFile)
+	if err != nil {
+		return fmt.Errorf("reading generated file: %w", err)
+	}
+	src, err = postProcessModelConfig(src)
+	if err != nil {
+		return fmt.Errorf("post-processing modelconfig: %w", err)
+	}
+	if err := os.WriteFile(outFile, src, 0o644); err != nil {
+		return err
+	}
+	fmt.Printf("  -> %s\n", outFile)
 	return nil
 }
 
