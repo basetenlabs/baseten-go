@@ -8,34 +8,34 @@ const (
 
 // Defines values for AsyncRequestErrorCode.
 const (
-	ASYNCREQUESTNOTSUPPORTED AsyncRequestErrorCode = "ASYNC_REQUEST_NOT_SUPPORTED"
-	INTERNALSERVERERROR      AsyncRequestErrorCode = "INTERNAL_SERVER_ERROR"
-	MODELDOESNOTEXIST        AsyncRequestErrorCode = "MODEL_DOES_NOT_EXIST"
-	MODELINVALIDINPUT        AsyncRequestErrorCode = "MODEL_INVALID_INPUT"
-	MODELNOTREADY            AsyncRequestErrorCode = "MODEL_NOT_READY"
-	MODELPREDICTERROR        AsyncRequestErrorCode = "MODEL_PREDICT_ERROR"
-	MODELPREDICTTIMEOUT      AsyncRequestErrorCode = "MODEL_PREDICT_TIMEOUT"
-	MODELUNAVAILABLE         AsyncRequestErrorCode = "MODEL_UNAVAILABLE"
+	AsyncRequestErrorCode_ASYNC_REQUEST_NOT_SUPPORTED AsyncRequestErrorCode = "ASYNC_REQUEST_NOT_SUPPORTED"
+	AsyncRequestErrorCode_INTERNAL_SERVER_ERROR       AsyncRequestErrorCode = "INTERNAL_SERVER_ERROR"
+	AsyncRequestErrorCode_MODEL_DOES_NOT_EXIST        AsyncRequestErrorCode = "MODEL_DOES_NOT_EXIST"
+	AsyncRequestErrorCode_MODEL_INVALID_INPUT         AsyncRequestErrorCode = "MODEL_INVALID_INPUT"
+	AsyncRequestErrorCode_MODEL_NOT_READY             AsyncRequestErrorCode = "MODEL_NOT_READY"
+	AsyncRequestErrorCode_MODEL_PREDICT_ERROR         AsyncRequestErrorCode = "MODEL_PREDICT_ERROR"
+	AsyncRequestErrorCode_MODEL_PREDICT_TIMEOUT       AsyncRequestErrorCode = "MODEL_PREDICT_TIMEOUT"
+	AsyncRequestErrorCode_MODEL_UNAVAILABLE           AsyncRequestErrorCode = "MODEL_UNAVAILABLE"
 )
 
 // Valid indicates whether the value is a known member of the AsyncRequestErrorCode enum.
 func (e AsyncRequestErrorCode) Valid() bool {
 	switch e {
-	case ASYNCREQUESTNOTSUPPORTED:
+	case AsyncRequestErrorCode_ASYNC_REQUEST_NOT_SUPPORTED:
 		return true
-	case INTERNALSERVERERROR:
+	case AsyncRequestErrorCode_INTERNAL_SERVER_ERROR:
 		return true
-	case MODELDOESNOTEXIST:
+	case AsyncRequestErrorCode_MODEL_DOES_NOT_EXIST:
 		return true
-	case MODELINVALIDINPUT:
+	case AsyncRequestErrorCode_MODEL_INVALID_INPUT:
 		return true
-	case MODELNOTREADY:
+	case AsyncRequestErrorCode_MODEL_NOT_READY:
 		return true
-	case MODELPREDICTERROR:
+	case AsyncRequestErrorCode_MODEL_PREDICT_ERROR:
 		return true
-	case MODELPREDICTTIMEOUT:
+	case AsyncRequestErrorCode_MODEL_PREDICT_TIMEOUT:
 		return true
-	case MODELUNAVAILABLE:
+	case AsyncRequestErrorCode_MODEL_UNAVAILABLE:
 		return true
 	default:
 		return false
@@ -44,31 +44,31 @@ func (e AsyncRequestErrorCode) Valid() bool {
 
 // Defines values for AsyncRequestStatusResponseStatus.
 const (
-	AsyncRequestStatusResponseStatusCANCELED      AsyncRequestStatusResponseStatus = "CANCELED"
-	AsyncRequestStatusResponseStatusEXPIRED       AsyncRequestStatusResponseStatus = "EXPIRED"
-	AsyncRequestStatusResponseStatusFAILED        AsyncRequestStatusResponseStatus = "FAILED"
-	AsyncRequestStatusResponseStatusINPROGRESS    AsyncRequestStatusResponseStatus = "IN_PROGRESS"
-	AsyncRequestStatusResponseStatusQUEUED        AsyncRequestStatusResponseStatus = "QUEUED"
-	AsyncRequestStatusResponseStatusSUCCEEDED     AsyncRequestStatusResponseStatus = "SUCCEEDED"
-	AsyncRequestStatusResponseStatusWEBHOOKFAILED AsyncRequestStatusResponseStatus = "WEBHOOK_FAILED"
+	AsyncRequestStatusResponseStatus_CANCELED       AsyncRequestStatusResponseStatus = "CANCELED"
+	AsyncRequestStatusResponseStatus_EXPIRED        AsyncRequestStatusResponseStatus = "EXPIRED"
+	AsyncRequestStatusResponseStatus_FAILED         AsyncRequestStatusResponseStatus = "FAILED"
+	AsyncRequestStatusResponseStatus_IN_PROGRESS    AsyncRequestStatusResponseStatus = "IN_PROGRESS"
+	AsyncRequestStatusResponseStatus_QUEUED         AsyncRequestStatusResponseStatus = "QUEUED"
+	AsyncRequestStatusResponseStatus_SUCCEEDED      AsyncRequestStatusResponseStatus = "SUCCEEDED"
+	AsyncRequestStatusResponseStatus_WEBHOOK_FAILED AsyncRequestStatusResponseStatus = "WEBHOOK_FAILED"
 )
 
 // Valid indicates whether the value is a known member of the AsyncRequestStatusResponseStatus enum.
 func (e AsyncRequestStatusResponseStatus) Valid() bool {
 	switch e {
-	case AsyncRequestStatusResponseStatusCANCELED:
+	case AsyncRequestStatusResponseStatus_CANCELED:
 		return true
-	case AsyncRequestStatusResponseStatusEXPIRED:
+	case AsyncRequestStatusResponseStatus_EXPIRED:
 		return true
-	case AsyncRequestStatusResponseStatusFAILED:
+	case AsyncRequestStatusResponseStatus_FAILED:
 		return true
-	case AsyncRequestStatusResponseStatusINPROGRESS:
+	case AsyncRequestStatusResponseStatus_IN_PROGRESS:
 		return true
-	case AsyncRequestStatusResponseStatusQUEUED:
+	case AsyncRequestStatusResponseStatus_QUEUED:
 		return true
-	case AsyncRequestStatusResponseStatusSUCCEEDED:
+	case AsyncRequestStatusResponseStatus_SUCCEEDED:
 		return true
-	case AsyncRequestStatusResponseStatusWEBHOOKFAILED:
+	case AsyncRequestStatusResponseStatus_WEBHOOK_FAILED:
 		return true
 	default:
 		return false
@@ -77,25 +77,25 @@ func (e AsyncRequestStatusResponseStatus) Valid() bool {
 
 // Defines values for AsyncRequestStatusResponseWebhookStatus.
 const (
-	AsyncRequestStatusResponseWebhookStatusCANCELED          AsyncRequestStatusResponseWebhookStatus = "CANCELED"
-	AsyncRequestStatusResponseWebhookStatusFAILED            AsyncRequestStatusResponseWebhookStatus = "FAILED"
-	AsyncRequestStatusResponseWebhookStatusNOWEBHOOKPROVIDED AsyncRequestStatusResponseWebhookStatus = "NO_WEBHOOK_PROVIDED"
-	AsyncRequestStatusResponseWebhookStatusPENDING           AsyncRequestStatusResponseWebhookStatus = "PENDING"
-	AsyncRequestStatusResponseWebhookStatusSUCCEEDED         AsyncRequestStatusResponseWebhookStatus = "SUCCEEDED"
+	AsyncRequestStatusResponseWebhookStatus_CANCELED            AsyncRequestStatusResponseWebhookStatus = "CANCELED"
+	AsyncRequestStatusResponseWebhookStatus_FAILED              AsyncRequestStatusResponseWebhookStatus = "FAILED"
+	AsyncRequestStatusResponseWebhookStatus_NO_WEBHOOK_PROVIDED AsyncRequestStatusResponseWebhookStatus = "NO_WEBHOOK_PROVIDED"
+	AsyncRequestStatusResponseWebhookStatus_PENDING             AsyncRequestStatusResponseWebhookStatus = "PENDING"
+	AsyncRequestStatusResponseWebhookStatus_SUCCEEDED           AsyncRequestStatusResponseWebhookStatus = "SUCCEEDED"
 )
 
 // Valid indicates whether the value is a known member of the AsyncRequestStatusResponseWebhookStatus enum.
 func (e AsyncRequestStatusResponseWebhookStatus) Valid() bool {
 	switch e {
-	case AsyncRequestStatusResponseWebhookStatusCANCELED:
+	case AsyncRequestStatusResponseWebhookStatus_CANCELED:
 		return true
-	case AsyncRequestStatusResponseWebhookStatusFAILED:
+	case AsyncRequestStatusResponseWebhookStatus_FAILED:
 		return true
-	case AsyncRequestStatusResponseWebhookStatusNOWEBHOOKPROVIDED:
+	case AsyncRequestStatusResponseWebhookStatus_NO_WEBHOOK_PROVIDED:
 		return true
-	case AsyncRequestStatusResponseWebhookStatusPENDING:
+	case AsyncRequestStatusResponseWebhookStatus_PENDING:
 		return true
-	case AsyncRequestStatusResponseWebhookStatusSUCCEEDED:
+	case AsyncRequestStatusResponseWebhookStatus_SUCCEEDED:
 		return true
 	default:
 		return false
@@ -104,40 +104,40 @@ func (e AsyncRequestStatusResponseWebhookStatus) Valid() bool {
 
 // Defines values for ErrorResponseErrorCode.
 const (
-	ApplicationError     ErrorResponseErrorCode = "application_error"
-	ClientError          ErrorResponseErrorCode = "client_error"
-	InternalBasetenError ErrorResponseErrorCode = "internal_baseten_error"
-	ModelDoesNotExist    ErrorResponseErrorCode = "model_does_not_exist"
-	ModelNotReady        ErrorResponseErrorCode = "model_not_ready"
-	ModelUnavailable     ErrorResponseErrorCode = "model_unavailable"
-	PayloadTooLarge      ErrorResponseErrorCode = "payload_too_large"
-	RateLimited          ErrorResponseErrorCode = "rate_limited"
-	Timeout              ErrorResponseErrorCode = "timeout"
-	Unauthorized         ErrorResponseErrorCode = "unauthorized"
+	ErrorResponseErrorCode_application_error      ErrorResponseErrorCode = "application_error"
+	ErrorResponseErrorCode_client_error           ErrorResponseErrorCode = "client_error"
+	ErrorResponseErrorCode_internal_baseten_error ErrorResponseErrorCode = "internal_baseten_error"
+	ErrorResponseErrorCode_model_does_not_exist   ErrorResponseErrorCode = "model_does_not_exist"
+	ErrorResponseErrorCode_model_not_ready        ErrorResponseErrorCode = "model_not_ready"
+	ErrorResponseErrorCode_model_unavailable      ErrorResponseErrorCode = "model_unavailable"
+	ErrorResponseErrorCode_payload_too_large      ErrorResponseErrorCode = "payload_too_large"
+	ErrorResponseErrorCode_rate_limited           ErrorResponseErrorCode = "rate_limited"
+	ErrorResponseErrorCode_timeout                ErrorResponseErrorCode = "timeout"
+	ErrorResponseErrorCode_unauthorized           ErrorResponseErrorCode = "unauthorized"
 )
 
 // Valid indicates whether the value is a known member of the ErrorResponseErrorCode enum.
 func (e ErrorResponseErrorCode) Valid() bool {
 	switch e {
-	case ApplicationError:
+	case ErrorResponseErrorCode_application_error:
 		return true
-	case ClientError:
+	case ErrorResponseErrorCode_client_error:
 		return true
-	case InternalBasetenError:
+	case ErrorResponseErrorCode_internal_baseten_error:
 		return true
-	case ModelDoesNotExist:
+	case ErrorResponseErrorCode_model_does_not_exist:
 		return true
-	case ModelNotReady:
+	case ErrorResponseErrorCode_model_not_ready:
 		return true
-	case ModelUnavailable:
+	case ErrorResponseErrorCode_model_unavailable:
 		return true
-	case PayloadTooLarge:
+	case ErrorResponseErrorCode_payload_too_large:
 		return true
-	case RateLimited:
+	case ErrorResponseErrorCode_rate_limited:
 		return true
-	case Timeout:
+	case ErrorResponseErrorCode_timeout:
 		return true
-	case Unauthorized:
+	case ErrorResponseErrorCode_unauthorized:
 		return true
 	default:
 		return false

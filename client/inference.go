@@ -50,25 +50,37 @@ type InferenceClient struct {
 	api *inferenceapi.Client
 }
 
-// InferenceClientDefaultBaseURL computes the default inference API base URL from the given
-// options. Exactly one of modelID or chainID must be non-empty.
-func InferenceClientDefaultBaseURL(modelID, chainID, environment string) (string, error) {
+// InferenceClientHost computes the inference API host (no scheme) from the
+// given options. Exactly one of modelID or chainID must be non-empty.
+// rootApiHost defaults to "api.baseten.co" when empty.
+func InferenceClientHost(modelID, chainID, environment, rootApiHost string) (string, error) {
 	if modelID == "" && chainID == "" {
 		return "", fmt.Errorf("one of model ID or chain ID must be set")
 	}
 	if modelID != "" && chainID != "" {
 		return "", fmt.Errorf("model ID and chain ID are mutually exclusive")
 	}
-	if modelID != "" {
-		if environment != "" {
-			return fmt.Sprintf("https://model-%s-%s.api.baseten.co", modelID, environment), nil
-		}
-		return fmt.Sprintf("https://model-%s.api.baseten.co", modelID), nil
+	if rootApiHost == "" {
+		rootApiHost = "api.baseten.co"
+	}
+	subject := "model-" + modelID
+	if chainID != "" {
+		subject = "chain-" + chainID
 	}
 	if environment != "" {
-		return fmt.Sprintf("https://chain-%s-%s.api.baseten.co", chainID, environment), nil
+		subject += "-" + environment
 	}
-	return fmt.Sprintf("https://chain-%s.api.baseten.co", chainID), nil
+	return subject + "." + rootApiHost, nil
+}
+
+// InferenceClientDefaultBaseURL computes the default inference API base URL
+// from the given options. Exactly one of modelID or chainID must be non-empty.
+func InferenceClientDefaultBaseURL(modelID, chainID, environment string) (string, error) {
+	host, err := InferenceClientHost(modelID, chainID, environment, "")
+	if err != nil {
+		return "", err
+	}
+	return "https://" + host, nil
 }
 
 // NewInferenceClient creates a new InferenceClient.

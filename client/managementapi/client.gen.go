@@ -162,7 +162,7 @@ func (c *Client) DeleteTrainingProjectsJobs(ctx context.Context, trainingProject
 	})
 }
 
-// GetApiKeys: Lists the user's API keys
+// GetApiKeys: Lists the user's API keys (metadata only, no plain text keys)
 func (c *Client) GetApiKeys(ctx context.Context) (*APIKeys, error) {
 	return doJSON[APIKeys](c, ctx, apiRequest{
 		method:      "GET",
@@ -354,6 +354,114 @@ func (c *Client) GetLibraryListingsVersionsVersionTag(ctx context.Context, userD
 	})
 }
 
+// GetLoopsCheckpoints: List Loops checkpoints.
+func (c *Client) GetLoopsCheckpoints(ctx context.Context) (*ListLoopsCheckpointsResponse, error) {
+	return doJSON[ListLoopsCheckpointsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/checkpoints",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetLoopsCheckpointsFiles: Get Loops checkpoint files.
+func (c *Client) GetLoopsCheckpointsFiles(ctx context.Context, checkpointId string) (*LoopsCheckpointFilesResponse, error) {
+	return doJSON[LoopsCheckpointFilesResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/checkpoints/%s/files",
+		pathArgs:    []any{checkpointId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetLoopsDeployments: List Loops deployments.
+func (c *Client) GetLoopsDeployments(ctx context.Context) (*ListLoopsDeploymentsResponse, error) {
+	return doJSON[ListLoopsDeploymentsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/deployments",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetLoopsDeploymentsDeploymentId: Get a Loops deployment.
+func (c *Client) GetLoopsDeploymentsDeploymentId(ctx context.Context, deploymentId string) (*GetLoopsDeploymentResponse, error) {
+	return doJSON[GetLoopsDeploymentResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/deployments/%s",
+		pathArgs:    []any{deploymentId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetLoopsRuns: List Loops runs.
+func (c *Client) GetLoopsRuns(ctx context.Context) (*ListLoopsRunsResponse, error) {
+	return doJSON[ListLoopsRunsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/runs",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetLoopsRunsRunId: Get a Loops run.
+func (c *Client) GetLoopsRunsRunId(ctx context.Context, runId string) (*GetLoopsRunResponse, error) {
+	return doJSON[GetLoopsRunResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/runs/%s",
+		pathArgs:    []any{runId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetLoopsSamplers: List Loops samplers.
+func (c *Client) GetLoopsSamplers(ctx context.Context) (*ListLoopsSamplersResponse, error) {
+	return doJSON[ListLoopsSamplersResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/samplers",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetLoopsSamplersSamplerId: Get a Loops sampler.
+func (c *Client) GetLoopsSamplersSamplerId(ctx context.Context, samplerId string) (*GetLoopsSamplerResponse, error) {
+	return doJSON[GetLoopsSamplerResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/samplers/%s",
+		pathArgs:    []any{samplerId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetLoopsSessions: Get a Loops session.
+func (c *Client) GetLoopsSessions(ctx context.Context, sessionId string) (*GetLoopsSessionResponse, error) {
+	return doJSON[GetLoopsSessionResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/sessions/%s",
+		pathArgs:    []any{sessionId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetModelApisSnapshots: Get the latest model weight snapshot
 func (c *Client) GetModelApisSnapshots(ctx context.Context) (*ModelWeightSnapshot, error) {
 	return doJSON[ModelWeightSnapshot](c, ctx, apiRequest{
@@ -402,6 +510,18 @@ func (c *Client) GetModelsDeployments(ctx context.Context, modelId string) (*Dep
 	})
 }
 
+// GetModelsDeploymentsConfig: Gets a deployment's config
+func (c *Client) GetModelsDeploymentsConfig(ctx context.Context, modelId string, deploymentId string) (*DeploymentConfigResponse, error) {
+	return doJSON[DeploymentConfigResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/models/%s/deployments/%s/config",
+		pathArgs:    []any{modelId, deploymentId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetModelsDeploymentsDeploymentId: Gets a model's deployment by ID
 func (c *Client) GetModelsDeploymentsDeploymentId(ctx context.Context, modelId string, deploymentId string) (*Deployment, error) {
 	return doJSON[Deployment](c, ctx, apiRequest{
@@ -420,6 +540,18 @@ func (c *Client) GetModelsDeploymentsDevelopment(ctx context.Context, modelId st
 		method:      "GET",
 		pathFmt:     "/v1/models/%s/deployments/development",
 		pathArgs:    []any{modelId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetModelsDeploymentsDownload: Gets a presigned download URL for a deployment's truss
+func (c *Client) GetModelsDeploymentsDownload(ctx context.Context, modelId string, deploymentId string) (*DownloadDeploymentResponse, error) {
+	return doJSON[DownloadDeploymentResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/models/%s/deployments/%s/download",
+		pathArgs:    []any{modelId, deploymentId},
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -474,7 +606,7 @@ func (c *Client) GetModelsModelId(ctx context.Context, modelId string) (*Model, 
 	})
 }
 
-// GetSecrets: Gets all secrets
+// GetSecrets: Gets all secrets (metadata only, no plain text keys)
 func (c *Client) GetSecrets(ctx context.Context) (*Secrets, error) {
 	return doJSON[Secrets](c, ctx, apiRequest{
 		method:      "GET",
@@ -498,12 +630,48 @@ func (c *Client) GetTeams(ctx context.Context) (*Teams, error) {
 	})
 }
 
-// GetTeamsSecrets: Gets all secrets for a team
+// GetTeamsModels: Gets all models
+func (c *Client) GetTeamsModels(ctx context.Context, teamId string) (*Models, error) {
+	return doJSON[Models](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/teams/%s/models",
+		pathArgs:    []any{teamId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetTeamsSecrets: Gets all secrets for a team (metadata only, no plain text keys)
 func (c *Client) GetTeamsSecrets(ctx context.Context, teamId string) (*Secrets, error) {
 	return doJSON[Secrets](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/teams/%s/secrets",
 		pathArgs:    []any{teamId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetTrainerSessionsTrainersCheckpoints: List trainer server checkpoints.
+func (c *Client) GetTrainerSessionsTrainersCheckpoints(ctx context.Context, sessionId string, trainerId string) (*GetTrainerServerCheckpointsResponse, error) {
+	return doJSON[GetTrainerServerCheckpointsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/trainer_sessions/%s/trainers/%s/checkpoints",
+		pathArgs:    []any{sessionId, trainerId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetTrainerSessionsTrainersCheckpointsFiles: Get trainer server checkpoint files.
+func (c *Client) GetTrainerSessionsTrainersCheckpointsFiles(ctx context.Context, sessionId string, trainerId string, checkpointId string) (*GetTrainerServerCheckpointFilesResponse, error) {
+	return doJSON[GetTrainerServerCheckpointFilesResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/trainer_sessions/%s/trainers/%s/checkpoints/%s/files",
+		pathArgs:    []any{sessionId, trainerId, checkpointId},
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -762,6 +930,18 @@ func (c *Client) PostApiKeys(ctx context.Context, body CreateAPIKeyRequest) (*AP
 	})
 }
 
+// PostChainsDeploymentsChainletsLogs: Gets the logs for a chainlet within a chain deployment.
+func (c *Client) PostChainsDeploymentsChainletsLogs(ctx context.Context, chainId string, chainDeploymentId string, chainletId string, body GetDeploymentLogsRequest) (*GetLogsResponse, error) {
+	return doJSON[GetLogsResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/chains/%s/deployments/%s/chainlets/%s/logs",
+		pathArgs:    []any{chainId, chainDeploymentId, chainletId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PostChainsDeploymentsDeactivate: Deactivates a chain deployment
 func (c *Client) PostChainsDeploymentsDeactivate(ctx context.Context, chainId string, chainDeploymentId string) (*DeactivateResponse, error) {
 	return doJSON[DeactivateResponse](c, ctx, apiRequest{
@@ -835,8 +1015,8 @@ func (c *Client) PostLibraryListingsVersions(ctx context.Context, userDefinedLis
 }
 
 // PostLlmModels: Creates a new BIS LLM deployment
-func (c *Client) PostLlmModels(ctx context.Context, body CreateLLMModelRequest) (*LLMModel, error) {
-	return doJSON[LLMModel](c, ctx, apiRequest{
+func (c *Client) PostLlmModels(ctx context.Context, body CreateLLMModelRequest) (*LLMModelHandle, error) {
+	return doJSON[LLMModelHandle](c, ctx, apiRequest{
 		method:      "POST",
 		pathFmt:     "/v1/llm_models",
 		pathArgs:    nil,
@@ -847,11 +1027,59 @@ func (c *Client) PostLlmModels(ctx context.Context, body CreateLLMModelRequest) 
 }
 
 // PostLlmModelsDeployments: Creates a new BIS LLM deployment version
-func (c *Client) PostLlmModelsDeployments(ctx context.Context, modelId string, body CreateLLMModelVersionRequest) (*LLMModelVersion, error) {
-	return doJSON[LLMModelVersion](c, ctx, apiRequest{
+func (c *Client) PostLlmModelsDeployments(ctx context.Context, modelId string, body CreateLLMModelVersionRequest) (*LLMModelHandle, error) {
+	return doJSON[LLMModelHandle](c, ctx, apiRequest{
 		method:      "POST",
 		pathFmt:     "/v1/llm_models/%s/deployments",
 		pathArgs:    []any{modelId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostLoopsDeploymentsDeactivate: Deactivate a Loops deployment.
+func (c *Client) PostLoopsDeploymentsDeactivate(ctx context.Context, deploymentId string) (*DeactivateLoopsDeploymentResponse, error) {
+	return doJSON[DeactivateLoopsDeploymentResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/loops/deployments/%s/deactivate",
+		pathArgs:    []any{deploymentId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostLoopsRuns: Create a Loops run.
+func (c *Client) PostLoopsRuns(ctx context.Context, body CreateLoopsRunRequest) (*CreateLoopsRunResponse, error) {
+	return doJSON[CreateLoopsRunResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/loops/runs",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostLoopsSamplers: Create a Loops sampler.
+func (c *Client) PostLoopsSamplers(ctx context.Context, body CreateLoopsSamplerRequest) (*CreateLoopsSamplerResponse, error) {
+	return doJSON[CreateLoopsSamplerResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/loops/samplers",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostLoopsSessions: Create a Loops session.
+func (c *Client) PostLoopsSessions(ctx context.Context, body CreateLoopsSessionRequest) (*CreateLoopsSessionResponse, error) {
+	return doJSON[CreateLoopsSessionResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/loops/sessions",
+		pathArgs:    nil,
 		body:        body,
 		successCode: 200,
 		errorCodes:  nil,
@@ -875,6 +1103,30 @@ func (c *Client) PostModelApisSnapshotsModelId(ctx context.Context, modelId stri
 	return doJSON[ModelWeightSnapshot](c, ctx, apiRequest{
 		method:      "POST",
 		pathFmt:     "/v1/model_apis/snapshots/%s",
+		pathArgs:    []any{modelId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostModels: Creates a new model from a source
+func (c *Client) PostModels(ctx context.Context, body CreateModelRequest) (*CreatedModelDeployment, error) {
+	return doJSON[CreatedModelDeployment](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/models",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostModelsDeployments: Adds a new deployment to a model
+func (c *Client) PostModelsDeployments(ctx context.Context, modelId string, body CreateModelDeploymentRequest) (*CreatedModelDeployment, error) {
+	return doJSON[CreatedModelDeployment](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/models/%s/deployments",
 		pathArgs:    []any{modelId},
 		body:        body,
 		successCode: 200,
@@ -1026,6 +1278,18 @@ func (c *Client) PostModelsDeploymentsRetry(ctx context.Context, modelId string,
 	})
 }
 
+// PostModelsDeploymentsSshSign: Sign an SSH certificate for an inference model.
+func (c *Client) PostModelsDeploymentsSshSign(ctx context.Context, modelId string, deploymentId string, body SignSSHCertificateRequest) (*SignSSHCertificateResponse, error) {
+	return doJSON[SignSSHCertificateResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/models/%s/deployments/%s/ssh/sign",
+		pathArgs:    []any{modelId, deploymentId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PostModelsEnvironments: Create an environment
 func (c *Client) PostModelsEnvironments(ctx context.Context, modelId string, body CreateEnvironmentRequest) (*Environment, error) {
 	return doJSON[Environment](c, ctx, apiRequest{
@@ -1134,6 +1398,18 @@ func (c *Client) PostModelsEnvironmentsResumePromotion(ctx context.Context, mode
 	})
 }
 
+// PostPrepareModelUpload: Validates a model push payload and issues upload credentials
+func (c *Client) PostPrepareModelUpload(ctx context.Context, body PrepareModelUploadRequest) (*PrepareModelUploadResponse, error) {
+	return doJSON[PrepareModelUploadResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/prepare_model_upload",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PostSecrets: Upserts a secret
 func (c *Client) PostSecrets(ctx context.Context, body UpsertSecretRequest) (*Secret, error) {
 	return doJSON[Secret](c, ctx, apiRequest{
@@ -1159,10 +1435,22 @@ func (c *Client) PostTeamsApiKeys(ctx context.Context, teamId string, body Creat
 }
 
 // PostTeamsLlmModels: Creates a new BIS LLM deployment
-func (c *Client) PostTeamsLlmModels(ctx context.Context, teamId string, body CreateLLMModelRequest) (*LLMModel, error) {
-	return doJSON[LLMModel](c, ctx, apiRequest{
+func (c *Client) PostTeamsLlmModels(ctx context.Context, teamId string, body CreateLLMModelRequest) (*LLMModelHandle, error) {
+	return doJSON[LLMModelHandle](c, ctx, apiRequest{
 		method:      "POST",
 		pathFmt:     "/v1/teams/%s/llm_models",
+		pathArgs:    []any{teamId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostTeamsModels: Creates a new model from a source
+func (c *Client) PostTeamsModels(ctx context.Context, teamId string, body CreateModelRequest) (*CreatedModelDeployment, error) {
+	return doJSON[CreatedModelDeployment](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/teams/%s/models",
 		pathArgs:    []any{teamId},
 		body:        body,
 		successCode: 200,
@@ -1188,6 +1476,66 @@ func (c *Client) PostTeamsTrainingProjects(ctx context.Context, teamId string, b
 		method:      "POST",
 		pathFmt:     "/v1/teams/%s/training_projects",
 		pathArgs:    []any{teamId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostTrainerSessions: Create a trainer session.
+func (c *Client) PostTrainerSessions(ctx context.Context, body CreateTrainerSessionRequest) (*CreateTrainerSessionResponse, error) {
+	return doJSON[CreateTrainerSessionResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/trainer_sessions",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostTrainerSessionsSamplers: Create a sampling server.
+func (c *Client) PostTrainerSessionsSamplers(ctx context.Context, sessionId string, body CreateSamplingServerRequest) (*CreateSamplingServerResponse, error) {
+	return doJSON[CreateSamplingServerResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/trainer_sessions/%s/samplers",
+		pathArgs:    []any{sessionId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostTrainerSessionsTrainers: Create a trainer server.
+func (c *Client) PostTrainerSessionsTrainers(ctx context.Context, sessionId string, body CreateTrainerServerRequest) (*CreateTrainerServerResponse, error) {
+	return doJSON[CreateTrainerServerResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/trainer_sessions/%s/trainers",
+		pathArgs:    []any{sessionId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostTrainersCheckpointsSearch: Look up trainer checkpoint info by bt:// URI.
+func (c *Client) PostTrainersCheckpointsSearch(ctx context.Context, body CheckpointSearchRequest) (*CheckpointSearchResponse, error) {
+	return doJSON[CheckpointSearchResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/trainers/checkpoints/search",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostTrainersSearch: Search trainers.
+func (c *Client) PostTrainersSearch(ctx context.Context, body SearchTrainersRequest) (*SearchTrainersResponse, error) {
+	return doJSON[SearchTrainersResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/trainers/search",
+		pathArgs:    nil,
 		body:        body,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1285,18 +1633,6 @@ func (c *Client) PostTrainingProjectsJobsStop(ctx context.Context, trainingProje
 		pathFmt:     "/v1/training_projects/%s/jobs/%s/stop",
 		pathArgs:    []any{trainingProjectId, trainingJobId},
 		body:        body,
-		successCode: 200,
-		errorCodes:  nil,
-	})
-}
-
-// PostUsersAuthDeviceAuthorize: Initiates device authorization flow
-func (c *Client) PostUsersAuthDeviceAuthorize(ctx context.Context) (*AuthDeviceAuthorizeResponse, error) {
-	return doJSON[AuthDeviceAuthorizeResponse](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/v1/users/auth/device/authorize",
-		pathArgs:    nil,
-		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
 	})

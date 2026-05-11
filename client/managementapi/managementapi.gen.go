@@ -14,22 +14,22 @@ const (
 
 // Defines values for APIKeyCategory.
 const (
-	PERSONAL               APIKeyCategory = "PERSONAL"
-	WORKSPACEEXPORTMETRICS APIKeyCategory = "WORKSPACE_EXPORT_METRICS"
-	WORKSPACEINVOKE        APIKeyCategory = "WORKSPACE_INVOKE"
-	WORKSPACEMANAGEALL     APIKeyCategory = "WORKSPACE_MANAGE_ALL"
+	APIKeyCategory_PERSONAL                 APIKeyCategory = "PERSONAL"
+	APIKeyCategory_WORKSPACE_EXPORT_METRICS APIKeyCategory = "WORKSPACE_EXPORT_METRICS"
+	APIKeyCategory_WORKSPACE_INVOKE         APIKeyCategory = "WORKSPACE_INVOKE"
+	APIKeyCategory_WORKSPACE_MANAGE_ALL     APIKeyCategory = "WORKSPACE_MANAGE_ALL"
 )
 
 // Valid indicates whether the value is a known member of the APIKeyCategory enum.
 func (e APIKeyCategory) Valid() bool {
 	switch e {
-	case PERSONAL:
+	case APIKeyCategory_PERSONAL:
 		return true
-	case WORKSPACEEXPORTMETRICS:
+	case APIKeyCategory_WORKSPACE_EXPORT_METRICS:
 		return true
-	case WORKSPACEINVOKE:
+	case APIKeyCategory_WORKSPACE_INVOKE:
 		return true
-	case WORKSPACEMANAGEALL:
+	case APIKeyCategory_WORKSPACE_MANAGE_ALL:
 		return true
 	default:
 		return false
@@ -38,16 +38,16 @@ func (e APIKeyCategory) Valid() bool {
 
 // Defines values for CancelPromotionStatus.
 const (
-	CancelPromotionStatusCANCELED    CancelPromotionStatus = "CANCELED"
-	CancelPromotionStatusRAMPINGDOWN CancelPromotionStatus = "RAMPING_DOWN"
+	CancelPromotionStatus_CANCELED     CancelPromotionStatus = "CANCELED"
+	CancelPromotionStatus_RAMPING_DOWN CancelPromotionStatus = "RAMPING_DOWN"
 )
 
 // Valid indicates whether the value is a known member of the CancelPromotionStatus enum.
 func (e CancelPromotionStatus) Valid() bool {
 	switch e {
-	case CancelPromotionStatusCANCELED:
+	case CancelPromotionStatus_CANCELED:
 		return true
-	case CancelPromotionStatusRAMPINGDOWN:
+	case CancelPromotionStatus_RAMPING_DOWN:
 		return true
 	default:
 		return false
@@ -56,16 +56,37 @@ func (e CancelPromotionStatus) Valid() bool {
 
 // Defines values for CheckpointSyncStatus.
 const (
-	COMPLETED CheckpointSyncStatus = "COMPLETED"
-	SYNCING   CheckpointSyncStatus = "SYNCING"
+	CheckpointSyncStatus_COMPLETED CheckpointSyncStatus = "COMPLETED"
+	CheckpointSyncStatus_SYNCING   CheckpointSyncStatus = "SYNCING"
 )
 
 // Valid indicates whether the value is a known member of the CheckpointSyncStatus enum.
 func (e CheckpointSyncStatus) Valid() bool {
 	switch e {
-	case COMPLETED:
+	case CheckpointSyncStatus_COMPLETED:
 		return true
-	case SYNCING:
+	case CheckpointSyncStatus_SYNCING:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeploymentArchivePayloadSemverBump.
+const (
+	DeploymentArchivePayloadSemverBump_MAJOR DeploymentArchivePayloadSemverBump = "MAJOR"
+	DeploymentArchivePayloadSemverBump_MINOR DeploymentArchivePayloadSemverBump = "MINOR"
+	DeploymentArchivePayloadSemverBump_PATCH DeploymentArchivePayloadSemverBump = "PATCH"
+)
+
+// Valid indicates whether the value is a known member of the DeploymentArchivePayloadSemverBump enum.
+func (e DeploymentArchivePayloadSemverBump) Valid() bool {
+	switch e {
+	case DeploymentArchivePayloadSemverBump_MAJOR:
+		return true
+	case DeploymentArchivePayloadSemverBump_MINOR:
+		return true
+	case DeploymentArchivePayloadSemverBump_PATCH:
 		return true
 	default:
 		return false
@@ -74,52 +95,52 @@ func (e CheckpointSyncStatus) Valid() bool {
 
 // Defines values for DeploymentStatus.
 const (
-	ACTIVE       DeploymentStatus = "ACTIVE"
-	BUILDFAILED  DeploymentStatus = "BUILD_FAILED"
-	BUILDING     DeploymentStatus = "BUILDING"
-	BUILDSTOPPED DeploymentStatus = "BUILD_STOPPED"
-	DEACTIVATING DeploymentStatus = "DEACTIVATING"
-	DEPLOYFAILED DeploymentStatus = "DEPLOY_FAILED"
-	DEPLOYING    DeploymentStatus = "DEPLOYING"
-	FAILED       DeploymentStatus = "FAILED"
-	INACTIVE     DeploymentStatus = "INACTIVE"
-	LOADINGMODEL DeploymentStatus = "LOADING_MODEL"
-	SCALEDTOZERO DeploymentStatus = "SCALED_TO_ZERO"
-	UNHEALTHY    DeploymentStatus = "UNHEALTHY"
-	UPDATING     DeploymentStatus = "UPDATING"
-	WAKINGUP     DeploymentStatus = "WAKING_UP"
+	DeploymentStatus_ACTIVE         DeploymentStatus = "ACTIVE"
+	DeploymentStatus_BUILD_FAILED   DeploymentStatus = "BUILD_FAILED"
+	DeploymentStatus_BUILDING       DeploymentStatus = "BUILDING"
+	DeploymentStatus_BUILD_STOPPED  DeploymentStatus = "BUILD_STOPPED"
+	DeploymentStatus_DEACTIVATING   DeploymentStatus = "DEACTIVATING"
+	DeploymentStatus_DEPLOY_FAILED  DeploymentStatus = "DEPLOY_FAILED"
+	DeploymentStatus_DEPLOYING      DeploymentStatus = "DEPLOYING"
+	DeploymentStatus_FAILED         DeploymentStatus = "FAILED"
+	DeploymentStatus_INACTIVE       DeploymentStatus = "INACTIVE"
+	DeploymentStatus_LOADING_MODEL  DeploymentStatus = "LOADING_MODEL"
+	DeploymentStatus_SCALED_TO_ZERO DeploymentStatus = "SCALED_TO_ZERO"
+	DeploymentStatus_UNHEALTHY      DeploymentStatus = "UNHEALTHY"
+	DeploymentStatus_UPDATING       DeploymentStatus = "UPDATING"
+	DeploymentStatus_WAKING_UP      DeploymentStatus = "WAKING_UP"
 )
 
 // Valid indicates whether the value is a known member of the DeploymentStatus enum.
 func (e DeploymentStatus) Valid() bool {
 	switch e {
-	case ACTIVE:
+	case DeploymentStatus_ACTIVE:
 		return true
-	case BUILDFAILED:
+	case DeploymentStatus_BUILD_FAILED:
 		return true
-	case BUILDING:
+	case DeploymentStatus_BUILDING:
 		return true
-	case BUILDSTOPPED:
+	case DeploymentStatus_BUILD_STOPPED:
 		return true
-	case DEACTIVATING:
+	case DeploymentStatus_DEACTIVATING:
 		return true
-	case DEPLOYFAILED:
+	case DeploymentStatus_DEPLOY_FAILED:
 		return true
-	case DEPLOYING:
+	case DeploymentStatus_DEPLOYING:
 		return true
-	case FAILED:
+	case DeploymentStatus_FAILED:
 		return true
-	case INACTIVE:
+	case DeploymentStatus_INACTIVE:
 		return true
-	case LOADINGMODEL:
+	case DeploymentStatus_LOADING_MODEL:
 		return true
-	case SCALEDTOZERO:
+	case DeploymentStatus_SCALED_TO_ZERO:
 		return true
-	case UNHEALTHY:
+	case DeploymentStatus_UNHEALTHY:
 		return true
-	case UPDATING:
+	case DeploymentStatus_UPDATING:
 		return true
-	case WAKINGUP:
+	case DeploymentStatus_WAKING_UP:
 		return true
 	default:
 		return false
@@ -128,25 +149,25 @@ func (e DeploymentStatus) Valid() bool {
 
 // Defines values for DockerAuthType.
 const (
-	AWSIAM                DockerAuthType = "AWS_IAM"
-	AWSOIDC               DockerAuthType = "AWS_OIDC"
-	GCPOIDC               DockerAuthType = "GCP_OIDC"
-	GCPSERVICEACCOUNTJSON DockerAuthType = "GCP_SERVICE_ACCOUNT_JSON"
-	REGISTRYSECRET        DockerAuthType = "REGISTRY_SECRET"
+	DockerAuthType_AWS_IAM                  DockerAuthType = "AWS_IAM"
+	DockerAuthType_AWS_OIDC                 DockerAuthType = "AWS_OIDC"
+	DockerAuthType_GCP_OIDC                 DockerAuthType = "GCP_OIDC"
+	DockerAuthType_GCP_SERVICE_ACCOUNT_JSON DockerAuthType = "GCP_SERVICE_ACCOUNT_JSON"
+	DockerAuthType_REGISTRY_SECRET          DockerAuthType = "REGISTRY_SECRET"
 )
 
 // Valid indicates whether the value is a known member of the DockerAuthType enum.
 func (e DockerAuthType) Valid() bool {
 	switch e {
-	case AWSIAM:
+	case DockerAuthType_AWS_IAM:
 		return true
-	case AWSOIDC:
+	case DockerAuthType_AWS_OIDC:
 		return true
-	case GCPOIDC:
+	case DockerAuthType_GCP_OIDC:
 		return true
-	case GCPSERVICEACCOUNTJSON:
+	case DockerAuthType_GCP_SERVICE_ACCOUNT_JSON:
 		return true
-	case REGISTRYSECRET:
+	case DockerAuthType_REGISTRY_SECRET:
 		return true
 	default:
 		return false
@@ -155,31 +176,58 @@ func (e DockerAuthType) Valid() bool {
 
 // Defines values for InProgressPromotionStatus.
 const (
-	InProgressPromotionStatusCANCELED    InProgressPromotionStatus = "CANCELED"
-	InProgressPromotionStatusFAILED      InProgressPromotionStatus = "FAILED"
-	InProgressPromotionStatusPAUSED      InProgressPromotionStatus = "PAUSED"
-	InProgressPromotionStatusRAMPINGDOWN InProgressPromotionStatus = "RAMPING_DOWN"
-	InProgressPromotionStatusRAMPINGUP   InProgressPromotionStatus = "RAMPING_UP"
-	InProgressPromotionStatusRELEASING   InProgressPromotionStatus = "RELEASING"
-	InProgressPromotionStatusSUCCEEDED   InProgressPromotionStatus = "SUCCEEDED"
+	InProgressPromotionStatus_CANCELED     InProgressPromotionStatus = "CANCELED"
+	InProgressPromotionStatus_FAILED       InProgressPromotionStatus = "FAILED"
+	InProgressPromotionStatus_PAUSED       InProgressPromotionStatus = "PAUSED"
+	InProgressPromotionStatus_RAMPING_DOWN InProgressPromotionStatus = "RAMPING_DOWN"
+	InProgressPromotionStatus_RAMPING_UP   InProgressPromotionStatus = "RAMPING_UP"
+	InProgressPromotionStatus_RELEASING    InProgressPromotionStatus = "RELEASING"
+	InProgressPromotionStatus_SUCCEEDED    InProgressPromotionStatus = "SUCCEEDED"
 )
 
 // Valid indicates whether the value is a known member of the InProgressPromotionStatus enum.
 func (e InProgressPromotionStatus) Valid() bool {
 	switch e {
-	case InProgressPromotionStatusCANCELED:
+	case InProgressPromotionStatus_CANCELED:
 		return true
-	case InProgressPromotionStatusFAILED:
+	case InProgressPromotionStatus_FAILED:
 		return true
-	case InProgressPromotionStatusPAUSED:
+	case InProgressPromotionStatus_PAUSED:
 		return true
-	case InProgressPromotionStatusRAMPINGDOWN:
+	case InProgressPromotionStatus_RAMPING_DOWN:
 		return true
-	case InProgressPromotionStatusRAMPINGUP:
+	case InProgressPromotionStatus_RAMPING_UP:
 		return true
-	case InProgressPromotionStatusRELEASING:
+	case InProgressPromotionStatus_RELEASING:
 		return true
-	case InProgressPromotionStatusSUCCEEDED:
+	case InProgressPromotionStatus_SUCCEEDED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Name.
+const (
+	Name_CREATED   Name = "CREATED"
+	Name_DEPLOYING Name = "DEPLOYING"
+	Name_FAILED    Name = "FAILED"
+	Name_RUNNING   Name = "RUNNING"
+	Name_STOPPED   Name = "STOPPED"
+)
+
+// Valid indicates whether the value is a known member of the Name enum.
+func (e Name) Valid() bool {
+	switch e {
+	case Name_CREATED:
+		return true
+	case Name_DEPLOYING:
+		return true
+	case Name_FAILED:
+		return true
+	case Name_RUNNING:
+		return true
+	case Name_STOPPED:
 		return true
 	default:
 		return false
@@ -188,19 +236,19 @@ func (e InProgressPromotionStatus) Valid() bool {
 
 // Defines values for PromotionCleanupStrategy.
 const (
-	DEACTIVATE  PromotionCleanupStrategy = "DEACTIVATE"
-	KEEP        PromotionCleanupStrategy = "KEEP"
-	SCALETOZERO PromotionCleanupStrategy = "SCALE_TO_ZERO"
+	PromotionCleanupStrategy_DEACTIVATE    PromotionCleanupStrategy = "DEACTIVATE"
+	PromotionCleanupStrategy_KEEP          PromotionCleanupStrategy = "KEEP"
+	PromotionCleanupStrategy_SCALE_TO_ZERO PromotionCleanupStrategy = "SCALE_TO_ZERO"
 )
 
 // Valid indicates whether the value is a known member of the PromotionCleanupStrategy enum.
 func (e PromotionCleanupStrategy) Valid() bool {
 	switch e {
-	case DEACTIVATE:
+	case PromotionCleanupStrategy_DEACTIVATE:
 		return true
-	case KEEP:
+	case PromotionCleanupStrategy_KEEP:
 		return true
-	case SCALETOZERO:
+	case PromotionCleanupStrategy_SCALE_TO_ZERO:
 		return true
 	default:
 		return false
@@ -209,19 +257,19 @@ func (e PromotionCleanupStrategy) Valid() bool {
 
 // Defines values for ResourceKind.
 const (
-	CHAINLET        ResourceKind = "CHAINLET"
-	MODELDEPLOYMENT ResourceKind = "MODEL_DEPLOYMENT"
-	TRAININGJOB     ResourceKind = "TRAINING_JOB"
+	ResourceKind_CHAINLET         ResourceKind = "CHAINLET"
+	ResourceKind_MODEL_DEPLOYMENT ResourceKind = "MODEL_DEPLOYMENT"
+	ResourceKind_TRAINING_JOB     ResourceKind = "TRAINING_JOB"
 )
 
 // Valid indicates whether the value is a known member of the ResourceKind enum.
 func (e ResourceKind) Valid() bool {
 	switch e {
-	case CHAINLET:
+	case ResourceKind_CHAINLET:
 		return true
-	case MODELDEPLOYMENT:
+	case ResourceKind_MODEL_DEPLOYMENT:
 		return true
-	case TRAININGJOB:
+	case ResourceKind_TRAINING_JOB:
 		return true
 	default:
 		return false
@@ -230,13 +278,13 @@ func (e ResourceKind) Valid() bool {
 
 // Defines values for RollingDeployStrategy.
 const (
-	REPLICA RollingDeployStrategy = "REPLICA"
+	RollingDeployStrategy_REPLICA RollingDeployStrategy = "REPLICA"
 )
 
 // Valid indicates whether the value is a known member of the RollingDeployStrategy enum.
 func (e RollingDeployStrategy) Valid() bool {
 	switch e {
-	case REPLICA:
+	case RollingDeployStrategy_REPLICA:
 		return true
 	default:
 		return false
@@ -245,16 +293,34 @@ func (e RollingDeployStrategy) Valid() bool {
 
 // Defines values for SortOrder.
 const (
-	Asc  SortOrder = "asc"
-	Desc SortOrder = "desc"
+	SortOrder_asc  SortOrder = "asc"
+	SortOrder_desc SortOrder = "desc"
 )
 
 // Valid indicates whether the value is a known member of the SortOrder enum.
 func (e SortOrder) Valid() bool {
 	switch e {
-	case Asc:
+	case SortOrder_asc:
 		return true
-	case Desc:
+	case SortOrder_desc:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TrainerCheckpointTarget.
+const (
+	TrainerCheckpointTarget_sampler TrainerCheckpointTarget = "sampler"
+	TrainerCheckpointTarget_trainer TrainerCheckpointTarget = "trainer"
+)
+
+// Valid indicates whether the value is a known member of the TrainerCheckpointTarget enum.
+func (e TrainerCheckpointTarget) Valid() bool {
+	switch e {
+	case TrainerCheckpointTarget_sampler:
+		return true
+	case TrainerCheckpointTarget_trainer:
 		return true
 	default:
 		return false
@@ -263,19 +329,19 @@ func (e SortOrder) Valid() bool {
 
 // Defines values for UpdateAutoscalingSettingsStatus.
 const (
-	ACCEPTED  UpdateAutoscalingSettingsStatus = "ACCEPTED"
-	QUEUED    UpdateAutoscalingSettingsStatus = "QUEUED"
-	UNCHANGED UpdateAutoscalingSettingsStatus = "UNCHANGED"
+	UpdateAutoscalingSettingsStatus_ACCEPTED  UpdateAutoscalingSettingsStatus = "ACCEPTED"
+	UpdateAutoscalingSettingsStatus_QUEUED    UpdateAutoscalingSettingsStatus = "QUEUED"
+	UpdateAutoscalingSettingsStatus_UNCHANGED UpdateAutoscalingSettingsStatus = "UNCHANGED"
 )
 
 // Valid indicates whether the value is a known member of the UpdateAutoscalingSettingsStatus enum.
 func (e UpdateAutoscalingSettingsStatus) Valid() bool {
 	switch e {
-	case ACCEPTED:
+	case UpdateAutoscalingSettingsStatus_ACCEPTED:
 		return true
-	case QUEUED:
+	case UpdateAutoscalingSettingsStatus_QUEUED:
 		return true
-	case UNCHANGED:
+	case UpdateAutoscalingSettingsStatus_UNCHANGED:
 		return true
 	default:
 		return false
@@ -284,16 +350,16 @@ func (e UpdateAutoscalingSettingsStatus) Valid() bool {
 
 // Defines values for V1InteractiveSessionAuthProvider.
 const (
-	Github    V1InteractiveSessionAuthProvider = "github"
-	Microsoft V1InteractiveSessionAuthProvider = "microsoft"
+	V1InteractiveSessionAuthProvider_github    V1InteractiveSessionAuthProvider = "github"
+	V1InteractiveSessionAuthProvider_microsoft V1InteractiveSessionAuthProvider = "microsoft"
 )
 
 // Valid indicates whether the value is a known member of the V1InteractiveSessionAuthProvider enum.
 func (e V1InteractiveSessionAuthProvider) Valid() bool {
 	switch e {
-	case Github:
+	case V1InteractiveSessionAuthProvider_github:
 		return true
-	case Microsoft:
+	case V1InteractiveSessionAuthProvider_microsoft:
 		return true
 	default:
 		return false
@@ -302,19 +368,19 @@ func (e V1InteractiveSessionAuthProvider) Valid() bool {
 
 // Defines values for V1InteractiveSessionProvider.
 const (
-	Cursor V1InteractiveSessionProvider = "cursor"
-	Ssh    V1InteractiveSessionProvider = "ssh"
-	VsCode V1InteractiveSessionProvider = "vs_code"
+	V1InteractiveSessionProvider_cursor  V1InteractiveSessionProvider = "cursor"
+	V1InteractiveSessionProvider_ssh     V1InteractiveSessionProvider = "ssh"
+	V1InteractiveSessionProvider_vs_code V1InteractiveSessionProvider = "vs_code"
 )
 
 // Valid indicates whether the value is a known member of the V1InteractiveSessionProvider enum.
 func (e V1InteractiveSessionProvider) Valid() bool {
 	switch e {
-	case Cursor:
+	case V1InteractiveSessionProvider_cursor:
 		return true
-	case Ssh:
+	case V1InteractiveSessionProvider_ssh:
 		return true
-	case VsCode:
+	case V1InteractiveSessionProvider_vs_code:
 		return true
 	default:
 		return false
@@ -323,19 +389,19 @@ func (e V1InteractiveSessionProvider) Valid() bool {
 
 // Defines values for V1InteractiveSessionTrigger.
 const (
-	OnDemand  V1InteractiveSessionTrigger = "on_demand"
-	OnFailure V1InteractiveSessionTrigger = "on_failure"
-	OnStartup V1InteractiveSessionTrigger = "on_startup"
+	V1InteractiveSessionTrigger_on_demand  V1InteractiveSessionTrigger = "on_demand"
+	V1InteractiveSessionTrigger_on_failure V1InteractiveSessionTrigger = "on_failure"
+	V1InteractiveSessionTrigger_on_startup V1InteractiveSessionTrigger = "on_startup"
 )
 
 // Valid indicates whether the value is a known member of the V1InteractiveSessionTrigger enum.
 func (e V1InteractiveSessionTrigger) Valid() bool {
 	switch e {
-	case OnDemand:
+	case V1InteractiveSessionTrigger_on_demand:
 		return true
-	case OnFailure:
+	case V1InteractiveSessionTrigger_on_failure:
 		return true
-	case OnStartup:
+	case V1InteractiveSessionTrigger_on_startup:
 		return true
 	default:
 		return false
@@ -426,27 +492,6 @@ type AuthCode struct {
 	WorkingDirectory *string `json:"working_directory,omitempty"`
 }
 
-// AuthDeviceAuthorizeResponse Standard OAuth 2.0 Device Authorization Response (RFC 8628).
-type AuthDeviceAuthorizeResponse struct {
-	// DeviceCode Device code for polling
-	DeviceCode string `json:"device_code"`
-
-	// ExpiresIn Seconds until the device code expires
-	ExpiresIn int `json:"expires_in"`
-
-	// Interval Recommended polling interval in seconds
-	Interval int `json:"interval"`
-
-	// UserCode Code to display to the user
-	UserCode string `json:"user_code"`
-
-	// VerificationUri URI where the user authorizes the device
-	VerificationUri string `json:"verification_uri"`
-
-	// VerificationUriComplete Complete URI with user code pre-filled
-	VerificationUriComplete string `json:"verification_uri_complete"`
-}
-
 // AutoscalingSettings Autoscaling settings for a deployment.
 type AutoscalingSettings struct {
 	// AutoscalingWindow Timeframe of traffic considered for autoscaling decisions
@@ -525,6 +570,9 @@ type BillableResource struct {
 	// IsDeleted Indicates if the resource has been deleted
 	IsDeleted bool         `json:"is_deleted"`
 	Kind      ResourceKind `json:"kind"`
+
+	// ModelName Name of the parent resource (e.g., model name for model deployments, training project name for training jobs)
+	ModelName *string `json:"model_name,omitempty"`
 
 	// Name Name of the resource
 	Name *string `json:"name,omitempty"`
@@ -721,6 +769,18 @@ type CheckpointFile struct {
 	Url              string `json:"url"`
 }
 
+// CheckpointSearchRequest Lookup body for “POST /v1/trainers/checkpoints/search“.
+type CheckpointSearchRequest struct {
+	// CheckpointPath bt:// URI of a trainer checkpoint. Form: bt://loops:<trainer_id>/(weights|sampler_weights)/<checkpoint_name>.
+	CheckpointPath string `json:"checkpoint_path"`
+}
+
+// CheckpointSearchResponse Response for “POST /v1/trainers/checkpoints/search“.
+type CheckpointSearchResponse struct {
+	// Checkpoint A checkpoint saved by a trainer.
+	Checkpoint TrainerServerCheckpoint `json:"checkpoint"`
+}
+
 // CheckpointSyncStatus Lifecycle state for the checkpoint uploader.
 type CheckpointSyncStatus string
 
@@ -805,6 +865,9 @@ type CreateLLMModelRequest struct {
 	// Metadata User-defined metadata for the deployment
 	Metadata *map[string]interface{} `json:"metadata,omitempty"`
 
+	// ModelMetadata Model metadata persisted into model_config
+	ModelMetadata *map[string]interface{} `json:"model_metadata,omitempty"`
+
 	// Name Name of the model
 	Name string `json:"name"`
 
@@ -834,6 +897,9 @@ type CreateLLMModelVersionRequest struct {
 
 	// Metadata User-defined metadata for the deployment
 	Metadata *map[string]interface{} `json:"metadata,omitempty"`
+
+	// ModelMetadata Model metadata persisted into model_config
+	ModelMetadata *map[string]interface{} `json:"model_metadata,omitempty"`
 
 	// Resources Resources allocated to the model
 	Resources map[string]interface{} `json:"resources"`
@@ -872,6 +938,89 @@ type CreateLibraryListingVersionRequest struct {
 	VersionTag string `json:"version_tag"`
 }
 
+// CreateLoopsRunRequest defines model for CreateLoopsRunRequest.
+type CreateLoopsRunRequest struct {
+	// BaseModel Base model ID (e.g. 'Qwen/Qwen3-8B').
+	BaseModel string `json:"base_model"`
+
+	// LoraRank LoRA rank.
+	LoraRank *int `json:"lora_rank,omitempty"`
+
+	// MaxSeqLen Maximum prompt length (in tokens) the run must handle. Set this to the longest training example you plan to send.
+	MaxSeqLen *int `json:"max_seq_len,omitempty"`
+
+	// Path Optional bt:// URI of an existing checkpoint to load weights from on startup. Form: bt://loops:<run_id>/weights/<checkpoint_name>.
+	Path *string `json:"path,omitempty"`
+
+	// ScaleDownDelaySeconds Seconds of inactivity before the run scales to zero. Must be positive. Defaults to 3600 (1 hour).
+	ScaleDownDelaySeconds *int `json:"scale_down_delay_seconds,omitempty"`
+
+	// Seed Random seed for reproducibility.
+	Seed *int `json:"seed,omitempty"`
+
+	// SessionId ID of the Loops session this run belongs to.
+	SessionId string `json:"session_id"`
+}
+
+// CreateLoopsRunResponse defines model for CreateLoopsRunResponse.
+type CreateLoopsRunResponse struct {
+	Run LoopsRun `json:"run"`
+}
+
+// CreateLoopsSamplerRequest defines model for CreateLoopsSamplerRequest.
+type CreateLoopsSamplerRequest struct {
+	// BaseModel Base model ID for standalone samplers (e.g., for baselines).
+	BaseModel string `json:"base_model"`
+
+	// MaxSeqLength Maximum prompt length (in tokens) the sampler must handle. Set this to the longest prompt you plan to send. Omit to use the default for the base model.
+	MaxSeqLength *int `json:"max_seq_length,omitempty"`
+
+	// ModelPath Optional bt:// URI of an existing sampler-target checkpoint to load weights from on startup. Form: bt://loops:<run_id>/sampler_weights/<checkpoint_name>.
+	ModelPath *string `json:"model_path,omitempty"`
+
+	// SessionId ID of the Loops session this sampler belongs to.
+	SessionId string `json:"session_id"`
+}
+
+// CreateLoopsSamplerResponse defines model for CreateLoopsSamplerResponse.
+type CreateLoopsSamplerResponse struct {
+	Sampler LoopsSampler `json:"sampler"`
+}
+
+// CreateLoopsSessionRequest defines model for CreateLoopsSessionRequest.
+type CreateLoopsSessionRequest struct {
+	// TrainingProjectId ID of the training project to associate with. If omitted, a default project is created for the org.
+	TrainingProjectId *string `json:"training_project_id,omitempty"`
+}
+
+// CreateLoopsSessionResponse defines model for CreateLoopsSessionResponse.
+type CreateLoopsSessionResponse struct {
+	Session LoopsSession `json:"session"`
+}
+
+// CreateModelDeploymentRequest Body for adding a deployment to an existing model via
+// `POST /v1/models/{model_id}/deployments`.
+type CreateModelDeploymentRequest struct {
+	// Source Where the new deployment is created from.
+	Source CreateModelDeploymentRequest_Source `json:"source"`
+}
+
+// CreateModelDeploymentRequest_Source Where the new deployment is created from.
+type CreateModelDeploymentRequest_Source struct {
+	union json.RawMessage
+}
+
+// CreateModelRequest Body for creating a model via `POST /v1/models`.
+type CreateModelRequest struct {
+	// Source Where the new model is created from.
+	Source CreateModelRequest_Source `json:"source"`
+}
+
+// CreateModelRequest_Source Where the new model is created from.
+type CreateModelRequest_Source struct {
+	union json.RawMessage
+}
+
 // CreateModelWeightSnapshotRequest A request to create a model weight snapshot.
 type CreateModelWeightSnapshotRequest struct {
 	// Model Unique identifier of the model
@@ -879,6 +1028,60 @@ type CreateModelWeightSnapshotRequest struct {
 
 	// SnapshotUri Path to the model weight snapshot
 	SnapshotUri string `json:"snapshot_uri"`
+}
+
+// CreateSamplingServerRequest defines model for CreateSamplingServerRequest.
+type CreateSamplingServerRequest struct {
+	// CheckpointPath Optional bt:// URI of an existing sampler-target checkpoint to load weights from on startup. Form: bt://loops:<trainer_id>/sampler_weights/<checkpoint_name>.
+	CheckpointPath *string `json:"checkpoint_path,omitempty"`
+
+	// MaxSeqLength Maximum prompt length (in tokens) the sampler must handle. Set this to the longest prompt you plan to send. Omit to use the default for the base model.
+	MaxSeqLength *int `json:"max_seq_length,omitempty"`
+
+	// Model Model to use for standalone samplers (eg, for baselines).
+	Model string `json:"model"`
+}
+
+// CreateSamplingServerResponse defines model for CreateSamplingServerResponse.
+type CreateSamplingServerResponse struct {
+	SamplingServer SamplingServer `json:"sampling_server"`
+}
+
+// CreateTrainerServerRequest defines model for CreateTrainerServerRequest.
+type CreateTrainerServerRequest struct {
+	// CheckpointPath Optional bt:// URI of an existing trainer-target checkpoint to resume training from. Form: bt://loops:<trainer_id>/weights/<checkpoint_name>.
+	CheckpointPath *string `json:"checkpoint_path,omitempty"`
+
+	// LoraRank LoRA rank.
+	LoraRank *int `json:"lora_rank,omitempty"`
+
+	// MaxSeqLen Maximum sequence length for training.
+	MaxSeqLen *int `json:"max_seq_len,omitempty"`
+
+	// Model Base model ID (e.g. 'Qwen/Qwen3-8B').
+	Model string `json:"model"`
+
+	// ScaleDownDelaySeconds Seconds of inactivity before the trainer scales to zero. Must be positive. Defaults to 3600 (1 hour).
+	ScaleDownDelaySeconds *int `json:"scale_down_delay_seconds,omitempty"`
+
+	// Seed Random seed for reproducibility.
+	Seed *int `json:"seed,omitempty"`
+}
+
+// CreateTrainerServerResponse defines model for CreateTrainerServerResponse.
+type CreateTrainerServerResponse struct {
+	TrainerServer TrainerServer `json:"trainer_server"`
+}
+
+// CreateTrainerSessionRequest defines model for CreateTrainerSessionRequest.
+type CreateTrainerSessionRequest struct {
+	// TrainingProjectId ID of the training project to associate with. If omitted, a default project is created for the org.
+	TrainingProjectId *string `json:"training_project_id,omitempty"`
+}
+
+// CreateTrainerSessionResponse defines model for CreateTrainerSessionResponse.
+type CreateTrainerSessionResponse struct {
+	Session TrainerSession `json:"session"`
 }
 
 // CreateTrainingJob Configuration for a training job.
@@ -897,6 +1100,9 @@ type CreateTrainingJob struct {
 
 	// Name Name of the training job.
 	Name *string `json:"name,omitempty"`
+
+	// Priority Queue priority. Higher values are dequeued first. Defaults to 0.
+	Priority *int `json:"priority,omitempty"`
 
 	// Runtime Configuration to specify the runtime environment for a training job.
 	Runtime *CreateTrainingJobRuntime `json:"runtime,omitempty"`
@@ -1017,6 +1223,15 @@ type CreateTrainingJobS3Artifact struct {
 	S3Key string `json:"s3_key"`
 }
 
+// CreatedModelDeployment A newly created deployment and its model.
+type CreatedModelDeployment struct {
+	// Deployment A deployment of a model.
+	Deployment Deployment `json:"deployment"`
+
+	// Model A model.
+	Model Model `json:"model"`
+}
+
 // DailyDedicatedUsage defines model for DailyDedicatedUsage.
 type DailyDedicatedUsage struct {
 	// Date Date of the usage
@@ -1093,6 +1308,18 @@ type DailyTrainingUsageSubtotal1 = string
 // DailyTrainingUsage_Subtotal Subtotal cost incurred on this date in dollars
 type DailyTrainingUsage_Subtotal struct {
 	union json.RawMessage
+}
+
+// DeactivateLoopsDeploymentResponse Response for “POST /v1/loops/deployments/<deployment_id>/deactivate“.
+type DeactivateLoopsDeploymentResponse struct {
+	// BaseModel The base model whose Loops deployment was deactivated.
+	BaseModel string `json:"base_model"`
+
+	// Id The deactivated Loops deployment ID.
+	Id string `json:"id"`
+
+	// User A user.
+	User User `json:"user"`
 }
 
 // DeactivateResponse The response to a request to deactivate a deployment.
@@ -1219,6 +1446,70 @@ type Deployment struct {
 	Status DeploymentStatus `json:"status"`
 }
 
+// DeploymentArchivePayload Deployment-level fields for a model-archive push.
+//
+// Shared by every endpoint that creates a deployment from an uploaded archive:
+// `POST /v1/prepare_model_upload`, the `model_archive` source on `POST
+// /v1/models`, and `POST /v1/models/{model_id}/deployments`.
+type DeploymentArchivePayload struct {
+	// Config Parsed model config as a JSON object.
+	Config map[string]interface{} `json:"config"`
+
+	// DeployTimeoutMinutes Deploy timeout in minutes; allowed range 10 to 1440. Server default applies if unset.
+	DeployTimeoutMinutes *int `json:"deploy_timeout_minutes,omitempty"`
+
+	// DeploymentName Optional human-readable name for the deployment.
+	DeploymentName *string `json:"deployment_name,omitempty"`
+
+	// EnvironmentName Stable environment to push to (e.g. `production`). If unset, the deployment is created without environment selection. Caller must have push permission for the named environment.
+	EnvironmentName *string `json:"environment_name,omitempty"`
+
+	// Labels User-provided key-value labels for the deployment.
+	Labels *map[string]interface{} `json:"labels,omitempty"`
+
+	// PreserveEnvInstanceType Retain the target environment's current instance type rather than the one in `config`. Only meaningful when `environment_name` is set and that environment already exists.
+	PreserveEnvInstanceType *bool `json:"preserve_env_instance_type,omitempty"`
+
+	// RawConfig Original config.yaml text, persisted as-is on the deployment. Best-effort: invalid raw configs are logged and dropped without failing the request.
+	RawConfig *string `json:"raw_config,omitempty"`
+
+	// ScaleDownOldProduction Scale down the previous production deployment when promoting a new one. Only meaningful when promoting to production.
+	ScaleDownOldProduction *bool `json:"scale_down_old_production,omitempty"`
+
+	// SemverBump Semver bump applied to the new deployment.
+	SemverBump *DeploymentArchivePayloadSemverBump `json:"semver_bump,omitempty"`
+
+	// UserEnv Client environment metadata (e.g. client version, Python version). Validated server-side.
+	UserEnv *map[string]interface{} `json:"user_env,omitempty"`
+}
+
+// DeploymentArchivePayloadSemverBump Semver bump applied to the new deployment.
+type DeploymentArchivePayloadSemverBump string
+
+// DeploymentArchiveSource Add a deployment from an archive previously uploaded via the credentials
+// issued by `POST /v1/prepare_model_upload`.
+type DeploymentArchiveSource struct {
+	// Deployment Deployment-level fields for a model-archive push.
+	//
+	// Shared by every endpoint that creates a deployment from an uploaded archive:
+	// `POST /v1/prepare_model_upload`, the `model_archive` source on `POST
+	// /v1/models`, and `POST /v1/models/{model_id}/deployments`.
+	Deployment DeploymentArchivePayload `json:"deployment"`
+	Kind       *string                  `json:"kind,omitempty"`
+
+	// S3Key S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`.
+	S3Key string `json:"s3_key"`
+}
+
+// DeploymentConfigResponse The config of a deployment. Fields are populated per `output_format`.
+type DeploymentConfigResponse struct {
+	// Config The parsed config of the deployment.
+	Config *map[string]interface{} `json:"config,omitempty"`
+
+	// RawConfig The original config.yaml text — preserves comments, ordering, formatting.
+	RawConfig *string `json:"raw_config,omitempty"`
+}
+
 // DeploymentStatus The status of a deployment.
 type DeploymentStatus string
 
@@ -1267,6 +1558,12 @@ type DockerAuth struct {
 
 // DockerAuthType defines model for DockerAuthType.
 type DockerAuthType string
+
+// DownloadDeploymentResponse The response to a request to download a deployment's truss.
+type DownloadDeploymentResponse struct {
+	// DownloadUrl Presigned URL to download the truss tar file
+	DownloadUrl string `json:"download_url"`
+}
 
 // DownloadTrainingJobResponse A response that includes the artifacts for a training job
 type DownloadTrainingJobResponse struct {
@@ -1389,6 +1686,52 @@ type GetDeploymentLogsRequest struct {
 type GetLogsResponse struct {
 	// Logs Logs for a specific entity.
 	Logs []Log `json:"logs"`
+}
+
+// GetLoopsDeploymentResponse Response for “GET /v1/loops/deployments/<deployment_id>“.
+type GetLoopsDeploymentResponse struct {
+	// Deployment A Loops deployment — the long-lived run + sampler pair owned by a user.
+	//
+	// The deployment's current sampler is included inline. The full list of
+	// samplers visible to the caller (across all deployments) lives at
+	// ``GET /v1/loops/samplers``.
+	Deployment LoopsDeployment `json:"deployment"`
+}
+
+// GetLoopsRunResponse Response for “GET /v1/loops/runs/<run_id>“.
+type GetLoopsRunResponse struct {
+	Run LoopsRun `json:"run"`
+}
+
+// GetLoopsSamplerResponse Response for “GET /v1/loops/samplers/<sampler_id>“.
+type GetLoopsSamplerResponse struct {
+	Sampler LoopsSampler `json:"sampler"`
+}
+
+// GetLoopsSessionResponse Response for “GET /v1/loops/sessions/<session_id>“.
+type GetLoopsSessionResponse struct {
+	Session LoopsSession `json:"session"`
+}
+
+// GetTrainerServerCheckpointFilesResponse A response to fetch presigned URLs for files under a trainer server checkpoint.
+type GetTrainerServerCheckpointFilesResponse struct {
+	// NextPageToken Token to use for fetching the next page of results. None when there are no more results.
+	NextPageToken *int `json:"next_page_token,omitempty"`
+
+	// PresignedUrls List of presigned URLs for checkpoint files.
+	PresignedUrls []CheckpointFile `json:"presigned_urls"`
+
+	// TotalCount Total number of checkpoint files available.
+	TotalCount int `json:"total_count"`
+}
+
+// GetTrainerServerCheckpointsResponse A response to list checkpoints for a trainer.
+type GetTrainerServerCheckpointsResponse struct {
+	// Checkpoints The checkpoints for the trainer.
+	Checkpoints []TrainerServerCheckpoint `json:"checkpoints"`
+
+	// TrainerId The ID of the trainer.
+	TrainerId string `json:"trainer_id"`
 }
 
 // GetTrainingGpuCapacityResponse Response for the training GPU capacity endpoint.
@@ -1594,28 +1937,19 @@ type InteractiveSessionConfig struct {
 	Trigger        *V1InteractiveSessionTrigger `json:"trigger,omitempty"`
 }
 
-// LLMModel A BIS LLM model
-type LLMModel struct {
-	// CreatedAt Time the model was created in ISO 8601 format
-	CreatedAt time.Time `json:"created_at"`
+// LLMModelHandle Handle for a BIS LLM model deployment.
+type LLMModelHandle struct {
+	// Hostname Hostname used to invoke the model
+	Hostname string `json:"hostname"`
 
-	// Id Unique identifier of the model
-	Id string `json:"id"`
+	// InstanceTypeName Name of the instance type the model deployment is running on
+	InstanceTypeName *string `json:"instance_type_name,omitempty"`
 
-	// Name Name of the model
-	Name string `json:"name"`
-}
+	// ModelId Unique identifier of the model
+	ModelId string `json:"model_id"`
 
-// LLMModelVersion A BIS LLM model version
-type LLMModelVersion struct {
-	// CreatedAt Time the model was created in ISO 8601 format
-	CreatedAt time.Time `json:"created_at"`
-
-	// Id Unique identifier of the model version
-	Id string `json:"id"`
-
-	// Name Name of the model version
-	Name string `json:"name"`
+	// VersionId Unique identifier of the model version
+	VersionId string `json:"version_id"`
 }
 
 // LibraryListing A library listing.
@@ -1634,6 +1968,19 @@ type LibraryListing struct {
 
 	// UserDefinedId User-defined identifier of the library listing
 	UserDefinedId string `json:"user_defined_id"`
+}
+
+// LibraryListingSource Create a model by forking a library listing accessible to the caller's organization.
+type LibraryListingSource struct {
+	// DeployedModelName Optional name for the new deployed model. Defaults to the listing's configured name.
+	DeployedModelName *string `json:"deployed_model_name,omitempty"`
+	Kind              *string `json:"kind,omitempty"`
+
+	// OrgFoundationName Identifier of the publishing organization, as returned by `GET /v1/library_models`.
+	OrgFoundationName string `json:"org_foundation_name"`
+
+	// UserDefinedListingId Listing identifier within the publishing organization.
+	UserDefinedListingId string `json:"user_defined_listing_id"`
 }
 
 // LibraryListingTombstone A library listing tombstone.
@@ -1685,6 +2032,38 @@ type LibraryListings struct {
 	Listings []LibraryListing `json:"listings"`
 }
 
+// ListLoopsCheckpointsResponse Checkpoints matching the query filter.
+type ListLoopsCheckpointsResponse struct {
+	// Checkpoints Matching checkpoints.
+	Checkpoints []LoopsCheckpoint `json:"checkpoints"`
+}
+
+// ListLoopsDeploymentsResponse Response for “GET /v1/loops/deployments“.
+//
+// Returns the caller's Loops deployments whose latest status is not STOPPED
+// (i.e. CREATED, DEPLOYING, RUNNING, or FAILED). Stopped deployments are
+// excluded so the list is a fit-for-purpose "what's currently provisioned
+// for me" view — the deactivate endpoint is the inverse pair.
+type ListLoopsDeploymentsResponse struct {
+	// Deployments Active Loops deployments.
+	Deployments []LoopsDeployment `json:"deployments"`
+}
+
+// ListLoopsRunsResponse Runs matching the query filters.
+type ListLoopsRunsResponse struct {
+	// Runs List of runs.
+	Runs []LoopsRun `json:"runs"`
+}
+
+// ListLoopsSamplersResponse Response for “GET /v1/loops/samplers“.
+//
+// Returns the caller's samplers, including those paired to runs and
+// standalone samplers. Ordered newest-first.
+type ListLoopsSamplersResponse struct {
+	// Samplers List of samplers.
+	Samplers []LoopsSampler `json:"samplers"`
+}
+
 // ListTrainingJobsResponse A response to list training jobs.
 type ListTrainingJobsResponse struct {
 	// TrainingJobs List of training jobs.
@@ -1728,6 +2107,116 @@ type Log struct {
 
 	// Timestamp Epoch nanosecond timestamp of the log message.
 	Timestamp string `json:"timestamp"`
+}
+
+// LoopsCheckpoint A checkpoint saved by a Loops run.
+type LoopsCheckpoint struct {
+	// BaseModel The base model of the checkpoint.
+	BaseModel *string `json:"base_model"`
+
+	// CheckpointId The ID of the checkpoint.
+	CheckpointId string `json:"checkpoint_id"`
+
+	// CheckpointType The type of checkpoint.
+	CheckpointType string `json:"checkpoint_type"`
+
+	// CreatedAt The timestamp of the checkpoint in ISO 8601 format.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id The checkpoint ID.
+	Id string `json:"id"`
+
+	// LoraAdapterConfig The adapter config of the checkpoint.
+	LoraAdapterConfig *map[string]interface{} `json:"lora_adapter_config"`
+
+	// RunId The ID of the run that produced the checkpoint.
+	RunId string `json:"run_id"`
+
+	// SizeBytes The size of the checkpoint in bytes.
+	SizeBytes int `json:"size_bytes"`
+
+	// SyncStatus Sync state of the checkpoint: SYNCING or COMPLETE.
+	SyncStatus *string `json:"sync_status,omitempty"`
+
+	// Target Whether a TrainerServerCheckpoint is loadable by the sampler or the trainer.
+	//
+	// SAMPLER checkpoints are consumed by the sampling server for inference;
+	// TRAINER checkpoints capture full trainer state for resuming training.
+	// Mirrored in the bt:// URI as
+	// ``bt://loops:<trainer_id>/(sampler_weights|weights)/<name>``.
+	Target TrainerCheckpointTarget `json:"target"`
+}
+
+// LoopsCheckpointFilesResponse Response with presigned URLs for files under a Loops checkpoint.
+type LoopsCheckpointFilesResponse struct {
+	// NextPageToken Token to use for fetching the next page of results. None when there are no more results.
+	NextPageToken *int `json:"next_page_token,omitempty"`
+
+	// PresignedUrls List of presigned URLs for checkpoint files.
+	PresignedUrls []CheckpointFile `json:"presigned_urls"`
+
+	// TotalCount Total number of checkpoint files available.
+	TotalCount int `json:"total_count"`
+}
+
+// LoopsDeployment A Loops deployment — the long-lived run + sampler pair owned by a user.
+//
+// The deployment's current sampler is included inline. The full list of
+// samplers visible to the caller (across all deployments) lives at
+// “GET /v1/loops/samplers“.
+type LoopsDeployment struct {
+	// BaseModel The HuggingFace base model the deployment is fine-tuning.
+	BaseModel string `json:"base_model"`
+
+	// BaseUrl The run's base URL.
+	BaseUrl string `json:"base_url"`
+
+	// Id The Loops deployment ID.
+	Id      string       `json:"id"`
+	Sampler LoopsSampler `json:"sampler"`
+
+	// Status Latest deployment status for a Loops deployment.
+	Status LoopsDeploymentStatus `json:"status"`
+}
+
+// LoopsDeploymentStatus Latest deployment status for a Loops deployment.
+type LoopsDeploymentStatus struct {
+	Name Name `json:"name"`
+}
+
+// LoopsRun defines model for LoopsRun.
+type LoopsRun struct {
+	// BaseModel The HuggingFace base model the run is fine-tuning.
+	BaseModel string `json:"base_model"`
+
+	// BaseUrl The run's base URL.
+	BaseUrl string `json:"base_url"`
+
+	// CreatedAt Time the run was created in ISO 8601 format
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id The run ID.
+	Id      string       `json:"id"`
+	Sampler LoopsSampler `json:"sampler"`
+
+	// SessionId The session ID this run belongs to.
+	SessionId string `json:"session_id"`
+}
+
+// LoopsSampler defines model for LoopsSampler.
+type LoopsSampler struct {
+	// BaseModel The HuggingFace base model the sampler is serving.
+	BaseModel string `json:"base_model"`
+	BaseUrl   string `json:"base_url"`
+
+	// CreatedAt Time the sampler was created in ISO 8601 format
+	CreatedAt time.Time `json:"created_at"`
+	Id        string    `json:"id"`
+}
+
+// LoopsSession defines model for LoopsSession.
+type LoopsSession struct {
+	Id string `json:"id"`
 }
 
 // Model A model.
@@ -1840,6 +2329,30 @@ type ModelApisUsage_Total struct {
 	union json.RawMessage
 }
 
+// ModelArchiveSource Create a model from an archive previously uploaded via the credentials
+// issued by `POST /v1/prepare_model_upload`.
+type ModelArchiveSource struct {
+	// Deployment Deployment-level fields for a model-archive push.
+	//
+	// Shared by every endpoint that creates a deployment from an uploaded archive:
+	// `POST /v1/prepare_model_upload`, the `model_archive` source on `POST
+	// /v1/models`, and `POST /v1/models/{model_id}/deployments`.
+	Deployment DeploymentArchivePayload `json:"deployment"`
+
+	// DisableArchiveDownload If true, the uploaded archive is not downloadable after creation. Locked at model creation; cannot be changed by subsequent deployments.
+	DisableArchiveDownload *bool `json:"disable_archive_download,omitempty"`
+
+	// IsDevelopment If true, push as a development deployment (the model's single mutable dev slot; overwrites any existing development deployment). The following `deployment` fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `scale_down_old_production`, `semver_bump`, `deployment_name`.
+	IsDevelopment *bool   `json:"is_development,omitempty"`
+	Kind          *string `json:"kind,omitempty"`
+
+	// Name Name of the new model.
+	Name string `json:"name"`
+
+	// S3Key S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`.
+	S3Key string `json:"s3_key"`
+}
+
 // ModelTombstone A model tombstone.
 type ModelTombstone struct {
 	// Deleted Whether the model was deleted
@@ -1866,6 +2379,9 @@ type Models struct {
 	Models []Model `json:"models"`
 }
 
+// Name defines model for Name.
+type Name string
+
 // OrderBy A request to order training jobs.
 type OrderBy struct {
 	// Field The field to order by.
@@ -1891,6 +2407,56 @@ type PatchInteractiveSessionResponse struct {
 
 	// Message Human-readable summary of what was updated.
 	Message string `json:"message"`
+}
+
+// PrepareModelUploadRequest Body for `POST /v1/prepare_model_upload`.
+//
+// Validates the same payload the commit endpoint will validate, and on
+// `dry_run=false` issues STS upload credentials. Exactly one of `name` or
+// `model_id` is required: `name` validates the new-model path (`POST
+// /v1/models`); `model_id` validates the add-deployment path (`POST
+// /v1/models/{model_id}/deployments`).
+type PrepareModelUploadRequest struct {
+	// Deployment Deployment-level fields for a model-archive push.
+	//
+	// Shared by every endpoint that creates a deployment from an uploaded archive:
+	// `POST /v1/prepare_model_upload`, the `model_archive` source on `POST
+	// /v1/models`, and `POST /v1/models/{model_id}/deployments`.
+	Deployment DeploymentArchivePayload `json:"deployment"`
+
+	// DryRun If true, validate the payload only and do not issue upload credentials. The response sets `creds`, `s3_bucket`, and `s3_key` to `null`.
+	DryRun *bool `json:"dry_run,omitempty"`
+
+	// IsDevelopment If true, validate a development-deployment push. Only valid when `name` is set. The following `deployment` fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `scale_down_old_production`, `semver_bump`, `deployment_name`.
+	IsDevelopment *bool `json:"is_development,omitempty"`
+
+	// ModelId Set to validate an add-deployment push to an existing model. Exactly one of `name` or `model_id` is required.
+	ModelId *string `json:"model_id,omitempty"`
+
+	// Name Set to validate a new-model push. Exactly one of `name` or `model_id` is required.
+	Name *string `json:"name,omitempty"`
+
+	// TeamId Team the new model will belong to. Only valid when `name` is set; defaults to the organization's default team when omitted. Must not be set when `model_id` is set (the existing model already has a team).
+	TeamId *string `json:"team_id,omitempty"`
+}
+
+// PrepareModelUploadResponse Response from `POST /v1/prepare_model_upload`.
+//
+// On success with `dry_run=false`, returns STS upload credentials. On success
+// with `dry_run=true`, `creds`, `s3_bucket`, and `s3_key` are `null` and only
+// validation has run.
+type PrepareModelUploadResponse struct {
+	// Creds AWS credentials
+	Creds *AWSCredentials `json:"creds,omitempty"`
+
+	// S3Bucket S3 bucket the credentials are scoped to.
+	S3Bucket *string `json:"s3_bucket,omitempty"`
+
+	// S3Key S3 key the credentials are scoped to. Pass this to `POST /v1/models` (in the `model_archive` source) once the upload completes.
+	S3Key *string `json:"s3_key,omitempty"`
+
+	// S3Region AWS region the S3 bucket resides in.
+	S3Region *string `json:"s3_region,omitempty"`
 }
 
 // PromoteRequest A request to promote a deployment to production.
@@ -1995,6 +2561,24 @@ type RollingDeployConfig struct {
 // RollingDeployStrategy The rolling deploy strategy.
 type RollingDeployStrategy string
 
+// SamplingServer defines model for SamplingServer.
+type SamplingServer struct {
+	BaseUrl string `json:"base_url"`
+	Id      string `json:"id"`
+}
+
+// SearchTrainersRequest Filters for searching trainers visible to the requesting user.
+type SearchTrainersRequest struct {
+	// TrainerId Filter by trainer ID.
+	TrainerId *string `json:"trainer_id,omitempty"`
+}
+
+// SearchTrainersResponse Trainers matching the search filters.
+type SearchTrainersResponse struct {
+	// Trainers List of trainers.
+	Trainers []SearchedTrainer `json:"trainers"`
+}
+
 // SearchTrainingJobsRequest A request to search training jobs.
 type SearchTrainingJobsRequest struct {
 	// JobId Filter the training jobs by job ID.
@@ -2014,6 +2598,18 @@ type SearchTrainingJobsRequest struct {
 type SearchTrainingJobsResponse struct {
 	// TrainingJobs List of training jobs.
 	TrainingJobs []TrainingJob `json:"training_jobs"`
+}
+
+// SearchedTrainer Trainer entry returned by /v1/trainers/search.
+type SearchedTrainer struct {
+	// BaseModel The HuggingFace base model the trainer is fine-tuning.
+	BaseModel string `json:"base_model"`
+
+	// SessionId The session ID this trainer belongs to.
+	SessionId string `json:"session_id"`
+
+	// TrainerId The trainer ID.
+	TrainerId string `json:"trainer_id"`
 }
 
 // Secret A Baseten secret. Note that we do not support retrieving secret values.
@@ -2044,8 +2640,8 @@ type SignSSHCertificateRequest struct {
 	// PublicKey The user's SSH public key (e.g., 'ssh-ed25519 AAAA... user@host').
 	PublicKey string `json:"public_key"`
 
-	// ReplicaId The replica to connect to (e.g. '0' for training, hash for inference).
-	ReplicaId string `json:"replica_id"`
+	// ReplicaId The replica to connect to. Required for training jobs (e.g. '0'). Optional for inference (server picks a running replica if omitted).
+	ReplicaId *string `json:"replica_id,omitempty"`
 }
 
 // SignSSHCertificateResponse Response containing a signed SSH certificate for proxy authentication.
@@ -2116,6 +2712,64 @@ type TerminateReplicaResponse struct {
 	Success *bool `json:"success,omitempty"`
 }
 
+// TrainerCheckpointTarget Whether a TrainerServerCheckpoint is loadable by the sampler or the trainer.
+//
+// SAMPLER checkpoints are consumed by the sampling server for inference;
+// TRAINER checkpoints capture full trainer state for resuming training.
+// Mirrored in the bt:// URI as
+// “bt://loops:<trainer_id>/(sampler_weights|weights)/<name>“.
+type TrainerCheckpointTarget string
+
+// TrainerServer defines model for TrainerServer.
+type TrainerServer struct {
+	BaseUrl        string         `json:"base_url"`
+	Id             string         `json:"id"`
+	SamplingServer SamplingServer `json:"sampling_server"`
+}
+
+// TrainerServerCheckpoint A checkpoint saved by a trainer.
+type TrainerServerCheckpoint struct {
+	// BaseModel The base model of the checkpoint.
+	BaseModel *string `json:"base_model"`
+
+	// CheckpointId The ID of the checkpoint.
+	CheckpointId string `json:"checkpoint_id"`
+
+	// CheckpointType The type of checkpoint.
+	CheckpointType string `json:"checkpoint_type"`
+
+	// CreatedAt The timestamp of the checkpoint in ISO 8601 format.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id The TrainerServerCheckpoint database ID.
+	Id string `json:"id"`
+
+	// LoraAdapterConfig The adapter config of the checkpoint.
+	LoraAdapterConfig *map[string]interface{} `json:"lora_adapter_config"`
+
+	// SizeBytes The size of the checkpoint in bytes.
+	SizeBytes int `json:"size_bytes"`
+
+	// SyncStatus Sync state of the checkpoint: SYNCING or COMPLETE.
+	SyncStatus *string `json:"sync_status,omitempty"`
+
+	// Target Whether a TrainerServerCheckpoint is loadable by the sampler or the trainer.
+	//
+	// SAMPLER checkpoints are consumed by the sampling server for inference;
+	// TRAINER checkpoints capture full trainer state for resuming training.
+	// Mirrored in the bt:// URI as
+	// ``bt://loops:<trainer_id>/(sampler_weights|weights)/<name>``.
+	Target TrainerCheckpointTarget `json:"target"`
+
+	// TrainerId The ID of the trainer.
+	TrainerId string `json:"trainer_id"`
+}
+
+// TrainerSession defines model for TrainerSession.
+type TrainerSession struct {
+	Id string `json:"id"`
+}
+
 // TrainingGpuCapacityItem GPU capacity and current usage for one GPU type.
 type TrainingGpuCapacityItem struct {
 	// Baseline Baseline GPU allocation; jobs below this threshold are expected to run immediately. 0 if not configured.
@@ -2178,6 +2832,9 @@ type TrainingJob struct {
 
 	// Name Name of the training job.
 	Name *string `json:"name,omitempty"`
+
+	// Priority Queue priority. Higher values are dequeued first. NULL is treated as 0.
+	Priority *int `json:"priority,omitempty"`
 
 	// TrainingProject A summary of a training project.
 	TrainingProject TrainingProjectSummary `json:"training_project"`
@@ -2584,6 +3241,12 @@ type ChainDeploymentId = string
 // ChainId defines model for chain_id.
 type ChainId = string
 
+// ChainletId defines model for chainlet_id.
+type ChainletId = string
+
+// CheckpointId defines model for checkpoint_id.
+type CheckpointId = string
+
 // DeploymentId defines model for deployment_id.
 type DeploymentId = string
 
@@ -2596,11 +3259,20 @@ type ModelId = string
 // ReplicaId defines model for replica_id.
 type ReplicaId = string
 
+// RunId defines model for run_id.
+type RunId = string
+
+// SamplerId defines model for sampler_id.
+type SamplerId = string
+
 // SessionId defines model for session_id.
 type SessionId = string
 
 // TeamId defines model for team_id.
 type TeamId = string
+
+// TrainerId defines model for trainer_id.
+type TrainerId = string
 
 // TrainingJobId defines model for training_job_id.
 type TrainingJobId = string
@@ -2617,8 +3289,32 @@ type UserId = string
 // VersionTag defines model for version_tag.
 type VersionTag = string
 
+// GetV1LoopsCheckpointsParams defines parameters for GetV1LoopsCheckpoints.
+type GetV1LoopsCheckpointsParams struct {
+	// RunId Filter by run ID. Returns all checkpoints saved by the run.
+	RunId *string `form:"run_id,omitempty" json:"run_id,omitempty"`
+
+	// BaseModel Filter by base model. Returns checkpoints across the caller's runs of this base model.
+	BaseModel *string `form:"base_model,omitempty" json:"base_model,omitempty"`
+
+	// CheckpointPath bt:// URI of a Loops checkpoint. Form: bt://loops:<run_id>/(weights|sampler_weights)/<checkpoint_name>.
+	CheckpointPath *string `form:"checkpoint_path,omitempty" json:"checkpoint_path,omitempty"`
+}
+
+// GetV1LoopsRunsParams defines parameters for GetV1LoopsRuns.
+type GetV1LoopsRunsParams struct {
+	// RunId Filter by run ID.
+	RunId *string `form:"run_id,omitempty" json:"run_id,omitempty"`
+
+	// BaseModel Filter runs by base model name.
+	BaseModel *string `form:"base_model,omitempty" json:"base_model,omitempty"`
+}
+
 // PostV1ApiKeysJSONRequestBody defines body for PostV1ApiKeys for application/json ContentType.
 type PostV1ApiKeysJSONRequestBody = CreateAPIKeyRequest
+
+// PostV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsJSONRequestBody defines body for PostV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogs for application/json ContentType.
+type PostV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsJSONRequestBody = GetDeploymentLogsRequest
 
 // PostV1ChainsChainIdEnvironmentsJSONRequestBody defines body for PostV1ChainsChainIdEnvironments for application/json ContentType.
 type PostV1ChainsChainIdEnvironmentsJSONRequestBody = CreateChainEnvironmentRequest
@@ -2653,11 +3349,26 @@ type PostV1LlmModelsJSONRequestBody = CreateLLMModelRequest
 // PostV1LlmModelsModelIdDeploymentsJSONRequestBody defines body for PostV1LlmModelsModelIdDeployments for application/json ContentType.
 type PostV1LlmModelsModelIdDeploymentsJSONRequestBody = CreateLLMModelVersionRequest
 
+// PostV1LoopsRunsJSONRequestBody defines body for PostV1LoopsRuns for application/json ContentType.
+type PostV1LoopsRunsJSONRequestBody = CreateLoopsRunRequest
+
+// PostV1LoopsSamplersJSONRequestBody defines body for PostV1LoopsSamplers for application/json ContentType.
+type PostV1LoopsSamplersJSONRequestBody = CreateLoopsSamplerRequest
+
+// PostV1LoopsSessionsJSONRequestBody defines body for PostV1LoopsSessions for application/json ContentType.
+type PostV1LoopsSessionsJSONRequestBody = CreateLoopsSessionRequest
+
 // PostV1ModelApisSnapshotsJSONRequestBody defines body for PostV1ModelApisSnapshots for application/json ContentType.
 type PostV1ModelApisSnapshotsJSONRequestBody = CreateModelWeightSnapshotRequest
 
 // PostV1ModelApisSnapshotsModelIdJSONRequestBody defines body for PostV1ModelApisSnapshotsModelId for application/json ContentType.
 type PostV1ModelApisSnapshotsModelIdJSONRequestBody = CreateModelWeightSnapshotRequest
+
+// PostV1ModelsJSONRequestBody defines body for PostV1Models for application/json ContentType.
+type PostV1ModelsJSONRequestBody = CreateModelRequest
+
+// PostV1ModelsModelIdDeploymentsJSONRequestBody defines body for PostV1ModelsModelIdDeployments for application/json ContentType.
+type PostV1ModelsModelIdDeploymentsJSONRequestBody = CreateModelDeploymentRequest
 
 // PatchV1ModelsModelIdDeploymentsDevelopmentAutoscalingSettingsJSONRequestBody defines body for PatchV1ModelsModelIdDeploymentsDevelopmentAutoscalingSettings for application/json ContentType.
 type PatchV1ModelsModelIdDeploymentsDevelopmentAutoscalingSettingsJSONRequestBody = UpdateAutoscalingSettings
@@ -2677,6 +3388,9 @@ type PostV1ModelsModelIdDeploymentsDeploymentIdLogsJSONRequestBody = GetDeployme
 // PostV1ModelsModelIdDeploymentsDeploymentIdPromoteJSONRequestBody defines body for PostV1ModelsModelIdDeploymentsDeploymentIdPromote for application/json ContentType.
 type PostV1ModelsModelIdDeploymentsDeploymentIdPromoteJSONRequestBody = PromoteRequest
 
+// PostV1ModelsModelIdDeploymentsDeploymentIdSshSignJSONRequestBody defines body for PostV1ModelsModelIdDeploymentsDeploymentIdSshSign for application/json ContentType.
+type PostV1ModelsModelIdDeploymentsDeploymentIdSshSignJSONRequestBody = SignSSHCertificateRequest
+
 // PostV1ModelsModelIdEnvironmentsJSONRequestBody defines body for PostV1ModelsModelIdEnvironments for application/json ContentType.
 type PostV1ModelsModelIdEnvironmentsJSONRequestBody = CreateEnvironmentRequest
 
@@ -2685,6 +3399,9 @@ type PatchV1ModelsModelIdEnvironmentsEnvNameJSONRequestBody = UpdateEnvironmentR
 
 // PostV1ModelsModelIdEnvironmentsEnvNamePromoteJSONRequestBody defines body for PostV1ModelsModelIdEnvironmentsEnvNamePromote for application/json ContentType.
 type PostV1ModelsModelIdEnvironmentsEnvNamePromoteJSONRequestBody = PromoteToEnvironmentRequest
+
+// PostV1PrepareModelUploadJSONRequestBody defines body for PostV1PrepareModelUpload for application/json ContentType.
+type PostV1PrepareModelUploadJSONRequestBody = PrepareModelUploadRequest
 
 // PostV1SecretsJSONRequestBody defines body for PostV1Secrets for application/json ContentType.
 type PostV1SecretsJSONRequestBody = UpsertSecretRequest
@@ -2695,11 +3412,29 @@ type PostV1TeamsTeamIdApiKeysJSONRequestBody = CreateAPIKeyRequest
 // PostV1TeamsTeamIdLlmModelsJSONRequestBody defines body for PostV1TeamsTeamIdLlmModels for application/json ContentType.
 type PostV1TeamsTeamIdLlmModelsJSONRequestBody = CreateLLMModelRequest
 
+// PostV1TeamsTeamIdModelsJSONRequestBody defines body for PostV1TeamsTeamIdModels for application/json ContentType.
+type PostV1TeamsTeamIdModelsJSONRequestBody = CreateModelRequest
+
 // PostV1TeamsTeamIdSecretsJSONRequestBody defines body for PostV1TeamsTeamIdSecrets for application/json ContentType.
 type PostV1TeamsTeamIdSecretsJSONRequestBody = UpsertSecretRequest
 
 // PostV1TeamsTeamIdTrainingProjectsJSONRequestBody defines body for PostV1TeamsTeamIdTrainingProjects for application/json ContentType.
 type PostV1TeamsTeamIdTrainingProjectsJSONRequestBody = UpsertTrainingProjectRequest
+
+// PostV1TrainerSessionsJSONRequestBody defines body for PostV1TrainerSessions for application/json ContentType.
+type PostV1TrainerSessionsJSONRequestBody = CreateTrainerSessionRequest
+
+// PostV1TrainerSessionsSessionIdSamplersJSONRequestBody defines body for PostV1TrainerSessionsSessionIdSamplers for application/json ContentType.
+type PostV1TrainerSessionsSessionIdSamplersJSONRequestBody = CreateSamplingServerRequest
+
+// PostV1TrainerSessionsSessionIdTrainersJSONRequestBody defines body for PostV1TrainerSessionsSessionIdTrainers for application/json ContentType.
+type PostV1TrainerSessionsSessionIdTrainersJSONRequestBody = CreateTrainerServerRequest
+
+// PostV1TrainersCheckpointsSearchJSONRequestBody defines body for PostV1TrainersCheckpointsSearch for application/json ContentType.
+type PostV1TrainersCheckpointsSearchJSONRequestBody = CheckpointSearchRequest
+
+// PostV1TrainersSearchJSONRequestBody defines body for PostV1TrainersSearch for application/json ContentType.
+type PostV1TrainersSearchJSONRequestBody = SearchTrainersRequest
 
 // PostV1TrainingJobsSearchJSONRequestBody defines body for PostV1TrainingJobsSearch for application/json ContentType.
 type PostV1TrainingJobsSearchJSONRequestBody = SearchTrainingJobsRequest
@@ -2724,6 +3459,118 @@ type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdSshSignJSONRequestB
 
 // PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody defines body for PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStop for application/json ContentType.
 type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody = StopTrainingJobRequest
+
+// AsDeploymentArchiveSource returns the union data inside the CreateModelDeploymentRequest_Source as a DeploymentArchiveSource
+func (t CreateModelDeploymentRequest_Source) AsDeploymentArchiveSource() (DeploymentArchiveSource, error) {
+	var body DeploymentArchiveSource
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDeploymentArchiveSource overwrites any union data inside the CreateModelDeploymentRequest_Source as the provided DeploymentArchiveSource
+func (t *CreateModelDeploymentRequest_Source) FromDeploymentArchiveSource(v DeploymentArchiveSource) error {
+	_v := "model_archive"
+	v.Kind = &_v
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t CreateModelDeploymentRequest_Source) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"kind"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t CreateModelDeploymentRequest_Source) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "model_archive":
+		return t.AsDeploymentArchiveSource()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t CreateModelDeploymentRequest_Source) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CreateModelDeploymentRequest_Source) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsLibraryListingSource returns the union data inside the CreateModelRequest_Source as a LibraryListingSource
+func (t CreateModelRequest_Source) AsLibraryListingSource() (LibraryListingSource, error) {
+	var body LibraryListingSource
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLibraryListingSource overwrites any union data inside the CreateModelRequest_Source as the provided LibraryListingSource
+func (t *CreateModelRequest_Source) FromLibraryListingSource(v LibraryListingSource) error {
+	_v := "library_listing"
+	v.Kind = &_v
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsModelArchiveSource returns the union data inside the CreateModelRequest_Source as a ModelArchiveSource
+func (t CreateModelRequest_Source) AsModelArchiveSource() (ModelArchiveSource, error) {
+	var body ModelArchiveSource
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromModelArchiveSource overwrites any union data inside the CreateModelRequest_Source as the provided ModelArchiveSource
+func (t *CreateModelRequest_Source) FromModelArchiveSource(v ModelArchiveSource) error {
+	_v := "model_archive"
+	v.Kind = &_v
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t CreateModelRequest_Source) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"kind"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t CreateModelRequest_Source) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "library_listing":
+		return t.AsLibraryListingSource()
+	case "model_archive":
+		return t.AsModelArchiveSource()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t CreateModelRequest_Source) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CreateModelRequest_Source) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
 
 // AsCreateTrainingJobRuntimeEnvironmentVariables0 returns the union data inside the CreateTrainingJobRuntime_EnvironmentVariables_AdditionalProperties as a CreateTrainingJobRuntimeEnvironmentVariables0
 func (t CreateTrainingJobRuntime_EnvironmentVariables_AdditionalProperties) AsCreateTrainingJobRuntimeEnvironmentVariables0() (CreateTrainingJobRuntimeEnvironmentVariables0, error) {
