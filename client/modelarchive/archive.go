@@ -1,10 +1,9 @@
 // Package modelarchive builds uncompressed tar archives of Truss model
 // directories for upload to Baseten.
 //
-// Archive layout matches the canonical Python implementation in baseten-truss
-// (truss/remote/baseten/utils/tar.py + truss/util/path.py): files are stored
-// at the archive root with paths relative to the input directory, symlinks
-// are not followed, and only regular files are included.
+// Archive layout matches the canonical Truss implementation: files are
+// stored at the archive root with paths relative to the input directory,
+// symlinks are not followed, and only regular files are included.
 //
 // Ignore handling is driven by a caller-supplied [IgnoreFileFunc]. If a
 // .truss_ignore file is present at the root of the input directory, callers
@@ -122,6 +121,12 @@ func BuildModelArchive(ctx context.Context, opts BuildModelArchiveOptions) (io.R
 	}
 	if len(opts.ExternalPackageDirs) > 0 && opts.BundledPackagesDir == "" {
 		return nil, errors.New("modelarchive: BundledPackagesDir is required when ExternalPackageDirs is non-empty")
+	}
+	if opts.BundledPackagesDir != "" {
+		clean := path.Clean(filepath.ToSlash(opts.BundledPackagesDir))
+		if path.IsAbs(clean) || clean == ".." || strings.HasPrefix(clean, "../") {
+			return nil, fmt.Errorf("modelarchive: BundledPackagesDir must be a relative path within the archive, got %q", opts.BundledPackagesDir)
+		}
 	}
 
 	ignoreFn, err := resolveIgnore(ctx, opts)
