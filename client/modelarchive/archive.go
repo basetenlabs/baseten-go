@@ -396,7 +396,20 @@ func DefaultIgnoreFile(_ context.Context, opts IgnoreFileOptions) (bool, error) 
 			return true, nil
 		}
 	}
+	for _, anchored := range defaultIgnoreAnchored {
+		if opts.RelPath == anchored || strings.HasPrefix(opts.RelPath, anchored+"/") {
+			return true, nil
+		}
+	}
 	return false, nil
+}
+
+// Path-anchored patterns from the bundled .truss_ignore. Matched against
+// the full RelPath, not the basename, so e.g. "docs/_build" only triggers
+// under a top-level docs/ directory.
+var defaultIgnoreAnchored = []string{
+	"docs/_build",
+	"share/python-wheels",
 }
 
 // Suffix patterns from the bundled .truss_ignore. Includes the *.py[cod]
@@ -426,7 +439,7 @@ func isDefaultIgnoredName(base string) bool {
 		"venv.bak", ".spyderproject", ".spyproject", ".ropeproject", ".mypy_cache",
 		".dmypy.json", "dmypy.json", ".ruff_cache", ".pyre", ".pytype",
 		"cython_debug", ".git", "local_settings.py", "db.sqlite3",
-		"db.sqlite3-journal", ".pytest_cache", "cover":
+		"db.sqlite3-journal", ".pytest_cache", "cover", ".hypothesis":
 		return true
 	}
 	return false

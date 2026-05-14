@@ -216,11 +216,18 @@ func TestBuildModelArchiveDefaultIgnoreApplied(t *testing.T) {
 	writeFile(t, filepath.Join(dir, "model", "model.pyc"), "binary")
 	writeFile(t, filepath.Join(dir, "__pycache__", "cached.pyc"), "binary")
 	writeFile(t, filepath.Join(dir, ".DS_Store"), "junk")
+	writeFile(t, filepath.Join(dir, ".hypothesis", "db.sqlite3"), "junk")
+	writeFile(t, filepath.Join(dir, "docs", "_build", "html", "index.html"), "junk")
+	writeFile(t, filepath.Join(dir, "share", "python-wheels", "x.whl"), "junk")
+	// Path-anchored patterns must not match outside their parent: a top-level
+	// _build/ or python-wheels/ should still ship.
+	writeFile(t, filepath.Join(dir, "_build", "keep.txt"), "keep")
+	writeFile(t, filepath.Join(dir, "python-wheels", "keep.txt"), "keep")
 
 	rc, err := modelarchive.BuildModelArchive(context.Background(), modelarchive.BuildModelArchiveOptions{Dir: dir})
 	require.NoError(t, err)
 	names := entryNames(readArchive(t, rc))
-	require.Equal(t, "config.yaml,model/model.py", strings.Join(names, ","))
+	require.Equal(t, "_build/keep.txt,config.yaml,model/model.py,python-wheels/keep.txt", strings.Join(names, ","))
 }
 
 func TestBuildModelArchiveIgnoreFileOverridesDefaults(t *testing.T) {
