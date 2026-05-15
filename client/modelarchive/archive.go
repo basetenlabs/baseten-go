@@ -129,7 +129,7 @@ func BuildModelArchive(ctx context.Context, opts BuildModelArchiveOptions) (io.R
 		}
 	}
 
-	ignoreFn, err := resolveIgnore(ctx, opts)
+	ignoreFn, err := resolveIgnoreFunc(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -142,11 +142,11 @@ func BuildModelArchive(ctx context.Context, opts BuildModelArchiveOptions) (io.R
 	return pr, nil
 }
 
-// resolveIgnore determines the IgnoreFileFunc to use for the walk: if a
+// resolveIgnoreFunc determines the IgnoreFileFunc to use for the walk: if a
 // .truss_ignore file exists at the root of opts.Dir, it is parsed via
 // opts.IgnoreFileProcessor (which must be non-nil); otherwise
 // opts.DefaultIgnoreFile or the package default is used.
-func resolveIgnore(ctx context.Context, opts BuildModelArchiveOptions) (IgnoreFileFunc, error) {
+func resolveIgnoreFunc(ctx context.Context, opts BuildModelArchiveOptions) (IgnoreFileFunc, error) {
 	ignorePath := filepath.Join(opts.Dir, ignoreFileName)
 	contents, err := os.ReadFile(ignorePath)
 	if errors.Is(err, fs.ErrNotExist) {
@@ -189,7 +189,12 @@ func writeArchive(
 	defer tw.Close()
 
 	emitted := map[string]struct{}{}
-	configWritten := false
+
+	if opts.ConfigYAMLOverride != nil {
+		if err := emitBytes(tw, "config.yaml", opts.ConfigYAMLOverride, emitted); err != nil {
+			return err
+		}
+	}
 
 	walkErr := filepath.WalkDir(opts.Dir, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -226,27 +231,18 @@ func writeArchive(
 			return nil
 		}
 
+		if relSlash == "config.yaml" && opts.ConfigYAMLOverride != nil {
+			return nil
+		}
+
 		info, err := d.Info()
 		if err != nil {
 			return fmt.Errorf("modelarchive: stat %s: %w", p, err)
-		}
-		if relSlash == "config.yaml" && opts.ConfigYAMLOverride != nil {
-			if err := emitBytes(tw, "config.yaml", opts.ConfigYAMLOverride, emitted); err != nil {
-				return err
-			}
-			configWritten = true
-			return nil
 		}
 		return emitFile(tw, relSlash, p, info, emitted)
 	})
 	if walkErr != nil {
 		return walkErr
-	}
-
-	if opts.ConfigYAMLOverride != nil && !configWritten {
-		if err := emitBytes(tw, "config.yaml", opts.ConfigYAMLOverride, emitted); err != nil {
-			return err
-		}
 	}
 
 	for _, extDir := range opts.ExternalPackageDirs {

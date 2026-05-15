@@ -20,8 +20,9 @@ type InferenceClientOptions struct {
 	// ChainID is the chain to target. Mutually exclusive with ModelID.
 	ChainID string
 
-	// Environment is the regional environment name (e.g. "prod-us"). When set,
-	// the environment is embedded in the hostname rather than the path.
+	// Environment is the optional regional environment slug (e.g. "prod-us")
+	// that selects a regional deployment. Leave empty for the default region.
+	// See https://docs.baseten.co/deployment/environments#regional-environments.
 	Environment string
 
 	// BaseURL overrides the computed inference API base URL. Mutually exclusive
@@ -52,6 +53,9 @@ type InferenceClient struct {
 
 // InferenceClientHost computes the inference API host (no scheme) from the
 // given options. Exactly one of modelID or chainID must be non-empty.
+// environment is the optional regional environment slug (e.g. "prod-us")
+// that selects a regional deployment; leave empty for the default region.
+// See https://docs.baseten.co/deployment/environments#regional-environments.
 // rootApiHost defaults to "api.baseten.co" when empty.
 func InferenceClientHost(modelID, chainID, environment, rootApiHost string) (string, error) {
 	if modelID == "" && chainID == "" {
@@ -63,14 +67,14 @@ func InferenceClientHost(modelID, chainID, environment, rootApiHost string) (str
 	if rootApiHost == "" {
 		rootApiHost = "api.baseten.co"
 	}
-	subject := "model-" + modelID
+	entity := "model-" + modelID
 	if chainID != "" {
-		subject = "chain-" + chainID
+		entity = "chain-" + chainID
 	}
 	if environment != "" {
-		subject += "-" + environment
+		entity += "-" + environment
 	}
-	return subject + "." + rootApiHost, nil
+	return entity + "." + rootApiHost, nil
 }
 
 // InferenceClientDefaultBaseURL computes the default inference API base URL
