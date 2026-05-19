@@ -24,6 +24,10 @@ type apiOperation struct {
 	// Only populated for codes that have a typed schema.
 	ErrorCodes map[int]string
 	Summary    string
+	// ParamsType is the oapi-codegen-generated Params struct name for query
+	// parameters, e.g. "GetV1BillingUsageSummaryParams". Empty if the
+	// operation has no query parameters.
+	ParamsType string
 }
 
 
@@ -89,6 +93,11 @@ func extractOperations(spec map[string]any) ([]apiOperation, error) {
 			name = deriveMethodName(r.httpMethod, r.path, r.op, true)
 		}
 
+		paramsType := ""
+		if hasQueryParams(spec, paths, r.path, r.op) {
+			paramsType = oapiParamsTypeName(r.httpMethod, r.path)
+		}
+
 		ops = append(ops, apiOperation{
 			Name:        name,
 			HTTPMethod:  strings.ToUpper(r.httpMethod),
@@ -100,6 +109,7 @@ func extractOperations(spec map[string]any) ([]apiOperation, error) {
 			SuccessCode: successCode,
 			ErrorCodes:  errorCodeMap(spec, r.op),
 			Summary:     summary,
+			ParamsType:  paramsType,
 		})
 	}
 
@@ -125,6 +135,45 @@ func extractSuccessCode(op map[string]any, httpMethod, path string) (int, error)
 		return 0, fmt.Errorf("expected exactly one 2xx response for %s %s, got %v", httpMethod, path, codes)
 	}
 	return codes[0], nil
+}
+
+// hasQueryParams reports whether the operation has any `in: query` parameters,
+// either declared on the operation itself or on the path item. $refs to
+// components/parameters are resolved.
+func hasQueryParams(spec map[string]any, paths map[string]any, path string, op map[string]any) bool {
+	collect := func(node map[string]any) bool {
+		raw, _ := node["parameters"].([]any)
+		for _, p := range raw {
+			pm, _ := p.(map[string]any)
+			pm = resolveRef(spec, pm)
+			if loc, _ := pm["in"].(string); loc == "query" {
+				return true
+			}
+		}
+		return false
+	}
+	if collect(op) {
+		return true
+	}
+	pathItem, _ := paths[path].(map[string]any)
+	return collect(pathItem)
+}
+
+// oapiParamsTypeName mirrors oapi-codegen's default naming for the Params
+// struct emitted for an operation with parameters. E.g. GET /v1/billing/usage_summary
+// → GetV1BillingUsageSummaryParams.
+func oapiParamsTypeName(httpMethod, path string) string {
+	cleanPath := strings.TrimPrefix(path, "/")
+	segments := strings.Split(cleanPath, "/")
+	var parts []string
+	for _, seg := range segments {
+		if m := pathParamRe.FindStringSubmatch(seg); m != nil {
+			parts = append(parts, toPascalCase(m[1]))
+		} else {
+			parts = append(parts, toPascalCase(seg))
+		}
+	}
+	return toPascalCase(httpMethod) + strings.Join(parts, "") + "Params"
 }
 
 var pathParamRe = regexp.MustCompile(`\{(\w+)\}`)
@@ -323,6 +372,14 @@ func renderClient(pkgName string, ops []apiOperation) string {
 	}
 	sort.Strings(sortedErrorRefs)
 
+	hasQuery := false
+	for _, op := range ops {
+		if op.ParamsType != "" {
+			hasQuery = true
+			break
+		}
+	}
+
 	imports := map[string]bool{
 		"bytes":         true,
 		"context":       true,
@@ -332,6 +389,11 @@ func renderClient(pkgName string, ops []apiOperation) string {
 		"net/http":      true,
 		"net/url":       true,
 		"strings":       true,
+	}
+	if hasQuery {
+		imports["reflect"] = true
+		imports["strconv"] = true
+		imports["time"] = true
 	}
 
 	var w strings.Builder
@@ -416,14 +478,20 @@ const (
 		_ = i
 		pf("\n\terrorType%s", ref)
 	}
+	queryField := ""
+	queryEncode := ""
+	if hasQuery {
+		queryField = "\tqueryParams any\n"
+		queryEncode = "\tif r.queryParams != nil {\n\t\tif q := encodeQuery(r.queryParams); len(q) > 0 {\n\t\t\tpath += \"?\" + q.Encode()\n\t\t}\n\t}\n"
+	}
 	pf(`
 )
 
 type apiRequest struct {
-	method      string
-	pathFmt     string
-	pathArgs    []any
-	body        any
+	method   string
+	pathFmt  string
+	pathArgs []any
+%s	body        any
 	successCode int
 	// errorCodes maps HTTP status codes to a typed error schema. Status codes
 	// not in this map (or decode failures) fall back to [*ResponseError].
@@ -435,7 +503,7 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 		r.pathArgs[i] = url.PathEscape(fmt.Sprint(p))
 	}
 	path := fmt.Sprintf(r.pathFmt, r.pathArgs...)
-	var bodyReader io.Reader
+%s	var bodyReader io.Reader
 	if r.body != nil {
 		b, err := json.Marshal(r.body)
 		if err != nil {
@@ -473,7 +541,7 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 }
 
 func decodeErrorType(et errorType, statusCode int, body []byte) error {
-	switch et {`)
+	switch et {`, queryField, queryEncode)
 	for _, ref := range sortedErrorRefs {
 		pf(`
 	case errorType%s:
@@ -487,6 +555,69 @@ func decodeErrorType(et errorType, statusCode int, body []byte) error {
 	return nil
 }
 `)
+
+	if hasQuery {
+		pf(`
+// encodeQuery walks a Params struct emitted by oapi-codegen and renders its
+// fields as url.Values using the "form" struct tag. Pointer fields that are
+// nil are skipped. time.Time values are rendered as RFC 3339.
+func encodeQuery(p any) url.Values {
+	q := url.Values{}
+	v := reflect.ValueOf(p)
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return q
+		}
+		v = v.Elem()
+	}
+	if v.Kind() != reflect.Struct {
+		return q
+	}
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		tag := t.Field(i).Tag.Get("form")
+		if tag == "" || tag == "-" {
+			continue
+		}
+		name := strings.SplitN(tag, ",", 2)[0]
+		if name == "" {
+			continue
+		}
+		fv := v.Field(i)
+		if fv.Kind() == reflect.Ptr {
+			if fv.IsNil() {
+				continue
+			}
+			fv = fv.Elem()
+		}
+		switch x := fv.Interface().(type) {
+		case time.Time:
+			q.Set(name, x.Format(time.RFC3339))
+		case []string:
+			for _, s := range x {
+				q.Add(name, s)
+			}
+		default:
+			switch fv.Kind() {
+			case reflect.String:
+				q.Set(name, fv.String())
+			case reflect.Bool:
+				q.Set(name, strconv.FormatBool(fv.Bool()))
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				q.Set(name, strconv.FormatInt(fv.Int(), 10))
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				q.Set(name, strconv.FormatUint(fv.Uint(), 10))
+			case reflect.Float32, reflect.Float64:
+				q.Set(name, strconv.FormatFloat(fv.Float(), 'g', -1, 64))
+			default:
+				q.Set(name, fmt.Sprint(fv.Interface()))
+			}
+		}
+	}
+	return q
+}
+`)
+	}
 
 	if hasTypedResp {
 		pf(`
@@ -535,6 +666,9 @@ func renderMethod(w *strings.Builder, op apiOperation) {
 	params := []string{"ctx context.Context"}
 	for _, p := range op.PathParams {
 		params = append(params, snakeToCamel(p)+" string")
+	}
+	if op.ParamsType != "" {
+		params = append(params, "params "+op.ParamsType)
 	}
 	if op.HasBody {
 		if op.ReqBodyRef != "" {
@@ -602,14 +736,19 @@ func renderMethod(w *strings.Builder, op apiOperation) {
 		errorCodesExpr = "map[int]errorType{" + strings.Join(entries, ", ") + "}"
 	}
 
+	queryLine := ""
+	if op.ParamsType != "" {
+		queryLine = "\n\t\tqueryParams: params,"
+	}
+
 	reqLit := fmt.Sprintf(`apiRequest{
 		method:      %q,
 		pathFmt:     %q,
-		pathArgs:    %s,
+		pathArgs:    %s,%s
 		body:        %s,
 		successCode: %d,
 		errorCodes:  %s,
-	}`, op.HTTPMethod, pathFmt(op.Path), pathArgsList, bodyArg, op.SuccessCode, errorCodesExpr)
+	}`, op.HTTPMethod, pathFmt(op.Path), pathArgsList, queryLine, bodyArg, op.SuccessCode, errorCodesExpr)
 
 	if op.RespRef != "" {
 		pf("func (c *Client) %s(%s) (*%s, error) {\n", op.Name, strings.Join(params, ", "), op.RespRef)

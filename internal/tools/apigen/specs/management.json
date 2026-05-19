@@ -78,6 +78,39 @@
                 }
             }
         },
+        "/v1/secrets/{secret_name}": {
+            "delete": {
+                "summary": "Deletes a secret by name",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/secrets/{secret_name} \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/secrets/{secret_name}\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Deletes a secret by name in the specified team, or in the caller's organization default team when no team is specified.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SecretTombstoneV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/secret_name"
+                }
+            ]
+        },
         "/v1/teams/{team_id}/secrets": {
             "get": {
                 "summary": "Gets all secrets for a team (metadata only, no plain text keys)",
@@ -145,6 +178,42 @@
                     }
                 }
             }
+        },
+        "/v1/teams/{team_id}/secrets/{secret_name}": {
+            "delete": {
+                "summary": "Deletes a secret by name",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/teams/{team_id}/secrets/{secret_name} \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/secrets/{secret_name}\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Deletes a secret by name in the specified team, or in the caller's organization default team when no team is specified.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SecretTombstoneV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/team_id"
+                },
+                {
+                    "$ref": "#/components/parameters/secret_name"
+                }
+            ]
         },
         "/v1/teams": {
             "get": {
@@ -234,11 +303,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/prepare_model_upload \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"deployment\": {\n    \"config\": null,\n    \"raw_config\": null,\n    \"user_env\": null,\n    \"environment_name\": null,\n    \"semver_bump\": null,\n    \"preserve_env_instance_type\": null,\n    \"scale_down_old_production\": null,\n    \"deploy_timeout_minutes\": null,\n    \"deployment_name\": null,\n    \"labels\": null\n  },\n  \"name\": null,\n  \"team_id\": null,\n  \"model_id\": null,\n  \"dry_run\": null,\n  \"is_development\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/prepare_model_upload \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"deployment\": {\n    \"config\": null,\n    \"raw_config\": null,\n    \"user_env\": null,\n    \"environment_name\": null,\n    \"preserve_env_instance_type\": null,\n    \"deploy_timeout_minutes\": null,\n    \"deployment_name\": null,\n    \"labels\": null\n  },\n  \"name\": null,\n  \"team_id\": null,\n  \"model_id\": null,\n  \"dry_run\": null,\n  \"is_development\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/prepare_model_upload\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'deployment': {'config': None, 'raw_config': None, 'user_env': None, 'environment_name': None, 'semver_bump': None, 'preserve_env_instance_type': None, 'scale_down_old_production': None, 'deploy_timeout_minutes': None, 'deployment_name': None, 'labels': None}, 'name': None, 'team_id': None, 'model_id': None, 'dry_run': None, 'is_development': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/prepare_model_upload\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'deployment': {'config': None, 'raw_config': None, 'user_env': None, 'environment_name': None, 'preserve_env_instance_type': None, 'deploy_timeout_minutes': None, 'deployment_name': None, 'labels': None}, 'name': None, 'team_id': None, 'model_id': None, 'dry_run': None, 'is_development': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -3413,6 +3482,34 @@
                 }
             ]
         },
+        "/v1/loops/capabilities": {
+            "get": {
+                "summary": "Get Loops server capabilities.",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/loops/capabilities \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/capabilities\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns the list of models supported by the Loops server, including each model's maximum context length.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetLoopsCapabilitiesResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/loops/sessions": {
             "post": {
                 "summary": "Create a Loops session.",
@@ -3808,6 +3905,44 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ListLoopsCheckpointsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/loops/checkpoints/validate": {
+            "post": {
+                "summary": "Validate a Loops checkpoint bt:// URI.",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/checkpoints/validate \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"checkpoint_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/checkpoints/validate\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'checkpoint_path': 'bt://loops:k4q95w5/sampler_weights/step-100'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Whether the caller can manage and use this checkpoint.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ValidateLoopsCheckpointRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidateLoopsCheckpointResponseV1"
                                 }
                             }
                         }
@@ -4757,6 +4892,30 @@
                     }
                 ],
                 "description": "Returns billing usage data within the specified date range. Includes dedicated model serving, training, and model APIs usage. The date range must not exceed 31 days.",
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "required": true,
+                        "description": "Start date (ISO 8601, UTC). Earliest queryable: 2026-01-01.",
+                        "schema": {
+                            "format": "date-time",
+                            "title": "Start Date",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "required": true,
+                        "description": "End date in ISO 8601 format (UTC). Date range cannot exceed 31 days.",
+                        "schema": {
+                            "format": "date-time",
+                            "title": "End Date",
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -4801,6 +4960,283 @@
             "parameters": [
                 {
                     "$ref": "#/components/parameters/user_id"
+                }
+            ]
+        },
+        "/v1/gateway/groups": {
+            "get": {
+                "summary": "List groups",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/gateway/groups \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/groups\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GroupsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a group",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/gateway/groups \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"metadata\": {\n    \"name\": \"Acme prod\",\n    \"external_entity_id\": \"cust_42\"\n  },\n  \"models\": null,\n  \"hierarchy\": {\n    \"limit_enforcement\": \"INDEPENDENT\",\n    \"parent_group_id\": \"abc123\"\n  }\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/groups\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'metadata': {'name': 'Acme prod', 'external_entity_id': 'cust_42'}, 'models': None, 'hierarchy': {'limit_enforcement': 'INDEPENDENT', 'parent_group_id': 'abc123'}}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Creates a group and its endpoint configuration",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateGroupRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GroupV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/gateway/groups/{group_id}": {
+            "get": {
+                "summary": "Get a group",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/gateway/groups/{group_id} \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/groups/{group_id}\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GroupV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/group_id"
+                }
+            ],
+            "patch": {
+                "summary": "Update a group",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/gateway/groups/{group_id} \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"metadata\": {\n    \"name\": \"Acme Prod\"\n  },\n  \"models\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/groups/{group_id}\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'metadata': {'name': 'Acme Prod'}, 'models': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Updates the group's mutable fields",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateGroupRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GroupV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/gateway/groups/{group_id}/api_keys": {
+            "get": {
+                "summary": "List API keys for a group",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/gateway/groups/{group_id}/api_keys \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/groups/{group_id}/api_keys\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/KeysForGroupResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/group_id"
+                }
+            ],
+            "post": {
+                "summary": "Create an API key for a group",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/gateway/groups/{group_id}/api_keys \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"prod-key-1\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/groups/{group_id}/api_keys\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'prod-key-1'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Creates a new API key for the given group",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateApiKeyForGroupRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateApiKeyForGroupResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/gateway/groups/{group_id}/api_keys/register": {
+            "post": {
+                "summary": "Register an API key for a group",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/gateway/groups/{group_id}/api_keys/register \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"my-model-api-key\",\n  \"key\": \"my-secure-api-key-value\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/groups/{group_id}/api_keys/register\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'my-model-api-key', 'key': 'my-secure-api-key-value'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Registers a Gateway API key with provided value, name.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterAPIKeyRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegisterAPIKeyResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/group_id"
+                }
+            ]
+        },
+        "/v1/gateway/groups/{group_id}/api_keys/{api_key_prefix}": {
+            "get": {
+                "summary": "Get an API key for a group",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/gateway/groups/{group_id}/api_keys/{api_key_prefix} \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/groups/{group_id}/api_keys/{api_key_prefix}\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GatewayKeyInfoV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/group_id"
+                },
+                {
+                    "$ref": "#/components/parameters/api_key_prefix"
                 }
             ]
         }
@@ -4878,6 +5314,21 @@
                     "value"
                 ],
                 "title": "UpsertSecretRequestV1",
+                "type": "object"
+            },
+            "SecretTombstoneV1": {
+                "description": "A secret tombstone.",
+                "properties": {
+                    "name": {
+                        "description": "Name of the deleted secret",
+                        "title": "Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ],
+                "title": "SecretTombstoneV1",
                 "type": "object"
             },
             "TeamV1": {
@@ -5099,27 +5550,10 @@
                         "description": "Stable environment to push to (e.g. `production`). If unset, the deployment is created without environment selection. Caller must have push permission for the named environment.",
                         "title": "Environment Name"
                     },
-                    "semver_bump": {
-                        "default": "MINOR",
-                        "description": "Semver bump applied to the new deployment.",
-                        "enum": [
-                            "MAJOR",
-                            "MINOR",
-                            "PATCH"
-                        ],
-                        "title": "Semver Bump",
-                        "type": "string"
-                    },
                     "preserve_env_instance_type": {
                         "default": true,
                         "description": "Retain the target environment's current instance type rather than the one in `config`. Only meaningful when `environment_name` is set and that environment already exists.",
                         "title": "Preserve Env Instance Type",
-                        "type": "boolean"
-                    },
-                    "scale_down_old_production": {
-                        "default": true,
-                        "description": "Scale down the previous production deployment when promoting a new one. Only meaningful when promoting to production.",
-                        "title": "Scale Down Old Production",
                         "type": "boolean"
                     },
                     "deploy_timeout_minutes": {
@@ -5223,7 +5657,7 @@
                     },
                     "is_development": {
                         "default": false,
-                        "description": "If true, validate a development-deployment push. Only valid when `name` is set. The following `deployment` fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `scale_down_old_production`, `semver_bump`, `deployment_name`.",
+                        "description": "If true, validate a development-deployment push. Only valid when `name` is set. The following `deployment` fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `deployment_name`.",
                         "title": "Is Development",
                         "type": "boolean"
                     }
@@ -5479,7 +5913,7 @@
                     },
                     "is_development": {
                         "default": false,
-                        "description": "If true, push as a development deployment (the model's single mutable dev slot; overwrites any existing development deployment). The following `deployment` fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `scale_down_old_production`, `semver_bump`, `deployment_name`.",
+                        "description": "If true, push as a development deployment (the model's single mutable dev slot; overwrites any existing development deployment). The following `deployment` fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `deployment_name`.",
                         "title": "Is Development",
                         "type": "boolean"
                     }
@@ -10548,10 +10982,17 @@
                         "type": "string"
                     },
                     "max_seq_len": {
-                        "default": 131072,
-                        "description": "Maximum sequence length for training.",
-                        "title": "Max Seq Len",
-                        "type": "integer"
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Maximum sequence length for training. Defaults to the maximum supported by the model configuration.",
+                        "title": "Max Seq Len"
                     },
                     "lora_rank": {
                         "default": 64,
@@ -10770,6 +11211,45 @@
                 "title": "GetTrainerServerCheckpointFilesResponseV1",
                 "type": "object"
             },
+            "SupportedModelV1": {
+                "description": "A model supported by the Loops server.",
+                "properties": {
+                    "model_name": {
+                        "description": "The name of the supported model.",
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "max_context_length": {
+                        "description": "The maximum context length (in tokens) supported by this model.",
+                        "title": "Max Context Length",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "model_name",
+                    "max_context_length"
+                ],
+                "title": "SupportedModelV1",
+                "type": "object"
+            },
+            "GetLoopsCapabilitiesResponseV1": {
+                "description": "Response for ``GET /v1/loops/capabilities``.",
+                "properties": {
+                    "supported_models": {
+                        "description": "List of models available on the server.",
+                        "items": {
+                            "$ref": "#/components/schemas/SupportedModelV1"
+                        },
+                        "title": "Supported Models",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "supported_models"
+                ],
+                "title": "GetLoopsCapabilitiesResponseV1",
+                "type": "object"
+            },
             "CreateLoopsSessionRequestV1": {
                 "properties": {
                     "training_project_id": {
@@ -10934,10 +11414,17 @@
                         "type": "string"
                     },
                     "max_seq_len": {
-                        "default": 131072,
-                        "description": "Maximum prompt length (in tokens) the run must handle. Set this to the longest training example you plan to send.",
-                        "title": "Max Seq Len",
-                        "type": "integer"
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Maximum prompt length (in tokens) the run must handle. Set this to the longest training example you plan to send. Defaults to the maximum supported by the model configuration.",
+                        "title": "Max Seq Len"
                     },
                     "lora_rank": {
                         "default": 64,
@@ -11215,6 +11702,30 @@
                     "checkpoints"
                 ],
                 "title": "ListLoopsCheckpointsResponseV1",
+                "type": "object"
+            },
+            "ValidateLoopsCheckpointRequestV1": {
+                "description": "Request body for ``POST /v1/loops/checkpoints/validate``.",
+                "properties": {
+                    "checkpoint_path": {
+                        "description": "bt:// URI of a sampler checkpoint. Form: bt://loops:<run_id>/sampler_weights/<checkpoint_name>.",
+                        "examples": [
+                            "bt://loops:k4q95w5/sampler_weights/step-100"
+                        ],
+                        "title": "Checkpoint Path",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "checkpoint_path"
+                ],
+                "title": "ValidateLoopsCheckpointRequestV1",
+                "type": "object"
+            },
+            "ValidateLoopsCheckpointResponseV1": {
+                "description": "Response for ``POST /v1/loops/checkpoints/validate``. Empty on success;\ninaccessible or malformed paths raise 400.",
+                "properties": {},
+                "title": "ValidateLoopsCheckpointResponseV1",
                 "type": "object"
             },
             "LoopsCheckpointFilesResponseV1": {
@@ -13012,9 +13523,666 @@
                 ],
                 "title": "UserInfoV1",
                 "type": "object"
+            },
+            "EffectiveModelConfigV1": {
+                "properties": {
+                    "slug": {
+                        "description": "Shared endpoint slug.",
+                        "title": "Slug",
+                        "type": "string"
+                    },
+                    "rate_limits": {
+                        "items": {
+                            "$ref": "#/components/schemas/EffectiveRateLimitV1"
+                        },
+                        "title": "Rate Limits",
+                        "type": "array"
+                    },
+                    "usage_limits": {
+                        "items": {
+                            "$ref": "#/components/schemas/EffectiveUsageLimitV1"
+                        },
+                        "title": "Usage Limits",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "slug"
+                ],
+                "title": "EffectiveModelConfigV1",
+                "type": "object"
+            },
+            "EffectiveRateLimitV1": {
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/LimitTypeV1",
+                        "description": "The type of the rate limit",
+                        "examples": [
+                            "TOKEN",
+                            "REQUEST"
+                        ]
+                    },
+                    "unit": {
+                        "$ref": "#/components/schemas/RateLimitUnitV1",
+                        "description": "The unit of the rate limit",
+                        "examples": [
+                            "SECOND",
+                            "MINUTE"
+                        ]
+                    },
+                    "threshold": {
+                        "description": "The threshold for the rate limit",
+                        "examples": [
+                            1000,
+                            50000
+                        ],
+                        "minimum": 1,
+                        "title": "Threshold",
+                        "type": "integer"
+                    },
+                    "source_group": {
+                        "description": "ID of the group in the hierarchy this limit is anchored to.",
+                        "examples": [
+                            "abc123"
+                        ],
+                        "title": "Source Group",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "unit",
+                    "threshold",
+                    "source_group"
+                ],
+                "title": "EffectiveRateLimitV1",
+                "type": "object"
+            },
+            "EffectiveUsageLimitV1": {
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/LimitTypeV1",
+                        "description": "The type of the usage limit",
+                        "examples": [
+                            "REQUEST",
+                            "TOKEN"
+                        ]
+                    },
+                    "unit": {
+                        "$ref": "#/components/schemas/UsageLimitUnitV1",
+                        "description": "The unit of the usage limit",
+                        "examples": [
+                            "DAY"
+                        ]
+                    },
+                    "threshold": {
+                        "description": "The threshold for the usage limit",
+                        "examples": [
+                            10000000
+                        ],
+                        "minimum": 1,
+                        "title": "Threshold",
+                        "type": "integer"
+                    },
+                    "source_group": {
+                        "description": "ID of the group in the hierarchy this limit is anchored to.",
+                        "examples": [
+                            "abc123"
+                        ],
+                        "title": "Source Group",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "unit",
+                    "threshold",
+                    "source_group"
+                ],
+                "title": "EffectiveUsageLimitV1",
+                "type": "object"
+            },
+            "GroupHierarchyV1": {
+                "properties": {
+                    "limit_enforcement": {
+                        "$ref": "#/components/schemas/LimitEnforcementV1",
+                        "default": "INDEPENDENT",
+                        "examples": [
+                            "CASCADING",
+                            "INDEPENDENT"
+                        ]
+                    },
+                    "parent_group_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "examples": [
+                            "abc123"
+                        ],
+                        "title": "Parent Group Id"
+                    }
+                },
+                "title": "GroupHierarchyV1",
+                "type": "object"
+            },
+            "GroupMetadataV1": {
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "maxLength": 255,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional display name for the group.",
+                        "examples": [
+                            "Acme prod"
+                        ],
+                        "title": "Name"
+                    },
+                    "external_entity_id": {
+                        "description": "External-system identifier for this group. Unique within the caller's org.",
+                        "examples": [
+                            "cust_42"
+                        ],
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "External Entity Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "external_entity_id"
+                ],
+                "title": "GroupMetadataV1",
+                "type": "object"
+            },
+            "GroupV1": {
+                "properties": {
+                    "id": {
+                        "description": "Internal Baseten ID for the group.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/GroupMetadataV1",
+                        "description": "Group identity + display metadata."
+                    },
+                    "models": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelConfigV1"
+                        },
+                        "title": "Models",
+                        "type": "array"
+                    },
+                    "effective_models": {
+                        "items": {
+                            "$ref": "#/components/schemas/EffectiveModelConfigV1"
+                        },
+                        "title": "Effective Models",
+                        "type": "array"
+                    },
+                    "hierarchy": {
+                        "$ref": "#/components/schemas/GroupHierarchyV1",
+                        "description": "Parent linkage and limit enforcement mode. Parent is null for root groups."
+                    },
+                    "created_at": {
+                        "description": "When this group was created.",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "metadata",
+                    "hierarchy",
+                    "created_at"
+                ],
+                "title": "GroupV1",
+                "type": "object"
+            },
+            "LimitEnforcementV1": {
+                "enum": [
+                    "CASCADING",
+                    "INDEPENDENT"
+                ],
+                "title": "LimitEnforcementV1",
+                "type": "string"
+            },
+            "LimitTypeV1": {
+                "enum": [
+                    "REQUEST",
+                    "TOKEN"
+                ],
+                "title": "LimitTypeV1",
+                "type": "string"
+            },
+            "ModelConfigV1": {
+                "properties": {
+                    "slug": {
+                        "description": "Shared endpoint slug.",
+                        "title": "Slug",
+                        "type": "string"
+                    },
+                    "rate_limits": {
+                        "items": {
+                            "$ref": "#/components/schemas/RateLimitV1"
+                        },
+                        "title": "Rate Limits",
+                        "type": "array"
+                    },
+                    "usage_limits": {
+                        "items": {
+                            "$ref": "#/components/schemas/UsageLimitV1"
+                        },
+                        "title": "Usage Limits",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "slug"
+                ],
+                "title": "ModelConfigV1",
+                "type": "object"
+            },
+            "PaginationResponseV1": {
+                "properties": {
+                    "has_more": {
+                        "description": "Whether more items exist after this page.",
+                        "title": "Has More",
+                        "type": "boolean"
+                    },
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor to pass into the next request. Null when there is no next page.",
+                        "title": "Cursor"
+                    }
+                },
+                "required": [
+                    "has_more"
+                ],
+                "title": "PaginationResponseV1",
+                "type": "object"
+            },
+            "RateLimitUnitV1": {
+                "enum": [
+                    "SECOND",
+                    "MINUTE"
+                ],
+                "title": "RateLimitUnitV1",
+                "type": "string"
+            },
+            "RateLimitV1": {
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/LimitTypeV1",
+                        "description": "The type of the rate limit",
+                        "examples": [
+                            "TOKEN",
+                            "REQUEST"
+                        ]
+                    },
+                    "unit": {
+                        "$ref": "#/components/schemas/RateLimitUnitV1",
+                        "description": "The unit of the rate limit",
+                        "examples": [
+                            "SECOND",
+                            "MINUTE"
+                        ]
+                    },
+                    "threshold": {
+                        "description": "The threshold for the rate limit",
+                        "examples": [
+                            1000,
+                            50000
+                        ],
+                        "minimum": 1,
+                        "title": "Threshold",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "type",
+                    "unit",
+                    "threshold"
+                ],
+                "title": "RateLimitV1",
+                "type": "object"
+            },
+            "UsageLimitUnitV1": {
+                "enum": [
+                    "DAY"
+                ],
+                "title": "UsageLimitUnitV1",
+                "type": "string"
+            },
+            "UsageLimitV1": {
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/LimitTypeV1",
+                        "description": "The type of the usage limit",
+                        "examples": [
+                            "REQUEST",
+                            "TOKEN"
+                        ]
+                    },
+                    "unit": {
+                        "$ref": "#/components/schemas/UsageLimitUnitV1",
+                        "description": "The unit of the usage limit",
+                        "examples": [
+                            "DAY"
+                        ]
+                    },
+                    "threshold": {
+                        "description": "The threshold for the usage limit",
+                        "examples": [
+                            10000000
+                        ],
+                        "minimum": 1,
+                        "title": "Threshold",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "type",
+                    "unit",
+                    "threshold"
+                ],
+                "title": "UsageLimitV1",
+                "type": "object"
+            },
+            "GroupsResponseV1": {
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/GroupV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "GroupsResponseV1",
+                "type": "object"
+            },
+            "CreateGroupRequestV1": {
+                "properties": {
+                    "metadata": {
+                        "$ref": "#/components/schemas/GroupMetadataV1",
+                        "description": "Group identity + display metadata."
+                    },
+                    "models": {
+                        "description": "Per-model rate and usage limit configuration. Defines the group's complete model set. Must be non-empty.",
+                        "items": {
+                            "$ref": "#/components/schemas/ModelConfigV1"
+                        },
+                        "title": "Models",
+                        "type": "array"
+                    },
+                    "hierarchy": {
+                        "$ref": "#/components/schemas/GroupHierarchyV1",
+                        "description": "Parent linkage and limit enforcement mode. Immutable after creation."
+                    }
+                },
+                "required": [
+                    "metadata",
+                    "models",
+                    "hierarchy"
+                ],
+                "title": "CreateGroupRequestV1",
+                "type": "object"
+            },
+            "UpdateGroupMetadataV1": {
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "maxLength": 255,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional display name for the group.",
+                        "examples": [
+                            "Acme prod"
+                        ],
+                        "title": "Name"
+                    }
+                },
+                "title": "UpdateGroupMetadataV1",
+                "type": "object"
+            },
+            "UpdateGroupRequestV1": {
+                "properties": {
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateGroupMetadataV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Mutable group metadata.",
+                        "examples": [
+                            {
+                                "name": "Acme Prod"
+                            }
+                        ]
+                    },
+                    "models": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/ModelConfigV1"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Per-model rate and usage limit configuration.",
+                        "title": "Models"
+                    }
+                },
+                "title": "UpdateGroupRequestV1",
+                "type": "object"
+            },
+            "GatewayKeyInfoV1": {
+                "properties": {
+                    "prefix": {
+                        "description": "The prefix of the Model API key.",
+                        "title": "Prefix",
+                        "type": "string"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional display name.",
+                        "title": "Name"
+                    }
+                },
+                "required": [
+                    "prefix"
+                ],
+                "title": "GatewayKeyInfoV1",
+                "type": "object"
+            },
+            "KeysForGroupResponseV1": {
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/GatewayKeyInfoV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "KeysForGroupResponseV1",
+                "type": "object"
+            },
+            "CreateApiKeyForGroupRequestV1": {
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional display name for the new key.",
+                        "examples": [
+                            "prod-key-1"
+                        ],
+                        "title": "Name"
+                    }
+                },
+                "title": "CreateApiKeyForGroupRequestV1",
+                "type": "object"
+            },
+            "CreateApiKeyForGroupResponseV1": {
+                "properties": {
+                    "api_key": {
+                        "description": "Plaintext key string, returned exactly once.",
+                        "title": "Api Key",
+                        "type": "string"
+                    },
+                    "prefix": {
+                        "description": "Key prefix (the part before the dot).",
+                        "title": "Prefix",
+                        "type": "string"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Display name of the key.",
+                        "title": "Name"
+                    }
+                },
+                "required": [
+                    "api_key",
+                    "prefix"
+                ],
+                "title": "CreateApiKeyForGroupResponseV1",
+                "type": "object"
+            },
+            "RegisterAPIKeyRequestV1": {
+                "description": "Request to register a caller-supplied API key against an existing FederatedGroup.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional name for the Model API key",
+                        "examples": [
+                            "my-model-api-key"
+                        ],
+                        "title": "Name"
+                    },
+                    "key": {
+                        "description": "Value of the API key to register",
+                        "examples": [
+                            "my-secure-api-key-value"
+                        ],
+                        "title": "Key",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "key"
+                ],
+                "title": "RegisterAPIKeyRequestV1",
+                "type": "object"
+            },
+            "RegisterAPIKeyResponseV1": {
+                "properties": {
+                    "ok": {
+                        "description": "Whether the registration was successful",
+                        "title": "Ok",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "ok"
+                ],
+                "title": "RegisterAPIKeyResponseV1",
+                "type": "object"
             }
         },
         "parameters": {
+            "secret_name": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "secret_name",
+                "in": "path",
+                "required": true
+            },
             "team_id": {
                 "schema": {
                     "type": "string"
@@ -13164,6 +14332,14 @@
                     "type": "string"
                 },
                 "name": "user_id",
+                "in": "path",
+                "required": true
+            },
+            "group_id": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "group_id",
                 "in": "path",
                 "required": true
             }
