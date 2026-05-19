@@ -7,10 +7,18 @@ import (
 	"strings"
 )
 
+// preprocessedSpec is the result of preprocessSpec: the transformed JSON
+// bytes plus a sidecar `discriminator.mapping` table keyed by Go schema name
+// (post V1 stripping). oapi-codegen ignores discriminator mappings, so
+// postProcess restores wire values from this table.
+type preprocessedSpec struct {
+	data                []byte
+	discriminatorValues map[string]string
+}
+
 // preprocessSpec transforms an OpenAPI 3.1 spec to 3.0-compatible form so
-// that oapi-codegen can process it, and cleans up schema names. The input and
-// output are JSON bytes.
-func preprocessSpec(data []byte) ([]byte, error) {
+// that oapi-codegen can process it, and cleans up schema names.
+func preprocessSpec(data []byte) (*preprocessedSpec, error) {
 	var doc map[string]any
 	if err := json.Unmarshal(data, &doc); err != nil {
 		return nil, fmt.Errorf("parsing spec JSON: %w", err)
@@ -23,7 +31,10 @@ func preprocessSpec(data []byte) ([]byte, error) {
 	// Build V1-suffix rename map from schema names before walking.
 	schemaRenames := buildSchemaRenames(doc)
 
-	preprocessNode(doc, schemaRenames)
+	discriminatorValues := map[string]string{}
+	if err := preprocessNode(doc, schemaRenames, discriminatorValues); err != nil {
+		return nil, err
+	}
 
 	// Rename the schema keys themselves.
 	if schemas := componentSchemas(doc); schemas != nil {
@@ -37,7 +48,7 @@ func preprocessSpec(data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("marshaling converted spec: %w", err)
 	}
-	return out, nil
+	return &preprocessedSpec{data: out, discriminatorValues: discriminatorValues}, nil
 }
 
 func componentSchemas(doc map[string]any) map[string]any {
@@ -66,23 +77,37 @@ func buildSchemaRenames(doc map[string]any) map[string]string {
 	return renames
 }
 
-func preprocessNode(node any, schemaRenames map[string]string) {
+func preprocessNode(node any, schemaRenames map[string]string, discriminatorValues map[string]string) error {
 	switch v := node.(type) {
 	case map[string]any:
-		preprocessSchema(v, schemaRenames)
+		if err := preprocessSchema(v, schemaRenames, discriminatorValues); err != nil {
+			return err
+		}
 		for _, child := range v {
-			preprocessNode(child, schemaRenames)
+			if err := preprocessNode(child, schemaRenames, discriminatorValues); err != nil {
+				return err
+			}
 		}
 	case []any:
 		for _, child := range v {
-			preprocessNode(child, schemaRenames)
+			if err := preprocessNode(child, schemaRenames, discriminatorValues); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 // preprocessSchema handles nullable patterns and $ref renames in a single
-// schema object.
-func preprocessSchema(schema map[string]any, schemaRenames map[string]string) {
+// schema object, and harvests `discriminator.mapping` entries.
+func preprocessSchema(schema map[string]any, schemaRenames map[string]string, discriminatorValues map[string]string) error {
+	// OpenAPI 3.1 encodes exclusive bounds as numbers
+	// ({"exclusiveMinimum": 0}); 3.0 expects a paired number + boolean
+	// ({"minimum": 0, "exclusiveMinimum": true}). Rewrite so the
+	// downgraded spec parses under the 3.0 schema kin-openapi uses.
+	rewriteExclusiveBound(schema, "exclusiveMinimum", "minimum")
+	rewriteExclusiveBound(schema, "exclusiveMaximum", "maximum")
+
 	// Convert type arrays: {"type": ["string", "null"]} -> {"type": "string", "nullable": true}
 	if t, ok := schema["type"]; ok {
 		if arr, ok := t.([]any); ok {
@@ -145,6 +170,49 @@ func preprocessSchema(schema map[string]any, schemaRenames map[string]string) {
 			}
 		}
 	}
+
+	// Harvest `discriminator.mapping` keyed by Go schema name (post V1
+	// stripping), so postProcess can put wire values back where
+	// oapi-codegen dropped them.
+	if d, ok := schema["discriminator"].(map[string]any); ok {
+		if m, ok := d["mapping"].(map[string]any); ok {
+			const prefix = "#/components/schemas/"
+			for key, refAny := range m {
+				ref, _ := refAny.(string)
+				name, ok := strings.CutPrefix(ref, prefix)
+				if !ok {
+					continue
+				}
+				if renamed, ok := schemaRenames[name]; ok {
+					name = renamed
+				}
+				if existing, ok := discriminatorValues[name]; ok && existing != key {
+					return fmt.Errorf("schema %q has conflicting discriminator keys %q and %q", name, existing, key)
+				}
+				discriminatorValues[name] = key
+			}
+		}
+	}
+	return nil
+}
+
+func rewriteExclusiveBound(schema map[string]any, exclusiveKey, boundKey string) {
+	v, ok := schema[exclusiveKey]
+	if !ok {
+		return
+	}
+	if _, isBool := v.(bool); isBool {
+		return
+	}
+	switch n := v.(type) {
+	case float64:
+		schema[boundKey] = n
+	case json.Number:
+		schema[boundKey] = n
+	default:
+		return
+	}
+	schema[exclusiveKey] = true
 }
 
 // preprocessConfigSchema transforms the truss config JSON Schema for

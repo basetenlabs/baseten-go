@@ -123,7 +123,7 @@ func TestE2EAPIKeyCRUD(t *testing.T) {
 
 	created, err := c.API().PostApiKeys(t.Context(), managementapi.CreateAPIKeyRequest{
 		Name: &keyName,
-		Type: managementapi.PERSONAL,
+		Type: managementapi.APIKeyCategory_PERSONAL,
 	})
 	require.NoError(t, err)
 	createdPrefix = strings.SplitN(created.ApiKey, ".", 2)[0]

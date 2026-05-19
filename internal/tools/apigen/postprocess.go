@@ -8,14 +8,18 @@ import (
 )
 
 // postProcess removes the oapi-codegen runtime dependency from generated code
-// and fixes known codegen bugs.
-func postProcess(src []byte) ([]byte, error) {
+// and fixes known codegen bugs. discriminatorValues maps a Go schema name to
+// the OpenAPI discriminator mapping key that should appear on the wire
+// (see fixDiscriminatorValueLiteral).
+func postProcess(src []byte, discriminatorValues map[string]string) ([]byte, error) {
 	s := string(src)
 
 	s = fixPackageComment(s)
 	s = removeMergeMethods(s)
 	s = removeRuntimeImport(s)
+	s = fixDiscriminatorValueLiteral(s, discriminatorValues)
 	s = fixDiscriminatorPointerAssign(s)
+	s = underscoreEnumConstants(s)
 
 	out, err := format.Source([]byte(s))
 	if err != nil {
@@ -61,6 +65,91 @@ var discriminatorRe = regexp.MustCompile(
 
 func fixDiscriminatorPointerAssign(s string) string {
 	return discriminatorRe.ReplaceAllString(s, "${1}\t_v := $3\n\t$2 = &_v")
+}
+
+// fromMethodLiteralRe matches the literal assigned to the discriminator field
+// inside a generated From{Schema} method. The function name's suffix is the
+// schema name; we replace the literal with the OpenAPI discriminator mapping
+// key when one is known. Untracked by oapi-codegen (separate from #2297).
+var fromMethodLiteralRe = regexp.MustCompile(
+	`(func \([^)]+\) From(\w+)\([^)]*\) error \{\n\t\w+\.\w+ = )"[^"]*"`,
+)
+
+// valueByDiscriminatorCaseRe matches the `case "Schema":` lines emitted in the
+// ValueByDiscriminator switch. Same root cause: the schema name is used in
+// place of the mapping key.
+var valueByDiscriminatorCaseRe = regexp.MustCompile(
+	`(\tcase )"(\w+)"(:\n\t\treturn t\.As\w+\(\))`,
+)
+
+func fixDiscriminatorValueLiteral(s string, mapping map[string]string) string {
+	if len(mapping) == 0 {
+		return s
+	}
+	s = fromMethodLiteralRe.ReplaceAllStringFunc(s, func(match string) string {
+		sub := fromMethodLiteralRe.FindStringSubmatch(match)
+		mapped, ok := mapping[sub[2]]
+		if !ok {
+			return match
+		}
+		return sub[1] + `"` + mapped + `"`
+	})
+	s = valueByDiscriminatorCaseRe.ReplaceAllStringFunc(s, func(match string) string {
+		sub := valueByDiscriminatorCaseRe.FindStringSubmatch(match)
+		mapped, ok := mapping[sub[2]]
+		if !ok {
+			return match
+		}
+		return sub[1] + `"` + mapped + `"` + sub[3]
+	})
+	return s
+}
+
+// enumConstRe matches a typed string-enum constant declaration like
+// `\tDeploymentStatusACTIVE DeploymentStatus = "ACTIVE"`. Captures the
+// constant name, type name, and string literal value. oapi-codegen sanitizes
+// the value (strips underscores) when forming the constant name, which makes
+// names like `DeploymentStatusBUILDFAILED` ambiguous to read; we rewrite to
+// `DeploymentStatus_BUILD_FAILED` using the raw JSON value.
+var enumConstRe = regexp.MustCompile(
+	`(?m)^\t([A-Za-z_][A-Za-z0-9_]*)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"([^"]*)"$`,
+)
+
+// underscoreEnumConstants rewrites string-enum constants emitted by
+// oapi-codegen so they preserve the underlying JSON value verbatim, separated
+// from the type name by an underscore. e.g.
+// `DeploymentStatusBUILDFAILED` -> `DeploymentStatus_BUILD_FAILED`.
+func underscoreEnumConstants(s string) string {
+	renames := map[string]string{}
+	for _, m := range enumConstRe.FindAllStringSubmatch(s, -1) {
+		oldName, typeName, value := m[1], m[2], m[3]
+		// Skip if the value isn't a usable Go identifier suffix (would
+		// produce an invalid name); leave the original name in place.
+		if !isValidIdentTail(value) {
+			continue
+		}
+		newName := typeName + "_" + value
+		if oldName == newName {
+			continue
+		}
+		renames[oldName] = newName
+	}
+	for oldName, newName := range renames {
+		s = regexp.MustCompile(`\b` + regexp.QuoteMeta(oldName) + `\b`).ReplaceAllString(s, newName)
+	}
+	return s
+}
+
+func isValidIdentTail(v string) bool {
+	if v == "" {
+		return false
+	}
+	for _, r := range v {
+		if !(r == '_' || (r >= '0' && r <= '9') || (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z')) {
+			return false
+		}
+	}
+	return true
 }
 
 // modelConfigHeader is the doc comment prepended to the generated modelconfig
