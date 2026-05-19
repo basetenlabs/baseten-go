@@ -72,27 +72,6 @@ func (e CheckpointSyncStatus) Valid() bool {
 	}
 }
 
-// Defines values for DeploymentArchivePayloadSemverBump.
-const (
-	DeploymentArchivePayloadSemverBump_MAJOR DeploymentArchivePayloadSemverBump = "MAJOR"
-	DeploymentArchivePayloadSemverBump_MINOR DeploymentArchivePayloadSemverBump = "MINOR"
-	DeploymentArchivePayloadSemverBump_PATCH DeploymentArchivePayloadSemverBump = "PATCH"
-)
-
-// Valid indicates whether the value is a known member of the DeploymentArchivePayloadSemverBump enum.
-func (e DeploymentArchivePayloadSemverBump) Valid() bool {
-	switch e {
-	case DeploymentArchivePayloadSemverBump_MAJOR:
-		return true
-	case DeploymentArchivePayloadSemverBump_MINOR:
-		return true
-	case DeploymentArchivePayloadSemverBump_PATCH:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for DeploymentStatus.
 const (
 	DeploymentStatus_ACTIVE         DeploymentStatus = "ACTIVE"
@@ -207,6 +186,42 @@ func (e InProgressPromotionStatus) Valid() bool {
 	}
 }
 
+// Defines values for LimitEnforcement.
+const (
+	LimitEnforcement_CASCADING   LimitEnforcement = "CASCADING"
+	LimitEnforcement_INDEPENDENT LimitEnforcement = "INDEPENDENT"
+)
+
+// Valid indicates whether the value is a known member of the LimitEnforcement enum.
+func (e LimitEnforcement) Valid() bool {
+	switch e {
+	case LimitEnforcement_CASCADING:
+		return true
+	case LimitEnforcement_INDEPENDENT:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for LimitType.
+const (
+	LimitType_REQUEST LimitType = "REQUEST"
+	LimitType_TOKEN   LimitType = "TOKEN"
+)
+
+// Valid indicates whether the value is a known member of the LimitType enum.
+func (e LimitType) Valid() bool {
+	switch e {
+	case LimitType_REQUEST:
+		return true
+	case LimitType_TOKEN:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for Name.
 const (
 	Name_CREATED   Name = "CREATED"
@@ -249,6 +264,24 @@ func (e PromotionCleanupStrategy) Valid() bool {
 	case PromotionCleanupStrategy_KEEP:
 		return true
 	case PromotionCleanupStrategy_SCALE_TO_ZERO:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RateLimitUnit.
+const (
+	RateLimitUnit_MINUTE RateLimitUnit = "MINUTE"
+	RateLimitUnit_SECOND RateLimitUnit = "SECOND"
+)
+
+// Valid indicates whether the value is a known member of the RateLimitUnit enum.
+func (e RateLimitUnit) Valid() bool {
+	switch e {
+	case RateLimitUnit_MINUTE:
+		return true
+	case RateLimitUnit_SECOND:
 		return true
 	default:
 		return false
@@ -342,6 +375,21 @@ func (e UpdateAutoscalingSettingsStatus) Valid() bool {
 	case UpdateAutoscalingSettingsStatus_QUEUED:
 		return true
 	case UpdateAutoscalingSettingsStatus_UNCHANGED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UsageLimitUnit.
+const (
+	UsageLimitUnit_DAY UsageLimitUnit = "DAY"
+)
+
+// Valid indicates whether the value is a known member of the UsageLimitUnit enum.
+func (e UsageLimitUnit) Valid() bool {
+	switch e {
+	case UsageLimitUnit_DAY:
 		return true
 	default:
 		return false
@@ -796,6 +844,24 @@ type CreateAPIKeyRequest struct {
 	Type APIKeyCategory `json:"type"`
 }
 
+// CreateApiKeyForGroupRequest defines model for CreateApiKeyForGroupRequest.
+type CreateApiKeyForGroupRequest struct {
+	// Name Optional display name for the new key.
+	Name *string `json:"name,omitempty"`
+}
+
+// CreateApiKeyForGroupResponse defines model for CreateApiKeyForGroupResponse.
+type CreateApiKeyForGroupResponse struct {
+	// ApiKey Plaintext key string, returned exactly once.
+	ApiKey string `json:"api_key"`
+
+	// Name Display name of the key.
+	Name *string `json:"name,omitempty"`
+
+	// Prefix Key prefix (the part before the dot).
+	Prefix string `json:"prefix"`
+}
+
 // CreateChainEnvironmentRequest A request to create a custom environment for a chain.
 type CreateChainEnvironmentRequest struct {
 	// ChainletSettings Mapping of chainlet name to the desired chainlet environment settings
@@ -818,6 +884,15 @@ type CreateEnvironmentRequest struct {
 
 	// PromotionSettings Promotion settings for model promotion
 	PromotionSettings *UpdatePromotionSettings `json:"promotion_settings,omitempty"`
+}
+
+// CreateGroupRequest defines model for CreateGroupRequest.
+type CreateGroupRequest struct {
+	Hierarchy GroupHierarchy `json:"hierarchy"`
+	Metadata  GroupMetadata  `json:"metadata"`
+
+	// Models Per-model rate and usage limit configuration. Defines the group's complete model set. Must be non-empty.
+	Models []ModelConfig `json:"models"`
 }
 
 // CreateJobWeightConfig Weight source configuration for MDN (Model Distribution Network).
@@ -946,7 +1021,7 @@ type CreateLoopsRunRequest struct {
 	// LoraRank LoRA rank.
 	LoraRank *int `json:"lora_rank,omitempty"`
 
-	// MaxSeqLen Maximum prompt length (in tokens) the run must handle. Set this to the longest training example you plan to send.
+	// MaxSeqLen Maximum prompt length (in tokens) the run must handle. Set this to the longest training example you plan to send. Defaults to the maximum supported by the model configuration.
 	MaxSeqLen *int `json:"max_seq_len,omitempty"`
 
 	// Path Optional bt:// URI of an existing checkpoint to load weights from on startup. Form: bt://loops:<run_id>/weights/<checkpoint_name>.
@@ -1055,7 +1130,7 @@ type CreateTrainerServerRequest struct {
 	// LoraRank LoRA rank.
 	LoraRank *int `json:"lora_rank,omitempty"`
 
-	// MaxSeqLen Maximum sequence length for training.
+	// MaxSeqLen Maximum sequence length for training. Defaults to the maximum supported by the model configuration.
 	MaxSeqLen *int `json:"max_seq_len,omitempty"`
 
 	// Model Base model ID (e.g. 'Qwen/Qwen3-8B').
@@ -1473,18 +1548,9 @@ type DeploymentArchivePayload struct {
 	// RawConfig Original config.yaml text, persisted as-is on the deployment. Best-effort: invalid raw configs are logged and dropped without failing the request.
 	RawConfig *string `json:"raw_config,omitempty"`
 
-	// ScaleDownOldProduction Scale down the previous production deployment when promoting a new one. Only meaningful when promoting to production.
-	ScaleDownOldProduction *bool `json:"scale_down_old_production,omitempty"`
-
-	// SemverBump Semver bump applied to the new deployment.
-	SemverBump *DeploymentArchivePayloadSemverBump `json:"semver_bump,omitempty"`
-
 	// UserEnv Client environment metadata (e.g. client version, Python version). Validated server-side.
 	UserEnv *map[string]interface{} `json:"user_env,omitempty"`
 }
-
-// DeploymentArchivePayloadSemverBump Semver bump applied to the new deployment.
-type DeploymentArchivePayloadSemverBump string
 
 // DeploymentArchiveSource Add a deployment from an archive previously uploaded via the credentials
 // issued by `POST /v1/prepare_model_upload`.
@@ -1571,6 +1637,37 @@ type DownloadTrainingJobResponse struct {
 	ArtifactPresignedUrls []string `json:"artifact_presigned_urls"`
 }
 
+// EffectiveModelConfig defines model for EffectiveModelConfig.
+type EffectiveModelConfig struct {
+	RateLimits *[]EffectiveRateLimit `json:"rate_limits,omitempty"`
+
+	// Slug Shared endpoint slug.
+	Slug        string                 `json:"slug"`
+	UsageLimits *[]EffectiveUsageLimit `json:"usage_limits,omitempty"`
+}
+
+// EffectiveRateLimit defines model for EffectiveRateLimit.
+type EffectiveRateLimit struct {
+	// SourceGroup ID of the group in the hierarchy this limit is anchored to.
+	SourceGroup string `json:"source_group"`
+
+	// Threshold The threshold for the rate limit
+	Threshold int           `json:"threshold"`
+	Type      LimitType     `json:"type"`
+	Unit      RateLimitUnit `json:"unit"`
+}
+
+// EffectiveUsageLimit defines model for EffectiveUsageLimit.
+type EffectiveUsageLimit struct {
+	// SourceGroup ID of the group in the hierarchy this limit is anchored to.
+	SourceGroup string `json:"source_group"`
+
+	// Threshold The threshold for the usage limit
+	Threshold int            `json:"threshold"`
+	Type      LimitType      `json:"type"`
+	Unit      UsageLimitUnit `json:"unit"`
+}
+
 // Environment Environment for oracles.
 type Environment struct {
 	// AutoscalingSettings Autoscaling settings for a deployment.
@@ -1622,6 +1719,15 @@ type FileSummary struct {
 
 	// SizeBytes Size of the file in bytes
 	SizeBytes int `json:"size_bytes"`
+}
+
+// GatewayKeyInfo defines model for GatewayKeyInfo.
+type GatewayKeyInfo struct {
+	// Name Optional display name.
+	Name *string `json:"name,omitempty"`
+
+	// Prefix The prefix of the Model API key.
+	Prefix string `json:"prefix"`
 }
 
 // GcpOidcDockerAuth GCP OIDC details for the registry.
@@ -1686,6 +1792,12 @@ type GetDeploymentLogsRequest struct {
 type GetLogsResponse struct {
 	// Logs Logs for a specific entity.
 	Logs []Log `json:"logs"`
+}
+
+// GetLoopsCapabilitiesResponse Response for “GET /v1/loops/capabilities“.
+type GetLoopsCapabilitiesResponse struct {
+	// SupportedModels List of models available on the server.
+	SupportedModels []SupportedModel `json:"supported_models"`
 }
 
 // GetLoopsDeploymentResponse Response for “GET /v1/loops/deployments/<deployment_id>“.
@@ -1826,6 +1938,41 @@ type GitInfo struct {
 	LatestTag             *string `json:"latest_tag"`
 }
 
+// Group defines model for Group.
+type Group struct {
+	// CreatedAt When this group was created.
+	CreatedAt       time.Time               `json:"created_at"`
+	EffectiveModels *[]EffectiveModelConfig `json:"effective_models,omitempty"`
+	Hierarchy       GroupHierarchy          `json:"hierarchy"`
+
+	// Id Internal Baseten ID for the group.
+	Id       string         `json:"id"`
+	Metadata GroupMetadata  `json:"metadata"`
+	Models   *[]ModelConfig `json:"models,omitempty"`
+}
+
+// GroupHierarchy defines model for GroupHierarchy.
+type GroupHierarchy struct {
+	LimitEnforcement *LimitEnforcement `json:"limit_enforcement,omitempty"`
+	ParentGroupId    *string           `json:"parent_group_id,omitempty"`
+}
+
+// GroupMetadata defines model for GroupMetadata.
+type GroupMetadata struct {
+	// ExternalEntityId External-system identifier for this group. Unique within the caller's org.
+	ExternalEntityId string `json:"external_entity_id"`
+
+	// Name Optional display name for the group.
+	Name *string `json:"name,omitempty"`
+}
+
+// GroupsResponse defines model for GroupsResponse.
+type GroupsResponse struct {
+	// Items Items in this page.
+	Items      []Group            `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
 // InProgressPromotion Details of an in-progress promotion.
 type InProgressPromotion struct {
 	// ErrorMessage Error message if promotion failed
@@ -1937,6 +2084,13 @@ type InteractiveSessionConfig struct {
 	Trigger        *V1InteractiveSessionTrigger `json:"trigger,omitempty"`
 }
 
+// KeysForGroupResponse defines model for KeysForGroupResponse.
+type KeysForGroupResponse struct {
+	// Items Items in this page.
+	Items      []GatewayKeyInfo   `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
 // LLMModelHandle Handle for a BIS LLM model deployment.
 type LLMModelHandle struct {
 	// Hostname Hostname used to invoke the model
@@ -2031,6 +2185,12 @@ type LibraryListingVersions struct {
 type LibraryListings struct {
 	Listings []LibraryListing `json:"listings"`
 }
+
+// LimitEnforcement defines model for LimitEnforcement.
+type LimitEnforcement string
+
+// LimitType defines model for LimitType.
+type LimitType string
 
 // ListLoopsCheckpointsResponse Checkpoints matching the query filter.
 type ListLoopsCheckpointsResponse struct {
@@ -2342,7 +2502,7 @@ type ModelArchiveSource struct {
 	// DisableArchiveDownload If true, the uploaded archive is not downloadable after creation. Locked at model creation; cannot be changed by subsequent deployments.
 	DisableArchiveDownload *bool `json:"disable_archive_download,omitempty"`
 
-	// IsDevelopment If true, push as a development deployment (the model's single mutable dev slot; overwrites any existing development deployment). The following `deployment` fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `scale_down_old_production`, `semver_bump`, `deployment_name`.
+	// IsDevelopment If true, push as a development deployment (the model's single mutable dev slot; overwrites any existing development deployment). The following `deployment` fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `deployment_name`.
 	IsDevelopment *bool   `json:"is_development,omitempty"`
 	Kind          *string `json:"kind,omitempty"`
 
@@ -2351,6 +2511,15 @@ type ModelArchiveSource struct {
 
 	// S3Key S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`.
 	S3Key string `json:"s3_key"`
+}
+
+// ModelConfig defines model for ModelConfig.
+type ModelConfig struct {
+	RateLimits *[]RateLimit `json:"rate_limits,omitempty"`
+
+	// Slug Shared endpoint slug.
+	Slug        string        `json:"slug"`
+	UsageLimits *[]UsageLimit `json:"usage_limits,omitempty"`
 }
 
 // ModelTombstone A model tombstone.
@@ -2391,6 +2560,15 @@ type OrderBy struct {
 	Order string `json:"order"`
 }
 
+// PaginationResponse defines model for PaginationResponse.
+type PaginationResponse struct {
+	// Cursor Opaque cursor to pass into the next request. Null when there is no next page.
+	Cursor *string `json:"cursor,omitempty"`
+
+	// HasMore Whether more items exist after this page.
+	HasMore bool `json:"has_more"`
+}
+
 // PatchInteractiveSessionRequest Request to patch an interactive session.
 //
 // Only fields that are provided (non-None) will be applied.
@@ -2427,7 +2605,7 @@ type PrepareModelUploadRequest struct {
 	// DryRun If true, validate the payload only and do not issue upload credentials. The response sets `creds`, `s3_bucket`, and `s3_key` to `null`.
 	DryRun *bool `json:"dry_run,omitempty"`
 
-	// IsDevelopment If true, validate a development-deployment push. Only valid when `name` is set. The following `deployment` fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `scale_down_old_production`, `semver_bump`, `deployment_name`.
+	// IsDevelopment If true, validate a development-deployment push. Only valid when `name` is set. The following `deployment` fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `deployment_name`.
 	IsDevelopment *bool `json:"is_development,omitempty"`
 
 	// ModelId Set to validate an add-deployment push to an existing model. Exactly one of `name` or `model_id` is required.
@@ -2513,9 +2691,35 @@ type PromotionSettings struct {
 	RollingDeployConfig *RollingDeployConfig `json:"rolling_deploy_config,omitempty"`
 }
 
+// RateLimit defines model for RateLimit.
+type RateLimit struct {
+	// Threshold The threshold for the rate limit
+	Threshold int           `json:"threshold"`
+	Type      LimitType     `json:"type"`
+	Unit      RateLimitUnit `json:"unit"`
+}
+
+// RateLimitUnit defines model for RateLimitUnit.
+type RateLimitUnit string
+
 // RecreateTrainingJobResponse A response that sends the new training job
 type RecreateTrainingJobResponse struct {
 	TrainingJob TrainingJob `json:"training_job"`
+}
+
+// RegisterAPIKeyRequest Request to register a caller-supplied API key against an existing FederatedGroup.
+type RegisterAPIKeyRequest struct {
+	// Key Value of the API key to register
+	Key string `json:"key"`
+
+	// Name Optional name for the Model API key
+	Name *string `json:"name,omitempty"`
+}
+
+// RegisterAPIKeyResponse defines model for RegisterAPIKeyResponse.
+type RegisterAPIKeyResponse struct {
+	// Ok Whether the registration was successful
+	Ok bool `json:"ok"`
 }
 
 // RegistrySecretDockerAuth Authentication via a Baseten secret for any Docker registry (Docker Hub, GHCR, NGC, etc.).
@@ -2630,6 +2834,12 @@ type SecretReference struct {
 	Name string `json:"name"`
 }
 
+// SecretTombstone A secret tombstone.
+type SecretTombstone struct {
+	// Name Name of the deleted secret
+	Name string `json:"name"`
+}
+
 // Secrets A list of Baseten secrets.
 type Secrets struct {
 	Secrets []Secret `json:"secrets"`
@@ -2683,6 +2893,15 @@ type StorageMetrics struct {
 
 	// Utilization The utilization of the storage entity as a decimal percentage.
 	Utilization []TrainingJobMetric `json:"utilization"`
+}
+
+// SupportedModel A model supported by the Loops server.
+type SupportedModel struct {
+	// MaxContextLength The maximum context length (in tokens) supported by this model.
+	MaxContextLength int `json:"max_context_length"`
+
+	// ModelName The name of the supported model.
+	ModelName string `json:"model_name"`
 }
 
 // Team A team.
@@ -3112,6 +3331,20 @@ type UpdateEnvironmentRequest struct {
 	PromotionSettings *UpdatePromotionSettings `json:"promotion_settings,omitempty"`
 }
 
+// UpdateGroupMetadata defines model for UpdateGroupMetadata.
+type UpdateGroupMetadata struct {
+	// Name Optional display name for the group.
+	Name *string `json:"name,omitempty"`
+}
+
+// UpdateGroupRequest defines model for UpdateGroupRequest.
+type UpdateGroupRequest struct {
+	Metadata *UpdateGroupMetadata `json:"metadata,omitempty"`
+
+	// Models Per-model rate and usage limit configuration.
+	Models *[]ModelConfig `json:"models,omitempty"`
+}
+
 // UpdateLibraryListingRequest Request to update a library listing.
 type UpdateLibraryListingRequest struct {
 	// DisplayName New display name for the library listing
@@ -3195,6 +3428,17 @@ type UpsertTrainingProjectResponse struct {
 	TrainingProject TrainingProject `json:"training_project"`
 }
 
+// UsageLimit defines model for UsageLimit.
+type UsageLimit struct {
+	// Threshold The threshold for the usage limit
+	Threshold int            `json:"threshold"`
+	Type      LimitType      `json:"type"`
+	Unit      UsageLimitUnit `json:"unit"`
+}
+
+// UsageLimitUnit defines model for UsageLimitUnit.
+type UsageLimitUnit string
+
 // UsageSummary Billing usage summary for the requested date range.
 type UsageSummary struct {
 	DedicatedUsage *DedicatedUsage `json:"dedicated_usage,omitempty"`
@@ -3232,6 +3476,16 @@ type V1InteractiveSessionProvider string
 // V1InteractiveSessionTrigger defines model for V1InteractiveSessionTrigger.
 type V1InteractiveSessionTrigger string
 
+// ValidateLoopsCheckpointRequest Request body for “POST /v1/loops/checkpoints/validate“.
+type ValidateLoopsCheckpointRequest struct {
+	// CheckpointPath bt:// URI of a sampler checkpoint. Form: bt://loops:<run_id>/sampler_weights/<checkpoint_name>.
+	CheckpointPath string `json:"checkpoint_path"`
+}
+
+// ValidateLoopsCheckpointResponse Response for “POST /v1/loops/checkpoints/validate“. Empty on success;
+// inaccessible or malformed paths raise 400.
+type ValidateLoopsCheckpointResponse = map[string]interface{}
+
 // ApiKeyPrefix defines model for api_key_prefix.
 type ApiKeyPrefix = string
 
@@ -3253,6 +3507,9 @@ type DeploymentId = string
 // EnvName defines model for env_name.
 type EnvName = string
 
+// GroupId defines model for group_id.
+type GroupId = string
+
 // ModelId defines model for model_id.
 type ModelId = string
 
@@ -3264,6 +3521,9 @@ type RunId = string
 
 // SamplerId defines model for sampler_id.
 type SamplerId = string
+
+// SecretName defines model for secret_name.
+type SecretName = string
 
 // SessionId defines model for session_id.
 type SessionId = string
@@ -3288,6 +3548,15 @@ type UserId = string
 
 // VersionTag defines model for version_tag.
 type VersionTag = string
+
+// GetV1BillingUsageSummaryParams defines parameters for GetV1BillingUsageSummary.
+type GetV1BillingUsageSummaryParams struct {
+	// StartDate Start date (ISO 8601, UTC). Earliest queryable: 2026-01-01.
+	StartDate time.Time `form:"start_date" json:"start_date"`
+
+	// EndDate End date in ISO 8601 format (UTC). Date range cannot exceed 31 days.
+	EndDate time.Time `form:"end_date" json:"end_date"`
+}
 
 // GetV1LoopsCheckpointsParams defines parameters for GetV1LoopsCheckpoints.
 type GetV1LoopsCheckpointsParams struct {
@@ -3331,6 +3600,18 @@ type PostV1ChainsChainIdEnvironmentsEnvNameChainletSettingsInstanceTypesUpdateJS
 // PostV1ChainsChainIdEnvironmentsEnvNamePromoteJSONRequestBody defines body for PostV1ChainsChainIdEnvironmentsEnvNamePromote for application/json ContentType.
 type PostV1ChainsChainIdEnvironmentsEnvNamePromoteJSONRequestBody = PromoteToChainEnvironmentRequest
 
+// PostV1GatewayGroupsJSONRequestBody defines body for PostV1GatewayGroups for application/json ContentType.
+type PostV1GatewayGroupsJSONRequestBody = CreateGroupRequest
+
+// PatchV1GatewayGroupsGroupIdJSONRequestBody defines body for PatchV1GatewayGroupsGroupId for application/json ContentType.
+type PatchV1GatewayGroupsGroupIdJSONRequestBody = UpdateGroupRequest
+
+// PostV1GatewayGroupsGroupIdApiKeysJSONRequestBody defines body for PostV1GatewayGroupsGroupIdApiKeys for application/json ContentType.
+type PostV1GatewayGroupsGroupIdApiKeysJSONRequestBody = CreateApiKeyForGroupRequest
+
+// PostV1GatewayGroupsGroupIdApiKeysRegisterJSONRequestBody defines body for PostV1GatewayGroupsGroupIdApiKeysRegister for application/json ContentType.
+type PostV1GatewayGroupsGroupIdApiKeysRegisterJSONRequestBody = RegisterAPIKeyRequest
+
 // PostV1LibraryListingsJSONRequestBody defines body for PostV1LibraryListings for application/json ContentType.
 type PostV1LibraryListingsJSONRequestBody = CreateLibraryListingRequest
 
@@ -3348,6 +3629,9 @@ type PostV1LlmModelsJSONRequestBody = CreateLLMModelRequest
 
 // PostV1LlmModelsModelIdDeploymentsJSONRequestBody defines body for PostV1LlmModelsModelIdDeployments for application/json ContentType.
 type PostV1LlmModelsModelIdDeploymentsJSONRequestBody = CreateLLMModelVersionRequest
+
+// PostV1LoopsCheckpointsValidateJSONRequestBody defines body for PostV1LoopsCheckpointsValidate for application/json ContentType.
+type PostV1LoopsCheckpointsValidateJSONRequestBody = ValidateLoopsCheckpointRequest
 
 // PostV1LoopsRunsJSONRequestBody defines body for PostV1LoopsRuns for application/json ContentType.
 type PostV1LoopsRunsJSONRequestBody = CreateLoopsRunRequest

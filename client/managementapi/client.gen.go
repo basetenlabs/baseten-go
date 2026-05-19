@@ -15,7 +15,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // Client is a generated HTTP client for the managementapi API.
@@ -138,6 +141,30 @@ func (c *Client) DeleteModelsDeploymentsReplicas(ctx context.Context, modelId st
 	})
 }
 
+// DeleteSecrets: Deletes a secret by name
+func (c *Client) DeleteSecrets(ctx context.Context, secretName string) (*SecretTombstone, error) {
+	return doJSON[SecretTombstone](c, ctx, apiRequest{
+		method:      "DELETE",
+		pathFmt:     "/v1/secrets/%s",
+		pathArgs:    []any{secretName},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// DeleteTeamsSecrets: Deletes a secret by name
+func (c *Client) DeleteTeamsSecrets(ctx context.Context, teamId string, secretName string) (*SecretTombstone, error) {
+	return doJSON[SecretTombstone](c, ctx, apiRequest{
+		method:      "DELETE",
+		pathFmt:     "/v1/teams/%s/secrets/%s",
+		pathArgs:    []any{teamId, secretName},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // DeleteTrainingProjects: Delete a training project.
 func (c *Client) DeleteTrainingProjects(ctx context.Context, trainingProjectId string) (*TrainingProjectTombstone, error) {
 	return doJSON[TrainingProjectTombstone](c, ctx, apiRequest{
@@ -175,11 +202,12 @@ func (c *Client) GetApiKeys(ctx context.Context) (*APIKeys, error) {
 }
 
 // GetBillingUsageSummary: Gets billing usage summary for a date range
-func (c *Client) GetBillingUsageSummary(ctx context.Context) (*UsageSummary, error) {
+func (c *Client) GetBillingUsageSummary(ctx context.Context, params GetV1BillingUsageSummaryParams) (*UsageSummary, error) {
 	return doJSON[UsageSummary](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/billing/usage_summary",
 		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -282,6 +310,54 @@ func (c *Client) GetChainsEnvironmentsEnvName(ctx context.Context, chainId strin
 	})
 }
 
+// GetGatewayGroups: List groups
+func (c *Client) GetGatewayGroups(ctx context.Context) (*GroupsResponse, error) {
+	return doJSON[GroupsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/gateway/groups",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetGatewayGroupsApiKeys: List API keys for a group
+func (c *Client) GetGatewayGroupsApiKeys(ctx context.Context, groupId string) (*KeysForGroupResponse, error) {
+	return doJSON[KeysForGroupResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/gateway/groups/%s/api_keys",
+		pathArgs:    []any{groupId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetGatewayGroupsApiKeysApiKeyPrefix: Get an API key for a group
+func (c *Client) GetGatewayGroupsApiKeysApiKeyPrefix(ctx context.Context, groupId string, apiKeyPrefix string) (*GatewayKeyInfo, error) {
+	return doJSON[GatewayKeyInfo](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/gateway/groups/%s/api_keys/%s",
+		pathArgs:    []any{groupId, apiKeyPrefix},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetGatewayGroupsGroupId: Get a group
+func (c *Client) GetGatewayGroupsGroupId(ctx context.Context, groupId string) (*Group, error) {
+	return doJSON[Group](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/gateway/groups/%s",
+		pathArgs:    []any{groupId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetInstanceTypePrices: Gets prices for available instance types.
 func (c *Client) GetInstanceTypePrices(ctx context.Context) (*InstanceTypePrices, error) {
 	return doJSON[InstanceTypePrices](c, ctx, apiRequest{
@@ -354,12 +430,25 @@ func (c *Client) GetLibraryListingsVersionsVersionTag(ctx context.Context, userD
 	})
 }
 
+// GetLoopsCapabilities: Get Loops server capabilities.
+func (c *Client) GetLoopsCapabilities(ctx context.Context) (*GetLoopsCapabilitiesResponse, error) {
+	return doJSON[GetLoopsCapabilitiesResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/capabilities",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetLoopsCheckpoints: List Loops checkpoints.
-func (c *Client) GetLoopsCheckpoints(ctx context.Context) (*ListLoopsCheckpointsResponse, error) {
+func (c *Client) GetLoopsCheckpoints(ctx context.Context, params GetV1LoopsCheckpointsParams) (*ListLoopsCheckpointsResponse, error) {
 	return doJSON[ListLoopsCheckpointsResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/loops/checkpoints",
 		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -403,11 +492,12 @@ func (c *Client) GetLoopsDeploymentsDeploymentId(ctx context.Context, deployment
 }
 
 // GetLoopsRuns: List Loops runs.
-func (c *Client) GetLoopsRuns(ctx context.Context) (*ListLoopsRunsResponse, error) {
+func (c *Client) GetLoopsRuns(ctx context.Context, params GetV1LoopsRunsParams) (*ListLoopsRunsResponse, error) {
 	return doJSON[ListLoopsRunsResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/loops/runs",
 		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -834,6 +924,18 @@ func (c *Client) PatchChainsEnvironmentsChainletSettingsAutoscalingSettings(ctx 
 	})
 }
 
+// PatchGatewayGroups: Update a group
+func (c *Client) PatchGatewayGroups(ctx context.Context, groupId string, body UpdateGroupRequest) (*Group, error) {
+	return doJSON[Group](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/gateway/groups/%s",
+		pathArgs:    []any{groupId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PatchLibraryListings: Updates a library listing
 func (c *Client) PatchLibraryListings(ctx context.Context, userDefinedListingId string, body UpdateLibraryListingRequest) (*LibraryListing, error) {
 	return doJSON[LibraryListing](c, ctx, apiRequest{
@@ -990,6 +1092,42 @@ func (c *Client) PostChainsEnvironmentsPromote(ctx context.Context, chainId stri
 	})
 }
 
+// PostGatewayGroups: Create a group
+func (c *Client) PostGatewayGroups(ctx context.Context, body CreateGroupRequest) (*Group, error) {
+	return doJSON[Group](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/gateway/groups",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostGatewayGroupsApiKeys: Create an API key for a group
+func (c *Client) PostGatewayGroupsApiKeys(ctx context.Context, groupId string, body CreateApiKeyForGroupRequest) (*CreateApiKeyForGroupResponse, error) {
+	return doJSON[CreateApiKeyForGroupResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/gateway/groups/%s/api_keys",
+		pathArgs:    []any{groupId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostGatewayGroupsApiKeysRegister: Register an API key for a group
+func (c *Client) PostGatewayGroupsApiKeysRegister(ctx context.Context, groupId string, body RegisterAPIKeyRequest) (*RegisterAPIKeyResponse, error) {
+	return doJSON[RegisterAPIKeyResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/gateway/groups/%s/api_keys/register",
+		pathArgs:    []any{groupId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PostLibraryListings: Creates a new library listing
 func (c *Client) PostLibraryListings(ctx context.Context, body CreateLibraryListingRequest) (*LibraryListing, error) {
 	return doJSON[LibraryListing](c, ctx, apiRequest{
@@ -1032,6 +1170,18 @@ func (c *Client) PostLlmModelsDeployments(ctx context.Context, modelId string, b
 		method:      "POST",
 		pathFmt:     "/v1/llm_models/%s/deployments",
 		pathArgs:    []any{modelId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostLoopsCheckpointsValidate: Validate a Loops checkpoint bt:// URI.
+func (c *Client) PostLoopsCheckpointsValidate(ctx context.Context, body ValidateLoopsCheckpointRequest) (*ValidateLoopsCheckpointResponse, error) {
+	return doJSON[ValidateLoopsCheckpointResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/loops/checkpoints/validate",
+		pathArgs:    nil,
 		body:        body,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1649,6 +1799,7 @@ type apiRequest struct {
 	method      string
 	pathFmt     string
 	pathArgs    []any
+	queryParams any
 	body        any
 	successCode int
 	// errorCodes maps HTTP status codes to a typed error schema. Status codes
@@ -1661,6 +1812,11 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 		r.pathArgs[i] = url.PathEscape(fmt.Sprint(p))
 	}
 	path := fmt.Sprintf(r.pathFmt, r.pathArgs...)
+	if r.queryParams != nil {
+		if q := encodeQuery(r.queryParams); len(q) > 0 {
+			path += "?" + q.Encode()
+		}
+	}
 	var bodyReader io.Reader
 	if r.body != nil {
 		b, err := json.Marshal(r.body)
@@ -1702,6 +1858,65 @@ func decodeErrorType(et errorType, statusCode int, body []byte) error {
 	switch et {
 	}
 	return nil
+}
+
+// encodeQuery walks a Params struct emitted by oapi-codegen and renders its
+// fields as url.Values using the "form" struct tag. Pointer fields that are
+// nil are skipped. time.Time values are rendered as RFC 3339.
+func encodeQuery(p any) url.Values {
+	q := url.Values{}
+	v := reflect.ValueOf(p)
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return q
+		}
+		v = v.Elem()
+	}
+	if v.Kind() != reflect.Struct {
+		return q
+	}
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		tag := t.Field(i).Tag.Get("form")
+		if tag == "" || tag == "-" {
+			continue
+		}
+		name := strings.SplitN(tag, ",", 2)[0]
+		if name == "" {
+			continue
+		}
+		fv := v.Field(i)
+		if fv.Kind() == reflect.Ptr {
+			if fv.IsNil() {
+				continue
+			}
+			fv = fv.Elem()
+		}
+		switch x := fv.Interface().(type) {
+		case time.Time:
+			q.Set(name, x.Format(time.RFC3339))
+		case []string:
+			for _, s := range x {
+				q.Add(name, s)
+			}
+		default:
+			switch fv.Kind() {
+			case reflect.String:
+				q.Set(name, fv.String())
+			case reflect.Bool:
+				q.Set(name, strconv.FormatBool(fv.Bool()))
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				q.Set(name, strconv.FormatInt(fv.Int(), 10))
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				q.Set(name, strconv.FormatUint(fv.Uint(), 10))
+			case reflect.Float32, reflect.Float64:
+				q.Set(name, strconv.FormatFloat(fv.Float(), 'g', -1, 64))
+			default:
+				q.Set(name, fmt.Sprint(fv.Interface()))
+			}
+		}
+	}
+	return q
 }
 
 func doJSON[T any](c *Client, ctx context.Context, r apiRequest) (*T, error) {
