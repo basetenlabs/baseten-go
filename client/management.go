@@ -65,7 +65,7 @@ func NewManagementClient(opts ManagementClientOptions) (*ManagementClient, error
 		headers = http.Header{}
 	}
 	if opts.APIKey != "" {
-		headers.Set("Authorization", "Api-Key "+opts.APIKey)
+		headers.Set("Authorization", "Bearer "+opts.APIKey)
 	}
 	ApplyUserAgentHeader(headers)
 

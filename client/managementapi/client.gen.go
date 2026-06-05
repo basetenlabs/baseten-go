@@ -286,6 +286,19 @@ func (c *Client) GetChainsDeploymentsChainDeploymentId(ctx context.Context, chai
 	})
 }
 
+// GetChainsDeploymentsChainletsLogs: Gets the logs for a chainlet within a chain deployment.
+func (c *Client) GetChainsDeploymentsChainletsLogs(ctx context.Context, chainId string, chainDeploymentId string, chainletId string, params GetV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsParams) (*GetLogsResponse, error) {
+	return doJSON[GetLogsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/chains/%s/deployments/%s/chainlets/%s/logs",
+		pathArgs:    []any{chainId, chainDeploymentId, chainletId},
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetChainsEnvironments: Get all chain environments
 func (c *Client) GetChainsEnvironments(ctx context.Context, chainId string) (*Environments, error) {
 	return doJSON[Environments](c, ctx, apiRequest{
@@ -491,6 +504,19 @@ func (c *Client) GetLoopsDeploymentsDeploymentId(ctx context.Context, deployment
 	})
 }
 
+// GetLoopsDeploymentsLogs: Get logs for a Loops trainer deployment.
+func (c *Client) GetLoopsDeploymentsLogs(ctx context.Context, deploymentId string, params GetV1LoopsDeploymentsDeploymentIdLogsParams) (*GetLogsResponse, error) {
+	return doJSON[GetLogsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/deployments/%s/logs",
+		pathArgs:    []any{deploymentId},
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetLoopsRuns: List Loops runs.
 func (c *Client) GetLoopsRuns(ctx context.Context, params GetV1LoopsRunsParams) (*ListLoopsRunsResponse, error) {
 	return doJSON[ListLoopsRunsResponse](c, ctx, apiRequest{
@@ -601,11 +627,12 @@ func (c *Client) GetModelsDeployments(ctx context.Context, modelId string) (*Dep
 }
 
 // GetModelsDeploymentsConfig: Gets a deployment's config
-func (c *Client) GetModelsDeploymentsConfig(ctx context.Context, modelId string, deploymentId string) (*DeploymentConfigResponse, error) {
+func (c *Client) GetModelsDeploymentsConfig(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams) (*DeploymentConfigResponse, error) {
 	return doJSON[DeploymentConfigResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/models/%s/deployments/%s/config",
 		pathArgs:    []any{modelId, deploymentId},
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -642,6 +669,19 @@ func (c *Client) GetModelsDeploymentsDownload(ctx context.Context, modelId strin
 		method:      "GET",
 		pathFmt:     "/v1/models/%s/deployments/%s/download",
 		pathArgs:    []any{modelId, deploymentId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetModelsDeploymentsLogs: Gets the logs for a model deployment.
+func (c *Client) GetModelsDeploymentsLogs(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdLogsParams) (*GetLogsResponse, error) {
+	return doJSON[GetLogsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/models/%s/deployments/%s/logs",
+		pathArgs:    []any{modelId, deploymentId},
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -829,11 +869,12 @@ func (c *Client) GetTrainingProjectsJobsAuthCodes(ctx context.Context, trainingP
 }
 
 // GetTrainingProjectsJobsCheckpointFiles: Get training job checkpoint files.
-func (c *Client) GetTrainingProjectsJobsCheckpointFiles(ctx context.Context, trainingProjectId string, trainingJobId string) (*GetTrainingJobCheckpointFilesResponse, error) {
+func (c *Client) GetTrainingProjectsJobsCheckpointFiles(ctx context.Context, trainingProjectId string, trainingJobId string, params GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams) (*GetTrainingJobCheckpointFilesResponse, error) {
 	return doJSON[GetTrainingJobCheckpointFilesResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/training_projects/%s/jobs/%s/checkpoint_files",
 		pathArgs:    []any{trainingProjectId, trainingJobId},
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -858,6 +899,32 @@ func (c *Client) GetTrainingProjectsJobsDownload(ctx context.Context, trainingPr
 		method:      "GET",
 		pathFmt:     "/v1/training_projects/%s/jobs/%s/download",
 		pathArgs:    []any{trainingProjectId, trainingJobId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetTrainingProjectsJobsLogs: Get the logs for a training job.
+func (c *Client) GetTrainingProjectsJobsLogs(ctx context.Context, trainingProjectId string, trainingJobId string, params GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdLogsParams) (*GetLogsResponse, error) {
+	return doJSON[GetLogsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/training_projects/%s/jobs/%s/logs",
+		pathArgs:    []any{trainingProjectId, trainingJobId},
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetTrainingProjectsJobsMetrics: Get the metrics for a training job.
+func (c *Client) GetTrainingProjectsJobsMetrics(ctx context.Context, trainingProjectId string, trainingJobId string, params GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdMetricsParams) (*GetTrainingJobMetricsResponse, error) {
+	return doJSON[GetTrainingJobMetricsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/training_projects/%s/jobs/%s/metrics",
+		pathArgs:    []any{trainingProjectId, trainingJobId},
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1032,18 +1099,6 @@ func (c *Client) PostApiKeys(ctx context.Context, body CreateAPIKeyRequest) (*AP
 	})
 }
 
-// PostChainsDeploymentsChainletsLogs: Gets the logs for a chainlet within a chain deployment.
-func (c *Client) PostChainsDeploymentsChainletsLogs(ctx context.Context, chainId string, chainDeploymentId string, chainletId string, body GetDeploymentLogsRequest) (*GetLogsResponse, error) {
-	return doJSON[GetLogsResponse](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/v1/chains/%s/deployments/%s/chainlets/%s/logs",
-		pathArgs:    []any{chainId, chainDeploymentId, chainletId},
-		body:        body,
-		successCode: 200,
-		errorCodes:  nil,
-	})
-}
-
 // PostChainsDeploymentsDeactivate: Deactivates a chain deployment
 func (c *Client) PostChainsDeploymentsDeactivate(ctx context.Context, chainId string, chainDeploymentId string) (*DeactivateResponse, error) {
 	return doJSON[DeactivateResponse](c, ctx, apiRequest{
@@ -1195,6 +1250,18 @@ func (c *Client) PostLoopsDeploymentsDeactivate(ctx context.Context, deploymentI
 		pathFmt:     "/v1/loops/deployments/%s/deactivate",
 		pathArgs:    []any{deploymentId},
 		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostLoopsDeploymentsMetrics: Get metrics for a Loops trainer deployment.
+func (c *Client) PostLoopsDeploymentsMetrics(ctx context.Context, deploymentId string, body GetLoopsDeploymentMetricsRequest) (*GetLoopsDeploymentMetricsResponse, error) {
+	return doJSON[GetLoopsDeploymentMetricsResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/loops/deployments/%s/metrics",
+		pathArgs:    []any{deploymentId},
+		body:        body,
 		successCode: 200,
 		errorCodes:  nil,
 	})
@@ -1356,7 +1423,7 @@ func (c *Client) PostModelsDeploymentsDevelopmentRetry(ctx context.Context, mode
 	})
 }
 
-// PostModelsDeploymentsLogs: Gets the logs for a model deployment.
+// PostModelsDeploymentsLogs: Gets the logs for a model deployment (deprecated; use GET).
 func (c *Client) PostModelsDeploymentsLogs(ctx context.Context, modelId string, deploymentId string, body GetDeploymentLogsRequest) (*GetLogsResponse, error) {
 	return doJSON[GetLogsResponse](c, ctx, apiRequest{
 		method:      "POST",
@@ -1728,7 +1795,7 @@ func (c *Client) PostTrainingProjectsJobs(ctx context.Context, trainingProjectId
 	})
 }
 
-// PostTrainingProjectsJobsLogs: Get the logs for a training job.
+// PostTrainingProjectsJobsLogs: Get the logs for a training job (deprecated; use GET).
 func (c *Client) PostTrainingProjectsJobsLogs(ctx context.Context, trainingProjectId string, trainingJobId string, body GetTrainingJobLogsRequest) (*GetLogsResponse, error) {
 	return doJSON[GetLogsResponse](c, ctx, apiRequest{
 		method:      "POST",
@@ -1740,7 +1807,7 @@ func (c *Client) PostTrainingProjectsJobsLogs(ctx context.Context, trainingProje
 	})
 }
 
-// PostTrainingProjectsJobsMetrics: Get the metrics for a training job.
+// PostTrainingProjectsJobsMetrics: Get the metrics for a training job (deprecated; use GET).
 func (c *Client) PostTrainingProjectsJobsMetrics(ctx context.Context, trainingProjectId string, trainingJobId string, body GetTrainingJobMetricsRequest) (*GetTrainingJobMetricsResponse, error) {
 	return doJSON[GetTrainingJobMetricsResponse](c, ctx, apiRequest{
 		method:      "POST",

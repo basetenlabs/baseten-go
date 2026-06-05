@@ -101,13 +101,6 @@ func preprocessNode(node any, schemaRenames map[string]string, discriminatorValu
 // preprocessSchema handles nullable patterns and $ref renames in a single
 // schema object, and harvests `discriminator.mapping` entries.
 func preprocessSchema(schema map[string]any, schemaRenames map[string]string, discriminatorValues map[string]string) error {
-	// OpenAPI 3.1 encodes exclusive bounds as numbers
-	// ({"exclusiveMinimum": 0}); 3.0 expects a paired number + boolean
-	// ({"minimum": 0, "exclusiveMinimum": true}). Rewrite so the
-	// downgraded spec parses under the 3.0 schema kin-openapi uses.
-	rewriteExclusiveBound(schema, "exclusiveMinimum", "minimum")
-	rewriteExclusiveBound(schema, "exclusiveMaximum", "maximum")
-
 	// Convert type arrays: {"type": ["string", "null"]} -> {"type": "string", "nullable": true}
 	if t, ok := schema["type"]; ok {
 		if arr, ok := t.([]any); ok {
@@ -159,6 +152,15 @@ func preprocessSchema(schema map[string]any, schemaRenames map[string]string, di
 			schema["nullable"] = true
 		}
 	}
+
+	// OpenAPI 3.1 encodes exclusive bounds as numbers
+	// ({"exclusiveMinimum": 0}); 3.0 expects a paired number + boolean
+	// ({"minimum": 0, "exclusiveMinimum": true}). Rewrite so the
+	// downgraded spec parses under the 3.0 schema kin-openapi uses. This
+	// runs after the anyOf inlining above, which can copy a numeric
+	// exclusive bound up from a collapsed anyOf branch onto this schema.
+	rewriteExclusiveBound(schema, "exclusiveMinimum", "minimum")
+	rewriteExclusiveBound(schema, "exclusiveMaximum", "maximum")
 
 	// Rewrite $ref strings to strip V1 suffixes. This runs last because
 	// anyOf inlining above can introduce a $ref onto this schema.

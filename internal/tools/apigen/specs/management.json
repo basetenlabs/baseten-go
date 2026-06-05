@@ -303,11 +303,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/prepare_model_upload \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"deployment\": {\n    \"config\": null,\n    \"raw_config\": null,\n    \"user_env\": null,\n    \"environment_name\": null,\n    \"preserve_env_instance_type\": null,\n    \"deploy_timeout_minutes\": null,\n    \"deployment_name\": null,\n    \"labels\": null\n  },\n  \"name\": null,\n  \"team_id\": null,\n  \"model_id\": null,\n  \"dry_run\": null,\n  \"is_development\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/prepare_model_upload \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"deployment\": {\n    \"config\": null,\n    \"raw_config\": null,\n    \"user_env\": null,\n    \"environment_name\": null,\n    \"deploy_timeout_minutes\": null,\n    \"deployment_name\": null,\n    \"labels\": null\n  },\n  \"name\": null,\n  \"team_id\": null,\n  \"model_id\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/prepare_model_upload\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'deployment': {'config': None, 'raw_config': None, 'user_env': None, 'environment_name': None, 'preserve_env_instance_type': None, 'deploy_timeout_minutes': None, 'deployment_name': None, 'labels': None}, 'name': None, 'team_id': None, 'model_id': None, 'dry_run': None, 'is_development': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/prepare_model_upload\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'deployment': {'config': None, 'raw_config': None, 'user_env': None, 'environment_name': None, 'deploy_timeout_minutes': None, 'deployment_name': None, 'labels': None}, 'name': None, 'team_id': None, 'model_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -723,11 +723,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/development/autoscaling_settings \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"min_replica\": 0,\n  \"max_replica\": 7,\n  \"autoscaling_window\": 600,\n  \"scale_down_delay\": 120,\n  \"concurrency_target\": 2,\n  \"target_utilization_percentage\": 70,\n  \"target_in_flight_tokens\": 40000\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/development/autoscaling_settings \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"min_replica\": 0,\n  \"max_replica\": 7,\n  \"autoscaling_window\": 600,\n  \"scale_down_delay\": 120,\n  \"concurrency_target\": 2,\n  \"target_utilization_percentage\": 70,\n  \"target_in_flight_tokens\": 40000,\n  \"max_scale_down_rate\": 2.0\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/development/autoscaling_settings\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'min_replica': 0, 'max_replica': 7, 'autoscaling_window': 600, 'scale_down_delay': 120, 'concurrency_target': 2, 'target_utilization_percentage': 70, 'target_in_flight_tokens': 40000}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/development/autoscaling_settings\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'min_replica': 0, 'max_replica': 7, 'autoscaling_window': 600, 'scale_down_delay': 120, 'concurrency_target': 2, 'target_utilization_percentage': 70, 'target_in_flight_tokens': 40000, 'max_scale_down_rate': 2.0}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Updates a development deployment's autoscaling settings and returns the update status.",
@@ -766,11 +766,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/production/autoscaling_settings \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"min_replica\": 0,\n  \"max_replica\": 7,\n  \"autoscaling_window\": 600,\n  \"scale_down_delay\": 120,\n  \"concurrency_target\": 2,\n  \"target_utilization_percentage\": 70,\n  \"target_in_flight_tokens\": 40000\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/production/autoscaling_settings \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"min_replica\": 0,\n  \"max_replica\": 7,\n  \"autoscaling_window\": 600,\n  \"scale_down_delay\": 120,\n  \"concurrency_target\": 2,\n  \"target_utilization_percentage\": 70,\n  \"target_in_flight_tokens\": 40000,\n  \"max_scale_down_rate\": 2.0\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/production/autoscaling_settings\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'min_replica': 0, 'max_replica': 7, 'autoscaling_window': 600, 'scale_down_delay': 120, 'concurrency_target': 2, 'target_utilization_percentage': 70, 'target_in_flight_tokens': 40000}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/production/autoscaling_settings\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'min_replica': 0, 'max_replica': 7, 'autoscaling_window': 600, 'scale_down_delay': 120, 'concurrency_target': 2, 'target_utilization_percentage': 70, 'target_in_flight_tokens': 40000, 'max_scale_down_rate': 2.0}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Updates a production deployment's autoscaling settings and returns the update status.",
@@ -809,11 +809,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/autoscaling_settings \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"min_replica\": 0,\n  \"max_replica\": 7,\n  \"autoscaling_window\": 600,\n  \"scale_down_delay\": 120,\n  \"concurrency_target\": 2,\n  \"target_utilization_percentage\": 70,\n  \"target_in_flight_tokens\": 40000\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/autoscaling_settings \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"min_replica\": 0,\n  \"max_replica\": 7,\n  \"autoscaling_window\": 600,\n  \"scale_down_delay\": 120,\n  \"concurrency_target\": 2,\n  \"target_utilization_percentage\": 70,\n  \"target_in_flight_tokens\": 40000,\n  \"max_scale_down_rate\": 2.0\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/autoscaling_settings\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'min_replica': 0, 'max_replica': 7, 'autoscaling_window': 600, 'scale_down_delay': 120, 'concurrency_target': 2, 'target_utilization_percentage': 70, 'target_in_flight_tokens': 40000}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/autoscaling_settings\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'min_replica': 0, 'max_replica': 7, 'autoscaling_window': 600, 'scale_down_delay': 120, 'concurrency_target': 2, 'target_utilization_percentage': 70, 'target_in_flight_tokens': 40000, 'max_scale_down_rate': 2.0}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Updates a deployment's autoscaling settings and returns the update status.",
@@ -1294,6 +1294,18 @@
                     }
                 ],
                 "description": "Returns the deployment's config. `output_format` query param picks the shape: 'raw' (config.yaml text), 'parsed' (dict with defaults), or 'both' (default).",
+                "parameters": [
+                    {
+                        "name": "output_format",
+                        "in": "query",
+                        "required": false,
+                        "description": "'raw': verbatim config.yaml with comments \u2014 not available for deployments created before 2026-04-30. 'parsed': dict with server-side defaults applied \u2014 always available. 'both': both fields populated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/DeploymentConfigOutputFormat",
+                            "default": "both"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -1317,19 +1329,230 @@
             ]
         },
         "/v1/models/{model_id}/deployments/{deployment_id}/logs": {
-            "post": {
+            "get": {
                 "summary": "Gets the logs for a model deployment.",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/logs \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"start_epoch_millis\": null,\n  \"end_epoch_millis\": null,\n  \"direction\": null,\n  \"limit\": null\n}'"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/logs \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/logs\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'start_epoch_millis': None, 'end_epoch_millis': None, 'direction': None, 'limit': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/logs\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Gets all the logs for a model deployment in the given time range.",
+                "parameters": [
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to start fetching logs",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to end fetching logs",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sort order for logs",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/SortOrderV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Limit of logs to fetch in a single request",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maximum": 1000,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": 500,
+                            "title": "Limit"
+                        }
+                    },
+                    {
+                        "name": "min_level",
+                        "in": "query",
+                        "required": false,
+                        "description": "Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/LogLevelV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "replica",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only return logs emitted by this replica (5-char short ID).",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maxLength": 256,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Replica"
+                        }
+                    },
+                    {
+                        "name": "request_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only return logs tagged with this inference request ID.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maxLength": 256,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Request Id"
+                        }
+                    },
+                    {
+                        "name": "search_pattern",
+                        "in": "query",
+                        "required": false,
+                        "description": "RE2 regular expression matched against the log message. Prefer `includes` and `excludes` for plain substring matches.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maxLength": 256,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Search Pattern"
+                        }
+                    },
+                    {
+                        "name": "includes",
+                        "in": "query",
+                        "required": false,
+                        "description": "Case-sensitive substrings that must all appear in the log message.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "maxItems": 8,
+                            "title": "Includes",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "excludes",
+                        "in": "query",
+                        "required": false,
+                        "description": "Case-sensitive substrings; lines containing any of these are dropped.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "maxItems": 8,
+                            "title": "Excludes",
+                            "type": "array"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetLogsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/deployment_id"
+                }
+            ],
+            "post": {
+                "summary": "Gets the logs for a model deployment (deprecated; use GET).",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/logs \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"start_epoch_millis\": null,\n  \"end_epoch_millis\": null,\n  \"direction\": null,\n  \"limit\": null,\n  \"min_level\": null,\n  \"replica\": null,\n  \"request_id\": null,\n  \"search_pattern\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/logs\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'start_epoch_millis': None, 'end_epoch_millis': None, 'direction': None, 'limit': None, 'min_level': None, 'replica': None, 'request_id': None, 'search_pattern': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Use the GET form on this path instead.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1351,16 +1574,10 @@
                             }
                         }
                     }
-                }
-            },
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/model_id"
                 },
-                {
-                    "$ref": "#/components/parameters/deployment_id"
-                }
-            ]
+                "x-stability": "deprecated",
+                "deprecated": true
+            }
         },
         "/v1/models/{model_id}/deployments/{deployment_id}/replicas/{replica_id}": {
             "delete": {
@@ -1484,11 +1701,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/models/{model_id}/environments \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"staging\",\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 800,\n    \"concurrency_target\": 3,\n    \"max_replica\": 2,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 60,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"promotion_settings\": {\n    \"promotion_cleanup_strategy\": null,\n    \"ramp_up_duration_seconds\": 600,\n    \"ramp_up_while_promoting\": true,\n    \"redeploy_on_promotion\": true,\n    \"rolling_deploy\": true,\n    \"rolling_deploy_config\": null\n  }\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/models/{model_id}/environments \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"staging\",\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 800,\n    \"concurrency_target\": 3,\n    \"max_replica\": 2,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 60,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"promotion_settings\": {\n    \"promotion_cleanup_strategy\": null,\n    \"ramp_up_duration_seconds\": 600,\n    \"ramp_up_while_promoting\": true,\n    \"redeploy_on_promotion\": true,\n    \"rolling_deploy\": true,\n    \"rolling_deploy_config\": null\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'staging', 'autoscaling_settings': {'autoscaling_window': 800, 'concurrency_target': 3, 'max_replica': 2, 'min_replica': 1, 'scale_down_delay': 60, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'promotion_settings': {'promotion_cleanup_strategy': None, 'ramp_up_duration_seconds': 600, 'ramp_up_while_promoting': True, 'redeploy_on_promotion': True, 'rolling_deploy': True, 'rolling_deploy_config': None}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'staging', 'autoscaling_settings': {'autoscaling_window': 800, 'concurrency_target': 3, 'max_replica': 2, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 60, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'promotion_settings': {'promotion_cleanup_strategy': None, 'ramp_up_duration_seconds': 600, 'ramp_up_while_promoting': True, 'redeploy_on_promotion': True, 'rolling_deploy': True, 'rolling_deploy_config': None}}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates an environment for the specified model and returns the environment.",
@@ -1556,11 +1773,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name} \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 800,\n    \"concurrency_target\": 3,\n    \"max_replica\": 2,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 60,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"promotion_settings\": {\n    \"promotion_cleanup_strategy\": null,\n    \"ramp_up_duration_seconds\": 600,\n    \"ramp_up_while_promoting\": true,\n    \"redeploy_on_promotion\": true,\n    \"rolling_deploy\": null,\n    \"rolling_deploy_config\": null\n  }\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name} \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 800,\n    \"concurrency_target\": 3,\n    \"max_replica\": 2,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 60,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"promotion_settings\": {\n    \"promotion_cleanup_strategy\": null,\n    \"ramp_up_duration_seconds\": 600,\n    \"ramp_up_while_promoting\": true,\n    \"redeploy_on_promotion\": true,\n    \"rolling_deploy\": null,\n    \"rolling_deploy_config\": null\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'autoscaling_settings': {'autoscaling_window': 800, 'concurrency_target': 3, 'max_replica': 2, 'min_replica': 1, 'scale_down_delay': 60, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'promotion_settings': {'promotion_cleanup_strategy': None, 'ramp_up_duration_seconds': 600, 'ramp_up_while_promoting': True, 'redeploy_on_promotion': True, 'rolling_deploy': None, 'rolling_deploy_config': None}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'autoscaling_settings': {'autoscaling_window': 800, 'concurrency_target': 3, 'max_replica': 2, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 60, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'promotion_settings': {'promotion_cleanup_strategy': None, 'ramp_up_duration_seconds': 600, 'ramp_up_while_promoting': True, 'redeploy_on_promotion': True, 'rolling_deploy': None, 'rolling_deploy_config': None}}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Asynchronously updates an environment's settings. Poll the GET endpoint for the applied state.",
@@ -2099,29 +2316,196 @@
             ]
         },
         "/v1/chains/{chain_id}/deployments/{chain_deployment_id}/chainlets/{chainlet_id}/logs": {
-            "post": {
+            "get": {
                 "summary": "Gets the logs for a chainlet within a chain deployment.",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/chains/{chain_id}/deployments/{chain_deployment_id}/chainlets/{chainlet_id}/logs \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"start_epoch_millis\": null,\n  \"end_epoch_millis\": null,\n  \"direction\": null,\n  \"limit\": null\n}'"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/chains/{chain_id}/deployments/{chain_deployment_id}/chainlets/{chainlet_id}/logs \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/chains/{chain_id}/deployments/{chain_deployment_id}/chainlets/{chainlet_id}/logs\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'start_epoch_millis': None, 'end_epoch_millis': None, 'direction': None, 'limit': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/chains/{chain_id}/deployments/{chain_deployment_id}/chainlets/{chainlet_id}/logs\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Resolves the chainlet (by ID, scoped to the given chain deployment) to its underlying model deployment and returns its logs in the given time range.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/GetDeploymentLogsRequestV1"
-                            }
+                "parameters": [
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to start fetching logs",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Epoch Millis"
                         }
                     },
-                    "required": true
-                },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to end fetching logs",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sort order for logs",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/SortOrderV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Limit of logs to fetch in a single request",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maximum": 1000,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": 500,
+                            "title": "Limit"
+                        }
+                    },
+                    {
+                        "name": "min_level",
+                        "in": "query",
+                        "required": false,
+                        "description": "Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/LogLevelV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "replica",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only return logs emitted by this replica (5-char short ID).",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maxLength": 256,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Replica"
+                        }
+                    },
+                    {
+                        "name": "request_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only return logs tagged with this inference request ID.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maxLength": 256,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Request Id"
+                        }
+                    },
+                    {
+                        "name": "search_pattern",
+                        "in": "query",
+                        "required": false,
+                        "description": "RE2 regular expression matched against the log message. Prefer `includes` and `excludes` for plain substring matches.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maxLength": 256,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Search Pattern"
+                        }
+                    },
+                    {
+                        "name": "includes",
+                        "in": "query",
+                        "required": false,
+                        "description": "Case-sensitive substrings that must all appear in the log message.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "maxItems": 8,
+                            "title": "Includes",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "excludes",
+                        "in": "query",
+                        "required": false,
+                        "description": "Case-sensitive substrings; lines containing any of these are dropped.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "maxItems": 8,
+                            "title": "Excludes",
+                            "type": "array"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -2184,11 +2568,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/chains/{chain_id}/environments \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"staging\",\n  \"promotion_settings\": {\n    \"promotion_cleanup_strategy\": null,\n    \"ramp_up_duration_seconds\": 600,\n    \"ramp_up_while_promoting\": true,\n    \"redeploy_on_promotion\": true,\n    \"rolling_deploy\": null,\n    \"rolling_deploy_config\": null\n  },\n  \"chainlet_settings\": [\n    {\n      \"autoscaling_settings\": {\n        \"autoscaling_window\": 800,\n        \"concurrency_target\": 4,\n        \"max_replica\": 3,\n        \"min_replica\": 2,\n        \"scale_down_delay\": 63,\n        \"target_in_flight_tokens\": null,\n        \"target_utilization_percentage\": null\n      },\n      \"chainlet_name\": \"HelloWorld\",\n      \"instance_type_id\": \"2x8\"\n    },\n    {\n      \"autoscaling_settings\": {\n        \"autoscaling_window\": null,\n        \"concurrency_target\": null,\n        \"max_replica\": 3,\n        \"min_replica\": 3,\n        \"scale_down_delay\": null,\n        \"target_in_flight_tokens\": null,\n        \"target_utilization_percentage\": null\n      },\n      \"chainlet_name\": \"RandInt\",\n      \"instance_type_id\": \"A10Gx8x32\"\n    }\n  ]\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/chains/{chain_id}/environments \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"staging\",\n  \"promotion_settings\": {\n    \"promotion_cleanup_strategy\": null,\n    \"ramp_up_duration_seconds\": 600,\n    \"ramp_up_while_promoting\": true,\n    \"redeploy_on_promotion\": true,\n    \"rolling_deploy\": null,\n    \"rolling_deploy_config\": null\n  },\n  \"chainlet_settings\": [\n    {\n      \"autoscaling_settings\": {\n        \"autoscaling_window\": 800,\n        \"concurrency_target\": 4,\n        \"max_replica\": 3,\n        \"max_scale_down_rate\": null,\n        \"min_replica\": 2,\n        \"scale_down_delay\": 63,\n        \"target_in_flight_tokens\": null,\n        \"target_utilization_percentage\": null\n      },\n      \"chainlet_name\": \"HelloWorld\",\n      \"instance_type_id\": \"2x8\"\n    },\n    {\n      \"autoscaling_settings\": {\n        \"autoscaling_window\": null,\n        \"concurrency_target\": null,\n        \"max_replica\": 3,\n        \"max_scale_down_rate\": null,\n        \"min_replica\": 3,\n        \"scale_down_delay\": null,\n        \"target_in_flight_tokens\": null,\n        \"target_utilization_percentage\": null\n      },\n      \"chainlet_name\": \"RandInt\",\n      \"instance_type_id\": \"A10Gx8x32\"\n    }\n  ]\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/chains/{chain_id}/environments\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'staging', 'promotion_settings': {'promotion_cleanup_strategy': None, 'ramp_up_duration_seconds': 600, 'ramp_up_while_promoting': True, 'redeploy_on_promotion': True, 'rolling_deploy': None, 'rolling_deploy_config': None}, 'chainlet_settings': [{'autoscaling_settings': {'autoscaling_window': 800, 'concurrency_target': 4, 'max_replica': 3, 'min_replica': 2, 'scale_down_delay': 63, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'chainlet_name': 'HelloWorld', 'instance_type_id': '2x8'}, {'autoscaling_settings': {'autoscaling_window': None, 'concurrency_target': None, 'max_replica': 3, 'min_replica': 3, 'scale_down_delay': None, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'chainlet_name': 'RandInt', 'instance_type_id': 'A10Gx8x32'}]}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/chains/{chain_id}/environments\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'staging', 'promotion_settings': {'promotion_cleanup_strategy': None, 'ramp_up_duration_seconds': 600, 'ramp_up_while_promoting': True, 'redeploy_on_promotion': True, 'rolling_deploy': None, 'rolling_deploy_config': None}, 'chainlet_settings': [{'autoscaling_settings': {'autoscaling_window': 800, 'concurrency_target': 4, 'max_replica': 3, 'max_scale_down_rate': None, 'min_replica': 2, 'scale_down_delay': 63, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'chainlet_name': 'HelloWorld', 'instance_type_id': '2x8'}, {'autoscaling_settings': {'autoscaling_window': None, 'concurrency_target': None, 'max_replica': 3, 'max_scale_down_rate': None, 'min_replica': 3, 'scale_down_delay': None, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'chainlet_name': 'RandInt', 'instance_type_id': 'A10Gx8x32'}]}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Create a chain environment. Returns the resulting environment.",
@@ -2340,11 +2724,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/chains/{chain_id}/environments/{env_name}/chainlet_settings/autoscaling_settings \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"updates\": [\n    {\n      \"autoscaling_settings\": {\n        \"autoscaling_window\": 800,\n        \"concurrency_target\": 4,\n        \"max_replica\": 3,\n        \"min_replica\": 2,\n        \"scale_down_delay\": 63,\n        \"target_in_flight_tokens\": null,\n        \"target_utilization_percentage\": null\n      },\n      \"chainlet_name\": \"HelloWorld\"\n    }\n  ]\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/chains/{chain_id}/environments/{env_name}/chainlet_settings/autoscaling_settings \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"updates\": [\n    {\n      \"autoscaling_settings\": {\n        \"autoscaling_window\": 800,\n        \"concurrency_target\": 4,\n        \"max_replica\": 3,\n        \"max_scale_down_rate\": null,\n        \"min_replica\": 2,\n        \"scale_down_delay\": 63,\n        \"target_in_flight_tokens\": null,\n        \"target_utilization_percentage\": null\n      },\n      \"chainlet_name\": \"HelloWorld\"\n    }\n  ]\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/chains/{chain_id}/environments/{env_name}/chainlet_settings/autoscaling_settings\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'updates': [{'autoscaling_settings': {'autoscaling_window': 800, 'concurrency_target': 4, 'max_replica': 3, 'min_replica': 2, 'scale_down_delay': 63, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'chainlet_name': 'HelloWorld'}]}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/chains/{chain_id}/environments/{env_name}/chainlet_settings/autoscaling_settings\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'updates': [{'autoscaling_settings': {'autoscaling_window': 800, 'concurrency_target': 4, 'max_replica': 3, 'max_scale_down_rate': None, 'min_replica': 2, 'scale_down_delay': 63, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'chainlet_name': 'HelloWorld'}]}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Updates a chainlet environment's autoscaling settings and returns the updated chainlet environment settings.",
@@ -2570,11 +2954,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"training_job\": {\n    \"image\": {\n      \"base_image\": \"hello-world\",\n      \"docker_auth\": null\n    },\n    \"compute\": {\n      \"node_count\": 1,\n      \"cpu_count\": 1,\n      \"memory\": \"2Gi\",\n      \"accelerator\": {\n        \"accelerator\": \"H100\",\n        \"count\": 2\n      }\n    },\n    \"runtime\": {\n      \"start_commands\": [\n        \"python main.py\"\n      ],\n      \"environment_variables\": {\n        \"API_KEY\": \"your_api_key_here\",\n        \"PATH\": \"/usr/bin\"\n      },\n      \"artifacts\": null,\n      \"enable_cache\": true,\n      \"cache_config\": {\n        \"enable_legacy_hf_mount\": true,\n        \"enabled\": true,\n        \"mount_base_path\": \"/root/.cache\",\n        \"require_cache_affinity\": true\n      },\n      \"checkpointing_config\": {\n        \"enabled\": true,\n        \"checkpoint_path\": \"/mnt/ckpts\",\n        \"volume_size_gib\": 10\n      },\n      \"load_checkpoint_config\": null\n    },\n    \"name\": \"gpt-oss-job\",\n    \"truss_user_env\": null,\n    \"interactive_session\": null,\n    \"weights\": [\n      {\n        \"allow_patterns\": null,\n        \"auth\": null,\n        \"auth_secret_name\": null,\n        \"ignore_patterns\": null,\n        \"mount_location\": \"/app/models/base\",\n        \"source\": \"hf://meta-llama/Llama-3-8B@main\"\n      }\n    ],\n    \"enable_baseten_workdir\": false,\n    \"priority\": 0\n  }\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"training_job\": {\n    \"image\": {\n      \"base_image\": \"hello-world\",\n      \"docker_auth\": null\n    },\n    \"compute\": {\n      \"node_count\": 1,\n      \"cpu_count\": 1,\n      \"memory\": \"2Gi\",\n      \"accelerator\": {\n        \"accelerator\": \"H100\",\n        \"count\": 2\n      }\n    },\n    \"runtime\": {\n      \"start_commands\": [\n        \"python main.py\"\n      ],\n      \"environment_variables\": {\n        \"API_KEY\": \"your_api_key_here\",\n        \"PATH\": \"/usr/bin\"\n      },\n      \"enable_cache\": true,\n      \"cache_config\": {\n        \"enable_legacy_hf_mount\": true,\n        \"enabled\": true,\n        \"mount_base_path\": \"/root/.cache\",\n        \"require_cache_affinity\": true\n      },\n      \"checkpointing_config\": {\n        \"enabled\": true,\n        \"checkpoint_path\": \"/mnt/ckpts\",\n        \"volume_size_gib\": 10\n      },\n      \"load_checkpoint_config\": null\n    },\n    \"name\": \"gpt-oss-job\",\n    \"truss_user_env\": null,\n    \"interactive_session\": null,\n    \"weights\": [\n      {\n        \"allow_patterns\": null,\n        \"auth\": null,\n        \"auth_secret_name\": null,\n        \"ignore_patterns\": null,\n        \"mount_location\": \"/app/models/base\",\n        \"source\": \"hf://meta-llama/Llama-3-8B@main\"\n      }\n    ],\n    \"enable_baseten_workdir\": false,\n    \"priority\": 0\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_job': {'image': {'base_image': 'hello-world', 'docker_auth': None}, 'compute': {'node_count': 1, 'cpu_count': 1, 'memory': '2Gi', 'accelerator': {'accelerator': 'H100', 'count': 2}}, 'runtime': {'start_commands': ['python main.py'], 'environment_variables': {'API_KEY': 'your_api_key_here', 'PATH': '/usr/bin'}, 'artifacts': None, 'enable_cache': True, 'cache_config': {'enable_legacy_hf_mount': True, 'enabled': True, 'mount_base_path': '/root/.cache', 'require_cache_affinity': True}, 'checkpointing_config': {'enabled': True, 'checkpoint_path': '/mnt/ckpts', 'volume_size_gib': 10}, 'load_checkpoint_config': None}, 'name': 'gpt-oss-job', 'truss_user_env': None, 'interactive_session': None, 'weights': [{'allow_patterns': None, 'auth': None, 'auth_secret_name': None, 'ignore_patterns': None, 'mount_location': '/app/models/base', 'source': 'hf://meta-llama/Llama-3-8B@main'}], 'enable_baseten_workdir': False, 'priority': 0}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_job': {'image': {'base_image': 'hello-world', 'docker_auth': None}, 'compute': {'node_count': 1, 'cpu_count': 1, 'memory': '2Gi', 'accelerator': {'accelerator': 'H100', 'count': 2}}, 'runtime': {'start_commands': ['python main.py'], 'environment_variables': {'API_KEY': 'your_api_key_here', 'PATH': '/usr/bin'}, 'enable_cache': True, 'cache_config': {'enable_legacy_hf_mount': True, 'enabled': True, 'mount_base_path': '/root/.cache', 'require_cache_affinity': True}, 'checkpointing_config': {'enabled': True, 'checkpoint_path': '/mnt/ckpts', 'volume_size_gib': 10}, 'load_checkpoint_config': None}, 'name': 'gpt-oss-job', 'truss_user_env': None, 'interactive_session': None, 'weights': [{'allow_patterns': None, 'auth': None, 'auth_secret_name': None, 'ignore_patterns': None, 'mount_location': '/app/models/base', 'source': 'hf://meta-llama/Llama-3-8B@main'}], 'enable_baseten_workdir': False, 'priority': 0}}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a training job with the specified configuration.",
@@ -2737,19 +3121,145 @@
             ]
         },
         "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/logs": {
-            "post": {
+            "get": {
                 "summary": "Get the logs for a training job.",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/logs \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"start_epoch_millis\": null,\n  \"end_epoch_millis\": null,\n  \"direction\": null,\n  \"limit\": null\n}'"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/logs \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/logs\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'start_epoch_millis': None, 'end_epoch_millis': None, 'direction': None, 'limit': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/logs\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Get the logs for a training job with the provided filters.",
+                "parameters": [
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to start fetching logs",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to end fetching logs",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sort order for logs",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/SortOrderV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Limit of logs to fetch in a single request",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maximum": 1000,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": 500,
+                            "title": "Limit"
+                        }
+                    },
+                    {
+                        "name": "min_level",
+                        "in": "query",
+                        "required": false,
+                        "description": "Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/LogLevelV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetLogsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/training_project_id"
+                },
+                {
+                    "$ref": "#/components/parameters/training_job_id"
+                }
+            ],
+            "post": {
+                "summary": "Get the logs for a training job (deprecated; use GET).",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/logs \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"start_epoch_millis\": null,\n  \"end_epoch_millis\": null,\n  \"direction\": null,\n  \"limit\": null,\n  \"min_level\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/logs\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'start_epoch_millis': None, 'end_epoch_millis': None, 'direction': None, 'limit': None, 'min_level': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Use the GET form on this path instead.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2771,6 +3281,74 @@
                             }
                         }
                     }
+                },
+                "x-stability": "deprecated",
+                "deprecated": true
+            }
+        },
+        "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/metrics": {
+            "get": {
+                "summary": "Get the metrics for a training job.",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/metrics \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/metrics\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Get the metrics for a training job.",
+                "parameters": [
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to end fetching metrics",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to start fetching metrics.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Epoch Millis"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetTrainingJobMetricsResponseV1"
+                                }
+                            }
+                        }
+                    }
                 }
             },
             "parameters": [
@@ -2780,11 +3358,9 @@
                 {
                     "$ref": "#/components/parameters/training_job_id"
                 }
-            ]
-        },
-        "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/metrics": {
+            ],
             "post": {
-                "summary": "Get the metrics for a training job.",
+                "summary": "Get the metrics for a training job (deprecated; use GET).",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -2795,7 +3371,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/metrics\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'end_epoch_millis': None, 'start_epoch_millis': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Get the metrics for a training job.",
+                "description": "Use the GET form on this path instead.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2817,16 +3393,10 @@
                             }
                         }
                     }
-                }
-            },
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/training_project_id"
                 },
-                {
-                    "$ref": "#/components/parameters/training_job_id"
-                }
-            ]
+                "x-stability": "deprecated",
+                "deprecated": true
+            }
         },
         "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/stop": {
             "post": {
@@ -2924,6 +3494,32 @@
                     }
                 ],
                 "description": "Get presigned URLs for all checkpoint files for a training job.",
+                "parameters": [
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "required": false,
+                        "description": "Max files per page (default 1000).",
+                        "schema": {
+                            "default": 1000,
+                            "minimum": 1,
+                            "title": "Page Size",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_token",
+                        "in": "query",
+                        "required": false,
+                        "description": "Offset into the file list (default 0).",
+                        "schema": {
+                            "default": 0,
+                            "minimum": 0,
+                            "title": "Page Token",
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -3175,11 +3771,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_jobs/search \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"project_id\": \"n4q95w5\",\n  \"job_id\": \"p7qr9qv\",\n  \"statuses\": [\n    \"TRAINING_JOB_RUNNING\",\n    \"TRAINING_JOB_COMPLETED\"\n  ],\n  \"order_by\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_jobs/search \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"project_id\": \"n4q95w5\",\n  \"job_id\": \"p7qr9qv\",\n  \"statuses\": [\n    \"TRAINING_JOB_RUNNING\",\n    \"TRAINING_JOB_COMPLETED\"\n  ]\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_jobs/search\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'project_id': 'n4q95w5', 'job_id': 'p7qr9qv', 'statuses': ['TRAINING_JOB_RUNNING', 'TRAINING_JOB_COMPLETED'], 'order_by': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_jobs/search\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'project_id': 'n4q95w5', 'job_id': 'p7qr9qv', 'statuses': ['TRAINING_JOB_RUNNING', 'TRAINING_JOB_COMPLETED']}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Search training jobs for the organization.",
@@ -3327,11 +3923,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/trainer_sessions/{session_id}/trainers \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"model\": null,\n  \"max_seq_len\": null,\n  \"lora_rank\": null,\n  \"seed\": null,\n  \"scale_down_delay_seconds\": null,\n  \"checkpoint_path\": \"bt://loops:k4q95w5/weights/step-100\"\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/trainer_sessions/{session_id}/trainers \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"model\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"checkpoint_path\": \"bt://loops:k4q95w5/weights/step-100\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/trainer_sessions/{session_id}/trainers\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'model': None, 'max_seq_len': None, 'lora_rank': None, 'seed': None, 'scale_down_delay_seconds': None, 'checkpoint_path': 'bt://loops:k4q95w5/weights/step-100'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/trainer_sessions/{session_id}/trainers\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'model': None, 'max_seq_len': None, 'seed': None, 'checkpoint_path': 'bt://loops:k4q95w5/weights/step-100'}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a TrainerServer and an associated SamplingServer for the given trainer session.",
@@ -3657,11 +4253,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/runs \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"max_seq_len\": null,\n  \"lora_rank\": null,\n  \"seed\": null,\n  \"scale_down_delay_seconds\": null,\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\"\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/runs \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_session_id\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'max_seq_len': None, 'lora_rank': None, 'seed': None, 'scale_down_delay_seconds': None, 'path': 'bt://loops:k4q95w5/weights/step-100'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'max_seq_len': None, 'seed': None, 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a Loops run with an associated sampler in the given session.",
@@ -3754,11 +4350,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/samplers \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\"\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/samplers \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a standalone Loops sampler not linked to a run.",
@@ -3996,7 +4592,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/deployments\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "List the caller's active Loops deployments. Excludes deployments whose latest status is stopped.",
+                "description": "List the caller's Loops deployments. Returns every deployment regardless of status; clients filter terminal states.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4065,6 +4661,174 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/GetLoopsDeploymentResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/deployment_id"
+                }
+            ]
+        },
+        "/v1/loops/deployments/{deployment_id}/metrics": {
+            "post": {
+                "summary": "Get metrics for a Loops trainer deployment.",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/deployments/{deployment_id}/metrics \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"end_epoch_millis\": null,\n  \"start_epoch_millis\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/deployments/{deployment_id}/metrics\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'end_epoch_millis': None, 'start_epoch_millis': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns per-node GPU/CPU/memory utilization and Knative queue-proxy request rate / concurrency / latency for the trainer pods. The sampler half of a Loops deployment is an OracleVersion and uses the existing model-metrics endpoint.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetLoopsDeploymentMetricsRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetLoopsDeploymentMetricsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/deployment_id"
+                }
+            ]
+        },
+        "/v1/loops/deployments/{deployment_id}/logs": {
+            "get": {
+                "summary": "Get logs for a Loops trainer deployment.",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/loops/deployments/{deployment_id}/logs \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/deployments/{deployment_id}/logs\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Fetch logs from the trainer pods of a Loops deployment. Visible to any member of the deployment's team.",
+                "parameters": [
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to start fetching logs",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to end fetching logs",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sort order for logs",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/SortOrderV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Limit of logs to fetch in a single request",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maximum": 1000,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": 500,
+                            "title": "Limit"
+                        }
+                    },
+                    {
+                        "name": "min_level",
+                        "in": "query",
+                        "required": false,
+                        "description": "Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/LogLevelV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetLogsResponseV1"
                                 }
                             }
                         }
@@ -4437,11 +5201,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"llm_version\": null,\n  \"llm_config\": null,\n  \"environment_variables\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"name\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"name\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'llm_version': None, 'llm_config': None, 'environment_variables': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'name': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -4474,11 +5238,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/llm_models \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"llm_version\": null,\n  \"llm_config\": null,\n  \"environment_variables\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"name\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/llm_models \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"name\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/llm_models\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'llm_version': None, 'llm_config': None, 'environment_variables': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'name': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/llm_models\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -4516,11 +5280,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models/{model_id}/deployments \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"llm_version\": null,\n  \"llm_config\": null,\n  \"environment_variables\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ]\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models/{model_id}/deployments \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ]\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models/{model_id}/deployments\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'llm_version': None, 'llm_config': None, 'environment_variables': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}]}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models/{model_id}/deployments\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}]}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -4584,11 +5348,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/library_listings \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"display_name\": null,\n  \"user_defined_id\": null,\n  \"is_public\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/library_listings \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"display_name\": null,\n  \"user_defined_id\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/library_listings\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'display_name': None, 'user_defined_id': None, 'is_public': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/library_listings\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'display_name': None, 'user_defined_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a new library listing for the authenticated user's organization.",
@@ -4748,11 +5512,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/library_listings/{user_defined_listing_id}/versions \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"display_name\": null,\n  \"is_public\": null,\n  \"oracle_version_id\": null,\n  \"allow_truss_download\": null,\n  \"version_tag\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/library_listings/{user_defined_listing_id}/versions \\\n--header \"Authorization: Api-Key $BASETEN_API_KEY\" \\\n--data '{\n  \"display_name\": null,\n  \"oracle_version_id\": null,\n  \"version_tag\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/library_listings/{user_defined_listing_id}/versions\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'display_name': None, 'is_public': None, 'oracle_version_id': None, 'allow_truss_download': None, 'version_tag': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/library_listings/{user_defined_listing_id}/versions\"\n\nheaders = {\"Authorization\": f\"Api-Key {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'display_name': None, 'oracle_version_id': None, 'version_tag': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a new library listing version from an existing model version. The model version must be fully built (have an image_uri). If a listing with the given id already exists for the org, a new version is added. Otherwise, a new listing is created.",
@@ -5851,9 +6615,9 @@
                         "title": "Kind",
                         "type": "string"
                     },
-                    "org_foundation_name": {
+                    "lab_display_name": {
                         "description": "Identifier of the publishing organization, as returned by `GET /v1/library_models`.",
-                        "title": "Org Foundation Name",
+                        "title": "Lab Display Name",
                         "type": "string"
                     },
                     "user_defined_listing_id": {
@@ -5876,7 +6640,7 @@
                     }
                 },
                 "required": [
-                    "org_foundation_name",
+                    "lab_display_name",
                     "user_defined_listing_id"
                 ],
                 "title": "LibraryListingSourceV1",
@@ -6021,6 +6785,19 @@
                         "default": null,
                         "description": "Target number of in-flight tokens for autoscaling decisions. Early access only.",
                         "title": "Target In Flight Tokens"
+                    },
+                    "max_scale_down_rate": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Maximum rate at which replicas can scale down (e.g. 2.0 means at most halve replicas per window).",
+                        "title": "Max Scale Down Rate"
                     }
                 },
                 "required": [
@@ -6415,6 +7192,24 @@
                             40000
                         ],
                         "title": "Target In Flight Tokens"
+                    },
+                    "max_scale_down_rate": {
+                        "anyOf": [
+                            {
+                                "exclusiveMinimum": 1,
+                                "maximum": 2,
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Maximum rate at which replicas can scale down (e.g. 2.0 means at most halve replicas per window).",
+                        "examples": [
+                            2.0
+                        ],
+                        "title": "Max Scale Down Rate"
                     }
                 },
                 "title": "UpdateAutoscalingSettingsV1",
@@ -6583,6 +7378,114 @@
                 "title": "DeploymentConfigResponseV1",
                 "type": "object"
             },
+            "DeploymentConfigOutputFormat": {
+                "enum": [
+                    "raw",
+                    "parsed",
+                    "both"
+                ],
+                "title": "DeploymentConfigOutputFormat",
+                "type": "string"
+            },
+            "GetDeploymentConfigRequestV1": {
+                "description": "Query params for ``GET /v1/models/.../deployments/.../config``.",
+                "properties": {
+                    "output_format": {
+                        "$ref": "#/components/schemas/DeploymentConfigOutputFormat",
+                        "default": "both",
+                        "description": "'raw': verbatim config.yaml with comments \u2014 not available for deployments created before 2026-04-30. 'parsed': dict with server-side defaults applied \u2014 always available. 'both': both fields populated."
+                    }
+                },
+                "title": "GetDeploymentConfigRequestV1",
+                "type": "object"
+            },
+            "LogLevelV1": {
+                "description": "A log severity level.",
+                "enum": [
+                    "DEBUG",
+                    "INFO",
+                    "WARNING",
+                    "ERROR"
+                ],
+                "title": "LogLevelV1",
+                "type": "string"
+            },
+            "LogV1": {
+                "properties": {
+                    "timestamp": {
+                        "description": "Epoch nanosecond timestamp of the log message.",
+                        "title": "Timestamp",
+                        "type": "string"
+                    },
+                    "message": {
+                        "description": "The contents of the log message.",
+                        "title": "Message",
+                        "type": "string"
+                    },
+                    "replica": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The replica the log line was emitted from.",
+                        "title": "Replica"
+                    },
+                    "request_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The request ID associated with an inference request.",
+                        "title": "Request Id"
+                    },
+                    "level": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LogLevelV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Severity of the log line, if one was detected. null when unknown."
+                    }
+                },
+                "required": [
+                    "timestamp",
+                    "message",
+                    "replica"
+                ],
+                "title": "LogV1",
+                "type": "object"
+            },
+            "GetLogsResponseV1": {
+                "description": "A response to querying logs.",
+                "properties": {
+                    "logs": {
+                        "description": "Logs for a specific entity.",
+                        "items": {
+                            "$ref": "#/components/schemas/LogV1"
+                        },
+                        "title": "Logs",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "logs"
+                ],
+                "title": "GetLogsResponseV1",
+                "type": "object"
+            },
             "SortOrderV1": {
                 "enum": [
                     "asc",
@@ -6646,38 +7549,23 @@
                         "default": 500,
                         "description": "Limit of logs to fetch in a single request",
                         "title": "Limit"
-                    }
-                },
-                "title": "GetDeploymentLogsRequestV1",
-                "type": "object"
-            },
-            "LogV1": {
-                "properties": {
-                    "timestamp": {
-                        "description": "Epoch nanosecond timestamp of the log message.",
-                        "title": "Timestamp",
-                        "type": "string"
                     },
-                    "message": {
-                        "description": "The contents of the log message.",
-                        "title": "Message",
-                        "type": "string"
-                    },
-                    "replica": {
+                    "min_level": {
                         "anyOf": [
                             {
-                                "type": "string"
+                                "$ref": "#/components/schemas/LogLevelV1"
                             },
                             {
                                 "type": "null"
                             }
                         ],
-                        "description": "The replica the log line was emitted from.",
-                        "title": "Replica"
+                        "default": null,
+                        "description": "Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level."
                     },
-                    "request_id": {
+                    "replica": {
                         "anyOf": [
                             {
+                                "maxLength": 256,
                                 "type": "string"
                             },
                             {
@@ -6685,34 +7573,57 @@
                             }
                         ],
                         "default": null,
-                        "description": "The request ID associated with an inference request.",
+                        "description": "Only return logs emitted by this replica (5-char short ID).",
+                        "title": "Replica"
+                    },
+                    "request_id": {
+                        "anyOf": [
+                            {
+                                "maxLength": 256,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only return logs tagged with this inference request ID.",
                         "title": "Request Id"
-                    }
-                },
-                "required": [
-                    "timestamp",
-                    "message",
-                    "replica"
-                ],
-                "title": "LogV1",
-                "type": "object"
-            },
-            "GetLogsResponseV1": {
-                "description": "A response to querying logs.",
-                "properties": {
-                    "logs": {
-                        "description": "Logs for a specific entity.",
+                    },
+                    "search_pattern": {
+                        "anyOf": [
+                            {
+                                "maxLength": 256,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "RE2 regular expression matched against the log message. Prefer `includes` and `excludes` for plain substring matches.",
+                        "title": "Search Pattern"
+                    },
+                    "includes": {
+                        "description": "Case-sensitive substrings that must all appear in the log message.",
                         "items": {
-                            "$ref": "#/components/schemas/LogV1"
+                            "type": "string"
                         },
-                        "title": "Logs",
+                        "maxItems": 8,
+                        "title": "Includes",
+                        "type": "array"
+                    },
+                    "excludes": {
+                        "description": "Case-sensitive substrings; lines containing any of these are dropped.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "maxItems": 8,
+                        "title": "Excludes",
                         "type": "array"
                     }
                 },
-                "required": [
-                    "logs"
-                ],
-                "title": "GetLogsResponseV1",
+                "title": "GetDeploymentLogsRequestV1",
                 "type": "object"
             },
             "TerminateReplicaResponseV1": {
@@ -7323,6 +8234,7 @@
                                 "autoscaling_window": 800,
                                 "concurrency_target": 3,
                                 "max_replica": 2,
+                                "max_scale_down_rate": null,
                                 "min_replica": 1,
                                 "scale_down_delay": 60,
                                 "target_in_flight_tokens": null,
@@ -7379,6 +8291,7 @@
                                 "autoscaling_window": 800,
                                 "concurrency_target": 3,
                                 "max_replica": 2,
+                                "max_scale_down_rate": null,
                                 "min_replica": 1,
                                 "scale_down_delay": 60,
                                 "target_in_flight_tokens": null,
@@ -7744,6 +8657,7 @@
                                 "autoscaling_window": 60,
                                 "concurrency_target": 1,
                                 "max_replica": 1,
+                                "max_scale_down_rate": null,
                                 "min_replica": 0,
                                 "scale_down_delay": 900,
                                 "target_in_flight_tokens": null,
@@ -7824,6 +8738,7 @@
                                         "autoscaling_window": 800,
                                         "concurrency_target": 4,
                                         "max_replica": 3,
+                                        "max_scale_down_rate": null,
                                         "min_replica": 2,
                                         "scale_down_delay": 63,
                                         "target_in_flight_tokens": null,
@@ -7837,6 +8752,7 @@
                                         "autoscaling_window": null,
                                         "concurrency_target": null,
                                         "max_replica": 3,
+                                        "max_scale_down_rate": null,
                                         "min_replica": 3,
                                         "scale_down_delay": null,
                                         "target_in_flight_tokens": null,
@@ -8041,6 +8957,7 @@
                                 "autoscaling_window": 800,
                                 "concurrency_target": 3,
                                 "max_replica": 2,
+                                "max_scale_down_rate": null,
                                 "min_replica": 1,
                                 "scale_down_delay": 60,
                                 "target_in_flight_tokens": null,
@@ -8068,6 +8985,7 @@
                                         "autoscaling_window": 800,
                                         "concurrency_target": 4,
                                         "max_replica": 3,
+                                        "max_scale_down_rate": null,
                                         "min_replica": 2,
                                         "scale_down_delay": 63,
                                         "target_in_flight_tokens": null,
@@ -8082,6 +9000,7 @@
                                         "autoscaling_window": null,
                                         "concurrency_target": null,
                                         "max_replica": null,
+                                        "max_scale_down_rate": null,
                                         "min_replica": 0,
                                         "scale_down_delay": null,
                                         "target_in_flight_tokens": null,
@@ -8094,6 +9013,7 @@
                                         "autoscaling_window": null,
                                         "concurrency_target": null,
                                         "max_replica": null,
+                                        "max_scale_down_rate": null,
                                         "min_replica": 0,
                                         "scale_down_delay": null,
                                         "target_in_flight_tokens": null,
@@ -9772,42 +10692,21 @@
                         "default": 500,
                         "description": "Limit of logs to fetch in a single request",
                         "title": "Limit"
+                    },
+                    "min_level": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LogLevelV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level."
                     }
                 },
                 "title": "GetTrainingJobLogsRequestV1",
-                "type": "object"
-            },
-            "GetTrainingJobMetricsRequestV1": {
-                "description": "A request to fetch metrics. Allows the user to request metrics over a period of time.",
-                "properties": {
-                    "end_epoch_millis": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Epoch millis timestamp to end fetching metrics",
-                        "title": "End Epoch Millis"
-                    },
-                    "start_epoch_millis": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Epoch millis timestamp to start fetching metrics.",
-                        "title": "Start Epoch Millis"
-                    }
-                },
-                "title": "GetTrainingJobMetricsRequestV1",
                 "type": "object"
             },
             "StorageMetricsV1": {
@@ -10016,6 +10915,39 @@
                 "title": "GetTrainingJobMetricsResponseV1",
                 "type": "object"
             },
+            "GetTrainingJobMetricsRequestV1": {
+                "description": "A request to fetch metrics. Allows the user to request metrics over a period of time.",
+                "properties": {
+                    "end_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch millis timestamp to end fetching metrics",
+                        "title": "End Epoch Millis"
+                    },
+                    "start_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch millis timestamp to start fetching metrics.",
+                        "title": "Start Epoch Millis"
+                    }
+                },
+                "title": "GetTrainingJobMetricsRequestV1",
+                "type": "object"
+            },
             "StopTrainingJobRequestV1": {
                 "description": "A request to stop a training job.",
                 "properties": {},
@@ -10207,6 +11139,27 @@
                     "total_count"
                 ],
                 "title": "GetTrainingJobCheckpointFilesResponseV1",
+                "type": "object"
+            },
+            "GetTrainingJobCheckpointFilesRequestV1": {
+                "description": "Pagination params for ``GET /v1/training_projects/.../checkpoint_files``.",
+                "properties": {
+                    "page_size": {
+                        "default": 1000,
+                        "description": "Max files per page (default 1000).",
+                        "minimum": 1,
+                        "title": "Page Size",
+                        "type": "integer"
+                    },
+                    "page_token": {
+                        "default": 0,
+                        "description": "Offset into the file list (default 0).",
+                        "minimum": 0,
+                        "title": "Page Token",
+                        "type": "integer"
+                    }
+                },
+                "title": "GetTrainingJobCheckpointFilesRequestV1",
                 "type": "object"
             },
             "AuthCodeV1": {
@@ -11052,11 +12005,23 @@
                     "base_url": {
                         "title": "Base Url",
                         "type": "string"
+                    },
+                    "model_id": {
+                        "description": "Hashid of the underlying Baseten model.",
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "description": "Hashid of the specific model deployment (version).",
+                        "title": "Deployment Id",
+                        "type": "string"
                     }
                 },
                 "required": [
                     "id",
-                    "base_url"
+                    "base_url",
+                    "model_id",
+                    "deployment_id"
                 ],
                 "title": "SamplingServerV1",
                 "type": "object"
@@ -11352,6 +12317,20 @@
                 "title": "LoopsRunV1",
                 "type": "object"
             },
+            "LoopsSamplerStatusV1": {
+                "description": "The current status of a Loops sampler.",
+                "properties": {
+                    "name": {
+                        "$ref": "#/components/schemas/DeploymentStatusV1",
+                        "description": "The current status of the Loops sampler."
+                    }
+                },
+                "required": [
+                    "name"
+                ],
+                "title": "LoopsSamplerStatusV1",
+                "type": "object"
+            },
             "LoopsSamplerV1": {
                 "properties": {
                     "id": {
@@ -11372,13 +12351,30 @@
                         "format": "date-time",
                         "title": "Created At",
                         "type": "string"
+                    },
+                    "model_id": {
+                        "description": "Hashid of the underlying Baseten model.",
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "description": "Hashid of the specific model deployment (version).",
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/LoopsSamplerStatusV1",
+                        "description": "The sampler's current status."
                     }
                 },
                 "required": [
                     "id",
                     "base_url",
                     "base_model",
-                    "created_at"
+                    "created_at",
+                    "model_id",
+                    "deployment_id",
+                    "status"
                 ],
                 "title": "LoopsSamplerV1",
                 "type": "object"
@@ -11399,6 +12395,45 @@
                     "runs"
                 ],
                 "title": "ListLoopsRunsResponseV1",
+                "type": "object"
+            },
+            "ListLoopsRunsQueryParamsV1": {
+                "description": "Query-string filters for ``GET /v1/loops/runs``.\n\nBoth filters are optional and can be combined; omit both to list all\nruns visible to the caller.",
+                "properties": {
+                    "run_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Filter by run ID.",
+                        "examples": [
+                            "k4q95w5"
+                        ],
+                        "title": "Run Id"
+                    },
+                    "base_model": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Filter runs by base model name.",
+                        "examples": [
+                            "Qwen/Qwen3-8B"
+                        ],
+                        "title": "Base Model"
+                    }
+                },
+                "title": "ListLoopsRunsQueryParamsV1",
                 "type": "object"
             },
             "CreateLoopsRunRequestV1": {
@@ -11467,6 +12502,19 @@
                             "bt://loops:k4q95w5/weights/step-100"
                         ],
                         "title": "Path"
+                    },
+                    "reuse_from_session_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional Loops session ID whose trainer deployment should be reused for this run, sharing the infrastructure across sessions instead of provisioning fresh. The named session must belong to the same team. Reuse is best-effort: if the prior deployment is stopped, failed, or its sampler is unhealthy, a new deployment is provisioned instead.",
+                        "title": "Reuse From Session Id"
                     }
                 },
                 "required": [
@@ -11560,6 +12608,19 @@
                             "bt://loops:k4q95w5/sampler_weights/step-100"
                         ],
                         "title": "Model Path"
+                    },
+                    "reuse_from_session_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional Loops session ID whose deployment should be reused for this sampler. Same best-effort semantics as the run endpoint.",
+                        "title": "Reuse From Session Id"
                     }
                 },
                 "required": [
@@ -11704,6 +12765,61 @@
                 "title": "ListLoopsCheckpointsResponseV1",
                 "type": "object"
             },
+            "ListLoopsCheckpointsQueryParamsV1": {
+                "description": "Query-string filters for ``GET /v1/loops/checkpoints``.\n\nProvide exactly one of ``run_id`` (all checkpoints for the run),\n``base_model`` (all checkpoints across the caller's runs of that\nbase model), or ``checkpoint_path`` (the single matching checkpoint).",
+                "properties": {
+                    "run_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Filter by run ID. Returns all checkpoints saved by the run.",
+                        "examples": [
+                            "k4q95w5"
+                        ],
+                        "title": "Run Id"
+                    },
+                    "base_model": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Filter by base model. Returns checkpoints across the caller's runs of this base model.",
+                        "examples": [
+                            "Qwen/Qwen3-8B"
+                        ],
+                        "title": "Base Model"
+                    },
+                    "checkpoint_path": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "bt:// URI of a Loops checkpoint. Form: bt://loops:<run_id>/(weights|sampler_weights)/<checkpoint_name>.",
+                        "examples": [
+                            "bt://loops:k4q95w5/sampler_weights/step-100"
+                        ],
+                        "title": "Checkpoint Path"
+                    }
+                },
+                "title": "ListLoopsCheckpointsQueryParamsV1",
+                "type": "object"
+            },
             "ValidateLoopsCheckpointRequestV1": {
                 "description": "Request body for ``POST /v1/loops/checkpoints/validate``.",
                 "properties": {
@@ -11821,14 +12937,15 @@
                     "CREATED",
                     "DEPLOYING",
                     "RUNNING",
+                    "SCALED_TO_ZERO",
                     "FAILED",
                     "STOPPED"
                 ],
-                "title": "Name",
+                "title": "LoopsDeploymentStatus",
                 "type": "string"
             },
             "ListLoopsDeploymentsResponseV1": {
-                "description": "Response for ``GET /v1/loops/deployments``.\n\nReturns the caller's Loops deployments whose latest status is not STOPPED\n(i.e. CREATED, DEPLOYING, RUNNING, or FAILED). Stopped deployments are\nexcluded so the list is a fit-for-purpose \"what's currently provisioned\nfor me\" view \u2014 the deactivate endpoint is the inverse pair.",
+                "description": "Response for ``GET /v1/loops/deployments``.\n\nReturns every Loops deployment owned by the caller, regardless of status\n(CREATED, DEPLOYING, RUNNING, STOPPED, or FAILED). Clients filter\nterminal-state deployments themselves.",
                 "properties": {
                     "deployments": {
                         "description": "Active Loops deployments.",
@@ -11883,6 +13000,383 @@
                     "deployment"
                 ],
                 "title": "GetLoopsDeploymentResponseV1",
+                "type": "object"
+            },
+            "GetLoopsDeploymentMetricsRequestV1": {
+                "description": "Time-range request for trainer deployment metrics.",
+                "properties": {
+                    "end_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch millis to end fetching metrics.",
+                        "title": "End Epoch Millis"
+                    },
+                    "start_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch millis to start fetching metrics.",
+                        "title": "Start Epoch Millis"
+                    }
+                },
+                "title": "GetLoopsDeploymentMetricsRequestV1",
+                "type": "object"
+            },
+            "InferenceVolumeByStatusDatapointV1": {
+                "description": "Request rate split by HTTP response code class.",
+                "properties": {
+                    "timestamp": {
+                        "description": "ISO 8601 timestamp.",
+                        "format": "date-time",
+                        "title": "Timestamp",
+                        "type": "string"
+                    },
+                    "status_2xx": {
+                        "description": "2xx requests per second.",
+                        "title": "Status 2Xx",
+                        "type": "number"
+                    },
+                    "status_4xx": {
+                        "description": "4xx requests per second.",
+                        "title": "Status 4Xx",
+                        "type": "number"
+                    },
+                    "status_5xx": {
+                        "description": "5xx requests per second.",
+                        "title": "Status 5Xx",
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "timestamp",
+                    "status_2xx",
+                    "status_4xx",
+                    "status_5xx"
+                ],
+                "title": "InferenceVolumeByStatusDatapointV1",
+                "type": "object"
+            },
+            "LoopsDeploymentMetricsV1": {
+                "description": "Metrics for a trainer (Loops) deployment.\n\nService-level fields summarize HTTP traffic into the trainer pods (the\nKnative queue-proxy is the source). Compute fields are the leader-pod\naggregate; ``per_node_metrics`` carries the full multinode breakdown.",
+                "properties": {
+                    "inference_volume": {
+                        "description": "Number of inference requests per unit time (requests per second).",
+                        "items": {
+                            "$ref": "#/components/schemas/TrainingJobMetricV1"
+                        },
+                        "title": "Inference Volume",
+                        "type": "array"
+                    },
+                    "concurrent_requests": {
+                        "description": "Number of in-progress concurrent inference requests. Source: the queue-proxy ``revision_queue_depth`` gauge on ``http-usermetric``.",
+                        "items": {
+                            "$ref": "#/components/schemas/TrainingJobMetricV1"
+                        },
+                        "title": "Concurrent Requests",
+                        "type": "array"
+                    },
+                    "response_time_stats": {
+                        "description": "Percentiles of the response time distribution.",
+                        "items": {
+                            "$ref": "#/components/schemas/ResponseTimeDatapointV1"
+                        },
+                        "title": "Response Time Stats",
+                        "type": "array"
+                    },
+                    "inference_volume_by_status": {
+                        "description": "Request rate split by response code class.",
+                        "items": {
+                            "$ref": "#/components/schemas/InferenceVolumeByStatusDatapointV1"
+                        },
+                        "title": "Inference Volume By Status",
+                        "type": "array"
+                    },
+                    "gpu_memory_usage_bytes": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/TrainingJobMetricV1"
+                            },
+                            "type": "array"
+                        },
+                        "description": "Leader-pod GPU memory bytes per GPU rank.",
+                        "title": "Gpu Memory Usage Bytes",
+                        "type": "object"
+                    },
+                    "gpu_utilization": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/TrainingJobMetricV1"
+                            },
+                            "type": "array"
+                        },
+                        "description": "Leader-pod fractional GPU utilization per GPU rank.",
+                        "title": "Gpu Utilization",
+                        "type": "object"
+                    },
+                    "cpu_usage": {
+                        "description": "Leader-pod CPU usage in cores.",
+                        "items": {
+                            "$ref": "#/components/schemas/TrainingJobMetricV1"
+                        },
+                        "title": "Cpu Usage",
+                        "type": "array"
+                    },
+                    "cpu_memory_usage_bytes": {
+                        "description": "Leader-pod CPU memory usage bytes.",
+                        "items": {
+                            "$ref": "#/components/schemas/TrainingJobMetricV1"
+                        },
+                        "title": "Cpu Memory Usage Bytes",
+                        "type": "array"
+                    },
+                    "ephemeral_storage": {
+                        "$ref": "#/components/schemas/StorageMetricsV1",
+                        "description": "Leader-pod ephemeral storage usage."
+                    },
+                    "per_node_metrics": {
+                        "description": "Per-node compute breakdown for multinode trainer deployments.",
+                        "items": {
+                            "$ref": "#/components/schemas/LoopsDeploymentNodeMetricsV1"
+                        },
+                        "title": "Per Node Metrics",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "inference_volume",
+                    "concurrent_requests",
+                    "response_time_stats",
+                    "inference_volume_by_status",
+                    "gpu_memory_usage_bytes",
+                    "gpu_utilization",
+                    "cpu_usage",
+                    "cpu_memory_usage_bytes",
+                    "ephemeral_storage",
+                    "per_node_metrics"
+                ],
+                "title": "LoopsDeploymentMetricsV1",
+                "type": "object"
+            },
+            "LoopsDeploymentNodeMetricsV1": {
+                "description": "Per-node compute metrics for a multinode trainer deployment.",
+                "properties": {
+                    "node_id": {
+                        "description": "Identifier for the node.",
+                        "title": "Node Id",
+                        "type": "string"
+                    },
+                    "gpu_memory_usage_bytes": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/TrainingJobMetricV1"
+                            },
+                            "type": "array"
+                        },
+                        "description": "GPU memory usage bytes per GPU rank.",
+                        "title": "Gpu Memory Usage Bytes",
+                        "type": "object"
+                    },
+                    "gpu_utilization": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/TrainingJobMetricV1"
+                            },
+                            "type": "array"
+                        },
+                        "description": "Fractional GPU utilization per GPU rank.",
+                        "title": "Gpu Utilization",
+                        "type": "object"
+                    },
+                    "cpu_usage": {
+                        "description": "CPU usage in cores.",
+                        "items": {
+                            "$ref": "#/components/schemas/TrainingJobMetricV1"
+                        },
+                        "title": "Cpu Usage",
+                        "type": "array"
+                    },
+                    "cpu_memory_usage_bytes": {
+                        "description": "CPU memory usage bytes.",
+                        "items": {
+                            "$ref": "#/components/schemas/TrainingJobMetricV1"
+                        },
+                        "title": "Cpu Memory Usage Bytes",
+                        "type": "array"
+                    },
+                    "ephemeral_storage": {
+                        "$ref": "#/components/schemas/StorageMetricsV1",
+                        "description": "Ephemeral storage usage."
+                    }
+                },
+                "required": [
+                    "node_id",
+                    "gpu_memory_usage_bytes",
+                    "gpu_utilization",
+                    "cpu_usage",
+                    "cpu_memory_usage_bytes",
+                    "ephemeral_storage"
+                ],
+                "title": "LoopsDeploymentNodeMetricsV1",
+                "type": "object"
+            },
+            "ResponseTimeDatapointV1": {
+                "description": "Latency quantile datapoint.\n\nValues are reported in **milliseconds** to match the oracle/inference\n``response_time_stats`` convention. Source histogram is the queue-proxy's\n``revision_request_latencies_bucket`` whose bucket boundaries are in ms.",
+                "properties": {
+                    "timestamp": {
+                        "description": "ISO 8601 timestamp.",
+                        "format": "date-time",
+                        "title": "Timestamp",
+                        "type": "string"
+                    },
+                    "p50": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "50th percentile request latency (milliseconds).",
+                        "title": "P50"
+                    },
+                    "p95": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "95th percentile request latency (milliseconds).",
+                        "title": "P95"
+                    },
+                    "p99": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "99th percentile request latency (milliseconds).",
+                        "title": "P99"
+                    }
+                },
+                "required": [
+                    "timestamp"
+                ],
+                "title": "ResponseTimeDatapointV1",
+                "type": "object"
+            },
+            "GetLoopsDeploymentMetricsResponseV1": {
+                "description": "Response for ``POST /v1/loops/deployments/<id>/metrics``.",
+                "properties": {
+                    "deployment_id": {
+                        "description": "The trainer deployment ID.",
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "metrics": {
+                        "$ref": "#/components/schemas/LoopsDeploymentMetricsV1",
+                        "description": "Metrics for the deployment."
+                    }
+                },
+                "required": [
+                    "deployment_id",
+                    "metrics"
+                ],
+                "title": "GetLoopsDeploymentMetricsResponseV1",
+                "type": "object"
+            },
+            "GetLoopsDeploymentLogsRequestV1": {
+                "description": "Query parameters for fetching a Loops deployment's logs.",
+                "properties": {
+                    "start_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch millis timestamp to start fetching logs",
+                        "title": "Start Epoch Millis"
+                    },
+                    "end_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch millis timestamp to end fetching logs",
+                        "title": "End Epoch Millis"
+                    },
+                    "direction": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SortOrderV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Sort order for logs"
+                    },
+                    "limit": {
+                        "anyOf": [
+                            {
+                                "maximum": 1000,
+                                "minimum": 1,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": 500,
+                        "description": "Limit of logs to fetch in a single request",
+                        "title": "Limit"
+                    },
+                    "min_level": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LogLevelV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level."
+                    }
+                },
+                "title": "GetLoopsDeploymentLogsRequestV1",
                 "type": "object"
             },
             "TrainingGpuCapacityItemV1": {
@@ -12260,6 +13754,7 @@
                                 "autoscaling_window": 600,
                                 "concurrency_target": null,
                                 "max_replica": 5,
+                                "max_scale_down_rate": null,
                                 "min_replica": 1,
                                 "scale_down_delay": 300,
                                 "target_in_flight_tokens": null,
@@ -12446,6 +13941,7 @@
                                 "autoscaling_window": 600,
                                 "concurrency_target": null,
                                 "max_replica": 5,
+                                "max_scale_down_rate": null,
                                 "min_replica": 1,
                                 "scale_down_delay": 300,
                                 "target_in_flight_tokens": null,
@@ -13468,6 +14964,28 @@
                     }
                 },
                 "title": "UsageSummaryV1",
+                "type": "object"
+            },
+            "UsageSummaryRequestV1": {
+                "properties": {
+                    "start_date": {
+                        "description": "Start date (ISO 8601, UTC). Earliest queryable: 2026-01-01.",
+                        "format": "date-time",
+                        "title": "Start Date",
+                        "type": "string"
+                    },
+                    "end_date": {
+                        "description": "End date in ISO 8601 format (UTC). Date range cannot exceed 31 days.",
+                        "format": "date-time",
+                        "title": "End Date",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "start_date",
+                    "end_date"
+                ],
+                "title": "UsageSummaryRequestV1",
                 "type": "object"
             },
             "UserInfoV1": {

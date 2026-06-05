@@ -135,7 +135,7 @@ func underscoreEnumConstants(s string) string {
 		renames[oldName] = newName
 	}
 	for oldName, newName := range renames {
-		s = regexp.MustCompile(`\b` + regexp.QuoteMeta(oldName) + `\b`).ReplaceAllString(s, newName)
+		s = regexp.MustCompile(`\b`+regexp.QuoteMeta(oldName)+`\b`).ReplaceAllString(s, newName)
 	}
 	return s
 }

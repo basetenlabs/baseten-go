@@ -72,6 +72,27 @@ func (e CheckpointSyncStatus) Valid() bool {
 	}
 }
 
+// Defines values for DeploymentConfigOutputFormat.
+const (
+	DeploymentConfigOutputFormat_both   DeploymentConfigOutputFormat = "both"
+	DeploymentConfigOutputFormat_parsed DeploymentConfigOutputFormat = "parsed"
+	DeploymentConfigOutputFormat_raw    DeploymentConfigOutputFormat = "raw"
+)
+
+// Valid indicates whether the value is a known member of the DeploymentConfigOutputFormat enum.
+func (e DeploymentConfigOutputFormat) Valid() bool {
+	switch e {
+	case DeploymentConfigOutputFormat_both:
+		return true
+	case DeploymentConfigOutputFormat_parsed:
+		return true
+	case DeploymentConfigOutputFormat_raw:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DeploymentStatus.
 const (
 	DeploymentStatus_ACTIVE         DeploymentStatus = "ACTIVE"
@@ -222,13 +243,38 @@ func (e LimitType) Valid() bool {
 	}
 }
 
+// Defines values for LogLevel.
+const (
+	LogLevel_DEBUG   LogLevel = "DEBUG"
+	LogLevel_ERROR   LogLevel = "ERROR"
+	LogLevel_INFO    LogLevel = "INFO"
+	LogLevel_WARNING LogLevel = "WARNING"
+)
+
+// Valid indicates whether the value is a known member of the LogLevel enum.
+func (e LogLevel) Valid() bool {
+	switch e {
+	case LogLevel_DEBUG:
+		return true
+	case LogLevel_ERROR:
+		return true
+	case LogLevel_INFO:
+		return true
+	case LogLevel_WARNING:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for Name.
 const (
-	Name_CREATED   Name = "CREATED"
-	Name_DEPLOYING Name = "DEPLOYING"
-	Name_FAILED    Name = "FAILED"
-	Name_RUNNING   Name = "RUNNING"
-	Name_STOPPED   Name = "STOPPED"
+	Name_CREATED        Name = "CREATED"
+	Name_DEPLOYING      Name = "DEPLOYING"
+	Name_FAILED         Name = "FAILED"
+	Name_RUNNING        Name = "RUNNING"
+	Name_SCALED_TO_ZERO Name = "SCALED_TO_ZERO"
+	Name_STOPPED        Name = "STOPPED"
 )
 
 // Valid indicates whether the value is a known member of the Name enum.
@@ -241,6 +287,8 @@ func (e Name) Valid() bool {
 	case Name_FAILED:
 		return true
 	case Name_RUNNING:
+		return true
+	case Name_SCALED_TO_ZERO:
 		return true
 	case Name_STOPPED:
 		return true
@@ -550,6 +598,9 @@ type AutoscalingSettings struct {
 
 	// MaxReplica Maximum number of replicas
 	MaxReplica int `json:"max_replica"`
+
+	// MaxScaleDownRate Maximum rate at which replicas can scale down (e.g. 2.0 means at most halve replicas per window).
+	MaxScaleDownRate *float32 `json:"max_scale_down_rate,omitempty"`
 
 	// MinReplica Minimum number of replicas
 	MinReplica int `json:"min_replica"`
@@ -1027,6 +1078,9 @@ type CreateLoopsRunRequest struct {
 	// Path Optional bt:// URI of an existing checkpoint to load weights from on startup. Form: bt://loops:<run_id>/weights/<checkpoint_name>.
 	Path *string `json:"path,omitempty"`
 
+	// ReuseFromSessionId Optional Loops session ID whose trainer deployment should be reused for this run, sharing the infrastructure across sessions instead of provisioning fresh. The named session must belong to the same team. Reuse is best-effort: if the prior deployment is stopped, failed, or its sampler is unhealthy, a new deployment is provisioned instead.
+	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
+
 	// ScaleDownDelaySeconds Seconds of inactivity before the run scales to zero. Must be positive. Defaults to 3600 (1 hour).
 	ScaleDownDelaySeconds *int `json:"scale_down_delay_seconds,omitempty"`
 
@@ -1052,6 +1106,9 @@ type CreateLoopsSamplerRequest struct {
 
 	// ModelPath Optional bt:// URI of an existing sampler-target checkpoint to load weights from on startup. Form: bt://loops:<run_id>/sampler_weights/<checkpoint_name>.
 	ModelPath *string `json:"model_path,omitempty"`
+
+	// ReuseFromSessionId Optional Loops session ID whose deployment should be reused for this sampler. Same best-effort semantics as the run endpoint.
+	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
 
 	// SessionId ID of the Loops session this sampler belongs to.
 	SessionId string `json:"session_id"`
@@ -1567,6 +1624,9 @@ type DeploymentArchiveSource struct {
 	S3Key string `json:"s3_key"`
 }
 
+// DeploymentConfigOutputFormat defines model for DeploymentConfigOutputFormat.
+type DeploymentConfigOutputFormat string
+
 // DeploymentConfigResponse The config of a deployment. Fields are populated per `output_format`.
 type DeploymentConfigResponse struct {
 	// Config The parsed config of the deployment.
@@ -1781,8 +1841,26 @@ type GetDeploymentLogsRequest struct {
 	// EndEpochMillis Epoch millis timestamp to end fetching logs
 	EndEpochMillis *int `json:"end_epoch_millis,omitempty"`
 
+	// Excludes Case-sensitive substrings; lines containing any of these are dropped.
+	Excludes *[]string `json:"excludes,omitempty"`
+
+	// Includes Case-sensitive substrings that must all appear in the log message.
+	Includes *[]string `json:"includes,omitempty"`
+
 	// Limit Limit of logs to fetch in a single request
 	Limit *int `json:"limit,omitempty"`
+
+	// MinLevel A log severity level.
+	MinLevel *LogLevel `json:"min_level,omitempty"`
+
+	// Replica Only return logs emitted by this replica (5-char short ID).
+	Replica *string `json:"replica,omitempty"`
+
+	// RequestId Only return logs tagged with this inference request ID.
+	RequestId *string `json:"request_id,omitempty"`
+
+	// SearchPattern RE2 regular expression matched against the log message. Prefer `includes` and `excludes` for plain substring matches.
+	SearchPattern *string `json:"search_pattern,omitempty"`
 
 	// StartEpochMillis Epoch millis timestamp to start fetching logs
 	StartEpochMillis *int `json:"start_epoch_millis,omitempty"`
@@ -1798,6 +1876,28 @@ type GetLogsResponse struct {
 type GetLoopsCapabilitiesResponse struct {
 	// SupportedModels List of models available on the server.
 	SupportedModels []SupportedModel `json:"supported_models"`
+}
+
+// GetLoopsDeploymentMetricsRequest Time-range request for trainer deployment metrics.
+type GetLoopsDeploymentMetricsRequest struct {
+	// EndEpochMillis Epoch millis to end fetching metrics.
+	EndEpochMillis *int `json:"end_epoch_millis,omitempty"`
+
+	// StartEpochMillis Epoch millis to start fetching metrics.
+	StartEpochMillis *int `json:"start_epoch_millis,omitempty"`
+}
+
+// GetLoopsDeploymentMetricsResponse Response for “POST /v1/loops/deployments/<id>/metrics“.
+type GetLoopsDeploymentMetricsResponse struct {
+	// DeploymentId The trainer deployment ID.
+	DeploymentId string `json:"deployment_id"`
+
+	// Metrics Metrics for a trainer (Loops) deployment.
+	//
+	// Service-level fields summarize HTTP traffic into the trainer pods (the
+	// Knative queue-proxy is the source). Compute fields are the leader-pod
+	// aggregate; ``per_node_metrics`` carries the full multinode breakdown.
+	Metrics LoopsDeploymentMetrics `json:"metrics"`
 }
 
 // GetLoopsDeploymentResponse Response for “GET /v1/loops/deployments/<deployment_id>“.
@@ -1880,6 +1980,9 @@ type GetTrainingJobLogsRequest struct {
 
 	// Limit Limit of logs to fetch in a single request
 	Limit *int `json:"limit,omitempty"`
+
+	// MinLevel A log severity level.
+	MinLevel *LogLevel `json:"min_level,omitempty"`
 
 	// StartEpochMillis Epoch millis timestamp to start fetching logs
 	StartEpochMillis *int `json:"start_epoch_millis,omitempty"`
@@ -1988,6 +2091,21 @@ type InProgressPromotion struct {
 
 // InProgressPromotionStatus defines model for InProgressPromotionStatus.
 type InProgressPromotionStatus string
+
+// InferenceVolumeByStatusDatapoint Request rate split by HTTP response code class.
+type InferenceVolumeByStatusDatapoint struct {
+	// Status2xx 2xx requests per second.
+	Status2xx float32 `json:"status_2xx"`
+
+	// Status4xx 4xx requests per second.
+	Status4xx float32 `json:"status_4xx"`
+
+	// Status5xx 5xx requests per second.
+	Status5xx float32 `json:"status_5xx"`
+
+	// Timestamp ISO 8601 timestamp.
+	Timestamp time.Time `json:"timestamp"`
+}
 
 // InstanceType An instance type.
 type InstanceType struct {
@@ -2130,8 +2248,8 @@ type LibraryListingSource struct {
 	DeployedModelName *string `json:"deployed_model_name,omitempty"`
 	Kind              *string `json:"kind,omitempty"`
 
-	// OrgFoundationName Identifier of the publishing organization, as returned by `GET /v1/library_models`.
-	OrgFoundationName string `json:"org_foundation_name"`
+	// LabDisplayName Identifier of the publishing organization, as returned by `GET /v1/library_models`.
+	LabDisplayName string `json:"lab_display_name"`
 
 	// UserDefinedListingId Listing identifier within the publishing organization.
 	UserDefinedListingId string `json:"user_defined_listing_id"`
@@ -2200,10 +2318,9 @@ type ListLoopsCheckpointsResponse struct {
 
 // ListLoopsDeploymentsResponse Response for “GET /v1/loops/deployments“.
 //
-// Returns the caller's Loops deployments whose latest status is not STOPPED
-// (i.e. CREATED, DEPLOYING, RUNNING, or FAILED). Stopped deployments are
-// excluded so the list is a fit-for-purpose "what's currently provisioned
-// for me" view — the deactivate endpoint is the inverse pair.
+// Returns every Loops deployment owned by the caller, regardless of status
+// (CREATED, DEPLOYING, RUNNING, STOPPED, or FAILED). Clients filter
+// terminal-state deployments themselves.
 type ListLoopsDeploymentsResponse struct {
 	// Deployments Active Loops deployments.
 	Deployments []LoopsDeployment `json:"deployments"`
@@ -2256,6 +2373,9 @@ type LoadCheckpointConfig_Checkpoints_Item struct {
 
 // Log defines model for Log.
 type Log struct {
+	// Level A log severity level.
+	Level *LogLevel `json:"level,omitempty"`
+
 	// Message The contents of the log message.
 	Message string `json:"message"`
 
@@ -2268,6 +2388,9 @@ type Log struct {
 	// Timestamp Epoch nanosecond timestamp of the log message.
 	Timestamp string `json:"timestamp"`
 }
+
+// LogLevel A log severity level.
+type LogLevel string
 
 // LoopsCheckpoint A checkpoint saved by a Loops run.
 type LoopsCheckpoint struct {
@@ -2339,6 +2462,64 @@ type LoopsDeployment struct {
 	Status LoopsDeploymentStatus `json:"status"`
 }
 
+// LoopsDeploymentMetrics Metrics for a trainer (Loops) deployment.
+//
+// Service-level fields summarize HTTP traffic into the trainer pods (the
+// Knative queue-proxy is the source). Compute fields are the leader-pod
+// aggregate; “per_node_metrics“ carries the full multinode breakdown.
+type LoopsDeploymentMetrics struct {
+	// ConcurrentRequests Number of in-progress concurrent inference requests. Source: the queue-proxy ``revision_queue_depth`` gauge on ``http-usermetric``.
+	ConcurrentRequests []TrainingJobMetric `json:"concurrent_requests"`
+
+	// CpuMemoryUsageBytes Leader-pod CPU memory usage bytes.
+	CpuMemoryUsageBytes []TrainingJobMetric `json:"cpu_memory_usage_bytes"`
+
+	// CpuUsage Leader-pod CPU usage in cores.
+	CpuUsage []TrainingJobMetric `json:"cpu_usage"`
+
+	// EphemeralStorage A metric for a training job.
+	EphemeralStorage StorageMetrics `json:"ephemeral_storage"`
+
+	// GpuMemoryUsageBytes Leader-pod GPU memory bytes per GPU rank.
+	GpuMemoryUsageBytes map[string][]TrainingJobMetric `json:"gpu_memory_usage_bytes"`
+
+	// GpuUtilization Leader-pod fractional GPU utilization per GPU rank.
+	GpuUtilization map[string][]TrainingJobMetric `json:"gpu_utilization"`
+
+	// InferenceVolume Number of inference requests per unit time (requests per second).
+	InferenceVolume []TrainingJobMetric `json:"inference_volume"`
+
+	// InferenceVolumeByStatus Request rate split by response code class.
+	InferenceVolumeByStatus []InferenceVolumeByStatusDatapoint `json:"inference_volume_by_status"`
+
+	// PerNodeMetrics Per-node compute breakdown for multinode trainer deployments.
+	PerNodeMetrics []LoopsDeploymentNodeMetrics `json:"per_node_metrics"`
+
+	// ResponseTimeStats Percentiles of the response time distribution.
+	ResponseTimeStats []ResponseTimeDatapoint `json:"response_time_stats"`
+}
+
+// LoopsDeploymentNodeMetrics Per-node compute metrics for a multinode trainer deployment.
+type LoopsDeploymentNodeMetrics struct {
+	// CpuMemoryUsageBytes CPU memory usage bytes.
+	CpuMemoryUsageBytes []TrainingJobMetric `json:"cpu_memory_usage_bytes"`
+
+	// CpuUsage CPU usage in cores.
+	CpuUsage []TrainingJobMetric `json:"cpu_usage"`
+
+	// EphemeralStorage A metric for a training job.
+	EphemeralStorage StorageMetrics `json:"ephemeral_storage"`
+
+	// GpuMemoryUsageBytes GPU memory usage bytes per GPU rank.
+	GpuMemoryUsageBytes map[string][]TrainingJobMetric `json:"gpu_memory_usage_bytes"`
+
+	// GpuUtilization Fractional GPU utilization per GPU rank.
+	GpuUtilization map[string][]TrainingJobMetric `json:"gpu_utilization"`
+
+	// NodeId Identifier for the node.
+	NodeId string `json:"node_id"`
+}
+
 // LoopsDeploymentStatus Latest deployment status for a Loops deployment.
 type LoopsDeploymentStatus struct {
 	Name Name `json:"name"`
@@ -2371,7 +2552,22 @@ type LoopsSampler struct {
 
 	// CreatedAt Time the sampler was created in ISO 8601 format
 	CreatedAt time.Time `json:"created_at"`
-	Id        string    `json:"id"`
+
+	// DeploymentId Hashid of the specific model deployment (version).
+	DeploymentId string `json:"deployment_id"`
+	Id           string `json:"id"`
+
+	// ModelId Hashid of the underlying Baseten model.
+	ModelId string `json:"model_id"`
+
+	// Status The current status of a Loops sampler.
+	Status LoopsSamplerStatus `json:"status"`
+}
+
+// LoopsSamplerStatus The current status of a Loops sampler.
+type LoopsSamplerStatus struct {
+	// Name The status of a deployment.
+	Name DeploymentStatus `json:"name"`
 }
 
 // LoopsSession defines model for LoopsSession.
@@ -2732,6 +2928,25 @@ type RegistrySecretDockerAuth struct {
 // ResourceKind defines model for ResourceKind.
 type ResourceKind string
 
+// ResponseTimeDatapoint Latency quantile datapoint.
+//
+// Values are reported in **milliseconds** to match the oracle/inference
+// “response_time_stats“ convention. Source histogram is the queue-proxy's
+// “revision_request_latencies_bucket“ whose bucket boundaries are in ms.
+type ResponseTimeDatapoint struct {
+	// P50 50th percentile request latency (milliseconds).
+	P50 *float32 `json:"p50,omitempty"`
+
+	// P95 95th percentile request latency (milliseconds).
+	P95 *float32 `json:"p95,omitempty"`
+
+	// P99 99th percentile request latency (milliseconds).
+	P99 *float32 `json:"p99,omitempty"`
+
+	// Timestamp ISO 8601 timestamp.
+	Timestamp time.Time `json:"timestamp"`
+}
+
 // RetryDeploymentResponse The response to a request to retry a deployment.
 type RetryDeploymentResponse struct {
 	// Deployment A deployment of a model.
@@ -2768,7 +2983,13 @@ type RollingDeployStrategy string
 // SamplingServer defines model for SamplingServer.
 type SamplingServer struct {
 	BaseUrl string `json:"base_url"`
-	Id      string `json:"id"`
+
+	// DeploymentId Hashid of the specific model deployment (version).
+	DeploymentId string `json:"deployment_id"`
+	Id           string `json:"id"`
+
+	// ModelId Hashid of the underlying Baseten model.
+	ModelId string `json:"model_id"`
 }
 
 // SearchTrainersRequest Filters for searching trainers visible to the requesting user.
@@ -3256,6 +3477,9 @@ type UpdateAutoscalingSettings struct {
 	// MaxReplica Maximum number of replicas
 	MaxReplica *int `json:"max_replica,omitempty"`
 
+	// MaxScaleDownRate Maximum rate at which replicas can scale down (e.g. 2.0 means at most halve replicas per window).
+	MaxScaleDownRate *float32 `json:"max_scale_down_rate,omitempty"`
+
 	// MinReplica Minimum number of replicas
 	MinReplica *int `json:"min_replica,omitempty"`
 
@@ -3558,6 +3782,39 @@ type GetV1BillingUsageSummaryParams struct {
 	EndDate time.Time `form:"end_date" json:"end_date"`
 }
 
+// GetV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsParams defines parameters for GetV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogs.
+type GetV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsParams struct {
+	// StartEpochMillis Epoch millis timestamp to start fetching logs
+	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// EndEpochMillis Epoch millis timestamp to end fetching logs
+	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
+
+	// Direction Sort order for logs
+	Direction *SortOrder `form:"direction,omitempty" json:"direction,omitempty"`
+
+	// Limit Limit of logs to fetch in a single request
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// MinLevel Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level.
+	MinLevel *LogLevel `form:"min_level,omitempty" json:"min_level,omitempty"`
+
+	// Replica Only return logs emitted by this replica (5-char short ID).
+	Replica *string `form:"replica,omitempty" json:"replica,omitempty"`
+
+	// RequestId Only return logs tagged with this inference request ID.
+	RequestId *string `form:"request_id,omitempty" json:"request_id,omitempty"`
+
+	// SearchPattern RE2 regular expression matched against the log message. Prefer `includes` and `excludes` for plain substring matches.
+	SearchPattern *string `form:"search_pattern,omitempty" json:"search_pattern,omitempty"`
+
+	// Includes Case-sensitive substrings that must all appear in the log message.
+	Includes *[]string `form:"includes,omitempty" json:"includes,omitempty"`
+
+	// Excludes Case-sensitive substrings; lines containing any of these are dropped.
+	Excludes *[]string `form:"excludes,omitempty" json:"excludes,omitempty"`
+}
+
 // GetV1LoopsCheckpointsParams defines parameters for GetV1LoopsCheckpoints.
 type GetV1LoopsCheckpointsParams struct {
 	// RunId Filter by run ID. Returns all checkpoints saved by the run.
@@ -3570,6 +3827,24 @@ type GetV1LoopsCheckpointsParams struct {
 	CheckpointPath *string `form:"checkpoint_path,omitempty" json:"checkpoint_path,omitempty"`
 }
 
+// GetV1LoopsDeploymentsDeploymentIdLogsParams defines parameters for GetV1LoopsDeploymentsDeploymentIdLogs.
+type GetV1LoopsDeploymentsDeploymentIdLogsParams struct {
+	// StartEpochMillis Epoch millis timestamp to start fetching logs
+	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// EndEpochMillis Epoch millis timestamp to end fetching logs
+	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
+
+	// Direction Sort order for logs
+	Direction *SortOrder `form:"direction,omitempty" json:"direction,omitempty"`
+
+	// Limit Limit of logs to fetch in a single request
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// MinLevel Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level.
+	MinLevel *LogLevel `form:"min_level,omitempty" json:"min_level,omitempty"`
+}
+
 // GetV1LoopsRunsParams defines parameters for GetV1LoopsRuns.
 type GetV1LoopsRunsParams struct {
 	// RunId Filter by run ID.
@@ -3579,11 +3854,83 @@ type GetV1LoopsRunsParams struct {
 	BaseModel *string `form:"base_model,omitempty" json:"base_model,omitempty"`
 }
 
+// GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdConfig.
+type GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams struct {
+	// OutputFormat 'raw': verbatim config.yaml with comments — not available for deployments created before 2026-04-30. 'parsed': dict with server-side defaults applied — always available. 'both': both fields populated.
+	OutputFormat *DeploymentConfigOutputFormat `form:"output_format,omitempty" json:"output_format,omitempty"`
+}
+
+// GetV1ModelsModelIdDeploymentsDeploymentIdLogsParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdLogs.
+type GetV1ModelsModelIdDeploymentsDeploymentIdLogsParams struct {
+	// StartEpochMillis Epoch millis timestamp to start fetching logs
+	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// EndEpochMillis Epoch millis timestamp to end fetching logs
+	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
+
+	// Direction Sort order for logs
+	Direction *SortOrder `form:"direction,omitempty" json:"direction,omitempty"`
+
+	// Limit Limit of logs to fetch in a single request
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// MinLevel Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level.
+	MinLevel *LogLevel `form:"min_level,omitempty" json:"min_level,omitempty"`
+
+	// Replica Only return logs emitted by this replica (5-char short ID).
+	Replica *string `form:"replica,omitempty" json:"replica,omitempty"`
+
+	// RequestId Only return logs tagged with this inference request ID.
+	RequestId *string `form:"request_id,omitempty" json:"request_id,omitempty"`
+
+	// SearchPattern RE2 regular expression matched against the log message. Prefer `includes` and `excludes` for plain substring matches.
+	SearchPattern *string `form:"search_pattern,omitempty" json:"search_pattern,omitempty"`
+
+	// Includes Case-sensitive substrings that must all appear in the log message.
+	Includes *[]string `form:"includes,omitempty" json:"includes,omitempty"`
+
+	// Excludes Case-sensitive substrings; lines containing any of these are dropped.
+	Excludes *[]string `form:"excludes,omitempty" json:"excludes,omitempty"`
+}
+
+// GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams defines parameters for GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFiles.
+type GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams struct {
+	// PageSize Max files per page (default 1000).
+	PageSize *int `form:"page_size,omitempty" json:"page_size,omitempty"`
+
+	// PageToken Offset into the file list (default 0).
+	PageToken *int `form:"page_token,omitempty" json:"page_token,omitempty"`
+}
+
+// GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdLogsParams defines parameters for GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdLogs.
+type GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdLogsParams struct {
+	// StartEpochMillis Epoch millis timestamp to start fetching logs
+	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// EndEpochMillis Epoch millis timestamp to end fetching logs
+	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
+
+	// Direction Sort order for logs
+	Direction *SortOrder `form:"direction,omitempty" json:"direction,omitempty"`
+
+	// Limit Limit of logs to fetch in a single request
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// MinLevel Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level.
+	MinLevel *LogLevel `form:"min_level,omitempty" json:"min_level,omitempty"`
+}
+
+// GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdMetricsParams defines parameters for GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdMetrics.
+type GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdMetricsParams struct {
+	// EndEpochMillis Epoch millis timestamp to end fetching metrics
+	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
+
+	// StartEpochMillis Epoch millis timestamp to start fetching metrics.
+	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+}
+
 // PostV1ApiKeysJSONRequestBody defines body for PostV1ApiKeys for application/json ContentType.
 type PostV1ApiKeysJSONRequestBody = CreateAPIKeyRequest
-
-// PostV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsJSONRequestBody defines body for PostV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogs for application/json ContentType.
-type PostV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsJSONRequestBody = GetDeploymentLogsRequest
 
 // PostV1ChainsChainIdEnvironmentsJSONRequestBody defines body for PostV1ChainsChainIdEnvironments for application/json ContentType.
 type PostV1ChainsChainIdEnvironmentsJSONRequestBody = CreateChainEnvironmentRequest
@@ -3632,6 +3979,9 @@ type PostV1LlmModelsModelIdDeploymentsJSONRequestBody = CreateLLMModelVersionReq
 
 // PostV1LoopsCheckpointsValidateJSONRequestBody defines body for PostV1LoopsCheckpointsValidate for application/json ContentType.
 type PostV1LoopsCheckpointsValidateJSONRequestBody = ValidateLoopsCheckpointRequest
+
+// PostV1LoopsDeploymentsDeploymentIdMetricsJSONRequestBody defines body for PostV1LoopsDeploymentsDeploymentIdMetrics for application/json ContentType.
+type PostV1LoopsDeploymentsDeploymentIdMetricsJSONRequestBody = GetLoopsDeploymentMetricsRequest
 
 // PostV1LoopsRunsJSONRequestBody defines body for PostV1LoopsRuns for application/json ContentType.
 type PostV1LoopsRunsJSONRequestBody = CreateLoopsRunRequest
