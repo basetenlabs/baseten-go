@@ -81,8 +81,8 @@ type CheckpointList struct {
 	// The folder to download the checkpoints to.
 	DownloadFolder string `json:"download_folder,omitempty,omitzero" yaml:"download_folder,omitempty"`
 
-	// Trainer checkpoint IDs to deploy. Mutually exclusive with artifact_references.
-	TrainerCheckpointIds []string `json:"trainer_checkpoint_ids,omitempty,omitzero" yaml:"trainer_checkpoint_ids,omitempty"`
+	// Loops checkpoint IDs to deploy. Mutually exclusive with artifact_references.
+	LoopsCheckpointIds []string `json:"loops_checkpoint_ids,omitempty,omitzero" yaml:"loops_checkpoint_ids,omitempty"`
 
 	AdditionalProperties interface{} `mapstructure:",remain"`
 }

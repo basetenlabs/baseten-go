@@ -20,10 +20,11 @@ jobs:
           go-version-file: go.mod
 
       - name: Lint
+        shell: bash
         run: |
           go mod tidy
           cd internal/separate-module-tests && go mod tidy && cd ../..
-          go fmt ./...
+          go fmt ./... && (cd internal/separate-module-tests && go fmt ./...) && (cd internal/tools/apigen && go fmt ./...)
           cd internal/tools/apigen && go run . && cd ../../..
           git diff --exit-code
 

@@ -87,7 +87,7 @@ func TestManagementGetModels(t *testing.T) {
 	require.Equal(t, "my-model", resp.Models[0].Name)
 	require.Equal(t, "GET", cap.Method)
 	require.Equal(t, "/v1/models", cap.Path)
-	require.Equal(t, "Api-Key test-key", cap.Header.Get("Authorization"))
+	require.Equal(t, "Bearer test-key", cap.Header.Get("Authorization"))
 }
 
 func TestManagementPathParams(t *testing.T) {

@@ -30,7 +30,6 @@ type apiOperation struct {
 	ParamsType string
 }
 
-
 func generateClient(specData []byte, outFile, pkgName string) error {
 	var spec map[string]any
 	if err := json.Unmarshal(specData, &spec); err != nil {
