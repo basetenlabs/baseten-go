@@ -578,6 +578,31 @@ func (c *Client) GetLoopsSessions(ctx context.Context, sessionId string) (*GetLo
 	})
 }
 
+// GetModelApis: List Model APIs.
+func (c *Client) GetModelApis(ctx context.Context, params GetV1ModelApisParams) (*ModelAPIsResponse, error) {
+	return doJSON[ModelAPIsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/model_apis",
+		pathArgs:    nil,
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetModelApisModelApiName: Get a Model API.
+func (c *Client) GetModelApisModelApiName(ctx context.Context, modelApiName string) (*ModelAPI, error) {
+	return doJSON[ModelAPI](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/model_apis/%s",
+		pathArgs:    []any{modelApiName},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetModelApisSnapshots: Get the latest model weight snapshot
 func (c *Client) GetModelApisSnapshots(ctx context.Context) (*ModelWeightSnapshot, error) {
 	return doJSON[ModelWeightSnapshot](c, ctx, apiRequest{
