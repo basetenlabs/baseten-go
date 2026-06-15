@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ApiKeyAuthScopes = "ApiKeyAuth.Scopes"
+	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
 // Defines values for APIKeyCategory.
@@ -599,8 +599,8 @@ type AutoscalingSettings struct {
 	// MaxReplica Maximum number of replicas
 	MaxReplica int `json:"max_replica"`
 
-	// MaxScaleDownRate Maximum rate at which replicas can scale down (e.g. 2.0 means at most halve replicas per window).
-	MaxScaleDownRate *float32 `json:"max_scale_down_rate,omitempty"`
+	// MaxScaleDownRate Maximum percentage of replicas that can be removed per autoscaling window (1–50). E.g. 20 means at most 20% of replicas are removed per window.
+	MaxScaleDownRate *int `json:"max_scale_down_rate,omitempty"`
 
 	// MinReplica Minimum number of replicas
 	MinReplica int `json:"min_replica"`
@@ -1036,6 +1036,9 @@ type CreateLLMModelVersionRequest struct {
 
 // CreateLibraryListingRequest Request to create a new library listing.
 type CreateLibraryListingRequest struct {
+	// ClosedSource Whether the listing is closed source (deployers cannot view or download the Truss, and forks copy mirrored weights instead of re-mirroring from upstream)
+	ClosedSource *bool `json:"closed_source,omitempty"`
+
 	// DisplayName Display name of the library listing
 	DisplayName string `json:"display_name"`
 
@@ -1050,6 +1053,9 @@ type CreateLibraryListingRequest struct {
 type CreateLibraryListingVersionRequest struct {
 	// AllowTrussDownload Whether users deploying this model can download the Truss
 	AllowTrussDownload *bool `json:"allow_truss_download,omitempty"`
+
+	// ClosedSource Whether the listing is closed source (deployers cannot view or download the Truss, and forks copy mirrored weights instead of re-mirroring from upstream). Only used when creating a new listing.
+	ClosedSource *bool `json:"closed_source,omitempty"`
 
 	// DisplayName Display name of the library listing. Required when creating a new listing.
 	DisplayName *string `json:"display_name,omitempty"`
@@ -1838,7 +1844,7 @@ type GetCacheSummaryResponse struct {
 type GetDeploymentLogsRequest struct {
 	Direction *SortOrder `json:"direction,omitempty"`
 
-	// EndEpochMillis Epoch millis timestamp to end fetching logs
+	// EndEpochMillis Epoch milliseconds at which to stop fetching logs. Defaults to the current time.
 	EndEpochMillis *int `json:"end_epoch_millis,omitempty"`
 
 	// Excludes Case-sensitive substrings; lines containing any of these are dropped.
@@ -1862,7 +1868,7 @@ type GetDeploymentLogsRequest struct {
 	// SearchPattern RE2 regular expression matched against the log message. Prefer `includes` and `excludes` for plain substring matches.
 	SearchPattern *string `json:"search_pattern,omitempty"`
 
-	// StartEpochMillis Epoch millis timestamp to start fetching logs
+	// StartEpochMillis Epoch milliseconds at which to start fetching logs. Defaults to 30 minutes before the end. The window from start to end must not exceed 7 days.
 	StartEpochMillis *int `json:"start_epoch_millis,omitempty"`
 }
 
@@ -1975,7 +1981,7 @@ type GetTrainingJobCheckpointsResponse struct {
 type GetTrainingJobLogsRequest struct {
 	Direction *SortOrder `json:"direction,omitempty"`
 
-	// EndEpochMillis Epoch millis timestamp to end fetching logs
+	// EndEpochMillis Epoch milliseconds at which to stop fetching logs. Defaults to the current time.
 	EndEpochMillis *int `json:"end_epoch_millis,omitempty"`
 
 	// Limit Limit of logs to fetch in a single request
@@ -1984,7 +1990,7 @@ type GetTrainingJobLogsRequest struct {
 	// MinLevel A log severity level.
 	MinLevel *LogLevel `json:"min_level,omitempty"`
 
-	// StartEpochMillis Epoch millis timestamp to start fetching logs
+	// StartEpochMillis Epoch milliseconds at which to start fetching logs. Defaults to 30 minutes before the end. The window from start to end must not exceed 7 days.
 	StartEpochMillis *int `json:"start_epoch_millis,omitempty"`
 }
 
@@ -2226,6 +2232,9 @@ type LLMModelHandle struct {
 
 // LibraryListing A library listing.
 type LibraryListing struct {
+	// ClosedSource Whether the listing is closed source (deployers cannot view or download the Truss, and forks copy mirrored weights instead of re-mirroring from upstream)
+	ClosedSource bool `json:"closed_source"`
+
 	// CreatedAt Time the listing was created in ISO 8601 format
 	CreatedAt time.Time `json:"created_at"`
 
@@ -2455,8 +2464,8 @@ type LoopsDeployment struct {
 	BaseUrl string `json:"base_url"`
 
 	// Id The Loops deployment ID.
-	Id      string       `json:"id"`
-	Sampler LoopsSampler `json:"sampler"`
+	Id      string        `json:"id"`
+	Sampler *LoopsSampler `json:"sampler,omitempty"`
 
 	// Status Latest deployment status for a Loops deployment.
 	Status LoopsDeploymentStatus `json:"status"`
@@ -2600,6 +2609,80 @@ type Model struct {
 
 	// TeamName Name of the team associated with the model.
 	TeamName string `json:"team_name"`
+}
+
+// ModelAPI A Model API catalog row, optionally enriched with workspace-specific state.
+type ModelAPI struct {
+	// ContextLength The model's context window length, in tokens.
+	ContextLength int `json:"context_length"`
+
+	// CostPerMillionInputTokens Cost per million input tokens, in dollars.
+	CostPerMillionInputTokens ModelAPI_CostPerMillionInputTokens `json:"cost_per_million_input_tokens"`
+
+	// CostPerMillionOutputTokens Cost per million output tokens, in dollars.
+	CostPerMillionOutputTokens ModelAPI_CostPerMillionOutputTokens `json:"cost_per_million_output_tokens"`
+
+	// Description Description of the Model API.
+	Description string `json:"description"`
+
+	// DisplayName Human-readable name of the Model API.
+	DisplayName string `json:"display_name"`
+
+	// InvokeUrl Base URL for invoking the Model API. OpenAI-shaped routes (e.g. /v1/chat/completions) live underneath this host.
+	InvokeUrl string `json:"invoke_url"`
+
+	// ModelFamily Family the underlying model belongs to.
+	ModelFamily *string `json:"model_family,omitempty"`
+
+	// Name Identifier of the Model API. Stable, URL-safe slug used as the public identifier.
+	Name string `json:"name"`
+
+	// OrgDetails Workspace-specific state for a Model API.
+	OrgDetails *ModelAPIOrgDetails `json:"org_details,omitempty"`
+
+	// RateLimits Rate limits in effect for the workspace. Workspace-specific overrides are returned when the workspace has added this Model API and configured them; otherwise the catalog default rate limits are returned.
+	RateLimits []RateLimit `json:"rate_limits"`
+
+	// ReleaseDate Date the Model API was made available.
+	ReleaseDate string `json:"release_date"`
+}
+
+// ModelAPICostPerMillionInputTokens0 defines model for .
+type ModelAPICostPerMillionInputTokens0 = float32
+
+// ModelAPICostPerMillionInputTokens1 defines model for .
+type ModelAPICostPerMillionInputTokens1 = string
+
+// ModelAPI_CostPerMillionInputTokens Cost per million input tokens, in dollars.
+type ModelAPI_CostPerMillionInputTokens struct {
+	union json.RawMessage
+}
+
+// ModelAPICostPerMillionOutputTokens0 defines model for .
+type ModelAPICostPerMillionOutputTokens0 = float32
+
+// ModelAPICostPerMillionOutputTokens1 defines model for .
+type ModelAPICostPerMillionOutputTokens1 = string
+
+// ModelAPI_CostPerMillionOutputTokens Cost per million output tokens, in dollars.
+type ModelAPI_CostPerMillionOutputTokens struct {
+	union json.RawMessage
+}
+
+// ModelAPIOrgDetails Workspace-specific state for a Model API.
+type ModelAPIOrgDetails struct {
+	// AddedAt When the workspace first added this Model API.
+	AddedAt time.Time `json:"added_at"`
+
+	// LastUsedAt When the workspace last invoked this Model API. Null if the workspace has never invoked it.
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+}
+
+// ModelAPIsResponse Page of Model APIs visible to the caller.
+type ModelAPIsResponse struct {
+	// Items Items in this page.
+	Items      []ModelAPI         `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 // ModelApiItem defines model for ModelApiItem.
@@ -3477,8 +3560,8 @@ type UpdateAutoscalingSettings struct {
 	// MaxReplica Maximum number of replicas
 	MaxReplica *int `json:"max_replica,omitempty"`
 
-	// MaxScaleDownRate Maximum rate at which replicas can scale down (e.g. 2.0 means at most halve replicas per window).
-	MaxScaleDownRate *float32 `json:"max_scale_down_rate,omitempty"`
+	// MaxScaleDownRate Maximum percentage of replicas that can be removed per autoscaling window (1–50). E.g. 20 means at most 20% of replicas are removed per window.
+	MaxScaleDownRate *int `json:"max_scale_down_rate,omitempty"`
 
 	// MinReplica Minimum number of replicas
 	MinReplica *int `json:"min_replica,omitempty"`
@@ -3734,6 +3817,9 @@ type EnvName = string
 // GroupId defines model for group_id.
 type GroupId = string
 
+// ModelApiName defines model for model_api_name.
+type ModelApiName = string
+
 // ModelId defines model for model_id.
 type ModelId = string
 
@@ -3784,10 +3870,10 @@ type GetV1BillingUsageSummaryParams struct {
 
 // GetV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsParams defines parameters for GetV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogs.
 type GetV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsParams struct {
-	// StartEpochMillis Epoch millis timestamp to start fetching logs
+	// StartEpochMillis Epoch milliseconds at which to start fetching logs. Defaults to 30 minutes before the end. The window from start to end must not exceed 7 days.
 	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
 
-	// EndEpochMillis Epoch millis timestamp to end fetching logs
+	// EndEpochMillis Epoch milliseconds at which to stop fetching logs. Defaults to the current time.
 	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
 
 	// Direction Sort order for logs
@@ -3829,10 +3915,10 @@ type GetV1LoopsCheckpointsParams struct {
 
 // GetV1LoopsDeploymentsDeploymentIdLogsParams defines parameters for GetV1LoopsDeploymentsDeploymentIdLogs.
 type GetV1LoopsDeploymentsDeploymentIdLogsParams struct {
-	// StartEpochMillis Epoch millis timestamp to start fetching logs
+	// StartEpochMillis Epoch milliseconds at which to start fetching logs. Defaults to 30 minutes before the end. The window from start to end must not exceed 7 days.
 	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
 
-	// EndEpochMillis Epoch millis timestamp to end fetching logs
+	// EndEpochMillis Epoch milliseconds at which to stop fetching logs. Defaults to the current time.
 	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
 
 	// Direction Sort order for logs
@@ -3854,6 +3940,18 @@ type GetV1LoopsRunsParams struct {
 	BaseModel *string `form:"base_model,omitempty" json:"base_model,omitempty"`
 }
 
+// GetV1ModelApisParams defines parameters for GetV1ModelApis.
+type GetV1ModelApisParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// AddedOnly When true, restrict the result to Model APIs the workspace has added. Defaults to the full visible catalog.
+	AddedOnly *bool `form:"added_only,omitempty" json:"added_only,omitempty"`
+}
+
 // GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdConfig.
 type GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams struct {
 	// OutputFormat 'raw': verbatim config.yaml with comments — not available for deployments created before 2026-04-30. 'parsed': dict with server-side defaults applied — always available. 'both': both fields populated.
@@ -3862,10 +3960,10 @@ type GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams struct {
 
 // GetV1ModelsModelIdDeploymentsDeploymentIdLogsParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdLogs.
 type GetV1ModelsModelIdDeploymentsDeploymentIdLogsParams struct {
-	// StartEpochMillis Epoch millis timestamp to start fetching logs
+	// StartEpochMillis Epoch milliseconds at which to start fetching logs. Defaults to 30 minutes before the end. The window from start to end must not exceed 7 days.
 	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
 
-	// EndEpochMillis Epoch millis timestamp to end fetching logs
+	// EndEpochMillis Epoch milliseconds at which to stop fetching logs. Defaults to the current time.
 	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
 
 	// Direction Sort order for logs
@@ -3904,10 +4002,10 @@ type GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParam
 
 // GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdLogsParams defines parameters for GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdLogs.
 type GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdLogsParams struct {
-	// StartEpochMillis Epoch millis timestamp to start fetching logs
+	// StartEpochMillis Epoch milliseconds at which to start fetching logs. Defaults to 30 minutes before the end. The window from start to end must not exceed 7 days.
 	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
 
-	// EndEpochMillis Epoch millis timestamp to end fetching logs
+	// EndEpochMillis Epoch milliseconds at which to stop fetching logs. Defaults to the current time.
 	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
 
 	// Direction Sort order for logs
@@ -4571,6 +4669,82 @@ func (t LoadCheckpointConfig_Checkpoints_Item) MarshalJSON() ([]byte, error) {
 }
 
 func (t *LoadCheckpointConfig_Checkpoints_Item) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsModelAPICostPerMillionInputTokens0 returns the union data inside the ModelAPI_CostPerMillionInputTokens as a ModelAPICostPerMillionInputTokens0
+func (t ModelAPI_CostPerMillionInputTokens) AsModelAPICostPerMillionInputTokens0() (ModelAPICostPerMillionInputTokens0, error) {
+	var body ModelAPICostPerMillionInputTokens0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromModelAPICostPerMillionInputTokens0 overwrites any union data inside the ModelAPI_CostPerMillionInputTokens as the provided ModelAPICostPerMillionInputTokens0
+func (t *ModelAPI_CostPerMillionInputTokens) FromModelAPICostPerMillionInputTokens0(v ModelAPICostPerMillionInputTokens0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsModelAPICostPerMillionInputTokens1 returns the union data inside the ModelAPI_CostPerMillionInputTokens as a ModelAPICostPerMillionInputTokens1
+func (t ModelAPI_CostPerMillionInputTokens) AsModelAPICostPerMillionInputTokens1() (ModelAPICostPerMillionInputTokens1, error) {
+	var body ModelAPICostPerMillionInputTokens1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromModelAPICostPerMillionInputTokens1 overwrites any union data inside the ModelAPI_CostPerMillionInputTokens as the provided ModelAPICostPerMillionInputTokens1
+func (t *ModelAPI_CostPerMillionInputTokens) FromModelAPICostPerMillionInputTokens1(v ModelAPICostPerMillionInputTokens1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t ModelAPI_CostPerMillionInputTokens) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ModelAPI_CostPerMillionInputTokens) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsModelAPICostPerMillionOutputTokens0 returns the union data inside the ModelAPI_CostPerMillionOutputTokens as a ModelAPICostPerMillionOutputTokens0
+func (t ModelAPI_CostPerMillionOutputTokens) AsModelAPICostPerMillionOutputTokens0() (ModelAPICostPerMillionOutputTokens0, error) {
+	var body ModelAPICostPerMillionOutputTokens0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromModelAPICostPerMillionOutputTokens0 overwrites any union data inside the ModelAPI_CostPerMillionOutputTokens as the provided ModelAPICostPerMillionOutputTokens0
+func (t *ModelAPI_CostPerMillionOutputTokens) FromModelAPICostPerMillionOutputTokens0(v ModelAPICostPerMillionOutputTokens0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsModelAPICostPerMillionOutputTokens1 returns the union data inside the ModelAPI_CostPerMillionOutputTokens as a ModelAPICostPerMillionOutputTokens1
+func (t ModelAPI_CostPerMillionOutputTokens) AsModelAPICostPerMillionOutputTokens1() (ModelAPICostPerMillionOutputTokens1, error) {
+	var body ModelAPICostPerMillionOutputTokens1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromModelAPICostPerMillionOutputTokens1 overwrites any union data inside the ModelAPI_CostPerMillionOutputTokens as the provided ModelAPICostPerMillionOutputTokens1
+func (t *ModelAPI_CostPerMillionOutputTokens) FromModelAPICostPerMillionOutputTokens1(v ModelAPICostPerMillionOutputTokens1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t ModelAPI_CostPerMillionOutputTokens) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ModelAPI_CostPerMillionOutputTokens) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
