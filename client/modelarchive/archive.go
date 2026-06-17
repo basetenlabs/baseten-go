@@ -1,9 +1,9 @@
-// Package modelarchive builds uncompressed tar archives of Truss model
+// Package modelarchive builds uncompressed tar archives of model
 // directories for upload to Baseten.
 //
-// Archive layout matches the canonical Truss implementation: files are
-// stored at the archive root with paths relative to the input directory,
-// symlinks are not followed, and only regular files are included.
+// Archive layout: files are stored at the archive root with paths relative to
+// the input directory, symlinks are not followed, and only regular files are
+// included.
 //
 // Ignore handling is driven by a caller-supplied [IgnoreFileFunc]. If a
 // .truss_ignore file is present at the root of the input directory, callers
@@ -77,14 +77,14 @@ type BuildModelArchiveOptions struct {
 	// relative to Dir. The basename of each entry is not preserved; its
 	// children land directly under BundledPackagesDir.
 	//
-	// Read from the `external_package_dirs` field of the Truss config.yaml.
+	// Read from the `external_package_dirs` field of the model's config.yaml.
 	ExternalPackageDirs []string
 
 	// BundledPackagesDir is the directory inside the archive that receives
 	// inlined ExternalPackageDirs contents. Required when ExternalPackageDirs
 	// is non-empty.
 	//
-	// Read from the `bundled_packages_dir` field of the Truss config.yaml
+	// Read from the `bundled_packages_dir` field of the model's config.yaml
 	// (the canonical default is "packages").
 	BundledPackagesDir string
 
@@ -371,17 +371,23 @@ func writeTarEntry(tw *tar.Writer, archivePath string, info fs.FileInfo, r io.Re
 	return nil
 }
 
-// DefaultIgnoreFile is the package-level default [IgnoreFileFunc] applied
-// when no .truss_ignore is present in the input directory. It mirrors the
-// canonical bundled patterns from baseten-truss (truss/util/.truss_ignore).
+// DefaultIgnoreFile reports whether a path should be excluded using the
+// default ignore rules, applied when no .truss_ignore file is present. It
+// excludes the usual Python build, cache, and environment cruft (__pycache__,
+// build/dist directories, virtualenvs, *.pyc, .DS_Store, .git, and so on).
 //
-// Matching is basename-only: callers should not rely on path-prefix or glob
-// semantics beyond what is encoded here.
+// A directory named by a directory-only rule (such as __pycache__) is itself
+// kept while its contents are excluded: the bare directory still appears in a
+// model's signature even when everything inside it is ignored. So directory
+// rules ([isDefaultIgnoredDirName] and *.egg-info) match only an ancestor
+// component, while bare-name rules ([isDefaultIgnoredName]) match the entry
+// itself or any ancestor.
 func DefaultIgnoreFile(_ context.Context, opts IgnoreFileOptions) (bool, error) {
-	base := path.Base(opts.RelPath)
-	if isDefaultIgnoredName(base) {
-		return true, nil
-	}
+	components := strings.Split(opts.RelPath, "/")
+	base := components[len(components)-1]
+
+	// Basename suffix/prefix globs (*.pyc, .coverage.*, ...) match the final
+	// path component only.
 	for _, suffix := range defaultIgnoreSuffixes {
 		if strings.HasSuffix(base, suffix) {
 			return true, nil
@@ -392,15 +398,35 @@ func DefaultIgnoreFile(_ context.Context, opts IgnoreFileOptions) (bool, error) 
 			return true, nil
 		}
 	}
+
+	// Bare names (no trailing slash, e.g. .env, .DS_Store, .git): gitignore
+	// matches them at any depth, as the entry itself or as an ancestor
+	// directory, so a match on any component wins.
+	for _, c := range components {
+		if isDefaultIgnoredName(c) {
+			return true, nil
+		}
+	}
+
+	// Dir-only patterns ("__pycache__/", "*.egg-info/", ...) match an entry's
+	// contents but not the bare directory, so only ancestor components count.
+	for _, c := range components[:len(components)-1] {
+		if isDefaultIgnoredDirName(c) || strings.HasSuffix(c, ".egg-info") {
+			return true, nil
+		}
+	}
+
+	// Root-anchored dir patterns match strictly under the anchored path, never
+	// the bare directory (which Truss keeps as a null entry).
 	for _, anchored := range defaultIgnoreAnchored {
-		if opts.RelPath == anchored || strings.HasPrefix(opts.RelPath, anchored+"/") {
+		if strings.HasPrefix(opts.RelPath, anchored+"/") {
 			return true, nil
 		}
 	}
 	return false, nil
 }
 
-// Path-anchored patterns from the bundled .truss_ignore. Matched against
+// Root-anchored dir patterns from the bundled .truss_ignore. Matched against
 // the full RelPath, not the basename, so e.g. "docs/_build" only triggers
 // under a top-level docs/ directory.
 var defaultIgnoreAnchored = []string{
@@ -410,8 +436,9 @@ var defaultIgnoreAnchored = []string{
 
 // Suffix patterns from the bundled .truss_ignore. Includes the *.py[cod]
 // expansion and *$py.class / *.py,cover / *.sage.py as plain suffixes.
+// "*.egg-info/" is NOT here: it is dir-only and handled as an ancestor match.
 var defaultIgnoreSuffixes = []string{
-	".pyc", ".pyo", ".pyd", "$py.class", ".so", ".egg", ".egg-info", ".manifest", ".spec", ".cover", ".py,cover", ".mo",
+	".pyc", ".pyo", ".pyd", "$py.class", ".so", ".egg", ".manifest", ".spec", ".cover", ".py,cover", ".mo",
 	".pot", ".log", ".sage.py", ".tmp", ".swp",
 }
 
@@ -420,22 +447,35 @@ var defaultIgnorePrefixes = []string{
 	".coverage.",
 }
 
-// isDefaultIgnoredName reports whether basename matches one of the exact-name
-// patterns from the bundled baseten-truss/truss/util/.truss_ignore.
-func isDefaultIgnoredName(base string) bool {
-	switch base {
-	case "__pycache__", ".Python", "build", "develop-eggs", "dist", "downloads",
-		"eggs", ".eggs", "lib", "lib64", "parts", "sdist", "var", "wheels",
-		".installed.cfg", "MANIFEST", ".DS_Store", "pip-log.txt",
-		"pip-delete-this-directory.txt", "htmlcov", ".tox", ".nox", ".coverage",
-		".cache", "nosetests.xml", "coverage.xml", "instance", ".webassets-cache",
-		".scrapy", ".pybuilder", "target", ".ipynb_checkpoints", "profile_default",
-		"ipython_config.py", ".pdm.toml", "__pypackages__", "celerybeat-schedule",
-		"celerybeat.pid", ".env", ".venv", "env", "venv", "ENV", "env.bak",
-		"venv.bak", ".spyderproject", ".spyproject", ".ropeproject", ".mypy_cache",
-		".dmypy.json", "dmypy.json", ".ruff_cache", ".pyre", ".pytype",
-		"cython_debug", ".git", "local_settings.py", "db.sqlite3",
-		"db.sqlite3-journal", ".pytest_cache", "cover", ".hypothesis":
+// isDefaultIgnoredName reports whether a path component matches one of the
+// bare-name patterns (no trailing slash) from the bundled
+// baseten-truss/truss/util/.truss_ignore. These match the entry itself.
+func isDefaultIgnoredName(component string) bool {
+	switch component {
+	case ".Python", ".installed.cfg", "MANIFEST", ".DS_Store", "pip-log.txt",
+		"pip-delete-this-directory.txt", ".coverage", ".cache", "nosetests.xml",
+		"coverage.xml", "local_settings.py", "db.sqlite3", "db.sqlite3-journal",
+		".webassets-cache", ".scrapy", ".ipynb_checkpoints", "ipython_config.py",
+		".pdm.toml", "celerybeat-schedule", "celerybeat.pid", ".env", ".venv",
+		".spyderproject", ".spyproject", ".ropeproject", ".dmypy.json",
+		"dmypy.json", ".git":
+		return true
+	}
+	return false
+}
+
+// isDefaultIgnoredDirName reports whether a path component matches one of the
+// dir-only patterns (trailing slash) from the bundled
+// baseten-truss/truss/util/.truss_ignore. These match a directory's contents
+// but not the bare directory entry, so callers test ancestor components only.
+func isDefaultIgnoredDirName(component string) bool {
+	switch component {
+	case "__pycache__", "build", "develop-eggs", "dist", "downloads", "eggs",
+		".eggs", "lib", "lib64", "parts", "sdist", "var", "wheels", "htmlcov",
+		".tox", ".nox", ".hypothesis", ".pytest_cache", "cover", "instance",
+		".pybuilder", "target", "profile_default", "__pypackages__", "env",
+		"venv", "ENV", "env.bak", "venv.bak", ".mypy_cache", ".ruff_cache",
+		".pyre", ".pytype", "cython_debug":
 		return true
 	}
 	return false
