@@ -1472,6 +1472,25 @@
                         }
                     },
                     {
+                        "name": "component",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only return logs from this component.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maxLength": 256,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Component"
+                        }
+                    },
+                    {
                         "name": "search_pattern",
                         "in": "query",
                         "required": false,
@@ -1545,11 +1564,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/logs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"start_epoch_millis\": null,\n  \"end_epoch_millis\": null,\n  \"direction\": null,\n  \"limit\": null,\n  \"min_level\": null,\n  \"replica\": null,\n  \"request_id\": null,\n  \"search_pattern\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/logs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"start_epoch_millis\": null,\n  \"end_epoch_millis\": null,\n  \"direction\": null,\n  \"limit\": null,\n  \"min_level\": null,\n  \"replica\": null,\n  \"request_id\": null,\n  \"component\": null,\n  \"search_pattern\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/logs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'start_epoch_millis': None, 'end_epoch_millis': None, 'direction': None, 'limit': None, 'min_level': None, 'replica': None, 'request_id': None, 'search_pattern': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/logs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'start_epoch_millis': None, 'end_epoch_millis': None, 'direction': None, 'limit': None, 'min_level': None, 'replica': None, 'request_id': None, 'component': None, 'search_pattern': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Use the GET form on this path instead.",
@@ -1578,6 +1597,104 @@
                 "x-stability": "deprecated",
                 "deprecated": true
             }
+        },
+        "/v1/models/{model_id}/deployments/{deployment_id}/metrics": {
+            "get": {
+                "summary": "Gets the metrics for a model deployment.",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/metrics \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/metrics\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Gets the metrics for a model deployment in the given time range.",
+                "parameters": [
+                    {
+                        "name": "mode",
+                        "in": "query",
+                        "required": false,
+                        "description": "'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration.",
+                        "schema": {
+                            "$ref": "#/components/schemas/DeploymentMetricModeV1",
+                            "default": "CURRENT"
+                        }
+                    },
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to start fetching metrics. Defaults to one hour before the end.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to end fetching metrics. Defaults to the current time. The window between start and end must not exceed 7 days.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "metrics",
+                        "in": "query",
+                        "required": false,
+                        "description": "Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply to the deployment are omitted from the response.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Metrics",
+                            "type": "array"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetDeploymentMetricsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/deployment_id"
+                }
+            ]
         },
         "/v1/models/{model_id}/deployments/{deployment_id}/replicas/{replica_id}": {
             "delete": {
@@ -2459,6 +2576,25 @@
                         }
                     },
                     {
+                        "name": "component",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only return logs from this component.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maxLength": 256,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Component"
+                        }
+                    },
+                    {
                         "name": "search_pattern",
                         "in": "query",
                         "required": false,
@@ -3336,6 +3472,24 @@
                             "default": null,
                             "title": "Start Epoch Millis"
                         }
+                    },
+                    {
+                        "name": "step_seconds",
+                        "in": "query",
+                        "required": false,
+                        "description": "Resolution of the returned series, in seconds. When omitted, a step is derived from the time range so large windows return fewer points.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Step Seconds"
+                        }
                     }
                 ],
                 "responses": {
@@ -3364,11 +3518,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/metrics \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"end_epoch_millis\": null,\n  \"start_epoch_millis\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/metrics \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"end_epoch_millis\": null,\n  \"start_epoch_millis\": null,\n  \"step_seconds\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/metrics\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'end_epoch_millis': None, 'start_epoch_millis': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/metrics\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'end_epoch_millis': None, 'start_epoch_millis': None, 'step_seconds': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Use the GET form on this path instead.",
@@ -3803,281 +3957,6 @@
                 }
             }
         },
-        "/v1/trainers/search": {
-            "post": {
-                "summary": "Search trainers.",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/trainers/search \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"trainer_id\": \"k4q95w5\"\n}'"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/trainers/search\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'trainer_id': 'k4q95w5'}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Search trainers visible to the requesting user.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/SearchTrainersRequestV1"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SearchTrainersResponseV1"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/trainers/checkpoints/search": {
-            "post": {
-                "summary": "Look up trainer checkpoint info by bt:// URI.",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/trainers/checkpoints/search \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"checkpoint_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\"\n}'"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/trainers/checkpoints/search\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'checkpoint_path': 'bt://loops:k4q95w5/sampler_weights/step-100'}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Look up the metadata for a trainer checkpoint by its bt://loops:<trainer_id>/(weights|sampler_weights)/<name> URI.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/CheckpointSearchRequestV1"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/CheckpointSearchResponseV1"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/trainer_sessions": {
-            "post": {
-                "summary": "Create a trainer session.",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/trainer_sessions \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_project_id\": null\n}'"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/trainer_sessions\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_project_id': None}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Creates a TrainerSession for the given training project.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/CreateTrainerSessionRequestV1"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/CreateTrainerSessionResponseV1"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/trainer_sessions/{session_id}/trainers": {
-            "post": {
-                "summary": "Create a trainer server.",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/trainer_sessions/{session_id}/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"model\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"checkpoint_path\": \"bt://loops:k4q95w5/weights/step-100\"\n}'"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/trainer_sessions/{session_id}/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'model': None, 'max_seq_len': None, 'seed': None, 'checkpoint_path': 'bt://loops:k4q95w5/weights/step-100'}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Creates a TrainerServer and an associated SamplingServer for the given trainer session.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/CreateTrainerServerRequestV1"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/CreateTrainerServerResponseV1"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/session_id"
-                }
-            ]
-        },
-        "/v1/trainer_sessions/{session_id}/samplers": {
-            "post": {
-                "summary": "Create a sampling server.",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/trainer_sessions/{session_id}/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"model\": null,\n  \"max_seq_length\": null,\n  \"checkpoint_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\"\n}'"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/trainer_sessions/{session_id}/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'model': None, 'max_seq_length': None, 'checkpoint_path': 'bt://loops:k4q95w5/sampler_weights/step-100'}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Creates a standalone SamplingServer (not linked to a TrainerServer).",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/CreateSamplingServerRequestV1"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/CreateSamplingServerResponseV1"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/session_id"
-                }
-            ]
-        },
-        "/v1/trainer_sessions/{session_id}/trainers/{trainer_id}/checkpoints": {
-            "get": {
-                "summary": "List trainer server checkpoints.",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/trainer_sessions/{session_id}/trainers/{trainer_id}/checkpoints \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/trainer_sessions/{session_id}/trainers/{trainer_id}/checkpoints\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "List the checkpoints saved by a trainer server.",
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/GetTrainerServerCheckpointsResponseV1"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/session_id"
-                },
-                {
-                    "$ref": "#/components/parameters/trainer_id"
-                }
-            ]
-        },
-        "/v1/trainer_sessions/{session_id}/trainers/{trainer_id}/checkpoints/{checkpoint_id}/files": {
-            "get": {
-                "summary": "Get trainer server checkpoint files.",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/trainer_sessions/{session_id}/trainers/{trainer_id}/checkpoints/{checkpoint_id}/files \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/trainer_sessions/{session_id}/trainers/{trainer_id}/checkpoints/{checkpoint_id}/files\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Get presigned URLs for the files under a trainer server checkpoint. Returns a paginated list; deviates from Tinker's single-archive-URL shape because trainer weight sync writes an unzipped folder.",
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/GetTrainerServerCheckpointFilesResponseV1"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/session_id"
-                },
-                {
-                    "$ref": "#/components/parameters/trainer_id"
-                },
-                {
-                    "$ref": "#/components/parameters/checkpoint_id"
-                }
-            ]
-        },
         "/v1/loops/capabilities": {
             "get": {
                 "summary": "Get Loops server capabilities.",
@@ -4112,24 +3991,14 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/sessions \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_project_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/sessions \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/sessions\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_project_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/sessions\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Creates a Loops session for the given training project.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/CreateLoopsSessionRequestV1"
-                            }
-                        }
-                    },
-                    "required": true
-                },
+                "description": "Creates a Loops session scoped to the calling org.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4679,11 +4548,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/deployments/{deployment_id}/metrics \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"end_epoch_millis\": null,\n  \"start_epoch_millis\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/deployments/{deployment_id}/metrics \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"end_epoch_millis\": null,\n  \"start_epoch_millis\": null,\n  \"step_seconds\": null,\n  \"time_divisor_seconds\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/deployments/{deployment_id}/metrics\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'end_epoch_millis': None, 'start_epoch_millis': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/deployments/{deployment_id}/metrics\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'end_epoch_millis': None, 'start_epoch_millis': None, 'step_seconds': None, 'time_divisor_seconds': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Returns per-node GPU/CPU/memory utilization and Knative queue-proxy request rate / concurrency / latency for the trainer pods. The sampler half of a Loops deployment is an OracleVersion and uses the existing model-metrics endpoint.",
@@ -6116,6 +5985,14 @@
             "SecretV1": {
                 "description": "A Baseten secret. Note that we do not support retrieving secret values.",
                 "properties": {
+                    "id": {
+                        "description": "Stable identifier for the secret. Unchanged across rotation.",
+                        "examples": [
+                            "3kZ9xqd"
+                        ],
+                        "title": "Id",
+                        "type": "string"
+                    },
                     "created_at": {
                         "description": "Time the secret was created in ISO 8601 format",
                         "format": "date-time",
@@ -6134,6 +6011,7 @@
                     }
                 },
                 "required": [
+                    "id",
                     "created_at",
                     "name",
                     "team_name"
@@ -7695,6 +7573,20 @@
                         "description": "Only return logs tagged with this inference request ID.",
                         "title": "Request Id"
                     },
+                    "component": {
+                        "anyOf": [
+                            {
+                                "maxLength": 256,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only return logs from this component.",
+                        "title": "Component"
+                    },
                     "search_pattern": {
                         "anyOf": [
                             {
@@ -7729,6 +7621,213 @@
                     }
                 },
                 "title": "GetDeploymentLogsRequestV1",
+                "type": "object"
+            },
+            "DeploymentMetricDescriptorV1": {
+                "description": "Describes one metric. Its position in the response ``metric_descriptors``\nlist is the index used to read that metric out of each value set's ``values``.\n\nA metric may break down into multiple labeled series (e.g. latency quantiles,\nor volume by status). ``label_sets`` enumerates those series in order; each\nvalue set's value for this metric is a list aligned to that order.",
+                "properties": {
+                    "name": {
+                        "description": "Canonical metric name.",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "unit_hint": {
+                        "$ref": "#/components/schemas/DeploymentMetricUnitHintV1",
+                        "description": "Advisory unit of the metric's values."
+                    },
+                    "kind": {
+                        "$ref": "#/components/schemas/DeploymentMetricKindV1",
+                        "description": "Semantic hint for how the metric behaves (GAUGE, COUNTER, HISTOGRAM)."
+                    },
+                    "label_sets": {
+                        "description": "The metric's series, in order. Each entry is the set of labels identifying one series; the value at the same index in each value set's ``values`` is that series' value. A plain metric has a single entry with no labels (`{}`). A histogram has one entry per quantile plus an average, e.g. {'quantile': '0.5'} \u2026 {'quantile': '0.99'}, {'stat': 'avg'}. A by-status metric has one entry per status, e.g. {'status': '2xx'}.",
+                        "items": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "type": "object"
+                        },
+                        "title": "Label Sets",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "name",
+                    "unit_hint",
+                    "kind",
+                    "label_sets"
+                ],
+                "title": "DeploymentMetricDescriptorV1",
+                "type": "object"
+            },
+            "DeploymentMetricKindV1": {
+                "description": "Semantic hint for how a metric behaves, to aid client rendering and\naggregation. It does not describe the value's shape \u2014 that is carried by the\ndescriptor's ``label_sets`` (a metric may break down into multiple series).\n\n- ``GAUGE``: an instantaneous value (e.g. queue size, running requests).\n- ``COUNTER``: a cumulative total over the step (e.g. tokens, restarts).\n- ``HISTOGRAM``: a distribution, exposed as quantile/average series.",
+                "enum": [
+                    "GAUGE",
+                    "COUNTER",
+                    "HISTOGRAM"
+                ],
+                "title": "DeploymentMetricKindV1",
+                "type": "string"
+            },
+            "DeploymentMetricModeV1": {
+                "description": "How metric values are aggregated over the request.",
+                "enum": [
+                    "CURRENT",
+                    "SUMMARY",
+                    "SERIES"
+                ],
+                "title": "DeploymentMetricModeV1",
+                "type": "string"
+            },
+            "DeploymentMetricUnitHintV1": {
+                "description": "Advisory unit of a metric's values. Values are reported as scraped, so the\nhint describes the raw value (e.g. GPU memory is reported in mebibytes).\n\n- ``PER_SECOND``: a rate per second.\n- ``SECONDS``: a duration in seconds.\n- ``BYTES``: a size in bytes.\n- ``MEBIBYTES``: a size in mebibytes (MiB).\n- ``COUNT``: a dimensionless tally of discrete things.\n- ``RATIO``: a dimensionless ratio. Usually in ``[0, 1]`` but may exceed 1\n  (e.g. CPU usage in cores = cpu-seconds/second).",
+                "enum": [
+                    "PER_SECOND",
+                    "SECONDS",
+                    "BYTES",
+                    "MEBIBYTES",
+                    "COUNT",
+                    "RATIO"
+                ],
+                "title": "DeploymentMetricUnitHintV1",
+                "type": "string"
+            },
+            "DeploymentMetricValueSetV1": {
+                "description": "The metric values for one time step. ``values`` is aligned by index to the\nresponse ``metric_descriptors`` list.",
+                "properties": {
+                    "start_epoch_millis": {
+                        "description": "Start of the step. The step spans until the next value set's start, or the window end for the last one; a summary has a single value set starting at the window start.",
+                        "title": "Start Epoch Millis",
+                        "type": "integer"
+                    },
+                    "values": {
+                        "description": "Metric values aligned to the ``metric_descriptors`` index. Each entry is a list aligned to that descriptor's ``label_sets`` (a single-element list for a plain metric). A series with no data in this step is null.",
+                        "items": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        "title": "Values",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "start_epoch_millis",
+                    "values"
+                ],
+                "title": "DeploymentMetricValueSetV1",
+                "type": "object"
+            },
+            "GetDeploymentMetricsResponseV1": {
+                "description": "Deployment metrics over a time window, index-mapped: metric descriptors\nappear once in ``metric_descriptors``; each value set's ``values`` are aligned\nto that order.",
+                "properties": {
+                    "start_epoch_millis": {
+                        "description": "Start of the returned window.",
+                        "title": "Start Epoch Millis",
+                        "type": "integer"
+                    },
+                    "end_epoch_millis": {
+                        "description": "End of the returned window.",
+                        "title": "End Epoch Millis",
+                        "type": "integer"
+                    },
+                    "mode": {
+                        "$ref": "#/components/schemas/DeploymentMetricModeV1",
+                        "description": "The aggregation mode used."
+                    },
+                    "step_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Seconds per step; populated only in SERIES mode, null otherwise.",
+                        "title": "Step Seconds"
+                    },
+                    "metric_descriptors": {
+                        "description": "Descriptors for each metric; position defines the values index.",
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentMetricDescriptorV1"
+                        },
+                        "title": "Metric Descriptors",
+                        "type": "array"
+                    },
+                    "metric_values": {
+                        "description": "Metric values per time step covering the window. In summary mode this always contains exactly one value set spanning the whole window.",
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentMetricValueSetV1"
+                        },
+                        "title": "Metric Values",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "start_epoch_millis",
+                    "end_epoch_millis",
+                    "mode",
+                    "step_seconds",
+                    "metric_descriptors",
+                    "metric_values"
+                ],
+                "title": "GetDeploymentMetricsResponseV1",
+                "type": "object"
+            },
+            "GetDeploymentMetricsRequestV1": {
+                "description": "Query params for ``GET /v1/models/.../deployments/.../metrics``.",
+                "properties": {
+                    "mode": {
+                        "$ref": "#/components/schemas/DeploymentMetricModeV1",
+                        "default": "CURRENT",
+                        "description": "'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration."
+                    },
+                    "start_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch millis timestamp to start fetching metrics. Defaults to one hour before the end.",
+                        "title": "Start Epoch Millis"
+                    },
+                    "end_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch millis timestamp to end fetching metrics. Defaults to the current time. The window between start and end must not exceed 7 days.",
+                        "title": "End Epoch Millis"
+                    },
+                    "metrics": {
+                        "description": "Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply to the deployment are omitted from the response.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Metrics",
+                        "type": "array"
+                    }
+                },
+                "title": "GetDeploymentMetricsRequestV1",
                 "type": "object"
             },
             "TerminateReplicaResponseV1": {
@@ -11048,6 +11147,19 @@
                         "default": null,
                         "description": "Epoch millis timestamp to start fetching metrics.",
                         "title": "Start Epoch Millis"
+                    },
+                    "step_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Resolution of the returned series, in seconds. When omitted, a step is derived from the time range so large windows return fewer points.",
+                        "title": "Step Seconds"
                     }
                 },
                 "title": "GetTrainingJobMetricsRequestV1",
@@ -11788,499 +11900,6 @@
                 "title": "SearchTrainingJobsResponseV1",
                 "type": "object"
             },
-            "SearchTrainersRequestV1": {
-                "description": "Filters for searching trainers visible to the requesting user.",
-                "properties": {
-                    "trainer_id": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Filter by trainer ID.",
-                        "examples": [
-                            "k4q95w5"
-                        ],
-                        "title": "Trainer Id"
-                    }
-                },
-                "title": "SearchTrainersRequestV1",
-                "type": "object"
-            },
-            "SearchedTrainerV1": {
-                "description": "Trainer entry returned by /v1/trainers/search.",
-                "properties": {
-                    "trainer_id": {
-                        "description": "The trainer ID.",
-                        "title": "Trainer Id",
-                        "type": "string"
-                    },
-                    "session_id": {
-                        "description": "The session ID this trainer belongs to.",
-                        "title": "Session Id",
-                        "type": "string"
-                    },
-                    "base_model": {
-                        "description": "The HuggingFace base model the trainer is fine-tuning.",
-                        "title": "Base Model",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "trainer_id",
-                    "session_id",
-                    "base_model"
-                ],
-                "title": "SearchedTrainerV1",
-                "type": "object"
-            },
-            "SearchTrainersResponseV1": {
-                "description": "Trainers matching the search filters.",
-                "properties": {
-                    "trainers": {
-                        "description": "List of trainers.",
-                        "items": {
-                            "$ref": "#/components/schemas/SearchedTrainerV1"
-                        },
-                        "title": "Trainers",
-                        "type": "array"
-                    }
-                },
-                "required": [
-                    "trainers"
-                ],
-                "title": "SearchTrainersResponseV1",
-                "type": "object"
-            },
-            "CheckpointSearchRequestV1": {
-                "description": "Lookup body for ``POST /v1/trainers/checkpoints/search``.",
-                "properties": {
-                    "checkpoint_path": {
-                        "description": "bt:// URI of a trainer checkpoint. Form: bt://loops:<trainer_id>/(weights|sampler_weights)/<checkpoint_name>.",
-                        "examples": [
-                            "bt://loops:k4q95w5/sampler_weights/step-100"
-                        ],
-                        "title": "Checkpoint Path",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "checkpoint_path"
-                ],
-                "title": "CheckpointSearchRequestV1",
-                "type": "object"
-            },
-            "TrainerCheckpointTarget": {
-                "description": "Whether a TrainerServerCheckpoint is loadable by the sampler or the trainer.\n\nSAMPLER checkpoints are consumed by the sampling server for inference;\nTRAINER checkpoints capture full trainer state for resuming training.\nMirrored in the bt:// URI as\n``bt://loops:<trainer_id>/(sampler_weights|weights)/<name>``.",
-                "enum": [
-                    "sampler",
-                    "trainer"
-                ],
-                "title": "TrainerCheckpointTarget",
-                "type": "string"
-            },
-            "TrainerServerCheckpointV1": {
-                "description": "A checkpoint saved by a trainer.",
-                "properties": {
-                    "checkpoint_id": {
-                        "description": "The ID of the checkpoint.",
-                        "title": "Checkpoint Id",
-                        "type": "string"
-                    },
-                    "created_at": {
-                        "description": "The timestamp of the checkpoint in ISO 8601 format.",
-                        "format": "date-time",
-                        "title": "Created At",
-                        "type": "string"
-                    },
-                    "checkpoint_type": {
-                        "description": "The type of checkpoint.",
-                        "title": "Checkpoint Type",
-                        "type": "string"
-                    },
-                    "base_model": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The base model of the checkpoint.",
-                        "title": "Base Model"
-                    },
-                    "lora_adapter_config": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The adapter config of the checkpoint.",
-                        "title": "Lora Adapter Config"
-                    },
-                    "size_bytes": {
-                        "description": "The size of the checkpoint in bytes.",
-                        "title": "Size Bytes",
-                        "type": "integer"
-                    },
-                    "sync_status": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Sync state of the checkpoint: SYNCING or COMPLETE.",
-                        "title": "Sync Status"
-                    },
-                    "id": {
-                        "description": "The TrainerServerCheckpoint database ID.",
-                        "title": "Id",
-                        "type": "string"
-                    },
-                    "trainer_id": {
-                        "description": "The ID of the trainer.",
-                        "title": "Trainer Id",
-                        "type": "string"
-                    },
-                    "target": {
-                        "$ref": "#/components/schemas/TrainerCheckpointTarget",
-                        "description": "Whether this checkpoint is loadable by the sampler ('sampler') or by the trainer ('trainer')."
-                    }
-                },
-                "required": [
-                    "checkpoint_id",
-                    "created_at",
-                    "checkpoint_type",
-                    "base_model",
-                    "lora_adapter_config",
-                    "size_bytes",
-                    "id",
-                    "trainer_id",
-                    "target"
-                ],
-                "title": "TrainerServerCheckpointV1",
-                "type": "object"
-            },
-            "CheckpointSearchResponseV1": {
-                "description": "Response for ``POST /v1/trainers/checkpoints/search``.",
-                "properties": {
-                    "checkpoint": {
-                        "$ref": "#/components/schemas/TrainerServerCheckpointV1",
-                        "description": "The checkpoint metadata (id, target, type, sizes, etc.)."
-                    }
-                },
-                "required": [
-                    "checkpoint"
-                ],
-                "title": "CheckpointSearchResponseV1",
-                "type": "object"
-            },
-            "CreateTrainerSessionRequestV1": {
-                "properties": {
-                    "training_project_id": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "ID of the training project to associate with. If omitted, a default project is created for the org.",
-                        "title": "Training Project Id"
-                    }
-                },
-                "title": "CreateTrainerSessionRequestV1",
-                "type": "object"
-            },
-            "TrainerSessionV1": {
-                "properties": {
-                    "id": {
-                        "title": "Id",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "id"
-                ],
-                "title": "TrainerSessionV1",
-                "type": "object"
-            },
-            "CreateTrainerSessionResponseV1": {
-                "properties": {
-                    "session": {
-                        "$ref": "#/components/schemas/TrainerSessionV1"
-                    }
-                },
-                "required": [
-                    "session"
-                ],
-                "title": "CreateTrainerSessionResponseV1",
-                "type": "object"
-            },
-            "CreateTrainerServerRequestV1": {
-                "properties": {
-                    "model": {
-                        "description": "Base model ID (e.g. 'Qwen/Qwen3-8B').",
-                        "title": "Model",
-                        "type": "string"
-                    },
-                    "max_seq_len": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Maximum sequence length for training. Defaults to the maximum supported by the model configuration.",
-                        "title": "Max Seq Len"
-                    },
-                    "lora_rank": {
-                        "default": 64,
-                        "description": "LoRA rank.",
-                        "title": "Lora Rank",
-                        "type": "integer"
-                    },
-                    "seed": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Random seed for reproducibility.",
-                        "title": "Seed"
-                    },
-                    "scale_down_delay_seconds": {
-                        "default": 3600,
-                        "description": "Seconds of inactivity before the trainer scales to zero. Must be positive. Defaults to 3600 (1 hour).",
-                        "exclusiveMinimum": 0,
-                        "title": "Scale Down Delay Seconds",
-                        "type": "integer"
-                    },
-                    "checkpoint_path": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Optional bt:// URI of an existing trainer-target checkpoint to resume training from. Form: bt://loops:<trainer_id>/weights/<checkpoint_name>.",
-                        "examples": [
-                            "bt://loops:k4q95w5/weights/step-100"
-                        ],
-                        "title": "Checkpoint Path"
-                    }
-                },
-                "required": [
-                    "model"
-                ],
-                "title": "CreateTrainerServerRequestV1",
-                "type": "object"
-            },
-            "SamplingServerV1": {
-                "properties": {
-                    "id": {
-                        "title": "Id",
-                        "type": "string"
-                    },
-                    "base_url": {
-                        "title": "Base Url",
-                        "type": "string"
-                    },
-                    "model_id": {
-                        "description": "Hashid of the underlying Baseten model.",
-                        "title": "Model Id",
-                        "type": "string"
-                    },
-                    "deployment_id": {
-                        "description": "Hashid of the specific model deployment (version).",
-                        "title": "Deployment Id",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "id",
-                    "base_url",
-                    "model_id",
-                    "deployment_id"
-                ],
-                "title": "SamplingServerV1",
-                "type": "object"
-            },
-            "TrainerServerV1": {
-                "properties": {
-                    "id": {
-                        "title": "Id",
-                        "type": "string"
-                    },
-                    "base_url": {
-                        "title": "Base Url",
-                        "type": "string"
-                    },
-                    "sampling_server": {
-                        "$ref": "#/components/schemas/SamplingServerV1"
-                    }
-                },
-                "required": [
-                    "id",
-                    "base_url",
-                    "sampling_server"
-                ],
-                "title": "TrainerServerV1",
-                "type": "object"
-            },
-            "CreateTrainerServerResponseV1": {
-                "properties": {
-                    "trainer_server": {
-                        "$ref": "#/components/schemas/TrainerServerV1"
-                    }
-                },
-                "required": [
-                    "trainer_server"
-                ],
-                "title": "CreateTrainerServerResponseV1",
-                "type": "object"
-            },
-            "CreateSamplingServerRequestV1": {
-                "properties": {
-                    "model": {
-                        "description": "Model to use for standalone samplers (eg, for baselines).",
-                        "title": "Model",
-                        "type": "string"
-                    },
-                    "max_seq_length": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Maximum prompt length (in tokens) the sampler must handle. Set this to the longest prompt you plan to send. Omit to use the default for the base model.",
-                        "title": "Max Seq Length"
-                    },
-                    "checkpoint_path": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Optional bt:// URI of an existing sampler-target checkpoint to load weights from on startup. Form: bt://loops:<trainer_id>/sampler_weights/<checkpoint_name>.",
-                        "examples": [
-                            "bt://loops:k4q95w5/sampler_weights/step-100"
-                        ],
-                        "title": "Checkpoint Path"
-                    }
-                },
-                "required": [
-                    "model"
-                ],
-                "title": "CreateSamplingServerRequestV1",
-                "type": "object"
-            },
-            "CreateSamplingServerResponseV1": {
-                "properties": {
-                    "sampling_server": {
-                        "$ref": "#/components/schemas/SamplingServerV1"
-                    }
-                },
-                "required": [
-                    "sampling_server"
-                ],
-                "title": "CreateSamplingServerResponseV1",
-                "type": "object"
-            },
-            "GetTrainerServerCheckpointsResponseV1": {
-                "description": "A response to list checkpoints for a trainer.",
-                "properties": {
-                    "trainer_id": {
-                        "description": "The ID of the trainer.",
-                        "title": "Trainer Id",
-                        "type": "string"
-                    },
-                    "checkpoints": {
-                        "description": "The checkpoints for the trainer.",
-                        "items": {
-                            "$ref": "#/components/schemas/TrainerServerCheckpointV1"
-                        },
-                        "title": "Checkpoints",
-                        "type": "array"
-                    }
-                },
-                "required": [
-                    "trainer_id",
-                    "checkpoints"
-                ],
-                "title": "GetTrainerServerCheckpointsResponseV1",
-                "type": "object"
-            },
-            "GetTrainerServerCheckpointFilesResponseV1": {
-                "description": "A response to fetch presigned URLs for files under a trainer server checkpoint.",
-                "properties": {
-                    "presigned_urls": {
-                        "description": "List of presigned URLs for checkpoint files.",
-                        "items": {
-                            "$ref": "#/components/schemas/CheckpointFile"
-                        },
-                        "title": "Presigned Urls",
-                        "type": "array"
-                    },
-                    "next_page_token": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Token to use for fetching the next page of results. None when there are no more results.",
-                        "title": "Next Page Token"
-                    },
-                    "total_count": {
-                        "description": "Total number of checkpoint files available.",
-                        "title": "Total Count",
-                        "type": "integer"
-                    }
-                },
-                "required": [
-                    "presigned_urls",
-                    "total_count"
-                ],
-                "title": "GetTrainerServerCheckpointFilesResponseV1",
-                "type": "object"
-            },
             "SupportedModelV1": {
                 "description": "A model supported by the Loops server.",
                 "properties": {
@@ -12318,25 +11937,6 @@
                     "supported_models"
                 ],
                 "title": "GetLoopsCapabilitiesResponseV1",
-                "type": "object"
-            },
-            "CreateLoopsSessionRequestV1": {
-                "properties": {
-                    "training_project_id": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "ID of the training project to associate with. If omitted, a default project is created for the org.",
-                        "title": "Training Project Id"
-                    }
-                },
-                "title": "CreateLoopsSessionRequestV1",
                 "type": "object"
             },
             "LoopsSessionV1": {
@@ -12592,6 +12192,13 @@
                         "title": "Scale Down Delay Seconds",
                         "type": "integer"
                     },
+                    "replicas": {
+                        "default": 1,
+                        "description": "Number of data-parallel trainer replicas. Each replica is one full copy of the model's preset node group, so the trainer deployment runs (preset node_count * replicas) nodes (e.g. replicas=4 on a 4-node preset \u2192 16 nodes, 4 DP workers). Must be a positive integer. Defaults to 1.",
+                        "minimum": 1,
+                        "title": "Replicas",
+                        "type": "integer"
+                    },
                     "path": {
                         "anyOf": [
                             {
@@ -12618,7 +12225,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Optional Loops session ID whose trainer deployment should be reused for this run, sharing the infrastructure across sessions instead of provisioning fresh. The named session must belong to the same team. Reuse is best-effort: if the prior deployment is stopped, failed, or its sampler is unhealthy, a new deployment is provisioned instead.",
+                        "description": "Optional Loops session ID whose trainer deployment should be reused for this run, sharing the infrastructure across sessions instead of provisioning fresh. The named session must belong to the same team. Reuse is best-effort: if the prior deployment is stopped, failed, its sampler is unhealthy, or this run requests replicas != 1, a new deployment is provisioned instead.",
                         "title": "Reuse From Session Id"
                     }
                 },
@@ -12851,6 +12458,15 @@
                 ],
                 "title": "LoopsCheckpointV1",
                 "type": "object"
+            },
+            "TrainerCheckpointTarget": {
+                "description": "Whether a TrainerServerCheckpoint is loadable by the sampler or the trainer.\n\nSAMPLER checkpoints are consumed by the sampling server for inference;\nTRAINER checkpoints capture full trainer state for resuming training.\nMirrored in the bt:// URI as\n``bt://loops:<trainer_id>/(sampler_weights|weights)/<name>``.",
+                "enum": [
+                    "sampler",
+                    "trainer"
+                ],
+                "title": "TrainerCheckpointTarget",
+                "type": "string"
             },
             "ListLoopsCheckpointsResponseV1": {
                 "description": "Checkpoints matching the query filter.",
@@ -13142,6 +12758,32 @@
                         "default": null,
                         "description": "Epoch millis to start fetching metrics.",
                         "title": "Start Epoch Millis"
+                    },
+                    "step_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Resolution of the returned series, in seconds. When omitted, a step is derived from the time range so large windows return fewer points.",
+                        "title": "Step Seconds"
+                    },
+                    "time_divisor_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Unit of time for request-volume metrics, in seconds (e.g. 60 for requests/minute). Defaults to per-second.",
+                        "title": "Time Divisor Seconds"
                     }
                 },
                 "title": "GetLoopsDeploymentMetricsRequestV1",
@@ -16137,22 +15779,6 @@
                 "in": "path",
                 "required": true
             },
-            "trainer_id": {
-                "schema": {
-                    "type": "string"
-                },
-                "name": "trainer_id",
-                "in": "path",
-                "required": true
-            },
-            "checkpoint_id": {
-                "schema": {
-                    "type": "string"
-                },
-                "name": "checkpoint_id",
-                "in": "path",
-                "required": true
-            },
             "run_id": {
                 "schema": {
                     "type": "string"
@@ -16166,6 +15792,14 @@
                     "type": "string"
                 },
                 "name": "sampler_id",
+                "in": "path",
+                "required": true
+            },
+            "checkpoint_id": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "checkpoint_id",
                 "in": "path",
                 "required": true
             },
