@@ -713,6 +713,19 @@ func (c *Client) GetModelsDeploymentsLogs(ctx context.Context, modelId string, d
 	})
 }
 
+// GetModelsDeploymentsMetrics: Gets the metrics for a model deployment.
+func (c *Client) GetModelsDeploymentsMetrics(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams) (*GetDeploymentMetricsResponse, error) {
+	return doJSON[GetDeploymentMetricsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/models/%s/deployments/%s/metrics",
+		pathArgs:    []any{modelId, deploymentId},
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetModelsDeploymentsProduction: Gets a model's production deployment
 func (c *Client) GetModelsDeploymentsProduction(ctx context.Context, modelId string) (*Deployment, error) {
 	return doJSON[Deployment](c, ctx, apiRequest{
@@ -803,30 +816,6 @@ func (c *Client) GetTeamsSecrets(ctx context.Context, teamId string) (*Secrets, 
 		method:      "GET",
 		pathFmt:     "/v1/teams/%s/secrets",
 		pathArgs:    []any{teamId},
-		body:        nil,
-		successCode: 200,
-		errorCodes:  nil,
-	})
-}
-
-// GetTrainerSessionsTrainersCheckpoints: List trainer server checkpoints.
-func (c *Client) GetTrainerSessionsTrainersCheckpoints(ctx context.Context, sessionId string, trainerId string) (*GetTrainerServerCheckpointsResponse, error) {
-	return doJSON[GetTrainerServerCheckpointsResponse](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/v1/trainer_sessions/%s/trainers/%s/checkpoints",
-		pathArgs:    []any{sessionId, trainerId},
-		body:        nil,
-		successCode: 200,
-		errorCodes:  nil,
-	})
-}
-
-// GetTrainerSessionsTrainersCheckpointsFiles: Get trainer server checkpoint files.
-func (c *Client) GetTrainerSessionsTrainersCheckpointsFiles(ctx context.Context, sessionId string, trainerId string, checkpointId string) (*GetTrainerServerCheckpointFilesResponse, error) {
-	return doJSON[GetTrainerServerCheckpointFilesResponse](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/v1/trainer_sessions/%s/trainers/%s/checkpoints/%s/files",
-		pathArgs:    []any{sessionId, trainerId, checkpointId},
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1317,12 +1306,12 @@ func (c *Client) PostLoopsSamplers(ctx context.Context, body CreateLoopsSamplerR
 }
 
 // PostLoopsSessions: Create a Loops session.
-func (c *Client) PostLoopsSessions(ctx context.Context, body CreateLoopsSessionRequest) (*CreateLoopsSessionResponse, error) {
+func (c *Client) PostLoopsSessions(ctx context.Context) (*CreateLoopsSessionResponse, error) {
 	return doJSON[CreateLoopsSessionResponse](c, ctx, apiRequest{
 		method:      "POST",
 		pathFmt:     "/v1/loops/sessions",
 		pathArgs:    nil,
-		body:        body,
+		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
 	})
@@ -1718,66 +1707,6 @@ func (c *Client) PostTeamsTrainingProjects(ctx context.Context, teamId string, b
 		method:      "POST",
 		pathFmt:     "/v1/teams/%s/training_projects",
 		pathArgs:    []any{teamId},
-		body:        body,
-		successCode: 200,
-		errorCodes:  nil,
-	})
-}
-
-// PostTrainerSessions: Create a trainer session.
-func (c *Client) PostTrainerSessions(ctx context.Context, body CreateTrainerSessionRequest) (*CreateTrainerSessionResponse, error) {
-	return doJSON[CreateTrainerSessionResponse](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/v1/trainer_sessions",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  nil,
-	})
-}
-
-// PostTrainerSessionsSamplers: Create a sampling server.
-func (c *Client) PostTrainerSessionsSamplers(ctx context.Context, sessionId string, body CreateSamplingServerRequest) (*CreateSamplingServerResponse, error) {
-	return doJSON[CreateSamplingServerResponse](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/v1/trainer_sessions/%s/samplers",
-		pathArgs:    []any{sessionId},
-		body:        body,
-		successCode: 200,
-		errorCodes:  nil,
-	})
-}
-
-// PostTrainerSessionsTrainers: Create a trainer server.
-func (c *Client) PostTrainerSessionsTrainers(ctx context.Context, sessionId string, body CreateTrainerServerRequest) (*CreateTrainerServerResponse, error) {
-	return doJSON[CreateTrainerServerResponse](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/v1/trainer_sessions/%s/trainers",
-		pathArgs:    []any{sessionId},
-		body:        body,
-		successCode: 200,
-		errorCodes:  nil,
-	})
-}
-
-// PostTrainersCheckpointsSearch: Look up trainer checkpoint info by bt:// URI.
-func (c *Client) PostTrainersCheckpointsSearch(ctx context.Context, body CheckpointSearchRequest) (*CheckpointSearchResponse, error) {
-	return doJSON[CheckpointSearchResponse](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/v1/trainers/checkpoints/search",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  nil,
-	})
-}
-
-// PostTrainersSearch: Search trainers.
-func (c *Client) PostTrainersSearch(ctx context.Context, body SearchTrainersRequest) (*SearchTrainersResponse, error) {
-	return doJSON[SearchTrainersResponse](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/v1/trainers/search",
-		pathArgs:    nil,
 		body:        body,
 		successCode: 200,
 		errorCodes:  nil,

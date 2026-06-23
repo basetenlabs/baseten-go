@@ -93,6 +93,78 @@ func (e DeploymentConfigOutputFormat) Valid() bool {
 	}
 }
 
+// Defines values for DeploymentMetricKind.
+const (
+	DeploymentMetricKind_COUNTER   DeploymentMetricKind = "COUNTER"
+	DeploymentMetricKind_GAUGE     DeploymentMetricKind = "GAUGE"
+	DeploymentMetricKind_HISTOGRAM DeploymentMetricKind = "HISTOGRAM"
+)
+
+// Valid indicates whether the value is a known member of the DeploymentMetricKind enum.
+func (e DeploymentMetricKind) Valid() bool {
+	switch e {
+	case DeploymentMetricKind_COUNTER:
+		return true
+	case DeploymentMetricKind_GAUGE:
+		return true
+	case DeploymentMetricKind_HISTOGRAM:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeploymentMetricMode.
+const (
+	DeploymentMetricMode_CURRENT DeploymentMetricMode = "CURRENT"
+	DeploymentMetricMode_SERIES  DeploymentMetricMode = "SERIES"
+	DeploymentMetricMode_SUMMARY DeploymentMetricMode = "SUMMARY"
+)
+
+// Valid indicates whether the value is a known member of the DeploymentMetricMode enum.
+func (e DeploymentMetricMode) Valid() bool {
+	switch e {
+	case DeploymentMetricMode_CURRENT:
+		return true
+	case DeploymentMetricMode_SERIES:
+		return true
+	case DeploymentMetricMode_SUMMARY:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeploymentMetricUnitHint.
+const (
+	DeploymentMetricUnitHint_BYTES      DeploymentMetricUnitHint = "BYTES"
+	DeploymentMetricUnitHint_COUNT      DeploymentMetricUnitHint = "COUNT"
+	DeploymentMetricUnitHint_MEBIBYTES  DeploymentMetricUnitHint = "MEBIBYTES"
+	DeploymentMetricUnitHint_PER_SECOND DeploymentMetricUnitHint = "PER_SECOND"
+	DeploymentMetricUnitHint_RATIO      DeploymentMetricUnitHint = "RATIO"
+	DeploymentMetricUnitHint_SECONDS    DeploymentMetricUnitHint = "SECONDS"
+)
+
+// Valid indicates whether the value is a known member of the DeploymentMetricUnitHint enum.
+func (e DeploymentMetricUnitHint) Valid() bool {
+	switch e {
+	case DeploymentMetricUnitHint_BYTES:
+		return true
+	case DeploymentMetricUnitHint_COUNT:
+		return true
+	case DeploymentMetricUnitHint_MEBIBYTES:
+		return true
+	case DeploymentMetricUnitHint_PER_SECOND:
+		return true
+	case DeploymentMetricUnitHint_RATIO:
+		return true
+	case DeploymentMetricUnitHint_SECONDS:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DeploymentStatus.
 const (
 	DeploymentStatus_ACTIVE         DeploymentStatus = "ACTIVE"
@@ -868,18 +940,6 @@ type CheckpointFile struct {
 	Url              string `json:"url"`
 }
 
-// CheckpointSearchRequest Lookup body for “POST /v1/trainers/checkpoints/search“.
-type CheckpointSearchRequest struct {
-	// CheckpointPath bt:// URI of a trainer checkpoint. Form: bt://loops:<trainer_id>/(weights|sampler_weights)/<checkpoint_name>.
-	CheckpointPath string `json:"checkpoint_path"`
-}
-
-// CheckpointSearchResponse Response for “POST /v1/trainers/checkpoints/search“.
-type CheckpointSearchResponse struct {
-	// Checkpoint A checkpoint saved by a trainer.
-	Checkpoint TrainerServerCheckpoint `json:"checkpoint"`
-}
-
 // CheckpointSyncStatus Lifecycle state for the checkpoint uploader.
 type CheckpointSyncStatus string
 
@@ -1084,7 +1144,10 @@ type CreateLoopsRunRequest struct {
 	// Path Optional bt:// URI of an existing checkpoint to load weights from on startup. Form: bt://loops:<run_id>/weights/<checkpoint_name>.
 	Path *string `json:"path,omitempty"`
 
-	// ReuseFromSessionId Optional Loops session ID whose trainer deployment should be reused for this run, sharing the infrastructure across sessions instead of provisioning fresh. The named session must belong to the same team. Reuse is best-effort: if the prior deployment is stopped, failed, or its sampler is unhealthy, a new deployment is provisioned instead.
+	// Replicas Number of data-parallel trainer replicas. Each replica is one full copy of the model's preset node group, so the trainer deployment runs (preset node_count * replicas) nodes (e.g. replicas=4 on a 4-node preset → 16 nodes, 4 DP workers). Must be a positive integer. Defaults to 1.
+	Replicas *int `json:"replicas,omitempty"`
+
+	// ReuseFromSessionId Optional Loops session ID whose trainer deployment should be reused for this run, sharing the infrastructure across sessions instead of provisioning fresh. The named session must belong to the same team. Reuse is best-effort: if the prior deployment is stopped, failed, its sampler is unhealthy, or this run requests replicas != 1, a new deployment is provisioned instead.
 	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
 
 	// ScaleDownDelaySeconds Seconds of inactivity before the run scales to zero. Must be positive. Defaults to 3600 (1 hour).
@@ -1125,12 +1188,6 @@ type CreateLoopsSamplerResponse struct {
 	Sampler LoopsSampler `json:"sampler"`
 }
 
-// CreateLoopsSessionRequest defines model for CreateLoopsSessionRequest.
-type CreateLoopsSessionRequest struct {
-	// TrainingProjectId ID of the training project to associate with. If omitted, a default project is created for the org.
-	TrainingProjectId *string `json:"training_project_id,omitempty"`
-}
-
 // CreateLoopsSessionResponse defines model for CreateLoopsSessionResponse.
 type CreateLoopsSessionResponse struct {
 	Session LoopsSession `json:"session"`
@@ -1166,60 +1223,6 @@ type CreateModelWeightSnapshotRequest struct {
 
 	// SnapshotUri Path to the model weight snapshot
 	SnapshotUri string `json:"snapshot_uri"`
-}
-
-// CreateSamplingServerRequest defines model for CreateSamplingServerRequest.
-type CreateSamplingServerRequest struct {
-	// CheckpointPath Optional bt:// URI of an existing sampler-target checkpoint to load weights from on startup. Form: bt://loops:<trainer_id>/sampler_weights/<checkpoint_name>.
-	CheckpointPath *string `json:"checkpoint_path,omitempty"`
-
-	// MaxSeqLength Maximum prompt length (in tokens) the sampler must handle. Set this to the longest prompt you plan to send. Omit to use the default for the base model.
-	MaxSeqLength *int `json:"max_seq_length,omitempty"`
-
-	// Model Model to use for standalone samplers (eg, for baselines).
-	Model string `json:"model"`
-}
-
-// CreateSamplingServerResponse defines model for CreateSamplingServerResponse.
-type CreateSamplingServerResponse struct {
-	SamplingServer SamplingServer `json:"sampling_server"`
-}
-
-// CreateTrainerServerRequest defines model for CreateTrainerServerRequest.
-type CreateTrainerServerRequest struct {
-	// CheckpointPath Optional bt:// URI of an existing trainer-target checkpoint to resume training from. Form: bt://loops:<trainer_id>/weights/<checkpoint_name>.
-	CheckpointPath *string `json:"checkpoint_path,omitempty"`
-
-	// LoraRank LoRA rank.
-	LoraRank *int `json:"lora_rank,omitempty"`
-
-	// MaxSeqLen Maximum sequence length for training. Defaults to the maximum supported by the model configuration.
-	MaxSeqLen *int `json:"max_seq_len,omitempty"`
-
-	// Model Base model ID (e.g. 'Qwen/Qwen3-8B').
-	Model string `json:"model"`
-
-	// ScaleDownDelaySeconds Seconds of inactivity before the trainer scales to zero. Must be positive. Defaults to 3600 (1 hour).
-	ScaleDownDelaySeconds *int `json:"scale_down_delay_seconds,omitempty"`
-
-	// Seed Random seed for reproducibility.
-	Seed *int `json:"seed,omitempty"`
-}
-
-// CreateTrainerServerResponse defines model for CreateTrainerServerResponse.
-type CreateTrainerServerResponse struct {
-	TrainerServer TrainerServer `json:"trainer_server"`
-}
-
-// CreateTrainerSessionRequest defines model for CreateTrainerSessionRequest.
-type CreateTrainerSessionRequest struct {
-	// TrainingProjectId ID of the training project to associate with. If omitted, a default project is created for the org.
-	TrainingProjectId *string `json:"training_project_id,omitempty"`
-}
-
-// CreateTrainerSessionResponse defines model for CreateTrainerSessionResponse.
-type CreateTrainerSessionResponse struct {
-	Session TrainerSession `json:"session"`
 }
 
 // CreateTrainingJob Configuration for a training job.
@@ -1642,6 +1645,75 @@ type DeploymentConfigResponse struct {
 	RawConfig *string `json:"raw_config,omitempty"`
 }
 
+// DeploymentMetricDescriptor Describes one metric. Its position in the response “metric_descriptors“
+// list is the index used to read that metric out of each value set's “values“.
+//
+// A metric may break down into multiple labeled series (e.g. latency quantiles,
+// or volume by status). “label_sets“ enumerates those series in order; each
+// value set's value for this metric is a list aligned to that order.
+type DeploymentMetricDescriptor struct {
+	// Kind Semantic hint for how a metric behaves, to aid client rendering and
+	// aggregation. It does not describe the value's shape — that is carried by the
+	// descriptor's ``label_sets`` (a metric may break down into multiple series).
+	//
+	// - ``GAUGE``: an instantaneous value (e.g. queue size, running requests).
+	// - ``COUNTER``: a cumulative total over the step (e.g. tokens, restarts).
+	// - ``HISTOGRAM``: a distribution, exposed as quantile/average series.
+	Kind DeploymentMetricKind `json:"kind"`
+
+	// LabelSets The metric's series, in order. Each entry is the set of labels identifying one series; the value at the same index in each value set's ``values`` is that series' value. A plain metric has a single entry with no labels (`{}`). A histogram has one entry per quantile plus an average, e.g. {'quantile': '0.5'} … {'quantile': '0.99'}, {'stat': 'avg'}. A by-status metric has one entry per status, e.g. {'status': '2xx'}.
+	LabelSets []map[string]string `json:"label_sets"`
+
+	// Name Canonical metric name.
+	Name string `json:"name"`
+
+	// UnitHint Advisory unit of a metric's values. Values are reported as scraped, so the
+	// hint describes the raw value (e.g. GPU memory is reported in mebibytes).
+	//
+	// - ``PER_SECOND``: a rate per second.
+	// - ``SECONDS``: a duration in seconds.
+	// - ``BYTES``: a size in bytes.
+	// - ``MEBIBYTES``: a size in mebibytes (MiB).
+	// - ``COUNT``: a dimensionless tally of discrete things.
+	// - ``RATIO``: a dimensionless ratio. Usually in ``[0, 1]`` but may exceed 1
+	//   (e.g. CPU usage in cores = cpu-seconds/second).
+	UnitHint DeploymentMetricUnitHint `json:"unit_hint"`
+}
+
+// DeploymentMetricKind Semantic hint for how a metric behaves, to aid client rendering and
+// aggregation. It does not describe the value's shape — that is carried by the
+// descriptor's “label_sets“ (a metric may break down into multiple series).
+//
+// - “GAUGE“: an instantaneous value (e.g. queue size, running requests).
+// - “COUNTER“: a cumulative total over the step (e.g. tokens, restarts).
+// - “HISTOGRAM“: a distribution, exposed as quantile/average series.
+type DeploymentMetricKind string
+
+// DeploymentMetricMode How metric values are aggregated over the request.
+type DeploymentMetricMode string
+
+// DeploymentMetricUnitHint Advisory unit of a metric's values. Values are reported as scraped, so the
+// hint describes the raw value (e.g. GPU memory is reported in mebibytes).
+//
+//   - “PER_SECOND“: a rate per second.
+//   - “SECONDS“: a duration in seconds.
+//   - “BYTES“: a size in bytes.
+//   - “MEBIBYTES“: a size in mebibytes (MiB).
+//   - “COUNT“: a dimensionless tally of discrete things.
+//   - “RATIO“: a dimensionless ratio. Usually in “[0, 1]“ but may exceed 1
+//     (e.g. CPU usage in cores = cpu-seconds/second).
+type DeploymentMetricUnitHint string
+
+// DeploymentMetricValueSet The metric values for one time step. “values“ is aligned by index to the
+// response “metric_descriptors“ list.
+type DeploymentMetricValueSet struct {
+	// StartEpochMillis Start of the step. The step spans until the next value set's start, or the window end for the last one; a summary has a single value set starting at the window start.
+	StartEpochMillis int `json:"start_epoch_millis"`
+
+	// Values Metric values aligned to the ``metric_descriptors`` index. Each entry is a list aligned to that descriptor's ``label_sets`` (a single-element list for a plain metric). A series with no data in this step is null.
+	Values [][]*float32 `json:"values"`
+}
+
 // DeploymentStatus The status of a deployment.
 type DeploymentStatus string
 
@@ -1842,6 +1914,8 @@ type GetCacheSummaryResponse struct {
 
 // GetDeploymentLogsRequest A request to fetch deployment logs.
 type GetDeploymentLogsRequest struct {
+	// Component Only return logs from this component.
+	Component *string    `json:"component,omitempty"`
 	Direction *SortOrder `json:"direction,omitempty"`
 
 	// EndEpochMillis Epoch milliseconds at which to stop fetching logs. Defaults to the current time.
@@ -1872,6 +1946,29 @@ type GetDeploymentLogsRequest struct {
 	StartEpochMillis *int `json:"start_epoch_millis,omitempty"`
 }
 
+// GetDeploymentMetricsResponse Deployment metrics over a time window, index-mapped: metric descriptors
+// appear once in “metric_descriptors“; each value set's “values“ are aligned
+// to that order.
+type GetDeploymentMetricsResponse struct {
+	// EndEpochMillis End of the returned window.
+	EndEpochMillis int `json:"end_epoch_millis"`
+
+	// MetricDescriptors Descriptors for each metric; position defines the values index.
+	MetricDescriptors []DeploymentMetricDescriptor `json:"metric_descriptors"`
+
+	// MetricValues Metric values per time step covering the window. In summary mode this always contains exactly one value set spanning the whole window.
+	MetricValues []DeploymentMetricValueSet `json:"metric_values"`
+
+	// Mode How metric values are aggregated over the request.
+	Mode DeploymentMetricMode `json:"mode"`
+
+	// StartEpochMillis Start of the returned window.
+	StartEpochMillis int `json:"start_epoch_millis"`
+
+	// StepSeconds Seconds per step; populated only in SERIES mode, null otherwise.
+	StepSeconds *int `json:"step_seconds"`
+}
+
 // GetLogsResponse A response to querying logs.
 type GetLogsResponse struct {
 	// Logs Logs for a specific entity.
@@ -1891,6 +1988,12 @@ type GetLoopsDeploymentMetricsRequest struct {
 
 	// StartEpochMillis Epoch millis to start fetching metrics.
 	StartEpochMillis *int `json:"start_epoch_millis,omitempty"`
+
+	// StepSeconds Resolution of the returned series, in seconds. When omitted, a step is derived from the time range so large windows return fewer points.
+	StepSeconds *int `json:"step_seconds,omitempty"`
+
+	// TimeDivisorSeconds Unit of time for request-volume metrics, in seconds (e.g. 60 for requests/minute). Defaults to per-second.
+	TimeDivisorSeconds *int `json:"time_divisor_seconds,omitempty"`
 }
 
 // GetLoopsDeploymentMetricsResponse Response for “POST /v1/loops/deployments/<id>/metrics“.
@@ -1929,27 +2032,6 @@ type GetLoopsSamplerResponse struct {
 // GetLoopsSessionResponse Response for “GET /v1/loops/sessions/<session_id>“.
 type GetLoopsSessionResponse struct {
 	Session LoopsSession `json:"session"`
-}
-
-// GetTrainerServerCheckpointFilesResponse A response to fetch presigned URLs for files under a trainer server checkpoint.
-type GetTrainerServerCheckpointFilesResponse struct {
-	// NextPageToken Token to use for fetching the next page of results. None when there are no more results.
-	NextPageToken *int `json:"next_page_token,omitempty"`
-
-	// PresignedUrls List of presigned URLs for checkpoint files.
-	PresignedUrls []CheckpointFile `json:"presigned_urls"`
-
-	// TotalCount Total number of checkpoint files available.
-	TotalCount int `json:"total_count"`
-}
-
-// GetTrainerServerCheckpointsResponse A response to list checkpoints for a trainer.
-type GetTrainerServerCheckpointsResponse struct {
-	// Checkpoints The checkpoints for the trainer.
-	Checkpoints []TrainerServerCheckpoint `json:"checkpoints"`
-
-	// TrainerId The ID of the trainer.
-	TrainerId string `json:"trainer_id"`
 }
 
 // GetTrainingGpuCapacityResponse Response for the training GPU capacity endpoint.
@@ -2001,6 +2083,9 @@ type GetTrainingJobMetricsRequest struct {
 
 	// StartEpochMillis Epoch millis timestamp to start fetching metrics.
 	StartEpochMillis *int `json:"start_epoch_millis,omitempty"`
+
+	// StepSeconds Resolution of the returned series, in seconds. When omitted, a step is derived from the time range so large windows return fewer points.
+	StepSeconds *int `json:"step_seconds,omitempty"`
 }
 
 // GetTrainingJobMetricsResponse A response to fetch training job metrics. The outer list for each metric represents that metric across time.
@@ -3063,30 +3148,6 @@ type RollingDeployConfig struct {
 // RollingDeployStrategy The rolling deploy strategy.
 type RollingDeployStrategy string
 
-// SamplingServer defines model for SamplingServer.
-type SamplingServer struct {
-	BaseUrl string `json:"base_url"`
-
-	// DeploymentId Hashid of the specific model deployment (version).
-	DeploymentId string `json:"deployment_id"`
-	Id           string `json:"id"`
-
-	// ModelId Hashid of the underlying Baseten model.
-	ModelId string `json:"model_id"`
-}
-
-// SearchTrainersRequest Filters for searching trainers visible to the requesting user.
-type SearchTrainersRequest struct {
-	// TrainerId Filter by trainer ID.
-	TrainerId *string `json:"trainer_id,omitempty"`
-}
-
-// SearchTrainersResponse Trainers matching the search filters.
-type SearchTrainersResponse struct {
-	// Trainers List of trainers.
-	Trainers []SearchedTrainer `json:"trainers"`
-}
-
 // SearchTrainingJobsRequest A request to search training jobs.
 type SearchTrainingJobsRequest struct {
 	// JobId Filter the training jobs by job ID.
@@ -3108,22 +3169,13 @@ type SearchTrainingJobsResponse struct {
 	TrainingJobs []TrainingJob `json:"training_jobs"`
 }
 
-// SearchedTrainer Trainer entry returned by /v1/trainers/search.
-type SearchedTrainer struct {
-	// BaseModel The HuggingFace base model the trainer is fine-tuning.
-	BaseModel string `json:"base_model"`
-
-	// SessionId The session ID this trainer belongs to.
-	SessionId string `json:"session_id"`
-
-	// TrainerId The trainer ID.
-	TrainerId string `json:"trainer_id"`
-}
-
 // Secret A Baseten secret. Note that we do not support retrieving secret values.
 type Secret struct {
 	// CreatedAt Time the secret was created in ISO 8601 format
 	CreatedAt time.Time `json:"created_at"`
+
+	// Id Stable identifier for the secret. Unchanged across rotation.
+	Id string `json:"id"`
 
 	// Name Name of the secret
 	Name string `json:"name"`
@@ -3242,56 +3294,6 @@ type TerminateReplicaResponse struct {
 // Mirrored in the bt:// URI as
 // “bt://loops:<trainer_id>/(sampler_weights|weights)/<name>“.
 type TrainerCheckpointTarget string
-
-// TrainerServer defines model for TrainerServer.
-type TrainerServer struct {
-	BaseUrl        string         `json:"base_url"`
-	Id             string         `json:"id"`
-	SamplingServer SamplingServer `json:"sampling_server"`
-}
-
-// TrainerServerCheckpoint A checkpoint saved by a trainer.
-type TrainerServerCheckpoint struct {
-	// BaseModel The base model of the checkpoint.
-	BaseModel *string `json:"base_model"`
-
-	// CheckpointId The ID of the checkpoint.
-	CheckpointId string `json:"checkpoint_id"`
-
-	// CheckpointType The type of checkpoint.
-	CheckpointType string `json:"checkpoint_type"`
-
-	// CreatedAt The timestamp of the checkpoint in ISO 8601 format.
-	CreatedAt time.Time `json:"created_at"`
-
-	// Id The TrainerServerCheckpoint database ID.
-	Id string `json:"id"`
-
-	// LoraAdapterConfig The adapter config of the checkpoint.
-	LoraAdapterConfig *map[string]interface{} `json:"lora_adapter_config"`
-
-	// SizeBytes The size of the checkpoint in bytes.
-	SizeBytes int `json:"size_bytes"`
-
-	// SyncStatus Sync state of the checkpoint: SYNCING or COMPLETE.
-	SyncStatus *string `json:"sync_status,omitempty"`
-
-	// Target Whether a TrainerServerCheckpoint is loadable by the sampler or the trainer.
-	//
-	// SAMPLER checkpoints are consumed by the sampling server for inference;
-	// TRAINER checkpoints capture full trainer state for resuming training.
-	// Mirrored in the bt:// URI as
-	// ``bt://loops:<trainer_id>/(sampler_weights|weights)/<name>``.
-	Target TrainerCheckpointTarget `json:"target"`
-
-	// TrainerId The ID of the trainer.
-	TrainerId string `json:"trainer_id"`
-}
-
-// TrainerSession defines model for TrainerSession.
-type TrainerSession struct {
-	Id string `json:"id"`
-}
 
 // TrainingGpuCapacityItem GPU capacity and current usage for one GPU type.
 type TrainingGpuCapacityItem struct {
@@ -3841,9 +3843,6 @@ type SessionId = string
 // TeamId defines model for team_id.
 type TeamId = string
 
-// TrainerId defines model for trainer_id.
-type TrainerId = string
-
 // TrainingJobId defines model for training_job_id.
 type TrainingJobId = string
 
@@ -3890,6 +3889,9 @@ type GetV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsParams
 
 	// RequestId Only return logs tagged with this inference request ID.
 	RequestId *string `form:"request_id,omitempty" json:"request_id,omitempty"`
+
+	// Component Only return logs from this component.
+	Component *string `form:"component,omitempty" json:"component,omitempty"`
 
 	// SearchPattern RE2 regular expression matched against the log message. Prefer `includes` and `excludes` for plain substring matches.
 	SearchPattern *string `form:"search_pattern,omitempty" json:"search_pattern,omitempty"`
@@ -3981,6 +3983,9 @@ type GetV1ModelsModelIdDeploymentsDeploymentIdLogsParams struct {
 	// RequestId Only return logs tagged with this inference request ID.
 	RequestId *string `form:"request_id,omitempty" json:"request_id,omitempty"`
 
+	// Component Only return logs from this component.
+	Component *string `form:"component,omitempty" json:"component,omitempty"`
+
 	// SearchPattern RE2 regular expression matched against the log message. Prefer `includes` and `excludes` for plain substring matches.
 	SearchPattern *string `form:"search_pattern,omitempty" json:"search_pattern,omitempty"`
 
@@ -3989,6 +3994,21 @@ type GetV1ModelsModelIdDeploymentsDeploymentIdLogsParams struct {
 
 	// Excludes Case-sensitive substrings; lines containing any of these are dropped.
 	Excludes *[]string `form:"excludes,omitempty" json:"excludes,omitempty"`
+}
+
+// GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdMetrics.
+type GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams struct {
+	// Mode 'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration.
+	Mode *DeploymentMetricMode `form:"mode,omitempty" json:"mode,omitempty"`
+
+	// StartEpochMillis Epoch millis timestamp to start fetching metrics. Defaults to one hour before the end.
+	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// EndEpochMillis Epoch millis timestamp to end fetching metrics. Defaults to the current time. The window between start and end must not exceed 7 days.
+	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
+
+	// Metrics Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply to the deployment are omitted from the response.
+	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
 }
 
 // GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams defines parameters for GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFiles.
@@ -4025,6 +4045,9 @@ type GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdMetricsParams struct
 
 	// StartEpochMillis Epoch millis timestamp to start fetching metrics.
 	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// StepSeconds Resolution of the returned series, in seconds. When omitted, a step is derived from the time range so large windows return fewer points.
+	StepSeconds *int `form:"step_seconds,omitempty" json:"step_seconds,omitempty"`
 }
 
 // PostV1ApiKeysJSONRequestBody defines body for PostV1ApiKeys for application/json ContentType.
@@ -4086,9 +4109,6 @@ type PostV1LoopsRunsJSONRequestBody = CreateLoopsRunRequest
 
 // PostV1LoopsSamplersJSONRequestBody defines body for PostV1LoopsSamplers for application/json ContentType.
 type PostV1LoopsSamplersJSONRequestBody = CreateLoopsSamplerRequest
-
-// PostV1LoopsSessionsJSONRequestBody defines body for PostV1LoopsSessions for application/json ContentType.
-type PostV1LoopsSessionsJSONRequestBody = CreateLoopsSessionRequest
 
 // PostV1ModelApisSnapshotsJSONRequestBody defines body for PostV1ModelApisSnapshots for application/json ContentType.
 type PostV1ModelApisSnapshotsJSONRequestBody = CreateModelWeightSnapshotRequest
@@ -4152,21 +4172,6 @@ type PostV1TeamsTeamIdSecretsJSONRequestBody = UpsertSecretRequest
 
 // PostV1TeamsTeamIdTrainingProjectsJSONRequestBody defines body for PostV1TeamsTeamIdTrainingProjects for application/json ContentType.
 type PostV1TeamsTeamIdTrainingProjectsJSONRequestBody = UpsertTrainingProjectRequest
-
-// PostV1TrainerSessionsJSONRequestBody defines body for PostV1TrainerSessions for application/json ContentType.
-type PostV1TrainerSessionsJSONRequestBody = CreateTrainerSessionRequest
-
-// PostV1TrainerSessionsSessionIdSamplersJSONRequestBody defines body for PostV1TrainerSessionsSessionIdSamplers for application/json ContentType.
-type PostV1TrainerSessionsSessionIdSamplersJSONRequestBody = CreateSamplingServerRequest
-
-// PostV1TrainerSessionsSessionIdTrainersJSONRequestBody defines body for PostV1TrainerSessionsSessionIdTrainers for application/json ContentType.
-type PostV1TrainerSessionsSessionIdTrainersJSONRequestBody = CreateTrainerServerRequest
-
-// PostV1TrainersCheckpointsSearchJSONRequestBody defines body for PostV1TrainersCheckpointsSearch for application/json ContentType.
-type PostV1TrainersCheckpointsSearchJSONRequestBody = CheckpointSearchRequest
-
-// PostV1TrainersSearchJSONRequestBody defines body for PostV1TrainersSearch for application/json ContentType.
-type PostV1TrainersSearchJSONRequestBody = SearchTrainersRequest
 
 // PostV1TrainingJobsSearchJSONRequestBody defines body for PostV1TrainingJobsSearch for application/json ContentType.
 type PostV1TrainingJobsSearchJSONRequestBody = SearchTrainingJobsRequest
