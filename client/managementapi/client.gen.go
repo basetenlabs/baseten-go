@@ -81,6 +81,18 @@ func (c *Client) DeleteChainsDeployments(ctx context.Context, chainId string, ch
 	})
 }
 
+// DeleteGatewayEndpoints: Delete a Gateway endpoint
+func (c *Client) DeleteGatewayEndpoints(ctx context.Context, endpointId string) (*EndpointTombstone, error) {
+	return doJSON[EndpointTombstone](c, ctx, apiRequest{
+		method:      "DELETE",
+		pathFmt:     "/v1/gateway/endpoints/%s",
+		pathArgs:    []any{endpointId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // DeleteLibraryListings: Deletes a library listing
 func (c *Client) DeleteLibraryListings(ctx context.Context, userDefinedListingId string) (*LibraryListingTombstone, error) {
 	return doJSON[LibraryListingTombstone](c, ctx, apiRequest{
@@ -317,6 +329,30 @@ func (c *Client) GetChainsEnvironmentsEnvName(ctx context.Context, chainId strin
 		method:      "GET",
 		pathFmt:     "/v1/chains/%s/environments/%s",
 		pathArgs:    []any{chainId, envName},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetGatewayEndpoints: List Gateway endpoints
+func (c *Client) GetGatewayEndpoints(ctx context.Context) (*EndpointsResponse, error) {
+	return doJSON[EndpointsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/gateway/endpoints",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetGatewayEndpointsEndpointId: Get a Gateway endpoint
+func (c *Client) GetGatewayEndpointsEndpointId(ctx context.Context, endpointId string) (*Endpoint, error) {
+	return doJSON[Endpoint](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/gateway/endpoints/%s",
+		pathArgs:    []any{endpointId},
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -726,6 +762,18 @@ func (c *Client) GetModelsDeploymentsMetrics(ctx context.Context, modelId string
 	})
 }
 
+// GetModelsDeploymentsPatchesState: Get a development deployment's patch state.
+func (c *Client) GetModelsDeploymentsPatchesState(ctx context.Context, modelId string, deploymentId string) (*GetDeploymentPatchesStateResponse, error) {
+	return doJSON[GetDeploymentPatchesStateResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/models/%s/deployments/%s/patches/state",
+		pathArgs:    []any{modelId, deploymentId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetModelsDeploymentsProduction: Gets a model's production deployment
 func (c *Client) GetModelsDeploymentsProduction(ctx context.Context, modelId string) (*Deployment, error) {
 	return doJSON[Deployment](c, ctx, apiRequest{
@@ -1005,6 +1053,18 @@ func (c *Client) PatchChainsEnvironmentsChainletSettingsAutoscalingSettings(ctx 
 	})
 }
 
+// PatchGatewayEndpoints: Update a Gateway endpoint
+func (c *Client) PatchGatewayEndpoints(ctx context.Context, endpointId string, body UpdateEndpointRequest) (*Endpoint, error) {
+	return doJSON[Endpoint](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/gateway/endpoints/%s",
+		pathArgs:    []any{endpointId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PatchGatewayGroups: Update a group
 func (c *Client) PatchGatewayGroups(ctx context.Context, groupId string, body UpdateGroupRequest) (*Group, error) {
 	return doJSON[Group](c, ctx, apiRequest{
@@ -1155,6 +1215,18 @@ func (c *Client) PostChainsEnvironmentsPromote(ctx context.Context, chainId stri
 		method:      "POST",
 		pathFmt:     "/v1/chains/%s/environments/%s/promote",
 		pathArgs:    []any{chainId, envName},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostGatewayEndpoints: Create a Gateway endpoint
+func (c *Client) PostGatewayEndpoints(ctx context.Context, body CreateEndpointRequest) (*Endpoint, error) {
+	return doJSON[Endpoint](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/gateway/endpoints",
+		pathArgs:    nil,
 		body:        body,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1442,6 +1514,30 @@ func (c *Client) PostModelsDeploymentsLogs(ctx context.Context, modelId string, 
 	return doJSON[GetLogsResponse](c, ctx, apiRequest{
 		method:      "POST",
 		pathFmt:     "/v1/models/%s/deployments/%s/logs",
+		pathArgs:    []any{modelId, deploymentId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostModelsDeploymentsPatches: Stage a patch against a development deployment.
+func (c *Client) PostModelsDeploymentsPatches(ctx context.Context, modelId string, deploymentId string, body CreateDeploymentPatchRequest) (*CreateDeploymentPatchResponse, error) {
+	return doJSON[CreateDeploymentPatchResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/models/%s/deployments/%s/patches",
+		pathArgs:    []any{modelId, deploymentId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostModelsDeploymentsPatchesSync: Sync staged patches to a development deployment.
+func (c *Client) PostModelsDeploymentsPatchesSync(ctx context.Context, modelId string, deploymentId string, body SyncDeploymentPatchesRequest) (*SyncDeploymentPatchesResponse, error) {
+	return doJSON[SyncDeploymentPatchesResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/models/%s/deployments/%s/patches/sync",
 		pathArgs:    []any{modelId, deploymentId},
 		body:        body,
 		successCode: 200,
