@@ -165,6 +165,27 @@ func (e DeploymentMetricUnitHint) Valid() bool {
 	}
 }
 
+// Defines values for DeploymentPatchAction.
+const (
+	DeploymentPatchAction_ADD    DeploymentPatchAction = "ADD"
+	DeploymentPatchAction_REMOVE DeploymentPatchAction = "REMOVE"
+	DeploymentPatchAction_UPDATE DeploymentPatchAction = "UPDATE"
+)
+
+// Valid indicates whether the value is a known member of the DeploymentPatchAction enum.
+func (e DeploymentPatchAction) Valid() bool {
+	switch e {
+	case DeploymentPatchAction_ADD:
+		return true
+	case DeploymentPatchAction_REMOVE:
+		return true
+	case DeploymentPatchAction_UPDATE:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DeploymentStatus.
 const (
 	DeploymentStatus_ACTIVE         DeploymentStatus = "ACTIVE"
@@ -240,6 +261,27 @@ func (e DockerAuthType) Valid() bool {
 	case DockerAuthType_GCP_SERVICE_ACCOUNT_JSON:
 		return true
 	case DockerAuthType_REGISTRY_SECRET:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GatewayProvider.
+const (
+	GatewayProvider_ANTHROPIC GatewayProvider = "ANTHROPIC"
+	GatewayProvider_BASETEN   GatewayProvider = "BASETEN"
+	GatewayProvider_OPENAI    GatewayProvider = "OPENAI"
+)
+
+// Valid indicates whether the value is a known member of the GatewayProvider enum.
+func (e GatewayProvider) Valid() bool {
+	switch e {
+	case GatewayProvider_ANTHROPIC:
+		return true
+	case GatewayProvider_BASETEN:
+		return true
+	case GatewayProvider_OPENAI:
 		return true
 	default:
 		return false
@@ -333,6 +375,24 @@ func (e LogLevel) Valid() bool {
 	case LogLevel_INFO:
 		return true
 	case LogLevel_WARNING:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for LoopsCheckpointConfigTarget.
+const (
+	LoopsCheckpointConfigTarget_sampler LoopsCheckpointConfigTarget = "sampler"
+	LoopsCheckpointConfigTarget_trainer LoopsCheckpointConfigTarget = "trainer"
+)
+
+// Valid indicates whether the value is a known member of the LoopsCheckpointConfigTarget enum.
+func (e LoopsCheckpointConfigTarget) Valid() bool {
+	switch e {
+	case LoopsCheckpointConfigTarget_sampler:
+		return true
+	case LoopsCheckpointConfigTarget_trainer:
 		return true
 	default:
 		return false
@@ -985,6 +1045,51 @@ type CreateChainEnvironmentRequest struct {
 	PromotionSettings *UpdatePromotionSettings `json:"promotion_settings,omitempty"`
 }
 
+// CreateDeploymentPatchRequest A patch to stage against the development deployment.
+//
+// Staging is durable on its own: the patch is persisted independently of the
+// later sync, so a failed sync does not lose it.
+type CreateDeploymentPatchRequest struct {
+	// NextPatchPoint A patch point: the source state the next patch is computed against.
+	//
+	// The content hash that identifies a point is derived from this state (see
+	// `DeploymentPatchPointWithHashV1.hash`), so a request only sends the state and
+	// the server stamps the hash. A previous point's hash plus the current local
+	// source is enough to compute the next patch, so the watch client reads the
+	// point it is patching off of.
+	NextPatchPoint DeploymentPatchPoint `json:"next_patch_point"`
+
+	// PatchOps The ordered ops that make up this patch. At least one op is required; a patch that changes nothing is not a valid request. There is no op for a directory: a directory comes into existence when the first file under it is added, and is removed when its last file is removed, so directory creation and deletion happen implicitly through the file ops. Adding or removing an otherwise empty directory therefore produces no ops even though it changes the source hash; do not send a patch request for such a change.
+	PatchOps []CreateDeploymentPatchRequest_PatchOps_Item `json:"patch_ops"`
+
+	// PrevPatchHash Content hash of the patch point this patch is applied on - the link the staged patch must build on. A stale value (the base moved underneath the client) is rejected with a conflict.
+	PrevPatchHash string `json:"prev_patch_hash"`
+}
+
+// CreateDeploymentPatchRequest_PatchOps_Item defines model for CreateDeploymentPatchRequest.patch_ops.Item.
+type CreateDeploymentPatchRequest_PatchOps_Item struct {
+	union json.RawMessage
+}
+
+// CreateDeploymentPatchResponse The created patch, represented by the patch point it produced.
+type CreateDeploymentPatchResponse struct {
+	// PatchPoint A patch point plus its server-assigned content hash, returned in responses.
+	//
+	// Requests omit the hash (the server derives it from the source state); responses
+	// include it so the watch client can echo it back as the next patch's
+	// `prev_patch_hash` without having to recompute the fold itself.
+	PatchPoint DeploymentPatchPointWithHash `json:"patch_point"`
+}
+
+// CreateEndpointRequest defines model for CreateEndpointRequest.
+type CreateEndpointRequest struct {
+	// Slug Globally-unique slug of the form '{org_prefix}/{name}'.
+	Slug string `json:"slug"`
+
+	// Targets The endpoint's upstream targets. Exactly one target is supported at this time.
+	Targets []EndpointTargetRequest `json:"targets"`
+}
+
 // CreateEnvironmentRequest A request to create an environment.
 type CreateEnvironmentRequest struct {
 	// AutoscalingSettings A request to update autoscaling settings for a deployment. All fields are optional, and we only update ones passed in.
@@ -1140,6 +1245,9 @@ type CreateLoopsRunRequest struct {
 
 	// MaxSeqLen Maximum prompt length (in tokens) the run must handle. Set this to the longest training example you plan to send. Defaults to the maximum supported by the model configuration.
 	MaxSeqLen *int `json:"max_seq_len,omitempty"`
+
+	// Name Optional display name for the run. Defaults to the base model name when omitted.
+	Name *string `json:"name,omitempty"`
 
 	// Path Optional bt:// URI of an existing checkpoint to load weights from on startup. Form: bt://loops:<run_id>/weights/<checkpoint_name>.
 	Path *string `json:"path,omitempty"`
@@ -1605,6 +1713,9 @@ type DeploymentArchivePayload struct {
 	// EnvironmentName Stable environment to push to (e.g. `production`). If unset, the deployment is created without environment selection. Caller must have push permission for the named environment.
 	EnvironmentName *string `json:"environment_name,omitempty"`
 
+	// IsDevelopment If true, push as a development deployment: the model's single mutable dev slot, created if absent and overwritten in place otherwise. The following fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `deployment_name`.
+	IsDevelopment *bool `json:"is_development,omitempty"`
+
 	// Labels User-provided key-value labels for the deployment.
 	Labels *map[string]interface{} `json:"labels,omitempty"`
 
@@ -1714,6 +1825,132 @@ type DeploymentMetricValueSet struct {
 	Values [][]*float32 `json:"values"`
 }
 
+// DeploymentPatchAction How a patch op changes its target.
+type DeploymentPatchAction string
+
+// DeploymentPatchOpConfig Replace the config when config.yaml changes.
+//
+// Config has no action: it is always a full replacement of the parsed config.
+// Derived changes (environment variables, external data, requirements) are
+// emitted as their own ops alongside this one.
+type DeploymentPatchOpConfig struct {
+	// Config The full parsed config as a JSON object.
+	Config map[string]interface{} `json:"config"`
+
+	// Path Config file path within the source.
+	Path *string `json:"path,omitempty"`
+	Type *string `json:"type,omitempty"`
+}
+
+// DeploymentPatchOpEnvVar Add, update, or remove a single environment variable.
+type DeploymentPatchOpEnvVar struct {
+	// Action How a patch op changes its target.
+	Action DeploymentPatchAction `json:"action"`
+
+	// Name The environment variable name.
+	Name string  `json:"name"`
+	Type *string `json:"type,omitempty"`
+
+	// Value The environment variable value. Required for add and update.
+	Value *string `json:"value,omitempty"`
+}
+
+// DeploymentPatchOpExternalData Add, update, or remove a single external data item.
+//
+// External data is referenced by config, not stored in the source. The backend
+// only adds or removes it, where adding re-downloads (overwriting any existing
+// file), so `update` is accepted and treated identically to `add`.
+type DeploymentPatchOpExternalData struct {
+	// Action How a patch op changes its target.
+	Action DeploymentPatchAction `json:"action"`
+
+	// Item The single external data item descriptor.
+	Item map[string]string `json:"item"`
+	Type *string           `json:"type,omitempty"`
+}
+
+// DeploymentPatchOpModelCode Add, update, or remove a file under the model code directory.
+type DeploymentPatchOpModelCode struct {
+	// Action How a patch op changes its target.
+	Action DeploymentPatchAction `json:"action"`
+
+	// Content UTF-8 file content. Null for removals and binary files.
+	Content *string `json:"content,omitempty"`
+
+	// ContentBytes Base64-encoded content for binary files.
+	ContentBytes *string `json:"content_bytes,omitempty"`
+
+	// HotReload Whether the running server can pick up this change without a restart.
+	HotReload *bool `json:"hot_reload,omitempty"`
+
+	// Path File path relative to the model code directory.
+	Path string  `json:"path"`
+	Type *string `json:"type,omitempty"`
+}
+
+// DeploymentPatchOpPackage Add, update, or remove a file under the bundled packages directory.
+type DeploymentPatchOpPackage struct {
+	// Action How a patch op changes its target.
+	Action DeploymentPatchAction `json:"action"`
+
+	// Content UTF-8 file content. Null for removals and binary files.
+	Content *string `json:"content,omitempty"`
+
+	// ContentBytes Base64-encoded content for binary files.
+	ContentBytes *string `json:"content_bytes,omitempty"`
+
+	// Path File path relative to the bundled packages directory.
+	Path string  `json:"path"`
+	Type *string `json:"type,omitempty"`
+}
+
+// DeploymentPatchOpPythonRequirement Add, update, or remove a single Python requirement.
+type DeploymentPatchOpPythonRequirement struct {
+	// Action How a patch op changes its target.
+	Action DeploymentPatchAction `json:"action"`
+
+	// Requirement The requirement to apply. For removals this is the package name; otherwise the full requirements.txt-style line.
+	Requirement string  `json:"requirement"`
+	Type        *string `json:"type,omitempty"`
+}
+
+// DeploymentPatchPoint A patch point: the source state the next patch is computed against.
+//
+// The content hash that identifies a point is derived from this state (see
+// `DeploymentPatchPointWithHashV1.hash`), so a request only sends the state and
+// the server stamps the hash. A previous point's hash plus the current local
+// source is enough to compute the next patch, so the watch client reads the
+// point it is patching off of.
+type DeploymentPatchPoint struct {
+	// Config The verbatim config.yaml text for this source state.
+	Config string `json:"config"`
+
+	// ContentHashes Map of every non-ignored source path, relative and forward-slash, to its content hash: files map to the hex blake3 digest of their bytes, directories map to null. This is the full signature of the source tree and what the content hash is derived from.
+	ContentHashes map[string]*string `json:"content_hashes"`
+
+	// Requirements Requirements resolved from the config's requirements file, when it points at one. Empty when requirements are declared inline in the config.
+	Requirements *[]string `json:"requirements,omitempty"`
+}
+
+// DeploymentPatchPointWithHash A patch point plus its server-assigned content hash, returned in responses.
+//
+// Requests omit the hash (the server derives it from the source state); responses
+// include it so the watch client can echo it back as the next patch's
+// `prev_patch_hash` without having to recompute the fold itself.
+type DeploymentPatchPointWithHash struct {
+	// Config The verbatim config.yaml text for this source state.
+	Config string `json:"config"`
+
+	// ContentHashes Map of every non-ignored source path, relative and forward-slash, to its content hash: files map to the hex blake3 digest of their bytes, directories map to null. This is the full signature of the source tree and what the content hash is derived from.
+	ContentHashes map[string]*string `json:"content_hashes"`
+
+	// Hash Content hash identifying this exact source state, and the link patches build on. It is derived deterministically from `content_hashes`, so a request need not send it - the server derives it. It is derived by sorting the `content_hashes` keys as paths, splitting each key on '/' into its path components and ordering the keys by comparing those component lists element by element, each component compared by Unicode code point (equivalently UTF-8 byte order). Treating '/' as a path separator this way, rather than as the ordinary character U+002F, means a key that is an ancestor path sorts before a sibling whose name extends the first differing component (so e.g. 'a/b' sorts before 'a.b'). A blake3 hasher is then built, and for each key in that order updated with the blake3 digest (32 raw bytes) of the key encoded as UTF-8, then, when the entry is a file (non-null value), with that file's digest as 32 raw bytes. The stream uses raw digest bytes, but the values in `content_hashes` are those digests hex-encoded (64 hex chars), so decode each value from hex first. Directory entries (null value) contribute only their key digest. The result is the hasher's own hex digest.
+	Hash string `json:"hash"`
+
+	// Requirements Requirements resolved from the config's requirements file, when it points at one. Empty when requirements are declared inline in the config.
+	Requirements *[]string `json:"requirements,omitempty"`
+}
+
 // DeploymentStatus The status of a deployment.
 type DeploymentStatus string
 
@@ -1806,6 +2043,77 @@ type EffectiveUsageLimit struct {
 	Unit      UsageLimitUnit `json:"unit"`
 }
 
+// Endpoint A Gateway endpoint: a slug and its priority-ordered targets (index 0 tried first).
+type Endpoint struct {
+	// CreatedAt Creation time, ISO 8601.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id Stable identifier for the endpoint.
+	Id string `json:"id"`
+
+	// Slug Globally-unique routing slug.
+	Slug string `json:"slug"`
+
+	// Targets The endpoint's upstream targets. Exactly one target is supported at this time.
+	Targets []EndpointTarget `json:"targets"`
+
+	// UpdatedAt Last update time, ISO 8601.
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// EndpointTarget One configured upstream target of an endpoint.
+type EndpointTarget struct {
+	// ModelId Baseten model, if any.
+	ModelId *string `json:"model_id,omitempty"`
+
+	// Provider Customer-facing provider for an endpoint target.
+	//
+	// External providers resolve to a fixed upstream host + protocol adapter via
+	// ``_EXTERNAL_PROVIDER_CONFIGS``; ``BASETEN`` derives its host from the referenced oracle.
+	Provider GatewayProvider `json:"provider"`
+
+	// SecretId Referenced secret, if any.
+	SecretId *string `json:"secret_id,omitempty"`
+
+	// TargetModel Upstream model name, if any.
+	TargetModel *string `json:"target_model,omitempty"`
+}
+
+// EndpointTargetRequest One desired upstream target. The customer picks a provider; Baseten owns the
+// upstream host and protocol adapter.
+type EndpointTargetRequest struct {
+	// ModelId Baseten model to route to. Required for and only valid with BASETEN.
+	ModelId *string `json:"model_id,omitempty"`
+
+	// Provider Customer-facing provider for an endpoint target.
+	//
+	// External providers resolve to a fixed upstream host + protocol adapter via
+	// ``_EXTERNAL_PROVIDER_CONFIGS``; ``BASETEN`` derives its host from the referenced oracle.
+	Provider GatewayProvider `json:"provider"`
+
+	// SecretId Secret holding the provider credential. Required for external providers.
+	SecretId *string `json:"secret_id,omitempty"`
+
+	// TargetModel Model name to send upstream. Required for external providers and optional for BASETEN targets.
+	TargetModel *string `json:"target_model,omitempty"`
+}
+
+// EndpointTombstone defines model for EndpointTombstone.
+type EndpointTombstone struct {
+	// Id Identifier of the deleted endpoint.
+	Id string `json:"id"`
+
+	// Slug Slug of the deleted endpoint.
+	Slug string `json:"slug"`
+}
+
+// EndpointsResponse defines model for EndpointsResponse.
+type EndpointsResponse struct {
+	// Items Items in this page.
+	Items      []Endpoint         `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
 // Environment Environment for oracles.
 type Environment struct {
 	// AutoscalingSettings Autoscaling settings for a deployment.
@@ -1867,6 +2175,12 @@ type GatewayKeyInfo struct {
 	// Prefix The prefix of the Model API key.
 	Prefix string `json:"prefix"`
 }
+
+// GatewayProvider Customer-facing provider for an endpoint target.
+//
+// External providers resolve to a fixed upstream host + protocol adapter via
+// “_EXTERNAL_PROVIDER_CONFIGS“; “BASETEN“ derives its host from the referenced oracle.
+type GatewayProvider string
 
 // GcpOidcDockerAuth GCP OIDC details for the registry.
 type GcpOidcDockerAuth struct {
@@ -1969,6 +2283,26 @@ type GetDeploymentMetricsResponse struct {
 	StepSeconds *int `json:"step_seconds"`
 }
 
+// GetDeploymentPatchesStateResponse The patch state of the development deployment.
+//
+// The watch client computes its next patch off `pending_patch_point` when present,
+// else `running_patch_point`.
+type GetDeploymentPatchesStateResponse struct {
+	// PendingPatchPoint A patch point plus its server-assigned content hash, returned in responses.
+	//
+	// Requests omit the hash (the server derives it from the source state); responses
+	// include it so the watch client can echo it back as the next patch's
+	// `prev_patch_hash` without having to recompute the fold itself.
+	PendingPatchPoint *DeploymentPatchPointWithHash `json:"pending_patch_point,omitempty"`
+
+	// RunningPatchPoint A patch point plus its server-assigned content hash, returned in responses.
+	//
+	// Requests omit the hash (the server derives it from the source state); responses
+	// include it so the watch client can echo it back as the next patch's
+	// `prev_patch_hash` without having to recompute the fold itself.
+	RunningPatchPoint DeploymentPatchPointWithHash `json:"running_patch_point"`
+}
+
 // GetLogsResponse A response to querying logs.
 type GetLogsResponse struct {
 	// Logs Logs for a specific entity.
@@ -2036,8 +2370,11 @@ type GetLoopsSessionResponse struct {
 
 // GetTrainingGpuCapacityResponse Response for the training GPU capacity endpoint.
 type GetTrainingGpuCapacityResponse struct {
-	// GpuCapacities GPU capacity limits and current usage per GPU type
+	// GpuCapacities Org-level GPU capacity limits and current usage per GPU type
 	GpuCapacities []TrainingGpuCapacityItem `json:"gpu_capacities"`
+
+	// TeamGpuCapacities Per-team GPU capacity limits and current usage per GPU type
+	TeamGpuCapacities *[]TeamTrainingGpuCapacityItem `json:"team_gpu_capacities,omitempty"`
 }
 
 // GetTrainingJobCheckpointFilesResponse A response to fetch presigned URLs for checkpoint files of a training job.
@@ -2524,6 +2861,22 @@ type LoopsCheckpoint struct {
 	Target TrainerCheckpointTarget `json:"target"`
 }
 
+// LoopsCheckpointConfig defines model for LoopsCheckpointConfig.
+type LoopsCheckpointConfig struct {
+	// CheckpointName Name of the checkpoint to load
+	CheckpointName string `json:"checkpoint_name"`
+
+	// RunId ID of the Loops run to load the checkpoint from
+	RunId string `json:"run_id"`
+
+	// Target Which checkpoint target to load: 'trainer' (full training state) or 'sampler' (inference weights)
+	Target *LoopsCheckpointConfigTarget `json:"target,omitempty"`
+	Typ    *string                      `json:"typ,omitempty"`
+}
+
+// LoopsCheckpointConfigTarget Which checkpoint target to load: 'trainer' (full training state) or 'sampler' (inference weights)
+type LoopsCheckpointConfigTarget string
+
 // LoopsCheckpointFilesResponse Response with presigned URLs for files under a Loops checkpoint.
 type LoopsCheckpointFilesResponse struct {
 	// NextPageToken Token to use for fetching the next page of results. None when there are no more results.
@@ -2631,7 +2984,10 @@ type LoopsRun struct {
 	CreatedAt time.Time `json:"created_at"`
 
 	// Id The run ID.
-	Id      string       `json:"id"`
+	Id string `json:"id"`
+
+	// Name The run's display name.
+	Name    string       `json:"name"`
 	Sampler LoopsSampler `json:"sampler"`
 
 	// SessionId The session ID this run belongs to.
@@ -2864,11 +3220,8 @@ type ModelArchiveSource struct {
 	Deployment DeploymentArchivePayload `json:"deployment"`
 
 	// DisableArchiveDownload If true, the uploaded archive is not downloadable after creation. Locked at model creation; cannot be changed by subsequent deployments.
-	DisableArchiveDownload *bool `json:"disable_archive_download,omitempty"`
-
-	// IsDevelopment If true, push as a development deployment (the model's single mutable dev slot; overwrites any existing development deployment). The following `deployment` fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `deployment_name`.
-	IsDevelopment *bool   `json:"is_development,omitempty"`
-	Kind          *string `json:"kind,omitempty"`
+	DisableArchiveDownload *bool   `json:"disable_archive_download,omitempty"`
+	Kind                   *string `json:"kind,omitempty"`
 
 	// Name Name of the new model.
 	Name string `json:"name"`
@@ -2968,9 +3321,6 @@ type PrepareModelUploadRequest struct {
 
 	// DryRun If true, validate the payload only and do not issue upload credentials. The response sets `creds`, `s3_bucket`, and `s3_key` to `null`.
 	DryRun *bool `json:"dry_run,omitempty"`
-
-	// IsDevelopment If true, validate a development-deployment push. Only valid when `name` is set. The following `deployment` fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `deployment_name`.
-	IsDevelopment *bool `json:"is_development,omitempty"`
 
 	// ModelId Set to validate an add-deployment push to an existing model. Exactly one of `name` or `model_id` is required.
 	ModelId *string `json:"model_id,omitempty"`
@@ -3260,6 +3610,20 @@ type SupportedModel struct {
 	ModelName string `json:"model_name"`
 }
 
+// SyncDeploymentPatchesRequest Triggers a sync of any staged patches to the running deployment. Takes no
+// fields: the deployment and its staged patches fully determine the sync.
+type SyncDeploymentPatchesRequest = map[string]interface{}
+
+// SyncDeploymentPatchesResponse The outcome of a sync that ran.
+//
+// Operational failures (a transient patch failure, an invalid patch sequence)
+// are surfaced as HTTP errors rather than fields here, so a 2xx means the sync
+// reached a verdict.
+type SyncDeploymentPatchesResponse struct {
+	// NeedsFullDeployReason If set, the change cannot be patched and a full push is required; the value explains why. If null, the deployment is now in sync.
+	NeedsFullDeployReason *string `json:"needs_full_deploy_reason,omitempty"`
+}
+
 // Team A team.
 type Team struct {
 	// CreatedAt Time the team was created in ISO 8601 format
@@ -3273,6 +3637,27 @@ type Team struct {
 
 	// Name Name of the team
 	Name string `json:"name"`
+}
+
+// TeamTrainingGpuCapacityItem Per-team GPU capacity and current usage for one GPU type.
+type TeamTrainingGpuCapacityItem struct {
+	// Baseline Baseline GPU allocation for the team. 0 if not configured.
+	Baseline int `json:"baseline"`
+
+	// GpuType GPU type identifier (e.g. H100, A100-40GB)
+	GpuType string `json:"gpu_type"`
+
+	// Limit Maximum concurrent GPUs of this type for this team
+	Limit int `json:"limit"`
+
+	// TeamId Team identifier
+	TeamId string `json:"team_id"`
+
+	// TeamName Team name
+	TeamName string `json:"team_name"`
+
+	// UsageCount GPUs currently in use by the team's active training jobs
+	UsageCount int `json:"usage_count"`
 }
 
 // Teams A list of teams.
@@ -3631,6 +4016,15 @@ type UpdateChainletEnvironmentInstanceTypeResponse struct {
 	RequiresRedeployment bool `json:"requires_redeployment"`
 }
 
+// UpdateEndpointRequest PATCH body. Updates provided mutable fields; targets are replaced as a full list.
+type UpdateEndpointRequest struct {
+	// Slug New globally-unique slug of the form '{org_prefix}/{name}'.
+	Slug *string `json:"slug,omitempty"`
+
+	// Targets The endpoint's upstream targets. Exactly one target is supported at this time.
+	Targets *[]EndpointTargetRequest `json:"targets,omitempty"`
+}
+
 // UpdateEnvironmentRequest A request to update an environment.
 type UpdateEnvironmentRequest struct {
 	// AutoscalingSettings A request to update autoscaling settings for a deployment. All fields are optional, and we only update ones passed in.
@@ -3812,6 +4206,9 @@ type CheckpointId = string
 
 // DeploymentId defines model for deployment_id.
 type DeploymentId = string
+
+// EndpointId defines model for endpoint_id.
+type EndpointId = string
 
 // EnvName defines model for env_name.
 type EnvName = string
@@ -4068,6 +4465,12 @@ type PostV1ChainsChainIdEnvironmentsEnvNameChainletSettingsInstanceTypesUpdateJS
 // PostV1ChainsChainIdEnvironmentsEnvNamePromoteJSONRequestBody defines body for PostV1ChainsChainIdEnvironmentsEnvNamePromote for application/json ContentType.
 type PostV1ChainsChainIdEnvironmentsEnvNamePromoteJSONRequestBody = PromoteToChainEnvironmentRequest
 
+// PostV1GatewayEndpointsJSONRequestBody defines body for PostV1GatewayEndpoints for application/json ContentType.
+type PostV1GatewayEndpointsJSONRequestBody = CreateEndpointRequest
+
+// PatchV1GatewayEndpointsEndpointIdJSONRequestBody defines body for PatchV1GatewayEndpointsEndpointId for application/json ContentType.
+type PatchV1GatewayEndpointsEndpointIdJSONRequestBody = UpdateEndpointRequest
+
 // PostV1GatewayGroupsJSONRequestBody defines body for PostV1GatewayGroups for application/json ContentType.
 type PostV1GatewayGroupsJSONRequestBody = CreateGroupRequest
 
@@ -4137,6 +4540,12 @@ type PatchV1ModelsModelIdDeploymentsDeploymentIdAutoscalingSettingsJSONRequestBo
 // PostV1ModelsModelIdDeploymentsDeploymentIdLogsJSONRequestBody defines body for PostV1ModelsModelIdDeploymentsDeploymentIdLogs for application/json ContentType.
 type PostV1ModelsModelIdDeploymentsDeploymentIdLogsJSONRequestBody = GetDeploymentLogsRequest
 
+// PostV1ModelsModelIdDeploymentsDeploymentIdPatchesJSONRequestBody defines body for PostV1ModelsModelIdDeploymentsDeploymentIdPatches for application/json ContentType.
+type PostV1ModelsModelIdDeploymentsDeploymentIdPatchesJSONRequestBody = CreateDeploymentPatchRequest
+
+// PostV1ModelsModelIdDeploymentsDeploymentIdPatchesSyncJSONRequestBody defines body for PostV1ModelsModelIdDeploymentsDeploymentIdPatchesSync for application/json ContentType.
+type PostV1ModelsModelIdDeploymentsDeploymentIdPatchesSyncJSONRequestBody = SyncDeploymentPatchesRequest
+
 // PostV1ModelsModelIdDeploymentsDeploymentIdPromoteJSONRequestBody defines body for PostV1ModelsModelIdDeploymentsDeploymentIdPromote for application/json ContentType.
 type PostV1ModelsModelIdDeploymentsDeploymentIdPromoteJSONRequestBody = PromoteRequest
 
@@ -4196,6 +4605,143 @@ type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdSshSignJSONRequestB
 
 // PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody defines body for PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStop for application/json ContentType.
 type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody = StopTrainingJobRequest
+
+// AsDeploymentPatchOpModelCode returns the union data inside the CreateDeploymentPatchRequest_PatchOps_Item as a DeploymentPatchOpModelCode
+func (t CreateDeploymentPatchRequest_PatchOps_Item) AsDeploymentPatchOpModelCode() (DeploymentPatchOpModelCode, error) {
+	var body DeploymentPatchOpModelCode
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDeploymentPatchOpModelCode overwrites any union data inside the CreateDeploymentPatchRequest_PatchOps_Item as the provided DeploymentPatchOpModelCode
+func (t *CreateDeploymentPatchRequest_PatchOps_Item) FromDeploymentPatchOpModelCode(v DeploymentPatchOpModelCode) error {
+	_v := "model_code"
+	v.Type = &_v
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsDeploymentPatchOpPackage returns the union data inside the CreateDeploymentPatchRequest_PatchOps_Item as a DeploymentPatchOpPackage
+func (t CreateDeploymentPatchRequest_PatchOps_Item) AsDeploymentPatchOpPackage() (DeploymentPatchOpPackage, error) {
+	var body DeploymentPatchOpPackage
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDeploymentPatchOpPackage overwrites any union data inside the CreateDeploymentPatchRequest_PatchOps_Item as the provided DeploymentPatchOpPackage
+func (t *CreateDeploymentPatchRequest_PatchOps_Item) FromDeploymentPatchOpPackage(v DeploymentPatchOpPackage) error {
+	_v := "package"
+	v.Type = &_v
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsDeploymentPatchOpConfig returns the union data inside the CreateDeploymentPatchRequest_PatchOps_Item as a DeploymentPatchOpConfig
+func (t CreateDeploymentPatchRequest_PatchOps_Item) AsDeploymentPatchOpConfig() (DeploymentPatchOpConfig, error) {
+	var body DeploymentPatchOpConfig
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDeploymentPatchOpConfig overwrites any union data inside the CreateDeploymentPatchRequest_PatchOps_Item as the provided DeploymentPatchOpConfig
+func (t *CreateDeploymentPatchRequest_PatchOps_Item) FromDeploymentPatchOpConfig(v DeploymentPatchOpConfig) error {
+	_v := "config"
+	v.Type = &_v
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsDeploymentPatchOpPythonRequirement returns the union data inside the CreateDeploymentPatchRequest_PatchOps_Item as a DeploymentPatchOpPythonRequirement
+func (t CreateDeploymentPatchRequest_PatchOps_Item) AsDeploymentPatchOpPythonRequirement() (DeploymentPatchOpPythonRequirement, error) {
+	var body DeploymentPatchOpPythonRequirement
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDeploymentPatchOpPythonRequirement overwrites any union data inside the CreateDeploymentPatchRequest_PatchOps_Item as the provided DeploymentPatchOpPythonRequirement
+func (t *CreateDeploymentPatchRequest_PatchOps_Item) FromDeploymentPatchOpPythonRequirement(v DeploymentPatchOpPythonRequirement) error {
+	_v := "python_requirement"
+	v.Type = &_v
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsDeploymentPatchOpEnvVar returns the union data inside the CreateDeploymentPatchRequest_PatchOps_Item as a DeploymentPatchOpEnvVar
+func (t CreateDeploymentPatchRequest_PatchOps_Item) AsDeploymentPatchOpEnvVar() (DeploymentPatchOpEnvVar, error) {
+	var body DeploymentPatchOpEnvVar
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDeploymentPatchOpEnvVar overwrites any union data inside the CreateDeploymentPatchRequest_PatchOps_Item as the provided DeploymentPatchOpEnvVar
+func (t *CreateDeploymentPatchRequest_PatchOps_Item) FromDeploymentPatchOpEnvVar(v DeploymentPatchOpEnvVar) error {
+	_v := "environment_variable"
+	v.Type = &_v
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsDeploymentPatchOpExternalData returns the union data inside the CreateDeploymentPatchRequest_PatchOps_Item as a DeploymentPatchOpExternalData
+func (t CreateDeploymentPatchRequest_PatchOps_Item) AsDeploymentPatchOpExternalData() (DeploymentPatchOpExternalData, error) {
+	var body DeploymentPatchOpExternalData
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDeploymentPatchOpExternalData overwrites any union data inside the CreateDeploymentPatchRequest_PatchOps_Item as the provided DeploymentPatchOpExternalData
+func (t *CreateDeploymentPatchRequest_PatchOps_Item) FromDeploymentPatchOpExternalData(v DeploymentPatchOpExternalData) error {
+	_v := "external_data"
+	v.Type = &_v
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t CreateDeploymentPatchRequest_PatchOps_Item) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t CreateDeploymentPatchRequest_PatchOps_Item) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "config":
+		return t.AsDeploymentPatchOpConfig()
+	case "environment_variable":
+		return t.AsDeploymentPatchOpEnvVar()
+	case "external_data":
+		return t.AsDeploymentPatchOpExternalData()
+	case "model_code":
+		return t.AsDeploymentPatchOpModelCode()
+	case "package":
+		return t.AsDeploymentPatchOpPackage()
+	case "python_requirement":
+		return t.AsDeploymentPatchOpPythonRequirement()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t CreateDeploymentPatchRequest_PatchOps_Item) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CreateDeploymentPatchRequest_PatchOps_Item) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
 
 // AsDeploymentArchiveSource returns the union data inside the CreateModelDeploymentRequest_Source as a DeploymentArchiveSource
 func (t CreateModelDeploymentRequest_Source) AsDeploymentArchiveSource() (DeploymentArchiveSource, error) {
@@ -4645,6 +5191,22 @@ func (t *LoadCheckpointConfig_Checkpoints_Item) FromBasetenNamedCheckpointConfig
 	return err
 }
 
+// AsLoopsCheckpointConfig returns the union data inside the LoadCheckpointConfig_Checkpoints_Item as a LoopsCheckpointConfig
+func (t LoadCheckpointConfig_Checkpoints_Item) AsLoopsCheckpointConfig() (LoopsCheckpointConfig, error) {
+	var body LoopsCheckpointConfig
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsCheckpointConfig overwrites any union data inside the LoadCheckpointConfig_Checkpoints_Item as the provided LoopsCheckpointConfig
+func (t *LoadCheckpointConfig_Checkpoints_Item) FromLoopsCheckpointConfig(v LoopsCheckpointConfig) error {
+	_v := "loops_checkpoint"
+	v.Typ = &_v
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t LoadCheckpointConfig_Checkpoints_Item) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"typ"`
@@ -4663,6 +5225,8 @@ func (t LoadCheckpointConfig_Checkpoints_Item) ValueByDiscriminator() (interface
 		return t.AsBasetenLatestCheckpointConfig()
 	case "baseten_named_checkpoint":
 		return t.AsBasetenNamedCheckpointConfig()
+	case "loops_checkpoint":
+		return t.AsLoopsCheckpointConfig()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
