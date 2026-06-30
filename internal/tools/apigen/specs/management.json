@@ -215,6 +215,208 @@
                 }
             ]
         },
+        "/v1/environment_groups": {
+            "get": {
+                "summary": "Lists environment groups",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/environment_groups \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/environment_groups\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists the environment groups for the team specified in the path, or for the caller's organization default team when no team is specified.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EnvironmentGroupsV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/environment_groups/{env_name}": {
+            "get": {
+                "summary": "Gets an environment group by name",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/environment_groups/{env_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/environment_groups/{env_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Gets a single environment group by name on the team specified in the path, or on the caller's organization default team when no team is specified.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EnvironmentGroupV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/env_name"
+                }
+            ],
+            "patch": {
+                "summary": "Updates an environment group's restriction settings",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/environment_groups/{env_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"manage_access\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/environment_groups/{env_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'manage_access': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Sets whether the environment is restricted and replaces the list of users granted manage access. Targets the team specified in the path, or the caller's organization default team when no team is specified.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateEnvironmentGroupRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EnvironmentGroupV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/teams/{team_id}/environment_groups": {
+            "get": {
+                "summary": "Lists environment groups",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/teams/{team_id}/environment_groups \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/environment_groups\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists the environment groups for the team specified in the path, or for the caller's organization default team when no team is specified.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EnvironmentGroupsV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/team_id"
+                }
+            ]
+        },
+        "/v1/teams/{team_id}/environment_groups/{env_name}": {
+            "get": {
+                "summary": "Gets an environment group by name",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/teams/{team_id}/environment_groups/{env_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/environment_groups/{env_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Gets a single environment group by name on the team specified in the path, or on the caller's organization default team when no team is specified.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EnvironmentGroupV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/team_id"
+                },
+                {
+                    "$ref": "#/components/parameters/env_name"
+                }
+            ],
+            "patch": {
+                "summary": "Updates an environment group's restriction settings",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/teams/{team_id}/environment_groups/{env_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"manage_access\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/environment_groups/{env_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'manage_access': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Sets whether the environment is restricted and replaces the list of users granted manage access. Targets the team specified in the path, or the caller's organization default team when no team is specified.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateEnvironmentGroupRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EnvironmentGroupV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/teams": {
             "get": {
                 "summary": "Lists all teams",
@@ -243,6 +445,39 @@
                 }
             }
         },
+        "/v1/teams/{team_id}": {
+            "get": {
+                "summary": "Gets a team by ID",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/teams/{team_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns a team the authenticated user has access to.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TeamV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/team_id"
+                }
+            ]
+        },
         "/v1/instance_types": {
             "get": {
                 "summary": "Gets all available instance types",
@@ -263,6 +498,70 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/InstanceTypesV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/loops/user_config": {
+            "get": {
+                "summary": "Get the caller's Loops user config.",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/loops/user_config \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/user_config\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns the caller's Loops user config (per-user accelerator priorities). Null fields mean 'inherit the org-level allowlist'.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetLoopsUserConfigResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "summary": "Patch the caller's Loops user config.",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/loops/user_config \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"trainer_accelerator_priority\": [\n    \"H100\",\n    \"H200\"\n  ],\n  \"sampler_accelerator_priority\": [\n    \"H100\",\n    \"H200\"\n  ]\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/user_config\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'trainer_accelerator_priority': ['H100', 'H200'], 'sampler_accelerator_priority': ['H100', 'H200']}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Updates the caller's Loops user config using JSON Merge Patch (RFC 7396) semantics per field: omit a field to leave it unchanged, send null to clear (inherit the org-level allowlist), or send a list to set the allowlist. Empty lists are rejected.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchLoopsUserConfigRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PatchLoopsUserConfigResponseV1"
                                 }
                             }
                         }
@@ -1341,7 +1640,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/logs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Gets all the logs for a model deployment in the given time range.",
+                "description": "Gets all the logs for a model deployment in the given time range, which defaults to the last 30 minutes. A failed or older deployment may only have logs from before that window; pass `start_epoch_millis` to widen it back to the build/deploy time.",
                 "parameters": [
                     {
                         "name": "start_epoch_millis",
@@ -3221,11 +3520,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_job\": {\n    \"image\": {\n      \"base_image\": \"hello-world\",\n      \"docker_auth\": null\n    },\n    \"compute\": {\n      \"node_count\": 1,\n      \"cpu_count\": 1,\n      \"memory\": \"2Gi\",\n      \"accelerator\": {\n        \"accelerator\": \"H100\",\n        \"count\": 2\n      }\n    },\n    \"runtime\": {\n      \"start_commands\": [\n        \"python main.py\"\n      ],\n      \"environment_variables\": {\n        \"API_KEY\": \"your_api_key_here\",\n        \"PATH\": \"/usr/bin\"\n      },\n      \"enable_cache\": true,\n      \"cache_config\": {\n        \"enable_legacy_hf_mount\": true,\n        \"enabled\": true,\n        \"mount_base_path\": \"/root/.cache\",\n        \"require_cache_affinity\": true\n      },\n      \"checkpointing_config\": {\n        \"enabled\": true,\n        \"checkpoint_path\": \"/mnt/ckpts\",\n        \"volume_size_gib\": 10\n      },\n      \"load_checkpoint_config\": null\n    },\n    \"name\": \"gpt-oss-job\",\n    \"truss_user_env\": null,\n    \"interactive_session\": null,\n    \"weights\": [\n      {\n        \"allow_patterns\": null,\n        \"auth\": null,\n        \"auth_secret_name\": null,\n        \"ignore_patterns\": null,\n        \"mount_location\": \"/app/models/base\",\n        \"source\": \"hf://meta-llama/Llama-3-8B@main\"\n      }\n    ],\n    \"enable_baseten_workdir\": false,\n    \"priority\": 0\n  }\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_job\": {\n    \"image\": {\n      \"base_image\": \"hello-world\",\n      \"docker_auth\": null\n    },\n    \"compute\": {\n      \"node_count\": 1,\n      \"cpu_count\": 1,\n      \"memory\": \"2Gi\",\n      \"accelerator\": {\n        \"accelerator\": \"H100\",\n        \"count\": 2\n      },\n      \"availability_model\": \"spot\"\n    },\n    \"runtime\": {\n      \"start_commands\": [\n        \"python main.py\"\n      ],\n      \"environment_variables\": {\n        \"API_KEY\": \"your_api_key_here\",\n        \"PATH\": \"/usr/bin\"\n      },\n      \"enable_cache\": true,\n      \"cache_config\": {\n        \"enable_legacy_hf_mount\": true,\n        \"enabled\": true,\n        \"mount_base_path\": \"/root/.cache\",\n        \"require_cache_affinity\": true\n      },\n      \"checkpointing_config\": {\n        \"enabled\": true,\n        \"checkpoint_path\": \"/mnt/ckpts\",\n        \"volume_size_gib\": 10\n      },\n      \"load_checkpoint_config\": null\n    },\n    \"name\": \"gpt-oss-job\",\n    \"truss_user_env\": null,\n    \"interactive_session\": null,\n    \"weights\": [\n      {\n        \"allow_patterns\": null,\n        \"auth\": null,\n        \"auth_secret_name\": null,\n        \"ignore_patterns\": null,\n        \"mount_location\": \"/app/models/base\",\n        \"source\": \"hf://meta-llama/Llama-3-8B@main\"\n      }\n    ],\n    \"enable_baseten_workdir\": false,\n    \"priority\": 0\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_job': {'image': {'base_image': 'hello-world', 'docker_auth': None}, 'compute': {'node_count': 1, 'cpu_count': 1, 'memory': '2Gi', 'accelerator': {'accelerator': 'H100', 'count': 2}}, 'runtime': {'start_commands': ['python main.py'], 'environment_variables': {'API_KEY': 'your_api_key_here', 'PATH': '/usr/bin'}, 'enable_cache': True, 'cache_config': {'enable_legacy_hf_mount': True, 'enabled': True, 'mount_base_path': '/root/.cache', 'require_cache_affinity': True}, 'checkpointing_config': {'enabled': True, 'checkpoint_path': '/mnt/ckpts', 'volume_size_gib': 10}, 'load_checkpoint_config': None}, 'name': 'gpt-oss-job', 'truss_user_env': None, 'interactive_session': None, 'weights': [{'allow_patterns': None, 'auth': None, 'auth_secret_name': None, 'ignore_patterns': None, 'mount_location': '/app/models/base', 'source': 'hf://meta-llama/Llama-3-8B@main'}], 'enable_baseten_workdir': False, 'priority': 0}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_job': {'image': {'base_image': 'hello-world', 'docker_auth': None}, 'compute': {'node_count': 1, 'cpu_count': 1, 'memory': '2Gi', 'accelerator': {'accelerator': 'H100', 'count': 2}, 'availability_model': 'spot'}, 'runtime': {'start_commands': ['python main.py'], 'environment_variables': {'API_KEY': 'your_api_key_here', 'PATH': '/usr/bin'}, 'enable_cache': True, 'cache_config': {'enable_legacy_hf_mount': True, 'enabled': True, 'mount_base_path': '/root/.cache', 'require_cache_affinity': True}, 'checkpointing_config': {'enabled': True, 'checkpoint_path': '/mnt/ckpts', 'volume_size_gib': 10}, 'load_checkpoint_config': None}, 'name': 'gpt-oss-job', 'truss_user_env': None, 'interactive_session': None, 'weights': [{'allow_patterns': None, 'auth': None, 'auth_secret_name': None, 'ignore_patterns': None, 'mount_location': '/app/models/base', 'source': 'hf://meta-llama/Llama-3-8B@main'}], 'enable_baseten_workdir': False, 'priority': 0}}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a training job with the specified configuration.",
@@ -3308,6 +3607,42 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/GetTrainingJobResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "summary": "Update a training job.",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"priority\": 0\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'priority': 0}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Update mutable fields on a training job. Currently supports changing the queue priority of a PENDING job; higher priorities are dequeued first.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateTrainingJobRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UpdateTrainingJobResponseV1"
                                 }
                             }
                         }
@@ -4592,7 +4927,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/deployments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "List the caller's Loops deployments. Returns every deployment regardless of status; clients filter terminal states.",
+                "description": "List Loops deployments. Defaults to the caller's own; pass ?scope=org to list every deployment in the caller's organization. Returns every deployment regardless of status; clients filter terminal states.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4868,6 +5203,40 @@
                     }
                 }
             }
+        },
+        "/v1/training/jobs/{training_job_id}/queue_context": {
+            "get": {
+                "summary": "Reconstruct queue context for a training job.",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/training/jobs/{training_job_id}/queue_context \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training/jobs/{training_job_id}/queue_context\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns the (org, gpu_type) capacity pool the job was gated by, jobs that were holding GPU capacity in that pool when this job was submitted, and every TrainingJobStatus event in [submitted_at, released_at] for those jobs \u2014 useful for understanding why a job sat in PENDING. Caller must be an org admin and the job must belong to the caller's org.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetTrainingJobQueueContextResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/training_job_id"
+                }
+            ]
         },
         "/v1/blobs/credentials/model": {
             "get": {
@@ -5306,11 +5675,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"name\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"name\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'name': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -5343,11 +5712,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"name\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"name\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'name': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -5385,11 +5754,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models/{model_id}/deployments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ]\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models/{model_id}/deployments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ]\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models/{model_id}/deployments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}]}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models/{model_id}/deployments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}]}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -5799,6 +6168,97 @@
                 }
             }
         },
+        "/v1/users": {
+            "get": {
+                "summary": "Lists users in the workspace",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/users \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/users\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns the workspace's members. Only actual joined members are returned; service accounts, invited users, and pending join requests are excluded.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UsersResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/users/me": {
+            "get": {
+                "summary": "Gets the authenticated user",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/users/me \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/users/me\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns info about the user making the request.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserInfoV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
         "/v1/users/{user_id}": {
             "get": {
                 "summary": "Gets a user by ID",
@@ -5812,7 +6272,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns user info. Currently only 'me' is accepted as user_id.",
+                "description": "Returns info about a user in the caller's workspace.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -5824,7 +6284,8 @@
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             },
             "parameters": [
                 {
@@ -5863,11 +6324,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/gateway/endpoints \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"slug\": \"baseten/mymodel-4\",\n  \"targets\": [\n    {\n      \"model_id\": \"3kZ9xqd\",\n      \"provider\": \"BASETEN\",\n      \"target_model\": \"custom/model-name\"\n    }\n  ]\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/gateway/endpoints \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"slug\": \"baseten/mymodel-4\",\n  \"targets\": [\n    {\n      \"environment_name\": \"staging\",\n      \"model_id\": \"3kZ9xqd\",\n      \"provider\": \"BASETEN\",\n      \"target_model\": \"custom/model-name\"\n    }\n  ]\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/endpoints\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'slug': 'baseten/mymodel-4', 'targets': [{'model_id': '3kZ9xqd', 'provider': 'BASETEN', 'target_model': 'custom/model-name'}]}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/endpoints\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'slug': 'baseten/mymodel-4', 'targets': [{'environment_name': 'staging', 'model_id': '3kZ9xqd', 'provider': 'BASETEN', 'target_model': 'custom/model-name'}]}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Provisions an endpoint for the given slug and its upstream target. Exactly one target is supported at this time. The slug's prefix must be one your organization owns.",
@@ -5956,11 +6417,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/gateway/endpoints/{endpoint_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"slug\": \"baseten/mymodel-4\",\n  \"targets\": [\n    {\n      \"model_id\": \"3kZ9xqd\",\n      \"provider\": \"BASETEN\",\n      \"target_model\": \"custom/model-name\"\n    }\n  ]\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/gateway/endpoints/{endpoint_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"targets\": [\n    {\n      \"environment_name\": \"staging\",\n      \"model_id\": \"3kZ9xqd\",\n      \"provider\": \"BASETEN\",\n      \"target_model\": \"custom/model-name\"\n    }\n  ]\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/endpoints/{endpoint_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'slug': 'baseten/mymodel-4', 'targets': [{'model_id': '3kZ9xqd', 'provider': 'BASETEN', 'target_model': 'custom/model-name'}]}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/endpoints/{endpoint_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'targets': [{'environment_name': 'staging', 'model_id': '3kZ9xqd', 'provider': 'BASETEN', 'target_model': 'custom/model-name'}]}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Updates the endpoint's provided mutable fields. If targets are provided, the full target list is replaced. Exactly one target is supported at this time.",
@@ -6365,6 +6826,197 @@
                 "title": "SecretTombstoneV1",
                 "type": "object"
             },
+            "EnvironmentGroupManageAccessV1": {
+                "description": "Who is allowed to manage an environment group.",
+                "properties": {
+                    "is_restricted": {
+                        "description": "Whether the environment is restricted to a specific set of users.",
+                        "title": "Is Restricted",
+                        "type": "boolean"
+                    },
+                    "users": {
+                        "description": "Users who can manage the environment while it is restricted, including organization and team admins who always have access. Empty when the environment is unrestricted.",
+                        "items": {
+                            "$ref": "#/components/schemas/EnvironmentGroupUserV1"
+                        },
+                        "title": "Users",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "is_restricted"
+                ],
+                "title": "EnvironmentGroupManageAccessV1",
+                "type": "object"
+            },
+            "EnvironmentGroupUserV1": {
+                "description": "A user referenced by an environment group's manage access.",
+                "properties": {
+                    "user_id": {
+                        "description": "Unique identifier for the user.",
+                        "title": "User Id",
+                        "type": "string"
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Email address of the user.",
+                        "title": "Email"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Display name of the user.",
+                        "title": "Name"
+                    }
+                },
+                "required": [
+                    "user_id"
+                ],
+                "title": "EnvironmentGroupUserV1",
+                "type": "object"
+            },
+            "EnvironmentGroupV1": {
+                "description": "A team-scoped grouping of same-named environments (e.g. \"production\", \"staging\").\n\nRestricting an environment group limits who can manage the environment of that name\nacross every model and chain in the team.",
+                "properties": {
+                    "name": {
+                        "description": "Name of the environment group, matching the environment name it governs.",
+                        "examples": [
+                            "staging"
+                        ],
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "description": "Unique identifier of the team the environment group belongs to.",
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "description": "Name of the team the environment group belongs to.",
+                        "title": "Team Name",
+                        "type": "string"
+                    },
+                    "manage_access": {
+                        "$ref": "#/components/schemas/EnvironmentGroupManageAccessV1",
+                        "description": "Settings controlling who can manage this environment group."
+                    }
+                },
+                "required": [
+                    "name",
+                    "team_id",
+                    "team_name",
+                    "manage_access"
+                ],
+                "title": "EnvironmentGroupV1",
+                "type": "object"
+            },
+            "PaginationResponseV1": {
+                "properties": {
+                    "has_more": {
+                        "description": "Whether more items exist after this page.",
+                        "title": "Has More",
+                        "type": "boolean"
+                    },
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor to pass into the next request. Null when there is no next page.",
+                        "title": "Cursor"
+                    }
+                },
+                "required": [
+                    "has_more"
+                ],
+                "title": "PaginationResponseV1",
+                "type": "object"
+            },
+            "EnvironmentGroupsV1": {
+                "description": "A page of environment groups.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/EnvironmentGroupV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "EnvironmentGroupsV1",
+                "type": "object"
+            },
+            "UpdateEnvironmentGroupManageAccessV1": {
+                "description": "Manage-access settings to apply to an environment group.",
+                "properties": {
+                    "is_restricted": {
+                        "description": "Whether to restrict this environment to a specific set of users.",
+                        "title": "Is Restricted",
+                        "type": "boolean"
+                    },
+                    "user_ids": {
+                        "description": "IDs of users granted manage access while restricted. Only meaningful when is_restricted is true.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "User Ids",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "is_restricted"
+                ],
+                "title": "UpdateEnvironmentGroupManageAccessV1",
+                "type": "object"
+            },
+            "UpdateEnvironmentGroupRequestV1": {
+                "description": "A request to update an existing environment group.",
+                "properties": {
+                    "manage_access": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateEnvironmentGroupManageAccessV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Manage-access settings to apply. Omit to leave manage access unchanged."
+                    }
+                },
+                "title": "UpdateEnvironmentGroupRequestV1",
+                "type": "object"
+            },
             "TeamV1": {
                 "description": "A team.",
                 "properties": {
@@ -6497,6 +7149,138 @@
                     "instance_types"
                 ],
                 "title": "InstanceTypesV1",
+                "type": "object"
+            },
+            "LoopsUserConfigV1": {
+                "description": "The caller's Loops user-level config (accelerator priorities).",
+                "properties": {
+                    "trainer_accelerator_priority": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Ordered allowlist of GPU types for your Loops trainer deployments, highest priority first. Intersected with the org-level allowlist (org acts as a ceiling). Null means 'inherit the org-level allowlist'.",
+                        "examples": [
+                            [
+                                "H100",
+                                "H200"
+                            ]
+                        ],
+                        "title": "Trainer Accelerator Priority"
+                    },
+                    "sampler_accelerator_priority": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Ordered allowlist of GPU types for your Loops sampler deployments, highest priority first. Intersected with the org-level allowlist (org acts as a ceiling). Null means 'inherit the org-level allowlist'.",
+                        "examples": [
+                            [
+                                "H100",
+                                "H200"
+                            ]
+                        ],
+                        "title": "Sampler Accelerator Priority"
+                    }
+                },
+                "required": [
+                    "trainer_accelerator_priority",
+                    "sampler_accelerator_priority"
+                ],
+                "title": "LoopsUserConfigV1",
+                "type": "object"
+            },
+            "GetLoopsUserConfigResponseV1": {
+                "description": "Response for ``GET /v1/loops/user_config``.",
+                "properties": {
+                    "user_config": {
+                        "$ref": "#/components/schemas/LoopsUserConfigV1",
+                        "description": "The caller's Loops user config."
+                    }
+                },
+                "required": [
+                    "user_config"
+                ],
+                "title": "GetLoopsUserConfigResponseV1",
+                "type": "object"
+            },
+            "PatchLoopsUserConfigRequestV1": {
+                "description": "Request body for ``PATCH /v1/loops/user_config``.\n\nFollows JSON Merge Patch (RFC 7396) semantics per field: omit the field\nto leave it unchanged, send ``null`` to clear and inherit the org-level\nallowlist, send a list to set the allowlist. Empty lists are rejected\nbecause the storage layer normalizes ``null`` and ``[]`` identically, so\naccepting both would create two ways to spell the same intent.",
+                "properties": {
+                    "trainer_accelerator_priority": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Ordered list of GPU types for trainer deployments, highest priority first. Send a list to set; send null to clear (inherit org allowlist); omit to leave unchanged. Empty list is rejected.",
+                        "examples": [
+                            [
+                                "H100",
+                                "H200"
+                            ]
+                        ],
+                        "title": "Trainer Accelerator Priority"
+                    },
+                    "sampler_accelerator_priority": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Ordered list of GPU types for sampler deployments, highest priority first. Send a list to set; send null to clear (inherit org allowlist); omit to leave unchanged. Empty list is rejected.",
+                        "examples": [
+                            [
+                                "H100",
+                                "H200"
+                            ]
+                        ],
+                        "title": "Sampler Accelerator Priority"
+                    }
+                },
+                "title": "PatchLoopsUserConfigRequestV1",
+                "type": "object"
+            },
+            "PatchLoopsUserConfigResponseV1": {
+                "description": "Response for ``PATCH /v1/loops/user_config``.",
+                "properties": {
+                    "user_config": {
+                        "$ref": "#/components/schemas/LoopsUserConfigV1",
+                        "description": "The updated Loops user config."
+                    }
+                },
+                "required": [
+                    "user_config"
+                ],
+                "title": "PatchLoopsUserConfigResponseV1",
                 "type": "object"
             },
             "InstanceTypeWithPriceV1": {
@@ -10193,6 +10977,11 @@
                         "title": "Priority",
                         "type": "integer"
                     },
+                    "availability_model": {
+                        "$ref": "#/components/schemas/V1AvailabilityModel",
+                        "default": "dedicated",
+                        "description": "Capacity guarantee for the job. 'dedicated' is non-preemptible on-demand capacity; 'spot' is interruptible."
+                    },
                     "user": {
                         "anyOf": [
                             {
@@ -10317,6 +11106,15 @@
                 },
                 "title": "UserV1",
                 "type": "object"
+            },
+            "V1AvailabilityModel": {
+                "description": "Capacity guarantee under which a training job is scheduled.\n\n``DEDICATED`` is on-demand capacity that is not preempted (the default). ``SPOT`` is\ninterruptible capacity that may be preempted; the user is responsible for checkpointing\ntheir own progress. A managed/resumable model where the platform handles\ncheckpoint/resume on its own is intentionally not defined yet; it is planned for a\nfuture milestone.",
+                "enum": [
+                    "dedicated",
+                    "spot"
+                ],
+                "title": "V1AvailabilityModel",
+                "type": "string"
             },
             "UpsertTrainingProjectResponseV1": {
                 "description": "A response to upserting a training project.",
@@ -10773,6 +11571,14 @@
                                 "count": 2
                             }
                         ]
+                    },
+                    "availability_model": {
+                        "$ref": "#/components/schemas/V1AvailabilityModel",
+                        "default": "dedicated",
+                        "description": "Capacity guarantee for the job. 'dedicated' (the default) runs on on-demand capacity that is not preempted. 'spot' runs on interruptible capacity that may be preempted; the user is responsible for checkpointing their own progress.",
+                        "examples": [
+                            "spot"
+                        ]
                     }
                 },
                 "title": "CreateTrainingJobComputeV1",
@@ -10962,6 +11768,7 @@
                                     "accelerator": "H100",
                                     "count": 2
                                 },
+                                "availability_model": "spot",
                                 "cpu_count": 1,
                                 "memory": "2Gi",
                                 "node_count": 1
@@ -11580,6 +12387,40 @@
                     "training_job"
                 ],
                 "title": "GetTrainingJobResponseV1",
+                "type": "object"
+            },
+            "UpdateTrainingJobRequestV1": {
+                "description": "A request to update mutable fields on a training job.",
+                "properties": {
+                    "priority": {
+                        "description": "New queue priority for a PENDING training job. Higher values are dequeued first. Only jobs in the PENDING state can have their priority changed.",
+                        "examples": [
+                            0,
+                            10,
+                            100
+                        ],
+                        "title": "Priority",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "priority"
+                ],
+                "title": "UpdateTrainingJobRequestV1",
+                "type": "object"
+            },
+            "UpdateTrainingJobResponseV1": {
+                "description": "A response to updating a training job.",
+                "properties": {
+                    "training_job": {
+                        "$ref": "#/components/schemas/TrainingJobV1",
+                        "description": "The updated training job."
+                    }
+                },
+                "required": [
+                    "training_job"
+                ],
+                "title": "UpdateTrainingJobResponseV1",
                 "type": "object"
             },
             "DownloadTrainingJobResponseV1": {
@@ -12981,8 +13822,9 @@
                     },
                     "scale_down_delay_seconds": {
                         "default": 3600,
-                        "description": "Seconds of inactivity before the run scales to zero. Must be positive. Defaults to 3600 (1 hour).",
+                        "description": "Seconds of inactivity before the run scales to zero. Must be between 1 and 3600 (1 hour). Defaults to 3600.",
                         "exclusiveMinimum": 0,
+                        "maximum": 3600,
                         "title": "Scale Down Delay Seconds",
                         "type": "integer"
                     },
@@ -13432,6 +14274,10 @@
                         "$ref": "#/components/schemas/LoopsDeploymentStatusV1",
                         "description": "Latest deployment status."
                     },
+                    "user": {
+                        "$ref": "#/components/schemas/UserV1",
+                        "description": "The user who owns the Loops deployment."
+                    },
                     "sampler": {
                         "anyOf": [
                             {
@@ -13449,7 +14295,8 @@
                     "id",
                     "base_model",
                     "base_url",
-                    "status"
+                    "status",
+                    "user"
                 ],
                 "title": "LoopsDeploymentV1",
                 "type": "object"
@@ -13467,7 +14314,7 @@
                 "type": "string"
             },
             "ListLoopsDeploymentsResponseV1": {
-                "description": "Response for ``GET /v1/loops/deployments``.\n\nReturns every Loops deployment owned by the caller, regardless of status\n(CREATED, DEPLOYING, RUNNING, STOPPED, or FAILED). Clients filter\nterminal-state deployments themselves.",
+                "description": "Response for ``GET /v1/loops/deployments``.\n\nDefaults to the caller's own; pass ``?scope=org`` to list every deployment in\nthe caller's organization. Returns every deployment regardless of status;\nclients filter terminal states.",
                 "properties": {
                     "deployments": {
                         "description": "Active Loops deployments.",
@@ -14031,6 +14878,358 @@
                 "title": "GetTrainingGpuCapacityResponseV1",
                 "type": "object"
             },
+            "ActiveJobAtSubmitV1": {
+                "description": "One other job in the same (org, gpu_type) pool that was holding GPU\ncapacity at the moment the target was submitted.",
+                "properties": {
+                    "training_job_id": {
+                        "description": "Hashid of the other training job",
+                        "title": "Training Job Id",
+                        "type": "string"
+                    },
+                    "training_job_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Other job's name",
+                        "title": "Training Job Name"
+                    },
+                    "instance_type_name": {
+                        "description": "Instance type of the other job",
+                        "title": "Instance Type Name",
+                        "type": "string"
+                    },
+                    "total_gpus": {
+                        "description": "gpu_count * effective_node_count",
+                        "title": "Total Gpus",
+                        "type": "integer"
+                    },
+                    "workload_plane_name": {
+                        "description": "Workload plane the other job was on",
+                        "title": "Workload Plane Name",
+                        "type": "string"
+                    },
+                    "status_at_submit": {
+                        "description": "Other job's status as of submitted_at (one of ACTIVE_STATES)",
+                        "title": "Status At Submit",
+                        "type": "string"
+                    },
+                    "status_set_at": {
+                        "description": "When that status was set",
+                        "format": "date-time",
+                        "title": "Status Set At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "training_job_id",
+                    "instance_type_name",
+                    "total_gpus",
+                    "workload_plane_name",
+                    "status_at_submit",
+                    "status_set_at"
+                ],
+                "title": "ActiveJobAtSubmitV1",
+                "type": "object"
+            },
+            "CapacityAtSubmitV1": {
+                "description": "A GPU capacity row as it stands now, with ``last_modified`` so callers\ncan judge whether the value matches what the dequeue gate saw at submit\ntime. Capacity rows are not historicized: edits overwrite in place. Compare\n``last_modified`` against the response's ``submitted_at`` \u2014 if it's later,\nthe value may have changed.",
+                "properties": {
+                    "gpu_type": {
+                        "description": "GPU type identifier (e.g. H100, A100-40GB)",
+                        "title": "Gpu Type",
+                        "type": "string"
+                    },
+                    "max_gpus": {
+                        "description": "Current max concurrent GPUs of this type",
+                        "title": "Max Gpus",
+                        "type": "integer"
+                    },
+                    "min_gpus": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Current baseline GPU allocation, if configured",
+                        "title": "Min Gpus"
+                    },
+                    "last_modified": {
+                        "description": "When the capacity row was last modified",
+                        "format": "date-time",
+                        "title": "Last Modified",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "gpu_type",
+                    "max_gpus",
+                    "last_modified"
+                ],
+                "title": "CapacityAtSubmitV1",
+                "type": "object"
+            },
+            "PendingJobAheadAtSubmitV1": {
+                "description": "A PENDING job in the same (org, gpu_type) pool that was ahead of the\ntarget in dequeue FIFO order at submitted_at \u2014 higher priority, or same\npriority and earlier submission.",
+                "properties": {
+                    "training_job_id": {
+                        "description": "Hashid of the other training job",
+                        "title": "Training Job Id",
+                        "type": "string"
+                    },
+                    "training_job_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Other job's name",
+                        "title": "Training Job Name"
+                    },
+                    "instance_type_name": {
+                        "description": "Instance type of the other job",
+                        "title": "Instance Type Name",
+                        "type": "string"
+                    },
+                    "requested_gpus": {
+                        "description": "gpu_count * effective_node_count",
+                        "title": "Requested Gpus",
+                        "type": "integer"
+                    },
+                    "priority": {
+                        "description": "Effective priority (NULL coalesced to 0)",
+                        "title": "Priority",
+                        "type": "integer"
+                    },
+                    "submitted_at": {
+                        "description": "The other job's submission time",
+                        "format": "date-time",
+                        "title": "Submitted At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "training_job_id",
+                    "instance_type_name",
+                    "requested_gpus",
+                    "priority",
+                    "submitted_at"
+                ],
+                "title": "PendingJobAheadAtSubmitV1",
+                "type": "object"
+            },
+            "QueueEventV1": {
+                "description": "A single ``TrainingJobStatus`` row inside the queue-context window.",
+                "properties": {
+                    "training_job_id": {
+                        "description": "Hashid of the training job this event is for",
+                        "title": "Training Job Id",
+                        "type": "string"
+                    },
+                    "training_job_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Job name",
+                        "title": "Training Job Name"
+                    },
+                    "status": {
+                        "description": "TrainingJobStatus.Name value",
+                        "title": "Status",
+                        "type": "string"
+                    },
+                    "created": {
+                        "description": "When the status row was inserted",
+                        "format": "date-time",
+                        "title": "Created",
+                        "type": "string"
+                    },
+                    "event_message": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Human-readable event message from the status metadata",
+                        "title": "Event Message"
+                    },
+                    "exit_code": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Exit code from the status metadata, if any",
+                        "title": "Exit Code"
+                    }
+                },
+                "required": [
+                    "training_job_id",
+                    "status",
+                    "created"
+                ],
+                "title": "QueueEventV1",
+                "type": "object"
+            },
+            "GetTrainingJobQueueContextResponseV1": {
+                "description": "Read-only diagnostic for a training job's PENDING window.\n\nReturns the (org, gpu_type) capacity pool the job was gated by, jobs that\nwere holding GPU capacity in that pool when this job was submitted, and\nevery status event in [submitted_at, released_at] for those jobs (or up to\n\"now\" if the target is still PENDING).",
+                "properties": {
+                    "target_job_id": {
+                        "description": "Hashid of the target training job",
+                        "title": "Target Job Id",
+                        "type": "string"
+                    },
+                    "target_job_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Target job's name",
+                        "title": "Target Job Name"
+                    },
+                    "gpu_type": {
+                        "description": "GPU type the target requested",
+                        "title": "Gpu Type",
+                        "type": "string"
+                    },
+                    "requested_gpus": {
+                        "description": "GPUs the target requested (gpu_count * effective_node_count)",
+                        "title": "Requested Gpus",
+                        "type": "integer"
+                    },
+                    "submitted_at": {
+                        "description": "When the job row was inserted (= API POST time)",
+                        "format": "date-time",
+                        "title": "Submitted At",
+                        "type": "string"
+                    },
+                    "released_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "When the job's TRAINING_JOB_CREATED status was set, i.e. the moment it was released from PENDING. None if still PENDING.",
+                        "title": "Released At"
+                    },
+                    "pending_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "released_at - submitted_at in seconds. None if still PENDING.",
+                        "title": "Pending Seconds"
+                    },
+                    "org_capacity": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/CapacityAtSubmitV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Org-level cap for (org, gpu_type). None if no cap is configured."
+                    },
+                    "team_capacity": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/CapacityAtSubmitV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Team-level cap for (team, gpu_type). None if no team cap is configured."
+                    },
+                    "active_at_submit": {
+                        "description": "Jobs in the same (org, gpu_type) pool that were holding capacity at submitted_at",
+                        "items": {
+                            "$ref": "#/components/schemas/ActiveJobAtSubmitV1"
+                        },
+                        "title": "Active At Submit",
+                        "type": "array"
+                    },
+                    "pending_ahead_at_submit": {
+                        "description": "PENDING jobs in the same (org, gpu_type) pool that were ahead of the target in dequeue FIFO order at submitted_at (priority DESC then created ASC). These also block the target's release.",
+                        "items": {
+                            "$ref": "#/components/schemas/PendingJobAheadAtSubmitV1"
+                        },
+                        "title": "Pending Ahead At Submit",
+                        "type": "array"
+                    },
+                    "events": {
+                        "description": "Every status event in [submitted_at, events_window_end] for the target job, every job in active_at_submit, and every job in pending_ahead_at_submit, oldest first.",
+                        "items": {
+                            "$ref": "#/components/schemas/QueueEventV1"
+                        },
+                        "title": "Events",
+                        "type": "array"
+                    },
+                    "events_window_end": {
+                        "description": "released_at if set, else 'now' (events ongoing)",
+                        "format": "date-time",
+                        "title": "Events Window End",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "target_job_id",
+                    "gpu_type",
+                    "requested_gpus",
+                    "submitted_at",
+                    "active_at_submit",
+                    "pending_ahead_at_submit",
+                    "events",
+                    "events_window_end"
+                ],
+                "title": "GetTrainingJobQueueContextResponseV1",
+                "type": "object"
+            },
             "GetBlobCredentialsResponseV1": {
                 "description": "Response to create a new set of credentials for blob upload.",
                 "properties": {
@@ -14467,33 +15666,6 @@
                 "title": "ModelAPIV1",
                 "type": "object"
             },
-            "PaginationResponseV1": {
-                "properties": {
-                    "has_more": {
-                        "description": "Whether more items exist after this page.",
-                        "title": "Has More",
-                        "type": "boolean"
-                    },
-                    "cursor": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Opaque cursor to pass into the next request. Null when there is no next page.",
-                        "title": "Cursor"
-                    }
-                },
-                "required": [
-                    "has_more"
-                ],
-                "title": "PaginationResponseV1",
-                "type": "object"
-            },
             "RateLimitUnitV1": {
                 "enum": [
                     "SECOND",
@@ -14606,10 +15778,17 @@
                         "type": "object"
                     },
                     "llm_version": {
-                        "default": "1.0",
-                        "description": "Version of the helm chart to use",
-                        "title": "Llm Version",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Version of the helm chart to use.",
+                        "title": "Llm Version"
                     },
                     "llm_config": {
                         "additionalProperties": true,
@@ -14793,10 +15972,17 @@
                         "type": "object"
                     },
                     "llm_version": {
-                        "default": "1.0",
-                        "description": "Version of the helm chart to use",
-                        "title": "Llm Version",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Version of the helm chart to use.",
+                        "title": "Llm Version"
                     },
                     "llm_config": {
                         "additionalProperties": true,
@@ -15959,6 +17145,57 @@
                 "title": "UserInfoV1",
                 "type": "object"
             },
+            "UsersResponseV1": {
+                "description": "A page of users in the caller's workspace.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/UserInfoV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "UsersResponseV1",
+                "type": "object"
+            },
+            "UsersRequestV1": {
+                "description": "Request parameters for listing users.",
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    }
+                },
+                "title": "UsersRequestV1",
+                "type": "object"
+            },
             "EndpointTargetV1": {
                 "description": "One configured upstream target of an endpoint.",
                 "properties": {
@@ -16004,6 +17241,19 @@
                         "default": null,
                         "description": "Baseten model, if any.",
                         "title": "Model Id"
+                    },
+                    "environment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Baseten model environment, if non-production.",
+                        "title": "Environment Name"
                     }
                 },
                 "required": [
@@ -16150,6 +17400,22 @@
                             "3kZ9xqd"
                         ],
                         "title": "Model Id"
+                    },
+                    "environment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Baseten model environment to route to. Only valid with BASETEN. Omit or pass `production` to target production.",
+                        "examples": [
+                            "staging"
+                        ],
+                        "title": "Environment Name"
                     }
                 },
                 "required": [
@@ -16173,6 +17439,7 @@
                         "examples": [
                             [
                                 {
+                                    "environment_name": "staging",
                                     "model_id": "3kZ9xqd",
                                     "provider": "BASETEN",
                                     "target_model": "custom/model-name"
@@ -16223,24 +17490,8 @@
                 "type": "object"
             },
             "UpdateEndpointRequestV1": {
-                "description": "PATCH body. Updates provided mutable fields; targets are replaced as a full list.",
+                "description": "PATCH body. Replaces the endpoint's full target list. The slug is immutable\nafter creation; to change it, create a new endpoint and delete this one.",
                 "properties": {
-                    "slug": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "New globally-unique slug of the form '{org_prefix}/{name}'.",
-                        "examples": [
-                            "baseten/mymodel-4"
-                        ],
-                        "title": "Slug"
-                    },
                     "targets": {
                         "anyOf": [
                             {
@@ -16260,6 +17511,7 @@
                         "examples": [
                             [
                                 {
+                                    "environment_name": "staging",
                                     "model_id": "3kZ9xqd",
                                     "provider": "BASETEN",
                                     "target_model": "custom/model-name"
@@ -16866,6 +18118,14 @@
                 "in": "path",
                 "required": true
             },
+            "env_name": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "env_name",
+                "in": "path",
+                "required": true
+            },
             "model_id": {
                 "schema": {
                     "type": "string"
@@ -16887,14 +18147,6 @@
                     "type": "string"
                 },
                 "name": "replica_id",
-                "in": "path",
-                "required": true
-            },
-            "env_name": {
-                "schema": {
-                    "type": "string"
-                },
-                "name": "env_name",
                 "in": "path",
                 "required": true
             },
