@@ -4718,6 +4718,42 @@ type GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams struct {
 	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
 }
 
+// GetV1ModelsModelIdEnvironmentsEnvNameLogsParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameLogs.
+type GetV1ModelsModelIdEnvironmentsEnvNameLogsParams struct {
+	// StartEpochMillis Epoch milliseconds at which to start fetching logs. Defaults to 30 minutes before the end. The window from start to end must not exceed 7 days.
+	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// EndEpochMillis Epoch milliseconds at which to stop fetching logs. Defaults to the current time.
+	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
+
+	// Direction Sort order for logs
+	Direction *SortOrder `form:"direction,omitempty" json:"direction,omitempty"`
+
+	// Limit Limit of logs to fetch in a single request
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// MinLevel Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level.
+	MinLevel *LogLevel `form:"min_level,omitempty" json:"min_level,omitempty"`
+
+	// Replica Only return logs emitted by this replica (5-char short ID).
+	Replica *string `form:"replica,omitempty" json:"replica,omitempty"`
+
+	// RequestId Only return logs tagged with this inference request ID.
+	RequestId *string `form:"request_id,omitempty" json:"request_id,omitempty"`
+
+	// Component Only return logs from this component.
+	Component *string `form:"component,omitempty" json:"component,omitempty"`
+
+	// SearchPattern RE2 regular expression matched against the log message. Prefer `includes` and `excludes` for plain substring matches.
+	SearchPattern *string `form:"search_pattern,omitempty" json:"search_pattern,omitempty"`
+
+	// Includes Case-sensitive substrings that must all appear in the log message.
+	Includes *[]string `form:"includes,omitempty" json:"includes,omitempty"`
+
+	// Excludes Case-sensitive substrings; lines containing any of these are dropped.
+	Excludes *[]string `form:"excludes,omitempty" json:"excludes,omitempty"`
+}
+
 // GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams defines parameters for GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFiles.
 type GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams struct {
 	// PageSize Max files per page (default 1000).

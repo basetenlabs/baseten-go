@@ -846,6 +846,19 @@ func (c *Client) GetModelsEnvironmentsEnvName(ctx context.Context, modelId strin
 	})
 }
 
+// GetModelsEnvironmentsLogs: Gets the logs for a model environment.
+func (c *Client) GetModelsEnvironmentsLogs(ctx context.Context, modelId string, envName string, params GetV1ModelsModelIdEnvironmentsEnvNameLogsParams) (*GetLogsResponse, error) {
+	return doJSON[GetLogsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/models/%s/environments/%s/logs",
+		pathArgs:    []any{modelId, envName},
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetModelsModelId: Gets a model by ID
 func (c *Client) GetModelsModelId(ctx context.Context, modelId string) (*Model, error) {
 	return doJSON[Model](c, ctx, apiRequest{

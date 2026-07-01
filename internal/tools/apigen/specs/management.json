@@ -2352,6 +2352,238 @@
                 }
             }
         },
+        "/v1/models/{model_id}/environments/{env_name}/logs": {
+            "get": {
+                "summary": "Gets the logs for a model environment.",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/logs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/logs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Gets logs across all deployments that were active on the environment in the given time range, which defaults to the last 30 minutes. Pass `start_epoch_millis` to widen the window back to an earlier deployment's build/deploy time.",
+                "parameters": [
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch milliseconds at which to start fetching logs. Defaults to 30 minutes before the end. The window from start to end must not exceed 7 days.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch milliseconds at which to stop fetching logs. Defaults to the current time.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sort order for logs",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/SortOrderV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Limit of logs to fetch in a single request",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maximum": 1000,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": 500,
+                            "title": "Limit"
+                        }
+                    },
+                    {
+                        "name": "min_level",
+                        "in": "query",
+                        "required": false,
+                        "description": "Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/LogLevelV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "replica",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only return logs emitted by this replica (5-char short ID).",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maxLength": 256,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Replica"
+                        }
+                    },
+                    {
+                        "name": "request_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only return logs tagged with this inference request ID.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maxLength": 256,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Request Id"
+                        }
+                    },
+                    {
+                        "name": "component",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only return logs from this component.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maxLength": 256,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Component"
+                        }
+                    },
+                    {
+                        "name": "search_pattern",
+                        "in": "query",
+                        "required": false,
+                        "description": "RE2 regular expression matched against the log message. Prefer `includes` and `excludes` for plain substring matches.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maxLength": 256,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Search Pattern"
+                        }
+                    },
+                    {
+                        "name": "includes",
+                        "in": "query",
+                        "required": false,
+                        "description": "Case-sensitive substrings that must all appear in the log message.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "maxItems": 8,
+                            "title": "Includes",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "excludes",
+                        "in": "query",
+                        "required": false,
+                        "description": "Case-sensitive substrings; lines containing any of these are dropped.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "maxItems": 8,
+                            "title": "Excludes",
+                            "type": "array"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetLogsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/env_name"
+                }
+            ]
+        },
         "/v1/models/{model_id}/environments/{env_name}/activate": {
             "post": {
                 "summary": "Activates a deployment associated with an environment",
@@ -10044,6 +10276,152 @@
                     }
                 },
                 "title": "UpdateEnvironmentRequestV1",
+                "type": "object"
+            },
+            "GetEnvironmentLogsRequestV1": {
+                "description": "A request to fetch logs for a model environment.\n\nReturns logs from every deployment that was active on the environment over\nthe requested time range, merged in timestamp order.",
+                "properties": {
+                    "start_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch milliseconds at which to start fetching logs. Defaults to 30 minutes before the end. The window from start to end must not exceed 7 days.",
+                        "title": "Start Epoch Millis"
+                    },
+                    "end_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch milliseconds at which to stop fetching logs. Defaults to the current time.",
+                        "title": "End Epoch Millis"
+                    },
+                    "direction": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SortOrderV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Sort order for logs"
+                    },
+                    "limit": {
+                        "anyOf": [
+                            {
+                                "maximum": 1000,
+                                "minimum": 1,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": 500,
+                        "description": "Limit of logs to fetch in a single request",
+                        "title": "Limit"
+                    },
+                    "min_level": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LogLevelV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level."
+                    },
+                    "replica": {
+                        "anyOf": [
+                            {
+                                "maxLength": 256,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only return logs emitted by this replica (5-char short ID).",
+                        "title": "Replica"
+                    },
+                    "request_id": {
+                        "anyOf": [
+                            {
+                                "maxLength": 256,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only return logs tagged with this inference request ID.",
+                        "title": "Request Id"
+                    },
+                    "component": {
+                        "anyOf": [
+                            {
+                                "maxLength": 256,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only return logs from this component.",
+                        "title": "Component"
+                    },
+                    "search_pattern": {
+                        "anyOf": [
+                            {
+                                "maxLength": 256,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "RE2 regular expression matched against the log message. Prefer `includes` and `excludes` for plain substring matches.",
+                        "title": "Search Pattern"
+                    },
+                    "includes": {
+                        "description": "Case-sensitive substrings that must all appear in the log message.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "maxItems": 8,
+                        "title": "Includes",
+                        "type": "array"
+                    },
+                    "excludes": {
+                        "description": "Case-sensitive substrings; lines containing any of these are dropped.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "maxItems": 8,
+                        "title": "Excludes",
+                        "type": "array"
+                    }
+                },
+                "title": "GetEnvironmentLogsRequestV1",
                 "type": "object"
             },
             "PromoteToEnvironmentRequestV1": {

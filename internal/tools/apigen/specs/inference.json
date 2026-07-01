@@ -57,7 +57,7 @@
     ],
     "security": [
         {
-            "ApiKeyAuth": []
+            "BearerAuth": []
         }
     ],
     "paths": {
@@ -1023,11 +1023,10 @@
     },
     "components": {
         "securitySchemes": {
-            "ApiKeyAuth": {
-                "type": "apiKey",
-                "in": "header",
-                "name": "Authorization",
-                "description": "API key with the `Api-Key` prefix, e.g. `Authorization: Api-Key abcd1234.abcd1234`."
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "description": "Send `Authorization: Bearer <api_key>`. The legacy `Authorization: Api-Key <api_key>` scheme is also accepted."
             }
         },
         "parameters": {
