@@ -576,6 +576,24 @@ func (e UsageLimitUnit) Valid() bool {
 	}
 }
 
+// Defines values for V1AvailabilityModel.
+const (
+	V1AvailabilityModel_dedicated V1AvailabilityModel = "dedicated"
+	V1AvailabilityModel_spot      V1AvailabilityModel = "spot"
+)
+
+// Valid indicates whether the value is a known member of the V1AvailabilityModel enum.
+func (e V1AvailabilityModel) Valid() bool {
+	switch e {
+	case V1AvailabilityModel_dedicated:
+		return true
+	case V1AvailabilityModel_spot:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for V1InteractiveSessionAuthProvider.
 const (
 	V1InteractiveSessionAuthProvider_github    V1InteractiveSessionAuthProvider = "github"
@@ -691,6 +709,31 @@ type AWSCredentials struct {
 type ActivateResponse struct {
 	// Success Whether the deployment was successfully activated
 	Success *bool `json:"success,omitempty"`
+}
+
+// ActiveJobAtSubmit One other job in the same (org, gpu_type) pool that was holding GPU
+// capacity at the moment the target was submitted.
+type ActiveJobAtSubmit struct {
+	// InstanceTypeName Instance type of the other job
+	InstanceTypeName string `json:"instance_type_name"`
+
+	// StatusAtSubmit Other job's status as of submitted_at (one of ACTIVE_STATES)
+	StatusAtSubmit string `json:"status_at_submit"`
+
+	// StatusSetAt When that status was set
+	StatusSetAt time.Time `json:"status_set_at"`
+
+	// TotalGpus gpu_count * effective_node_count
+	TotalGpus int `json:"total_gpus"`
+
+	// TrainingJobId Hashid of the other training job
+	TrainingJobId string `json:"training_job_id"`
+
+	// TrainingJobName Other job's name
+	TrainingJobName *string `json:"training_job_name,omitempty"`
+
+	// WorkloadPlaneName Workload plane the other job was on
+	WorkloadPlaneName string `json:"workload_plane_name"`
 }
 
 // AuthCode Authentication code for a training job interactive session node.
@@ -820,6 +863,25 @@ type CancelPromotionResponse struct {
 
 // CancelPromotionStatus The status of a request to cancel a promotion.
 type CancelPromotionStatus string
+
+// CapacityAtSubmit A GPU capacity row as it stands now, with “last_modified“ so callers
+// can judge whether the value matches what the dequeue gate saw at submit
+// time. Capacity rows are not historicized: edits overwrite in place. Compare
+// “last_modified“ against the response's “submitted_at“ — if it's later,
+// the value may have changed.
+type CapacityAtSubmit struct {
+	// GpuType GPU type identifier (e.g. H100, A100-40GB)
+	GpuType string `json:"gpu_type"`
+
+	// LastModified When the capacity row was last modified
+	LastModified time.Time `json:"last_modified"`
+
+	// MaxGpus Current max concurrent GPUs of this type
+	MaxGpus int `json:"max_gpus"`
+
+	// MinGpus Current baseline GPU allocation, if configured
+	MinGpus *int `json:"min_gpus,omitempty"`
+}
 
 // Chain A chain.
 type Chain struct {
@@ -1150,7 +1212,7 @@ type CreateLLMModelRequest struct {
 	// LlmConfig Configuration specific to the LLM model
 	LlmConfig *map[string]interface{} `json:"llm_config,omitempty"`
 
-	// LlmVersion Version of the helm chart to use
+	// LlmVersion Version of the helm chart to use.
 	LlmVersion *string `json:"llm_version,omitempty"`
 
 	// Metadata User-defined metadata for the deployment
@@ -1183,7 +1245,7 @@ type CreateLLMModelVersionRequest struct {
 	// LlmConfig Configuration specific to the LLM model
 	LlmConfig *map[string]interface{} `json:"llm_config,omitempty"`
 
-	// LlmVersion Version of the helm chart to use
+	// LlmVersion Version of the helm chart to use.
 	LlmVersion *string `json:"llm_version,omitempty"`
 
 	// Metadata User-defined metadata for the deployment
@@ -1258,7 +1320,7 @@ type CreateLoopsRunRequest struct {
 	// ReuseFromSessionId Optional Loops session ID whose trainer deployment should be reused for this run, sharing the infrastructure across sessions instead of provisioning fresh. The named session must belong to the same team. Reuse is best-effort: if the prior deployment is stopped, failed, its sampler is unhealthy, or this run requests replicas != 1, a new deployment is provisioned instead.
 	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
 
-	// ScaleDownDelaySeconds Seconds of inactivity before the run scales to zero. Must be positive. Defaults to 3600 (1 hour).
+	// ScaleDownDelaySeconds Seconds of inactivity before the run scales to zero. Must be between 1 and 3600 (1 hour). Defaults to 3600.
 	ScaleDownDelaySeconds *int `json:"scale_down_delay_seconds,omitempty"`
 
 	// Seed Random seed for reproducibility.
@@ -1406,6 +1468,15 @@ type CreateTrainingJobCheckpointingConfig struct {
 // CreateTrainingJobCompute Configuration to specify the compute for a training job.
 type CreateTrainingJobCompute struct {
 	Accelerator *CreateTrainingJobAccelerator `json:"accelerator,omitempty"`
+
+	// AvailabilityModel Capacity guarantee under which a training job is scheduled.
+	//
+	// ``DEDICATED`` is on-demand capacity that is not preempted (the default). ``SPOT`` is
+	// interruptible capacity that may be preempted; the user is responsible for checkpointing
+	// their own progress. A managed/resumable model where the platform handles
+	// checkpoint/resume on its own is intentionally not defined yet; it is planned for a
+	// future milestone.
+	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
 
 	// CpuCount Number of cpus for the training job.
 	CpuCount *int `json:"cpu_count,omitempty"`
@@ -2063,6 +2134,9 @@ type Endpoint struct {
 
 // EndpointTarget One configured upstream target of an endpoint.
 type EndpointTarget struct {
+	// EnvironmentName Baseten model environment, if non-production.
+	EnvironmentName *string `json:"environment_name,omitempty"`
+
 	// ModelId Baseten model, if any.
 	ModelId *string `json:"model_id,omitempty"`
 
@@ -2082,6 +2156,9 @@ type EndpointTarget struct {
 // EndpointTargetRequest One desired upstream target. The customer picks a provider; Baseten owns the
 // upstream host and protocol adapter.
 type EndpointTargetRequest struct {
+	// EnvironmentName Baseten model environment to route to. Only valid with BASETEN. Omit or pass `production` to target production.
+	EnvironmentName *string `json:"environment_name,omitempty"`
+
 	// ModelId Baseten model to route to. Required for and only valid with BASETEN.
 	ModelId *string `json:"model_id,omitempty"`
 
@@ -2142,6 +2219,52 @@ type Environment struct {
 
 	// PromotionSettings Promotion settings for promoting chains and oracles
 	PromotionSettings PromotionSettings `json:"promotion_settings"`
+}
+
+// EnvironmentGroup A team-scoped grouping of same-named environments (e.g. "production", "staging").
+//
+// Restricting an environment group limits who can manage the environment of that name
+// across every model and chain in the team.
+type EnvironmentGroup struct {
+	// ManageAccess Who is allowed to manage an environment group.
+	ManageAccess EnvironmentGroupManageAccess `json:"manage_access"`
+
+	// Name Name of the environment group, matching the environment name it governs.
+	Name string `json:"name"`
+
+	// TeamId Unique identifier of the team the environment group belongs to.
+	TeamId string `json:"team_id"`
+
+	// TeamName Name of the team the environment group belongs to.
+	TeamName string `json:"team_name"`
+}
+
+// EnvironmentGroupManageAccess Who is allowed to manage an environment group.
+type EnvironmentGroupManageAccess struct {
+	// IsRestricted Whether the environment is restricted to a specific set of users.
+	IsRestricted bool `json:"is_restricted"`
+
+	// Users Users who can manage the environment while it is restricted, including organization and team admins who always have access. Empty when the environment is unrestricted.
+	Users *[]EnvironmentGroupUser `json:"users,omitempty"`
+}
+
+// EnvironmentGroupUser A user referenced by an environment group's manage access.
+type EnvironmentGroupUser struct {
+	// Email Email address of the user.
+	Email *string `json:"email,omitempty"`
+
+	// Name Display name of the user.
+	Name *string `json:"name,omitempty"`
+
+	// UserId Unique identifier for the user.
+	UserId string `json:"user_id"`
+}
+
+// EnvironmentGroups A page of environment groups.
+type EnvironmentGroups struct {
+	// Items Items in this page.
+	Items      []EnvironmentGroup `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 // Environments list of environments
@@ -2368,6 +2491,12 @@ type GetLoopsSessionResponse struct {
 	Session LoopsSession `json:"session"`
 }
 
+// GetLoopsUserConfigResponse Response for “GET /v1/loops/user_config“.
+type GetLoopsUserConfigResponse struct {
+	// UserConfig The caller's Loops user-level config (accelerator priorities).
+	UserConfig LoopsUserConfig `json:"user_config"`
+}
+
 // GetTrainingGpuCapacityResponse Response for the training GPU capacity endpoint.
 type GetTrainingGpuCapacityResponse struct {
 	// GpuCapacities Org-level GPU capacity limits and current usage per GPU type
@@ -2448,6 +2577,61 @@ type GetTrainingJobMetricsResponse struct {
 	// PerNodeMetrics The metrics for each node in the training job.
 	PerNodeMetrics []TrainingJobNodeMetrics `json:"per_node_metrics"`
 	TrainingJob    TrainingJob              `json:"training_job"`
+}
+
+// GetTrainingJobQueueContextResponse Read-only diagnostic for a training job's PENDING window.
+//
+// Returns the (org, gpu_type) capacity pool the job was gated by, jobs that
+// were holding GPU capacity in that pool when this job was submitted, and
+// every status event in [submitted_at, released_at] for those jobs (or up to
+// "now" if the target is still PENDING).
+type GetTrainingJobQueueContextResponse struct {
+	// ActiveAtSubmit Jobs in the same (org, gpu_type) pool that were holding capacity at submitted_at
+	ActiveAtSubmit []ActiveJobAtSubmit `json:"active_at_submit"`
+
+	// Events Every status event in [submitted_at, events_window_end] for the target job, every job in active_at_submit, and every job in pending_ahead_at_submit, oldest first.
+	Events []QueueEvent `json:"events"`
+
+	// EventsWindowEnd released_at if set, else 'now' (events ongoing)
+	EventsWindowEnd time.Time `json:"events_window_end"`
+
+	// GpuType GPU type the target requested
+	GpuType string `json:"gpu_type"`
+
+	// OrgCapacity A GPU capacity row as it stands now, with ``last_modified`` so callers
+	// can judge whether the value matches what the dequeue gate saw at submit
+	// time. Capacity rows are not historicized: edits overwrite in place. Compare
+	// ``last_modified`` against the response's ``submitted_at`` — if it's later,
+	// the value may have changed.
+	OrgCapacity *CapacityAtSubmit `json:"org_capacity,omitempty"`
+
+	// PendingAheadAtSubmit PENDING jobs in the same (org, gpu_type) pool that were ahead of the target in dequeue FIFO order at submitted_at (priority DESC then created ASC). These also block the target's release.
+	PendingAheadAtSubmit []PendingJobAheadAtSubmit `json:"pending_ahead_at_submit"`
+
+	// PendingSeconds released_at - submitted_at in seconds. None if still PENDING.
+	PendingSeconds *int `json:"pending_seconds,omitempty"`
+
+	// ReleasedAt When the job's TRAINING_JOB_CREATED status was set, i.e. the moment it was released from PENDING. None if still PENDING.
+	ReleasedAt *time.Time `json:"released_at,omitempty"`
+
+	// RequestedGpus GPUs the target requested (gpu_count * effective_node_count)
+	RequestedGpus int `json:"requested_gpus"`
+
+	// SubmittedAt When the job row was inserted (= API POST time)
+	SubmittedAt time.Time `json:"submitted_at"`
+
+	// TargetJobId Hashid of the target training job
+	TargetJobId string `json:"target_job_id"`
+
+	// TargetJobName Target job's name
+	TargetJobName *string `json:"target_job_name,omitempty"`
+
+	// TeamCapacity A GPU capacity row as it stands now, with ``last_modified`` so callers
+	// can judge whether the value matches what the dequeue gate saw at submit
+	// time. Capacity rows are not historicized: edits overwrite in place. Compare
+	// ``last_modified`` against the response's ``submitted_at`` — if it's later,
+	// the value may have changed.
+	TeamCapacity *CapacityAtSubmit `json:"team_capacity,omitempty"`
 }
 
 // GetTrainingJobResponse A response to fetch a training job.
@@ -2749,9 +2933,9 @@ type ListLoopsCheckpointsResponse struct {
 
 // ListLoopsDeploymentsResponse Response for “GET /v1/loops/deployments“.
 //
-// Returns every Loops deployment owned by the caller, regardless of status
-// (CREATED, DEPLOYING, RUNNING, STOPPED, or FAILED). Clients filter
-// terminal-state deployments themselves.
+// Defaults to the caller's own; pass “?scope=org“ to list every deployment in
+// the caller's organization. Returns every deployment regardless of status;
+// clients filter terminal states.
 type ListLoopsDeploymentsResponse struct {
 	// Deployments Active Loops deployments.
 	Deployments []LoopsDeployment `json:"deployments"`
@@ -2907,6 +3091,9 @@ type LoopsDeployment struct {
 
 	// Status Latest deployment status for a Loops deployment.
 	Status LoopsDeploymentStatus `json:"status"`
+
+	// User A user.
+	User User `json:"user"`
 }
 
 // LoopsDeploymentMetrics Metrics for a trainer (Loops) deployment.
@@ -3023,6 +3210,15 @@ type LoopsSamplerStatus struct {
 // LoopsSession defines model for LoopsSession.
 type LoopsSession struct {
 	Id string `json:"id"`
+}
+
+// LoopsUserConfig The caller's Loops user-level config (accelerator priorities).
+type LoopsUserConfig struct {
+	// SamplerAcceleratorPriority Ordered allowlist of GPU types for your Loops sampler deployments, highest priority first. Intersected with the org-level allowlist (org acts as a ceiling). Null means 'inherit the org-level allowlist'.
+	SamplerAcceleratorPriority *[]string `json:"sampler_accelerator_priority"`
+
+	// TrainerAcceleratorPriority Ordered allowlist of GPU types for your Loops trainer deployments, highest priority first. Intersected with the org-level allowlist (org acts as a ceiling). Null means 'inherit the org-level allowlist'.
+	TrainerAcceleratorPriority *[]string `json:"trainer_accelerator_priority"`
 }
 
 // Model A model.
@@ -3304,6 +3500,50 @@ type PatchInteractiveSessionResponse struct {
 	Message string `json:"message"`
 }
 
+// PatchLoopsUserConfigRequest Request body for “PATCH /v1/loops/user_config“.
+//
+// Follows JSON Merge Patch (RFC 7396) semantics per field: omit the field
+// to leave it unchanged, send “null“ to clear and inherit the org-level
+// allowlist, send a list to set the allowlist. Empty lists are rejected
+// because the storage layer normalizes “null“ and “[]“ identically, so
+// accepting both would create two ways to spell the same intent.
+type PatchLoopsUserConfigRequest struct {
+	// SamplerAcceleratorPriority Ordered list of GPU types for sampler deployments, highest priority first. Send a list to set; send null to clear (inherit org allowlist); omit to leave unchanged. Empty list is rejected.
+	SamplerAcceleratorPriority *[]string `json:"sampler_accelerator_priority,omitempty"`
+
+	// TrainerAcceleratorPriority Ordered list of GPU types for trainer deployments, highest priority first. Send a list to set; send null to clear (inherit org allowlist); omit to leave unchanged. Empty list is rejected.
+	TrainerAcceleratorPriority *[]string `json:"trainer_accelerator_priority,omitempty"`
+}
+
+// PatchLoopsUserConfigResponse Response for “PATCH /v1/loops/user_config“.
+type PatchLoopsUserConfigResponse struct {
+	// UserConfig The caller's Loops user-level config (accelerator priorities).
+	UserConfig LoopsUserConfig `json:"user_config"`
+}
+
+// PendingJobAheadAtSubmit A PENDING job in the same (org, gpu_type) pool that was ahead of the
+// target in dequeue FIFO order at submitted_at — higher priority, or same
+// priority and earlier submission.
+type PendingJobAheadAtSubmit struct {
+	// InstanceTypeName Instance type of the other job
+	InstanceTypeName string `json:"instance_type_name"`
+
+	// Priority Effective priority (NULL coalesced to 0)
+	Priority int `json:"priority"`
+
+	// RequestedGpus gpu_count * effective_node_count
+	RequestedGpus int `json:"requested_gpus"`
+
+	// SubmittedAt The other job's submission time
+	SubmittedAt time.Time `json:"submitted_at"`
+
+	// TrainingJobId Hashid of the other training job
+	TrainingJobId string `json:"training_job_id"`
+
+	// TrainingJobName Other job's name
+	TrainingJobName *string `json:"training_job_name,omitempty"`
+}
+
 // PrepareModelUploadRequest Body for `POST /v1/prepare_model_upload`.
 //
 // Validates the same payload the commit endpoint will validate, and on
@@ -3403,6 +3643,27 @@ type PromotionSettings struct {
 
 	// RollingDeployConfig Rolling deploy config for promoting chains and oracles
 	RollingDeployConfig *RollingDeployConfig `json:"rolling_deploy_config,omitempty"`
+}
+
+// QueueEvent A single “TrainingJobStatus“ row inside the queue-context window.
+type QueueEvent struct {
+	// Created When the status row was inserted
+	Created time.Time `json:"created"`
+
+	// EventMessage Human-readable event message from the status metadata
+	EventMessage *string `json:"event_message,omitempty"`
+
+	// ExitCode Exit code from the status metadata, if any
+	ExitCode *int `json:"exit_code,omitempty"`
+
+	// Status TrainingJobStatus.Name value
+	Status string `json:"status"`
+
+	// TrainingJobId Hashid of the training job this event is for
+	TrainingJobId string `json:"training_job_id"`
+
+	// TrainingJobName Job name
+	TrainingJobName *string `json:"training_job_name,omitempty"`
 }
 
 // RateLimit defines model for RateLimit.
@@ -3722,6 +3983,15 @@ type TrainingItem_Subtotal struct {
 
 // TrainingJob defines model for TrainingJob.
 type TrainingJob struct {
+	// AvailabilityModel Capacity guarantee under which a training job is scheduled.
+	//
+	// ``DEDICATED`` is on-demand capacity that is not preempted (the default). ``SPOT`` is
+	// interruptible capacity that may be preempted; the user is responsible for checkpointing
+	// their own progress. A managed/resumable model where the platform handles
+	// checkpoint/resume on its own is intentionally not defined yet; it is planned for a
+	// future milestone.
+	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+
 	// CheckpointSyncStatus Lifecycle state for the checkpoint uploader.
 	CheckpointSyncStatus *CheckpointSyncStatus `json:"checkpoint_sync_status,omitempty"`
 
@@ -4016,13 +4286,26 @@ type UpdateChainletEnvironmentInstanceTypeResponse struct {
 	RequiresRedeployment bool `json:"requires_redeployment"`
 }
 
-// UpdateEndpointRequest PATCH body. Updates provided mutable fields; targets are replaced as a full list.
+// UpdateEndpointRequest PATCH body. Replaces the endpoint's full target list. The slug is immutable
+// after creation; to change it, create a new endpoint and delete this one.
 type UpdateEndpointRequest struct {
-	// Slug New globally-unique slug of the form '{org_prefix}/{name}'.
-	Slug *string `json:"slug,omitempty"`
-
 	// Targets The endpoint's upstream targets. Exactly one target is supported at this time.
 	Targets *[]EndpointTargetRequest `json:"targets,omitempty"`
+}
+
+// UpdateEnvironmentGroupManageAccess Manage-access settings to apply to an environment group.
+type UpdateEnvironmentGroupManageAccess struct {
+	// IsRestricted Whether to restrict this environment to a specific set of users.
+	IsRestricted bool `json:"is_restricted"`
+
+	// UserIds IDs of users granted manage access while restricted. Only meaningful when is_restricted is true.
+	UserIds *[]string `json:"user_ids,omitempty"`
+}
+
+// UpdateEnvironmentGroupRequest A request to update an existing environment group.
+type UpdateEnvironmentGroupRequest struct {
+	// ManageAccess Manage-access settings to apply to an environment group.
+	ManageAccess *UpdateEnvironmentGroupManageAccess `json:"manage_access,omitempty"`
 }
 
 // UpdateEnvironmentRequest A request to update an environment.
@@ -4105,6 +4388,17 @@ type UpdateRollingDeployConfig struct {
 	StabilizationTimeSeconds *int `json:"stabilization_time_seconds,omitempty"`
 }
 
+// UpdateTrainingJobRequest A request to update mutable fields on a training job.
+type UpdateTrainingJobRequest struct {
+	// Priority New queue priority for a PENDING training job. Higher values are dequeued first. Only jobs in the PENDING state can have their priority changed.
+	Priority int `json:"priority"`
+}
+
+// UpdateTrainingJobResponse A response to updating a training job.
+type UpdateTrainingJobResponse struct {
+	TrainingJob TrainingJob `json:"training_job"`
+}
+
 // UpsertSecretRequest A request to create or update a Baseten secret by name.
 type UpsertSecretRequest struct {
 	// Name Name of the new or existing secret
@@ -4169,6 +4463,22 @@ type UserInfo struct {
 	// WorkspaceName Name of the user's workspace
 	WorkspaceName *string `json:"workspace_name,omitempty"`
 }
+
+// UsersResponse A page of users in the caller's workspace.
+type UsersResponse struct {
+	// Items Items in this page.
+	Items      []UserInfo         `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
+// V1AvailabilityModel Capacity guarantee under which a training job is scheduled.
+//
+// “DEDICATED“ is on-demand capacity that is not preempted (the default). “SPOT“ is
+// interruptible capacity that may be preempted; the user is responsible for checkpointing
+// their own progress. A managed/resumable model where the platform handles
+// checkpoint/resume on its own is intentionally not defined yet; it is planned for a
+// future milestone.
+type V1AvailabilityModel string
 
 // V1InteractiveSessionAuthProvider defines model for V1InteractiveSessionAuthProvider.
 type V1InteractiveSessionAuthProvider string
@@ -4408,6 +4718,42 @@ type GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams struct {
 	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
 }
 
+// GetV1ModelsModelIdEnvironmentsEnvNameLogsParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameLogs.
+type GetV1ModelsModelIdEnvironmentsEnvNameLogsParams struct {
+	// StartEpochMillis Epoch milliseconds at which to start fetching logs. Defaults to 30 minutes before the end. The window from start to end must not exceed 7 days.
+	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// EndEpochMillis Epoch milliseconds at which to stop fetching logs. Defaults to the current time.
+	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
+
+	// Direction Sort order for logs
+	Direction *SortOrder `form:"direction,omitempty" json:"direction,omitempty"`
+
+	// Limit Limit of logs to fetch in a single request
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// MinLevel Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level.
+	MinLevel *LogLevel `form:"min_level,omitempty" json:"min_level,omitempty"`
+
+	// Replica Only return logs emitted by this replica (5-char short ID).
+	Replica *string `form:"replica,omitempty" json:"replica,omitempty"`
+
+	// RequestId Only return logs tagged with this inference request ID.
+	RequestId *string `form:"request_id,omitempty" json:"request_id,omitempty"`
+
+	// Component Only return logs from this component.
+	Component *string `form:"component,omitempty" json:"component,omitempty"`
+
+	// SearchPattern RE2 regular expression matched against the log message. Prefer `includes` and `excludes` for plain substring matches.
+	SearchPattern *string `form:"search_pattern,omitempty" json:"search_pattern,omitempty"`
+
+	// Includes Case-sensitive substrings that must all appear in the log message.
+	Includes *[]string `form:"includes,omitempty" json:"includes,omitempty"`
+
+	// Excludes Case-sensitive substrings; lines containing any of these are dropped.
+	Excludes *[]string `form:"excludes,omitempty" json:"excludes,omitempty"`
+}
+
 // GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams defines parameters for GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFiles.
 type GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams struct {
 	// PageSize Max files per page (default 1000).
@@ -4447,6 +4793,15 @@ type GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdMetricsParams struct
 	StepSeconds *int `form:"step_seconds,omitempty" json:"step_seconds,omitempty"`
 }
 
+// GetV1UsersParams defines parameters for GetV1Users.
+type GetV1UsersParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // PostV1ApiKeysJSONRequestBody defines body for PostV1ApiKeys for application/json ContentType.
 type PostV1ApiKeysJSONRequestBody = CreateAPIKeyRequest
 
@@ -4464,6 +4819,9 @@ type PostV1ChainsChainIdEnvironmentsEnvNameChainletSettingsInstanceTypesUpdateJS
 
 // PostV1ChainsChainIdEnvironmentsEnvNamePromoteJSONRequestBody defines body for PostV1ChainsChainIdEnvironmentsEnvNamePromote for application/json ContentType.
 type PostV1ChainsChainIdEnvironmentsEnvNamePromoteJSONRequestBody = PromoteToChainEnvironmentRequest
+
+// PatchV1EnvironmentGroupsEnvNameJSONRequestBody defines body for PatchV1EnvironmentGroupsEnvName for application/json ContentType.
+type PatchV1EnvironmentGroupsEnvNameJSONRequestBody = UpdateEnvironmentGroupRequest
 
 // PostV1GatewayEndpointsJSONRequestBody defines body for PostV1GatewayEndpoints for application/json ContentType.
 type PostV1GatewayEndpointsJSONRequestBody = CreateEndpointRequest
@@ -4512,6 +4870,9 @@ type PostV1LoopsRunsJSONRequestBody = CreateLoopsRunRequest
 
 // PostV1LoopsSamplersJSONRequestBody defines body for PostV1LoopsSamplers for application/json ContentType.
 type PostV1LoopsSamplersJSONRequestBody = CreateLoopsSamplerRequest
+
+// PatchV1LoopsUserConfigJSONRequestBody defines body for PatchV1LoopsUserConfig for application/json ContentType.
+type PatchV1LoopsUserConfigJSONRequestBody = PatchLoopsUserConfigRequest
 
 // PostV1ModelApisSnapshotsJSONRequestBody defines body for PostV1ModelApisSnapshots for application/json ContentType.
 type PostV1ModelApisSnapshotsJSONRequestBody = CreateModelWeightSnapshotRequest
@@ -4570,6 +4931,9 @@ type PostV1SecretsJSONRequestBody = UpsertSecretRequest
 // PostV1TeamsTeamIdApiKeysJSONRequestBody defines body for PostV1TeamsTeamIdApiKeys for application/json ContentType.
 type PostV1TeamsTeamIdApiKeysJSONRequestBody = CreateAPIKeyRequest
 
+// PatchV1TeamsTeamIdEnvironmentGroupsEnvNameJSONRequestBody defines body for PatchV1TeamsTeamIdEnvironmentGroupsEnvName for application/json ContentType.
+type PatchV1TeamsTeamIdEnvironmentGroupsEnvNameJSONRequestBody = UpdateEnvironmentGroupRequest
+
 // PostV1TeamsTeamIdLlmModelsJSONRequestBody defines body for PostV1TeamsTeamIdLlmModels for application/json ContentType.
 type PostV1TeamsTeamIdLlmModelsJSONRequestBody = CreateLLMModelRequest
 
@@ -4590,6 +4954,9 @@ type PostV1TrainingProjectsJSONRequestBody = UpsertTrainingProjectRequest
 
 // PostV1TrainingProjectsTrainingProjectIdJobsJSONRequestBody defines body for PostV1TrainingProjectsTrainingProjectIdJobs for application/json ContentType.
 type PostV1TrainingProjectsTrainingProjectIdJobsJSONRequestBody = CreateTrainingJobRequest
+
+// PatchV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdJSONRequestBody defines body for PatchV1TrainingProjectsTrainingProjectIdJobsTrainingJobId for application/json ContentType.
+type PatchV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdJSONRequestBody = UpdateTrainingJobRequest
 
 // PatchV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdInteractiveSessionsSessionIdJSONRequestBody defines body for PatchV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdInteractiveSessionsSessionId for application/json ContentType.
 type PatchV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdInteractiveSessionsSessionIdJSONRequestBody = PatchInteractiveSessionRequest

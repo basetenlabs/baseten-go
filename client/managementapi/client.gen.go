@@ -335,6 +335,30 @@ func (c *Client) GetChainsEnvironmentsEnvName(ctx context.Context, chainId strin
 	})
 }
 
+// GetEnvironmentGroups: Lists environment groups
+func (c *Client) GetEnvironmentGroups(ctx context.Context) (*EnvironmentGroups, error) {
+	return doJSON[EnvironmentGroups](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/environment_groups",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetEnvironmentGroupsEnvName: Gets an environment group by name
+func (c *Client) GetEnvironmentGroupsEnvName(ctx context.Context, envName string) (*EnvironmentGroup, error) {
+	return doJSON[EnvironmentGroup](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/environment_groups/%s",
+		pathArgs:    []any{envName},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetGatewayEndpoints: List Gateway endpoints
 func (c *Client) GetGatewayEndpoints(ctx context.Context) (*EndpointsResponse, error) {
 	return doJSON[EndpointsResponse](c, ctx, apiRequest{
@@ -614,6 +638,18 @@ func (c *Client) GetLoopsSessions(ctx context.Context, sessionId string) (*GetLo
 	})
 }
 
+// GetLoopsUserConfig: Get the caller's Loops user config.
+func (c *Client) GetLoopsUserConfig(ctx context.Context) (*GetLoopsUserConfigResponse, error) {
+	return doJSON[GetLoopsUserConfigResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/user_config",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetModelApis: List Model APIs.
 func (c *Client) GetModelApis(ctx context.Context, params GetV1ModelApisParams) (*ModelAPIsResponse, error) {
 	return doJSON[ModelAPIsResponse](c, ctx, apiRequest{
@@ -810,6 +846,19 @@ func (c *Client) GetModelsEnvironmentsEnvName(ctx context.Context, modelId strin
 	})
 }
 
+// GetModelsEnvironmentsLogs: Gets the logs for a model environment.
+func (c *Client) GetModelsEnvironmentsLogs(ctx context.Context, modelId string, envName string, params GetV1ModelsModelIdEnvironmentsEnvNameLogsParams) (*GetLogsResponse, error) {
+	return doJSON[GetLogsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/models/%s/environments/%s/logs",
+		pathArgs:    []any{modelId, envName},
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetModelsModelId: Gets a model by ID
 func (c *Client) GetModelsModelId(ctx context.Context, modelId string) (*Model, error) {
 	return doJSON[Model](c, ctx, apiRequest{
@@ -846,6 +895,30 @@ func (c *Client) GetTeams(ctx context.Context) (*Teams, error) {
 	})
 }
 
+// GetTeamsEnvironmentGroups: Lists environment groups
+func (c *Client) GetTeamsEnvironmentGroups(ctx context.Context, teamId string) (*EnvironmentGroups, error) {
+	return doJSON[EnvironmentGroups](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/teams/%s/environment_groups",
+		pathArgs:    []any{teamId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetTeamsEnvironmentGroupsEnvName: Gets an environment group by name
+func (c *Client) GetTeamsEnvironmentGroupsEnvName(ctx context.Context, teamId string, envName string) (*EnvironmentGroup, error) {
+	return doJSON[EnvironmentGroup](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/teams/%s/environment_groups/%s",
+		pathArgs:    []any{teamId, envName},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetTeamsModels: Gets all models
 func (c *Client) GetTeamsModels(ctx context.Context, teamId string) (*Models, error) {
 	return doJSON[Models](c, ctx, apiRequest{
@@ -870,12 +943,36 @@ func (c *Client) GetTeamsSecrets(ctx context.Context, teamId string) (*Secrets, 
 	})
 }
 
+// GetTeamsTeamId: Gets a team by ID
+func (c *Client) GetTeamsTeamId(ctx context.Context, teamId string) (*Team, error) {
+	return doJSON[Team](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/teams/%s",
+		pathArgs:    []any{teamId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetTrainingCapacity: Get training GPU capacity.
 func (c *Client) GetTrainingCapacity(ctx context.Context) (*GetTrainingGpuCapacityResponse, error) {
 	return doJSON[GetTrainingGpuCapacityResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/training/capacity",
 		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetTrainingJobsQueueContext: Reconstruct queue context for a training job.
+func (c *Client) GetTrainingJobsQueueContext(ctx context.Context, trainingJobId string) (*GetTrainingJobQueueContextResponse, error) {
+	return doJSON[GetTrainingJobQueueContextResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/training/jobs/%s/queue_context",
+		pathArgs:    []any{trainingJobId},
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1017,8 +1114,33 @@ func (c *Client) GetTrainingProjectsTrainingProjectId(ctx context.Context, train
 	})
 }
 
-// GetUsers: Gets a user by ID
-func (c *Client) GetUsers(ctx context.Context, userId string) (*UserInfo, error) {
+// GetUsers: Lists users in the workspace
+func (c *Client) GetUsers(ctx context.Context, params GetV1UsersParams) (*UsersResponse, error) {
+	return doJSON[UsersResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/users",
+		pathArgs:    nil,
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetUsersMe: Gets the authenticated user
+func (c *Client) GetUsersMe(ctx context.Context) (*UserInfo, error) {
+	return doJSON[UserInfo](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/users/me",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetUsersUserId: Gets a user by ID
+func (c *Client) GetUsersUserId(ctx context.Context, userId string) (*UserInfo, error) {
 	return doJSON[UserInfo](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/users/%s",
@@ -1047,6 +1169,18 @@ func (c *Client) PatchChainsEnvironmentsChainletSettingsAutoscalingSettings(ctx 
 		method:      "PATCH",
 		pathFmt:     "/v1/chains/%s/environments/%s/chainlet_settings/autoscaling_settings",
 		pathArgs:    []any{chainId, envName},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PatchEnvironmentGroups: Updates an environment group's restriction settings
+func (c *Client) PatchEnvironmentGroups(ctx context.Context, envName string, body UpdateEnvironmentGroupRequest) (*EnvironmentGroup, error) {
+	return doJSON[EnvironmentGroup](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/environment_groups/%s",
+		pathArgs:    []any{envName},
 		body:        body,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1101,6 +1235,18 @@ func (c *Client) PatchLibraryListingsVersions(ctx context.Context, userDefinedLi
 	})
 }
 
+// PatchLoopsUserConfig: Patch the caller's Loops user config.
+func (c *Client) PatchLoopsUserConfig(ctx context.Context, body PatchLoopsUserConfigRequest) (*PatchLoopsUserConfigResponse, error) {
+	return doJSON[PatchLoopsUserConfigResponse](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/loops/user_config",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PatchModelsDeploymentsAutoscalingSettings: Updates a deployment's autoscaling settings
 func (c *Client) PatchModelsDeploymentsAutoscalingSettings(ctx context.Context, modelId string, deploymentId string, body UpdateAutoscalingSettings) (*UpdateAutoscalingSettingsResponse, error) {
 	return doJSON[UpdateAutoscalingSettingsResponse](c, ctx, apiRequest{
@@ -1143,6 +1289,30 @@ func (c *Client) PatchModelsEnvironments(ctx context.Context, modelId string, en
 		method:      "PATCH",
 		pathFmt:     "/v1/models/%s/environments/%s",
 		pathArgs:    []any{modelId, envName},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PatchTeamsEnvironmentGroups: Updates an environment group's restriction settings
+func (c *Client) PatchTeamsEnvironmentGroups(ctx context.Context, teamId string, envName string, body UpdateEnvironmentGroupRequest) (*EnvironmentGroup, error) {
+	return doJSON[EnvironmentGroup](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/teams/%s/environment_groups/%s",
+		pathArgs:    []any{teamId, envName},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PatchTrainingProjectsJobs: Update a training job.
+func (c *Client) PatchTrainingProjectsJobs(ctx context.Context, trainingProjectId string, trainingJobId string, body UpdateTrainingJobRequest) (*UpdateTrainingJobResponse, error) {
+	return doJSON[UpdateTrainingJobResponse](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/training_projects/%s/jobs/%s",
+		pathArgs:    []any{trainingProjectId, trainingJobId},
 		body:        body,
 		successCode: 200,
 		errorCodes:  nil,

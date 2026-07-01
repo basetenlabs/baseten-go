@@ -3,7 +3,7 @@
 package inferenceapi
 
 const (
-	ApiKeyAuthScopes = "ApiKeyAuth.Scopes"
+	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
 // Defines values for AsyncRequestErrorCode.

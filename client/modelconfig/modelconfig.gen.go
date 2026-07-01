@@ -194,6 +194,24 @@ type DockerServer struct {
 	AdditionalProperties interface{} `mapstructure:",remain"`
 }
 
+// Egress network restrictions for a model version.
+//
+// Setting both “ip_allow_list“ and “fqdn_allow_list“ to “null“ or
+// “[]“ blocks all outbound network egress. Omitting the
+// “egress_restrictions“ block (or setting it to “null“) preserves the
+// default behavior of allowing all egress.
+type EgressRestrictions struct {
+	// Allowed outbound fully-qualified domain names. Supports wildcards: '*' may
+	// appear anywhere in a label.
+	FqdnAllowList []string `json:"fqdn_allow_list,omitempty,omitzero" yaml:"fqdn_allow_list,omitempty"`
+
+	// Allowed outbound IPv4 addresses or CIDR ranges. Use null or [] alongside an
+	// equally restrictive fqdn_allow_list to block all egress.
+	IpAllowList []string `json:"ip_allow_list,omitempty,omitzero" yaml:"ip_allow_list,omitempty"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
 // Key-value pairs exposed to the environment that the model executes in. Do not
 // store secret values here.
 type EnvironmentVariables map[string]string
@@ -744,6 +762,10 @@ type Resources struct {
 
 // Runtime settings for your model instance.
 type Runtime struct {
+	// Egress network restrictions for the model version. When unset, all egress is
+	// allowed (default).
+	EgressRestrictions *EgressRestrictions `json:"egress_restrictions,omitempty,omitzero" yaml:"egress_restrictions,omitempty"`
+
 	// If true, sets the Truss server log level to DEBUG instead of INFO.
 	EnableDebugLogs bool `json:"enable_debug_logs,omitempty,omitzero" yaml:"enable_debug_logs,omitempty"`
 
