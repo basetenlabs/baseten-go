@@ -55,7 +55,7 @@ func TestE2EListModels(t *testing.T) {
 	skipOrFailE2E(t)
 	c := newE2EManagementClient(t)
 
-	models, err := c.API().GetModels(t.Context())
+	models, err := c.API().GetModels(t.Context(), managementapi.GetV1ModelsParams{})
 	require.NoError(t, err)
 
 	found := false
@@ -91,7 +91,7 @@ func TestE2EListDeployments(t *testing.T) {
 	skipOrFailE2E(t)
 	c := newE2EManagementClient(t)
 
-	deployments, err := c.API().GetModelsDeployments(t.Context(), e2eModelID)
+	deployments, err := c.API().GetModelsDeployments(t.Context(), e2eModelID, managementapi.GetV1ModelsModelIdDeploymentsParams{})
 	require.NoError(t, err)
 	require.True(t, len(deployments.Deployments) > 0, "expected at least one deployment")
 }

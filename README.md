@@ -17,6 +17,7 @@ import (
 	"log"
 
 	"github.com/basetenlabs/baseten-go/client"
+	"github.com/basetenlabs/baseten-go/client/managementapi"
 )
 
 func main() {
@@ -29,7 +30,7 @@ func main() {
 	}
 
 	// List all models
-	resp, err := cl.API().GetModels(context.Background())
+	resp, err := cl.API().GetModels(context.Background(), managementapi.GetV1ModelsParams{})
 	if err != nil {
 		log.Fatal(err)
 	}
