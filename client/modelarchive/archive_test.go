@@ -207,6 +207,10 @@ func TestBuildModelArchiveDuplicateArchivePathErrors(t *testing.T) {
 	rc.Close()
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "duplicate archive entry")
+	// The message names both colliding source files and the remediation.
+	require.Contains(t, err.Error(), filepath.Join(trussDir, "packages", "conflict.py"))
+	require.Contains(t, err.Error(), filepath.Join(extDir, "conflict.py"))
+	require.Contains(t, err.Error(), "Rename or remove one")
 }
 
 func TestBuildModelArchiveDefaultIgnoreApplied(t *testing.T) {
