@@ -80,7 +80,7 @@ func TestManagementGetModels(t *testing.T) {
 	}, &cap)
 	api := newManagementClient(t, srv)
 
-	resp, err := api.GetModels(context.Background())
+	resp, err := api.GetModels(context.Background(), managementapi.GetV1ModelsParams{})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Len(t, resp.Models, 1)
@@ -127,7 +127,7 @@ func TestManagementResponseError(t *testing.T) {
 	srv := newTestServer(t, 500, map[string]any{"detail": "boom"}, nil)
 	api := newManagementClient(t, srv)
 
-	_, err := api.GetModels(context.Background())
+	_, err := api.GetModels(context.Background(), managementapi.GetV1ModelsParams{})
 	respErr := require.ErrorAs[*managementapi.ResponseError](t, err)
 	require.Equal(t, 500, respErr.StatusCode)
 	require.Contains(t, respErr.Body, "boom")

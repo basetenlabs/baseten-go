@@ -93,78 +93,6 @@ func (e DeploymentConfigOutputFormat) Valid() bool {
 	}
 }
 
-// Defines values for DeploymentMetricKind.
-const (
-	DeploymentMetricKind_COUNTER   DeploymentMetricKind = "COUNTER"
-	DeploymentMetricKind_GAUGE     DeploymentMetricKind = "GAUGE"
-	DeploymentMetricKind_HISTOGRAM DeploymentMetricKind = "HISTOGRAM"
-)
-
-// Valid indicates whether the value is a known member of the DeploymentMetricKind enum.
-func (e DeploymentMetricKind) Valid() bool {
-	switch e {
-	case DeploymentMetricKind_COUNTER:
-		return true
-	case DeploymentMetricKind_GAUGE:
-		return true
-	case DeploymentMetricKind_HISTOGRAM:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for DeploymentMetricMode.
-const (
-	DeploymentMetricMode_CURRENT DeploymentMetricMode = "CURRENT"
-	DeploymentMetricMode_SERIES  DeploymentMetricMode = "SERIES"
-	DeploymentMetricMode_SUMMARY DeploymentMetricMode = "SUMMARY"
-)
-
-// Valid indicates whether the value is a known member of the DeploymentMetricMode enum.
-func (e DeploymentMetricMode) Valid() bool {
-	switch e {
-	case DeploymentMetricMode_CURRENT:
-		return true
-	case DeploymentMetricMode_SERIES:
-		return true
-	case DeploymentMetricMode_SUMMARY:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for DeploymentMetricUnitHint.
-const (
-	DeploymentMetricUnitHint_BYTES      DeploymentMetricUnitHint = "BYTES"
-	DeploymentMetricUnitHint_COUNT      DeploymentMetricUnitHint = "COUNT"
-	DeploymentMetricUnitHint_MEBIBYTES  DeploymentMetricUnitHint = "MEBIBYTES"
-	DeploymentMetricUnitHint_PER_SECOND DeploymentMetricUnitHint = "PER_SECOND"
-	DeploymentMetricUnitHint_RATIO      DeploymentMetricUnitHint = "RATIO"
-	DeploymentMetricUnitHint_SECONDS    DeploymentMetricUnitHint = "SECONDS"
-)
-
-// Valid indicates whether the value is a known member of the DeploymentMetricUnitHint enum.
-func (e DeploymentMetricUnitHint) Valid() bool {
-	switch e {
-	case DeploymentMetricUnitHint_BYTES:
-		return true
-	case DeploymentMetricUnitHint_COUNT:
-		return true
-	case DeploymentMetricUnitHint_MEBIBYTES:
-		return true
-	case DeploymentMetricUnitHint_PER_SECOND:
-		return true
-	case DeploymentMetricUnitHint_RATIO:
-		return true
-	case DeploymentMetricUnitHint_SECONDS:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for DeploymentPatchAction.
 const (
 	DeploymentPatchAction_ADD    DeploymentPatchAction = "ADD"
@@ -269,9 +197,11 @@ func (e DockerAuthType) Valid() bool {
 
 // Defines values for GatewayProvider.
 const (
-	GatewayProvider_ANTHROPIC GatewayProvider = "ANTHROPIC"
-	GatewayProvider_BASETEN   GatewayProvider = "BASETEN"
-	GatewayProvider_OPENAI    GatewayProvider = "OPENAI"
+	GatewayProvider_ANTHROPIC         GatewayProvider = "ANTHROPIC"
+	GatewayProvider_BASETEN           GatewayProvider = "BASETEN"
+	GatewayProvider_BASETEN_MODEL_API GatewayProvider = "BASETEN_MODEL_API"
+	GatewayProvider_OPENAI            GatewayProvider = "OPENAI"
+	GatewayProvider_VERTEX            GatewayProvider = "VERTEX"
 )
 
 // Valid indicates whether the value is a known member of the GatewayProvider enum.
@@ -281,7 +211,11 @@ func (e GatewayProvider) Valid() bool {
 		return true
 	case GatewayProvider_BASETEN:
 		return true
+	case GatewayProvider_BASETEN_MODEL_API:
+		return true
 	case GatewayProvider_OPENAI:
+		return true
+	case GatewayProvider_VERTEX:
 		return true
 	default:
 		return false
@@ -393,6 +327,78 @@ func (e LoopsCheckpointConfigTarget) Valid() bool {
 	case LoopsCheckpointConfigTarget_sampler:
 		return true
 	case LoopsCheckpointConfigTarget_trainer:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ModelMetricKind.
+const (
+	ModelMetricKind_COUNTER   ModelMetricKind = "COUNTER"
+	ModelMetricKind_GAUGE     ModelMetricKind = "GAUGE"
+	ModelMetricKind_HISTOGRAM ModelMetricKind = "HISTOGRAM"
+)
+
+// Valid indicates whether the value is a known member of the ModelMetricKind enum.
+func (e ModelMetricKind) Valid() bool {
+	switch e {
+	case ModelMetricKind_COUNTER:
+		return true
+	case ModelMetricKind_GAUGE:
+		return true
+	case ModelMetricKind_HISTOGRAM:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ModelMetricMode.
+const (
+	ModelMetricMode_CURRENT ModelMetricMode = "CURRENT"
+	ModelMetricMode_SERIES  ModelMetricMode = "SERIES"
+	ModelMetricMode_SUMMARY ModelMetricMode = "SUMMARY"
+)
+
+// Valid indicates whether the value is a known member of the ModelMetricMode enum.
+func (e ModelMetricMode) Valid() bool {
+	switch e {
+	case ModelMetricMode_CURRENT:
+		return true
+	case ModelMetricMode_SERIES:
+		return true
+	case ModelMetricMode_SUMMARY:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ModelMetricUnitHint.
+const (
+	ModelMetricUnitHint_BYTES      ModelMetricUnitHint = "BYTES"
+	ModelMetricUnitHint_COUNT      ModelMetricUnitHint = "COUNT"
+	ModelMetricUnitHint_MEBIBYTES  ModelMetricUnitHint = "MEBIBYTES"
+	ModelMetricUnitHint_PER_SECOND ModelMetricUnitHint = "PER_SECOND"
+	ModelMetricUnitHint_RATIO      ModelMetricUnitHint = "RATIO"
+	ModelMetricUnitHint_SECONDS    ModelMetricUnitHint = "SECONDS"
+)
+
+// Valid indicates whether the value is a known member of the ModelMetricUnitHint enum.
+func (e ModelMetricUnitHint) Valid() bool {
+	switch e {
+	case ModelMetricUnitHint_BYTES:
+		return true
+	case ModelMetricUnitHint_COUNT:
+		return true
+	case ModelMetricUnitHint_MEBIBYTES:
+		return true
+	case ModelMetricUnitHint_PER_SECOND:
+		return true
+	case ModelMetricUnitHint_RATIO:
+		return true
+	case ModelMetricUnitHint_SECONDS:
 		return true
 	default:
 		return false
@@ -1198,7 +1204,7 @@ type CreateJobWeightConfig struct {
 	Source string `json:"source"`
 }
 
-// CreateLLMModelRequest A request to create a BIS LLM model
+// CreateLLMModelRequest A request to create a BIS-LLM model
 type CreateLLMModelRequest struct {
 	// AdditionalAutoscalingConfig Additional autoscaling configuration (e.g. target in-flight tokens)
 	AdditionalAutoscalingConfig *map[string]interface{} `json:"additional_autoscaling_config,omitempty"`
@@ -1231,7 +1237,7 @@ type CreateLLMModelRequest struct {
 	Weights *[]map[string]interface{} `json:"weights,omitempty"`
 }
 
-// CreateLLMModelVersionRequest A request to create a BIS LLM model version
+// CreateLLMModelVersionRequest A request to create a BIS-LLM model version
 type CreateLLMModelVersionRequest struct {
 	// AdditionalAutoscalingConfig Additional autoscaling configuration (e.g. target in-flight tokens)
 	AdditionalAutoscalingConfig *map[string]interface{} `json:"additional_autoscaling_config,omitempty"`
@@ -1554,6 +1560,9 @@ type CreatedModelDeployment struct {
 
 // DailyDedicatedUsage defines model for DailyDedicatedUsage.
 type DailyDedicatedUsage struct {
+	// ComputeCost Compute cost incurred on this date in dollars
+	ComputeCost DailyDedicatedUsage_ComputeCost `json:"compute_cost"`
+
 	// Date Date of the usage
 	Date string `json:"date"`
 
@@ -1565,6 +1574,20 @@ type DailyDedicatedUsage struct {
 
 	// Subtotal Subtotal cost incurred on this date in dollars
 	Subtotal DailyDedicatedUsage_Subtotal `json:"subtotal"`
+
+	// SurchargeCost Model distribution surcharge incurred on this date in dollars
+	SurchargeCost DailyDedicatedUsage_SurchargeCost `json:"surcharge_cost"`
+}
+
+// DailyDedicatedUsageComputeCost0 defines model for .
+type DailyDedicatedUsageComputeCost0 = float32
+
+// DailyDedicatedUsageComputeCost1 defines model for .
+type DailyDedicatedUsageComputeCost1 = string
+
+// DailyDedicatedUsage_ComputeCost Compute cost incurred on this date in dollars
+type DailyDedicatedUsage_ComputeCost struct {
+	union json.RawMessage
 }
 
 // DailyDedicatedUsageSubtotal0 defines model for .
@@ -1575,6 +1598,17 @@ type DailyDedicatedUsageSubtotal1 = string
 
 // DailyDedicatedUsage_Subtotal Subtotal cost incurred on this date in dollars
 type DailyDedicatedUsage_Subtotal struct {
+	union json.RawMessage
+}
+
+// DailyDedicatedUsageSurchargeCost0 defines model for .
+type DailyDedicatedUsageSurchargeCost0 = float32
+
+// DailyDedicatedUsageSurchargeCost1 defines model for .
+type DailyDedicatedUsageSurchargeCost1 = string
+
+// DailyDedicatedUsage_SurchargeCost Model distribution surcharge incurred on this date in dollars
+type DailyDedicatedUsage_SurchargeCost struct {
 	union json.RawMessage
 }
 
@@ -1652,6 +1686,9 @@ type DeactivateResponse struct {
 type DedicatedItem struct {
 	BillableResource BillableResource `json:"billable_resource"`
 
+	// ComputeCost Compute cost in dollars for this billable resource
+	ComputeCost DedicatedItem_ComputeCost `json:"compute_cost"`
+
 	// Daily Daily usage breakdown
 	Daily *[]DailyDedicatedUsage `json:"daily,omitempty"`
 
@@ -1663,6 +1700,20 @@ type DedicatedItem struct {
 
 	// Subtotal Subtotal cost in dollars for this billable resource
 	Subtotal DedicatedItem_Subtotal `json:"subtotal"`
+
+	// SurchargeCost Model distribution surcharge in dollars for this billable resource
+	SurchargeCost DedicatedItem_SurchargeCost `json:"surcharge_cost"`
+}
+
+// DedicatedItemComputeCost0 defines model for .
+type DedicatedItemComputeCost0 = float32
+
+// DedicatedItemComputeCost1 defines model for .
+type DedicatedItemComputeCost1 = string
+
+// DedicatedItem_ComputeCost Compute cost in dollars for this billable resource
+type DedicatedItem_ComputeCost struct {
+	union json.RawMessage
 }
 
 // DedicatedItemSubtotal0 defines model for .
@@ -1673,6 +1724,17 @@ type DedicatedItemSubtotal1 = string
 
 // DedicatedItem_Subtotal Subtotal cost in dollars for this billable resource
 type DedicatedItem_Subtotal struct {
+	union json.RawMessage
+}
+
+// DedicatedItemSurchargeCost0 defines model for .
+type DedicatedItemSurchargeCost0 = float32
+
+// DedicatedItemSurchargeCost1 defines model for .
+type DedicatedItemSurchargeCost1 = string
+
+// DedicatedItem_SurchargeCost Model distribution surcharge in dollars for this billable resource
+type DedicatedItem_SurchargeCost struct {
 	union json.RawMessage
 }
 
@@ -1825,75 +1887,6 @@ type DeploymentConfigResponse struct {
 
 	// RawConfig The original config.yaml text — preserves comments, ordering, formatting.
 	RawConfig *string `json:"raw_config,omitempty"`
-}
-
-// DeploymentMetricDescriptor Describes one metric. Its position in the response “metric_descriptors“
-// list is the index used to read that metric out of each value set's “values“.
-//
-// A metric may break down into multiple labeled series (e.g. latency quantiles,
-// or volume by status). “label_sets“ enumerates those series in order; each
-// value set's value for this metric is a list aligned to that order.
-type DeploymentMetricDescriptor struct {
-	// Kind Semantic hint for how a metric behaves, to aid client rendering and
-	// aggregation. It does not describe the value's shape — that is carried by the
-	// descriptor's ``label_sets`` (a metric may break down into multiple series).
-	//
-	// - ``GAUGE``: an instantaneous value (e.g. queue size, running requests).
-	// - ``COUNTER``: a cumulative total over the step (e.g. tokens, restarts).
-	// - ``HISTOGRAM``: a distribution, exposed as quantile/average series.
-	Kind DeploymentMetricKind `json:"kind"`
-
-	// LabelSets The metric's series, in order. Each entry is the set of labels identifying one series; the value at the same index in each value set's ``values`` is that series' value. A plain metric has a single entry with no labels (`{}`). A histogram has one entry per quantile plus an average, e.g. {'quantile': '0.5'} … {'quantile': '0.99'}, {'stat': 'avg'}. A by-status metric has one entry per status, e.g. {'status': '2xx'}.
-	LabelSets []map[string]string `json:"label_sets"`
-
-	// Name Canonical metric name.
-	Name string `json:"name"`
-
-	// UnitHint Advisory unit of a metric's values. Values are reported as scraped, so the
-	// hint describes the raw value (e.g. GPU memory is reported in mebibytes).
-	//
-	// - ``PER_SECOND``: a rate per second.
-	// - ``SECONDS``: a duration in seconds.
-	// - ``BYTES``: a size in bytes.
-	// - ``MEBIBYTES``: a size in mebibytes (MiB).
-	// - ``COUNT``: a dimensionless tally of discrete things.
-	// - ``RATIO``: a dimensionless ratio. Usually in ``[0, 1]`` but may exceed 1
-	//   (e.g. CPU usage in cores = cpu-seconds/second).
-	UnitHint DeploymentMetricUnitHint `json:"unit_hint"`
-}
-
-// DeploymentMetricKind Semantic hint for how a metric behaves, to aid client rendering and
-// aggregation. It does not describe the value's shape — that is carried by the
-// descriptor's “label_sets“ (a metric may break down into multiple series).
-//
-// - “GAUGE“: an instantaneous value (e.g. queue size, running requests).
-// - “COUNTER“: a cumulative total over the step (e.g. tokens, restarts).
-// - “HISTOGRAM“: a distribution, exposed as quantile/average series.
-type DeploymentMetricKind string
-
-// DeploymentMetricMode How metric values are aggregated over the request.
-type DeploymentMetricMode string
-
-// DeploymentMetricUnitHint Advisory unit of a metric's values. Values are reported as scraped, so the
-// hint describes the raw value (e.g. GPU memory is reported in mebibytes).
-//
-//   - “PER_SECOND“: a rate per second.
-//   - “SECONDS“: a duration in seconds.
-//   - “BYTES“: a size in bytes.
-//   - “MEBIBYTES“: a size in mebibytes (MiB).
-//   - “COUNT“: a dimensionless tally of discrete things.
-//   - “RATIO“: a dimensionless ratio. Usually in “[0, 1]“ but may exceed 1
-//     (e.g. CPU usage in cores = cpu-seconds/second).
-type DeploymentMetricUnitHint string
-
-// DeploymentMetricValueSet The metric values for one time step. “values“ is aligned by index to the
-// response “metric_descriptors“ list.
-type DeploymentMetricValueSet struct {
-	// StartEpochMillis Start of the step. The step spans until the next value set's start, or the window end for the last one; a summary has a single value set starting at the window start.
-	StartEpochMillis int `json:"start_epoch_millis"`
-
-	// Values Metric values aligned to the ``metric_descriptors`` index. Each entry is a list aligned to that descriptor's ``label_sets`` (a single-element list for a plain metric). A series with no data in this step is null.
-	Values [][]*float32 `json:"values"`
 }
 
 // DeploymentPatchAction How a patch op changes its target.
@@ -2077,9 +2070,9 @@ type DownloadDeploymentResponse struct {
 	DownloadUrl string `json:"download_url"`
 }
 
-// DownloadTrainingJobResponse A response that includes the artifacts for a training job
+// DownloadTrainingJobResponse A response with presigned URLs for a training job's artifacts.
 type DownloadTrainingJobResponse struct {
-	// ArtifactPresignedUrls Presigned URL's for the artifacts
+	// ArtifactPresignedUrls Presigned URLs for the job's uploaded artifacts.
 	ArtifactPresignedUrls []string `json:"artifact_presigned_urls"`
 }
 
@@ -2143,7 +2136,7 @@ type EndpointTarget struct {
 	// Provider Customer-facing provider for an endpoint target.
 	//
 	// External providers resolve to a fixed upstream host + protocol adapter via
-	// ``_EXTERNAL_PROVIDER_CONFIGS``; ``BASETEN`` derives its host from the referenced oracle.
+	// ``external_provider_configs()``; ``BASETEN`` derives its host from the referenced oracle.
 	Provider GatewayProvider `json:"provider"`
 
 	// SecretId Referenced secret, if any.
@@ -2165,7 +2158,7 @@ type EndpointTargetRequest struct {
 	// Provider Customer-facing provider for an endpoint target.
 	//
 	// External providers resolve to a fixed upstream host + protocol adapter via
-	// ``_EXTERNAL_PROVIDER_CONFIGS``; ``BASETEN`` derives its host from the referenced oracle.
+	// ``external_provider_configs()``; ``BASETEN`` derives its host from the referenced oracle.
 	Provider GatewayProvider `json:"provider"`
 
 	// SecretId Secret holding the provider credential. Required for external providers.
@@ -2302,7 +2295,7 @@ type GatewayKeyInfo struct {
 // GatewayProvider Customer-facing provider for an endpoint target.
 //
 // External providers resolve to a fixed upstream host + protocol adapter via
-// “_EXTERNAL_PROVIDER_CONFIGS“; “BASETEN“ derives its host from the referenced oracle.
+// “external_provider_configs()“; “BASETEN“ derives its host from the referenced oracle.
 type GatewayProvider string
 
 // GcpOidcDockerAuth GCP OIDC details for the registry.
@@ -2381,29 +2374,6 @@ type GetDeploymentLogsRequest struct {
 
 	// StartEpochMillis Epoch milliseconds at which to start fetching logs. Defaults to 30 minutes before the end. The window from start to end must not exceed 7 days.
 	StartEpochMillis *int `json:"start_epoch_millis,omitempty"`
-}
-
-// GetDeploymentMetricsResponse Deployment metrics over a time window, index-mapped: metric descriptors
-// appear once in “metric_descriptors“; each value set's “values“ are aligned
-// to that order.
-type GetDeploymentMetricsResponse struct {
-	// EndEpochMillis End of the returned window.
-	EndEpochMillis int `json:"end_epoch_millis"`
-
-	// MetricDescriptors Descriptors for each metric; position defines the values index.
-	MetricDescriptors []DeploymentMetricDescriptor `json:"metric_descriptors"`
-
-	// MetricValues Metric values per time step covering the window. In summary mode this always contains exactly one value set spanning the whole window.
-	MetricValues []DeploymentMetricValueSet `json:"metric_values"`
-
-	// Mode How metric values are aggregated over the request.
-	Mode DeploymentMetricMode `json:"mode"`
-
-	// StartEpochMillis Start of the returned window.
-	StartEpochMillis int `json:"start_epoch_millis"`
-
-	// StepSeconds Seconds per step; populated only in SERIES mode, null otherwise.
-	StepSeconds *int `json:"step_seconds"`
 }
 
 // GetDeploymentPatchesStateResponse The patch state of the development deployment.
@@ -2495,6 +2465,28 @@ type GetLoopsSessionResponse struct {
 type GetLoopsUserConfigResponse struct {
 	// UserConfig The caller's Loops user-level config (accelerator priorities).
 	UserConfig LoopsUserConfig `json:"user_config"`
+}
+
+// GetModelMetricsResponse Model metrics over a time window, index-mapped: metric descriptors appear once
+// in “metric_descriptors“; each value set's “values“ are aligned to that order.
+type GetModelMetricsResponse struct {
+	// EndEpochMillis End of the returned window.
+	EndEpochMillis int `json:"end_epoch_millis"`
+
+	// MetricDescriptors Descriptors for each metric; position defines the values index.
+	MetricDescriptors []ModelMetricDescriptor `json:"metric_descriptors"`
+
+	// MetricValues Metric values per time step covering the window. In summary mode this always contains exactly one value set spanning the whole window.
+	MetricValues []ModelMetricValueSet `json:"metric_values"`
+
+	// Mode How metric values are aggregated over the request.
+	Mode ModelMetricMode `json:"mode"`
+
+	// StartEpochMillis Start of the returned window.
+	StartEpochMillis int `json:"start_epoch_millis"`
+
+	// StepSeconds Seconds per step; populated only in SERIES mode, null otherwise.
+	StepSeconds *int `json:"step_seconds"`
 }
 
 // GetTrainingGpuCapacityResponse Response for the training GPU capacity endpoint.
@@ -2821,7 +2813,7 @@ type KeysForGroupResponse struct {
 	Pagination PaginationResponse `json:"pagination"`
 }
 
-// LLMModelHandle Handle for a BIS LLM model deployment.
+// LLMModelHandle Handle for a BIS-LLM model deployment.
 type LLMModelHandle struct {
 	// Hostname Hostname used to invoke the model
 	Hostname string `json:"hostname"`
@@ -3079,6 +3071,9 @@ type LoopsCheckpointFilesResponse struct {
 // samplers visible to the caller (across all deployments) lives at
 // “GET /v1/loops/samplers“.
 type LoopsDeployment struct {
+	// ActiveRunId The ID of the run currently active on this deployment, if any. Null when the deployment's runs have been marked inactive (e.g. scale-to-zero) without a successor.
+	ActiveRunId *string `json:"active_run_id,omitempty"`
+
 	// BaseModel The HuggingFace base model the deployment is fine-tuning.
 	BaseModel string `json:"base_model"`
 
@@ -3169,6 +3164,9 @@ type LoopsRun struct {
 
 	// CreatedAt Time the run was created in ISO 8601 format
 	CreatedAt time.Time `json:"created_at"`
+
+	// DeploymentId The ID of the Loops deployment the run executes on.
+	DeploymentId string `json:"deployment_id"`
 
 	// Id The run ID.
 	Id string `json:"id"`
@@ -3435,6 +3433,75 @@ type ModelConfig struct {
 	UsageLimits *[]UsageLimit `json:"usage_limits,omitempty"`
 }
 
+// ModelMetricDescriptor Describes one metric. Its position in the response “metric_descriptors“
+// list is the index used to read that metric out of each value set's “values“.
+//
+// A metric may break down into multiple labeled series (e.g. latency quantiles,
+// or volume by status). “label_sets“ enumerates those series in order; each
+// value set's value for this metric is a list aligned to that order.
+type ModelMetricDescriptor struct {
+	// Kind Semantic hint for how a metric behaves, to aid client rendering and
+	// aggregation. It does not describe the value's shape (that is carried by the
+	// descriptor's ``label_sets``; a metric may break down into multiple series).
+	//
+	// - ``GAUGE``: an instantaneous value (e.g. queue size, running requests).
+	// - ``COUNTER``: a cumulative total over the step (e.g. tokens, restarts).
+	// - ``HISTOGRAM``: a distribution, exposed as quantile/average series.
+	Kind ModelMetricKind `json:"kind"`
+
+	// LabelSets The metric's series, in order. Each entry is the set of labels identifying one series; the value at the same index in each value set's ``values`` is that series' value. A plain metric has a single entry with no labels (`{}`). A histogram has one entry per quantile plus an average, e.g. {'quantile': '0.5'} … {'quantile': '0.99'}, {'stat': 'avg'}. A by-status metric has one entry per status, e.g. {'status': '2xx'}.
+	LabelSets []map[string]string `json:"label_sets"`
+
+	// Name Canonical metric name.
+	Name string `json:"name"`
+
+	// UnitHint Advisory unit of a metric's values. Values are reported as scraped, so the
+	// hint describes the raw value (e.g. GPU memory is reported in mebibytes).
+	//
+	// - ``PER_SECOND``: a rate per second.
+	// - ``SECONDS``: a duration in seconds.
+	// - ``BYTES``: a size in bytes.
+	// - ``MEBIBYTES``: a size in mebibytes (MiB).
+	// - ``COUNT``: a dimensionless tally of discrete things.
+	// - ``RATIO``: a dimensionless ratio. Usually in ``[0, 1]`` but may exceed 1
+	//   (e.g. CPU usage in cores = cpu-seconds/second).
+	UnitHint ModelMetricUnitHint `json:"unit_hint"`
+}
+
+// ModelMetricKind Semantic hint for how a metric behaves, to aid client rendering and
+// aggregation. It does not describe the value's shape (that is carried by the
+// descriptor's “label_sets“; a metric may break down into multiple series).
+//
+// - “GAUGE“: an instantaneous value (e.g. queue size, running requests).
+// - “COUNTER“: a cumulative total over the step (e.g. tokens, restarts).
+// - “HISTOGRAM“: a distribution, exposed as quantile/average series.
+type ModelMetricKind string
+
+// ModelMetricMode How metric values are aggregated over the request.
+type ModelMetricMode string
+
+// ModelMetricUnitHint Advisory unit of a metric's values. Values are reported as scraped, so the
+// hint describes the raw value (e.g. GPU memory is reported in mebibytes).
+//
+//   - “PER_SECOND“: a rate per second.
+//   - “SECONDS“: a duration in seconds.
+//   - “BYTES“: a size in bytes.
+//   - “MEBIBYTES“: a size in mebibytes (MiB).
+//   - “COUNT“: a dimensionless tally of discrete things.
+//   - “RATIO“: a dimensionless ratio. Usually in “[0, 1]“ but may exceed 1
+//     (e.g. CPU usage in cores = cpu-seconds/second).
+type ModelMetricUnitHint string
+
+// ModelMetricValueSet The metric values for one time step. “values“ is aligned by index to the
+// response “metric_descriptors“ list.
+type ModelMetricValueSet struct {
+	// StartEpochMillis Start of the step. The step spans until the next value set's start, or the window end for the last one; a summary has a single value set starting at the window start.
+	StartEpochMillis int `json:"start_epoch_millis"`
+
+	// Values Metric values aligned to the ``metric_descriptors`` index. Each entry is a list aligned to that descriptor's ``label_sets`` (a single-element list for a plain metric). A series with no data in this step is null.
+	Values [][]*float32 `json:"values"`
+}
+
 // ModelTombstone A model tombstone.
 type ModelTombstone struct {
 	// Deleted Whether the model was deleted
@@ -3519,6 +3586,27 @@ type PatchLoopsUserConfigRequest struct {
 type PatchLoopsUserConfigResponse struct {
 	// UserConfig The caller's Loops user-level config (accelerator priorities).
 	UserConfig LoopsUserConfig `json:"user_config"`
+}
+
+// PatchTeamTrainingGpuCapacityRequest A request to set the GPU capacity ceiling for a (team, gpu_type) pair.
+//
+// Creates the limit if one doesn't already exist for this team and GPU type,
+// otherwise updates it in place.
+type PatchTeamTrainingGpuCapacityRequest struct {
+	// GpuType GPU type identifier (e.g. H100, A100-40GB)
+	GpuType string `json:"gpu_type"`
+
+	// MaxGpus Max concurrent GPUs of this type the team may use
+	MaxGpus int `json:"max_gpus"`
+
+	// TeamId Team identifier
+	TeamId string `json:"team_id"`
+}
+
+// PatchTeamTrainingGpuCapacityResponse Response for setting a team's GPU capacity ceiling.
+type PatchTeamTrainingGpuCapacityResponse struct {
+	// TeamGpuCapacity Per-team GPU capacity and current usage for one GPU type.
+	TeamGpuCapacity TeamTrainingGpuCapacityItem `json:"team_gpu_capacity"`
 }
 
 // PendingJobAheadAtSubmit A PENDING job in the same (org, gpu_type) pool that was ahead of the
@@ -4661,9 +4749,21 @@ type GetV1ModelApisParams struct {
 	AddedOnly *bool `form:"added_only,omitempty" json:"added_only,omitempty"`
 }
 
+// GetV1ModelsParams defines parameters for GetV1Models.
+type GetV1ModelsParams struct {
+	// Name When set, returns only models with this exact name, if any. On a team-scoped route this matches at most one model; on the org-wide route it may match models in multiple teams, since names are unique only within a team.
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
+// GetV1ModelsModelIdDeploymentsParams defines parameters for GetV1ModelsModelIdDeployments.
+type GetV1ModelsModelIdDeploymentsParams struct {
+	// Name When set, returns only the deployment with this exact name, if any.
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
 // GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdConfig.
 type GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams struct {
-	// OutputFormat 'raw': verbatim config.yaml with comments — not available for deployments created before 2026-04-30. 'parsed': dict with server-side defaults applied — always available. 'both': both fields populated.
+	// OutputFormat 'raw': verbatim config.yaml with comments (not available for deployments created before 2026-04-30). 'parsed': dict with server-side defaults applied (always available). 'both': both fields populated.
 	OutputFormat *DeploymentConfigOutputFormat `form:"output_format,omitempty" json:"output_format,omitempty"`
 }
 
@@ -4706,7 +4806,7 @@ type GetV1ModelsModelIdDeploymentsDeploymentIdLogsParams struct {
 // GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdMetrics.
 type GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams struct {
 	// Mode 'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration.
-	Mode *DeploymentMetricMode `form:"mode,omitempty" json:"mode,omitempty"`
+	Mode *ModelMetricMode `form:"mode,omitempty" json:"mode,omitempty"`
 
 	// StartEpochMillis Epoch millis timestamp to start fetching metrics. Defaults to one hour before the end.
 	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
@@ -4714,7 +4814,7 @@ type GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams struct {
 	// EndEpochMillis Epoch millis timestamp to end fetching metrics. Defaults to the current time. The window between start and end must not exceed 7 days.
 	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
 
-	// Metrics Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply to the deployment are omitted from the response.
+	// Metrics Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply are omitted from the response.
 	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
 }
 
@@ -4752,6 +4852,33 @@ type GetV1ModelsModelIdEnvironmentsEnvNameLogsParams struct {
 
 	// Excludes Case-sensitive substrings; lines containing any of these are dropped.
 	Excludes *[]string `form:"excludes,omitempty" json:"excludes,omitempty"`
+}
+
+// GetV1ModelsModelIdEnvironmentsEnvNameMetricsParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameMetrics.
+type GetV1ModelsModelIdEnvironmentsEnvNameMetricsParams struct {
+	// Mode 'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration.
+	Mode *ModelMetricMode `form:"mode,omitempty" json:"mode,omitempty"`
+
+	// StartEpochMillis Epoch millis timestamp to start fetching metrics. Defaults to one hour before the end.
+	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// EndEpochMillis Epoch millis timestamp to end fetching metrics. Defaults to the current time. The window between start and end must not exceed 7 days.
+	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
+
+	// Metrics Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply are omitted from the response.
+	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
+}
+
+// GetV1TeamsParams defines parameters for GetV1Teams.
+type GetV1TeamsParams struct {
+	// Name When set, returns only the team with this exact name, if any.
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
+// GetV1TeamsTeamIdModelsParams defines parameters for GetV1TeamsTeamIdModels.
+type GetV1TeamsTeamIdModelsParams struct {
+	// Name When set, returns only models with this exact name, if any. On a team-scoped route this matches at most one model; on the org-wide route it may match models in multiple teams, since names are unique only within a team.
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
 // GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams defines parameters for GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFiles.
@@ -4800,6 +4927,9 @@ type GetV1UsersParams struct {
 
 	// Limit Maximum number of items to return.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Email When set, returns only users with this exact email, if any.
+	Email *string `form:"email,omitempty" json:"email,omitempty"`
 }
 
 // PostV1ApiKeysJSONRequestBody defines body for PostV1ApiKeys for application/json ContentType.
@@ -4945,6 +5075,9 @@ type PostV1TeamsTeamIdSecretsJSONRequestBody = UpsertSecretRequest
 
 // PostV1TeamsTeamIdTrainingProjectsJSONRequestBody defines body for PostV1TeamsTeamIdTrainingProjects for application/json ContentType.
 type PostV1TeamsTeamIdTrainingProjectsJSONRequestBody = UpsertTrainingProjectRequest
+
+// PatchV1TrainingCapacityJSONRequestBody defines body for PatchV1TrainingCapacity for application/json ContentType.
+type PatchV1TrainingCapacityJSONRequestBody = PatchTeamTrainingGpuCapacityRequest
 
 // PostV1TrainingJobsSearchJSONRequestBody defines body for PostV1TrainingJobsSearch for application/json ContentType.
 type PostV1TrainingJobsSearchJSONRequestBody = SearchTrainingJobsRequest
@@ -5260,6 +5393,44 @@ func (t *CreateTrainingJobRuntime_EnvironmentVariables_AdditionalProperties) Unm
 	return err
 }
 
+// AsDailyDedicatedUsageComputeCost0 returns the union data inside the DailyDedicatedUsage_ComputeCost as a DailyDedicatedUsageComputeCost0
+func (t DailyDedicatedUsage_ComputeCost) AsDailyDedicatedUsageComputeCost0() (DailyDedicatedUsageComputeCost0, error) {
+	var body DailyDedicatedUsageComputeCost0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDailyDedicatedUsageComputeCost0 overwrites any union data inside the DailyDedicatedUsage_ComputeCost as the provided DailyDedicatedUsageComputeCost0
+func (t *DailyDedicatedUsage_ComputeCost) FromDailyDedicatedUsageComputeCost0(v DailyDedicatedUsageComputeCost0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsDailyDedicatedUsageComputeCost1 returns the union data inside the DailyDedicatedUsage_ComputeCost as a DailyDedicatedUsageComputeCost1
+func (t DailyDedicatedUsage_ComputeCost) AsDailyDedicatedUsageComputeCost1() (DailyDedicatedUsageComputeCost1, error) {
+	var body DailyDedicatedUsageComputeCost1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDailyDedicatedUsageComputeCost1 overwrites any union data inside the DailyDedicatedUsage_ComputeCost as the provided DailyDedicatedUsageComputeCost1
+func (t *DailyDedicatedUsage_ComputeCost) FromDailyDedicatedUsageComputeCost1(v DailyDedicatedUsageComputeCost1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t DailyDedicatedUsage_ComputeCost) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *DailyDedicatedUsage_ComputeCost) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // AsDailyDedicatedUsageSubtotal0 returns the union data inside the DailyDedicatedUsage_Subtotal as a DailyDedicatedUsageSubtotal0
 func (t DailyDedicatedUsage_Subtotal) AsDailyDedicatedUsageSubtotal0() (DailyDedicatedUsageSubtotal0, error) {
 	var body DailyDedicatedUsageSubtotal0
@@ -5294,6 +5465,44 @@ func (t DailyDedicatedUsage_Subtotal) MarshalJSON() ([]byte, error) {
 }
 
 func (t *DailyDedicatedUsage_Subtotal) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsDailyDedicatedUsageSurchargeCost0 returns the union data inside the DailyDedicatedUsage_SurchargeCost as a DailyDedicatedUsageSurchargeCost0
+func (t DailyDedicatedUsage_SurchargeCost) AsDailyDedicatedUsageSurchargeCost0() (DailyDedicatedUsageSurchargeCost0, error) {
+	var body DailyDedicatedUsageSurchargeCost0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDailyDedicatedUsageSurchargeCost0 overwrites any union data inside the DailyDedicatedUsage_SurchargeCost as the provided DailyDedicatedUsageSurchargeCost0
+func (t *DailyDedicatedUsage_SurchargeCost) FromDailyDedicatedUsageSurchargeCost0(v DailyDedicatedUsageSurchargeCost0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsDailyDedicatedUsageSurchargeCost1 returns the union data inside the DailyDedicatedUsage_SurchargeCost as a DailyDedicatedUsageSurchargeCost1
+func (t DailyDedicatedUsage_SurchargeCost) AsDailyDedicatedUsageSurchargeCost1() (DailyDedicatedUsageSurchargeCost1, error) {
+	var body DailyDedicatedUsageSurchargeCost1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDailyDedicatedUsageSurchargeCost1 overwrites any union data inside the DailyDedicatedUsage_SurchargeCost as the provided DailyDedicatedUsageSurchargeCost1
+func (t *DailyDedicatedUsage_SurchargeCost) FromDailyDedicatedUsageSurchargeCost1(v DailyDedicatedUsageSurchargeCost1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t DailyDedicatedUsage_SurchargeCost) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *DailyDedicatedUsage_SurchargeCost) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -5374,6 +5583,44 @@ func (t *DailyTrainingUsage_Subtotal) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// AsDedicatedItemComputeCost0 returns the union data inside the DedicatedItem_ComputeCost as a DedicatedItemComputeCost0
+func (t DedicatedItem_ComputeCost) AsDedicatedItemComputeCost0() (DedicatedItemComputeCost0, error) {
+	var body DedicatedItemComputeCost0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDedicatedItemComputeCost0 overwrites any union data inside the DedicatedItem_ComputeCost as the provided DedicatedItemComputeCost0
+func (t *DedicatedItem_ComputeCost) FromDedicatedItemComputeCost0(v DedicatedItemComputeCost0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsDedicatedItemComputeCost1 returns the union data inside the DedicatedItem_ComputeCost as a DedicatedItemComputeCost1
+func (t DedicatedItem_ComputeCost) AsDedicatedItemComputeCost1() (DedicatedItemComputeCost1, error) {
+	var body DedicatedItemComputeCost1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDedicatedItemComputeCost1 overwrites any union data inside the DedicatedItem_ComputeCost as the provided DedicatedItemComputeCost1
+func (t *DedicatedItem_ComputeCost) FromDedicatedItemComputeCost1(v DedicatedItemComputeCost1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t DedicatedItem_ComputeCost) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *DedicatedItem_ComputeCost) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // AsDedicatedItemSubtotal0 returns the union data inside the DedicatedItem_Subtotal as a DedicatedItemSubtotal0
 func (t DedicatedItem_Subtotal) AsDedicatedItemSubtotal0() (DedicatedItemSubtotal0, error) {
 	var body DedicatedItemSubtotal0
@@ -5408,6 +5655,44 @@ func (t DedicatedItem_Subtotal) MarshalJSON() ([]byte, error) {
 }
 
 func (t *DedicatedItem_Subtotal) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsDedicatedItemSurchargeCost0 returns the union data inside the DedicatedItem_SurchargeCost as a DedicatedItemSurchargeCost0
+func (t DedicatedItem_SurchargeCost) AsDedicatedItemSurchargeCost0() (DedicatedItemSurchargeCost0, error) {
+	var body DedicatedItemSurchargeCost0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDedicatedItemSurchargeCost0 overwrites any union data inside the DedicatedItem_SurchargeCost as the provided DedicatedItemSurchargeCost0
+func (t *DedicatedItem_SurchargeCost) FromDedicatedItemSurchargeCost0(v DedicatedItemSurchargeCost0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsDedicatedItemSurchargeCost1 returns the union data inside the DedicatedItem_SurchargeCost as a DedicatedItemSurchargeCost1
+func (t DedicatedItem_SurchargeCost) AsDedicatedItemSurchargeCost1() (DedicatedItemSurchargeCost1, error) {
+	var body DedicatedItemSurchargeCost1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDedicatedItemSurchargeCost1 overwrites any union data inside the DedicatedItem_SurchargeCost as the provided DedicatedItemSurchargeCost1
+func (t *DedicatedItem_SurchargeCost) FromDedicatedItemSurchargeCost1(v DedicatedItemSurchargeCost1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t DedicatedItem_SurchargeCost) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *DedicatedItem_SurchargeCost) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

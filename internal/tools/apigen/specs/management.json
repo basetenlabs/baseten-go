@@ -53,7 +53,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/secrets\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'my_secret', 'value': 'my_secret_value'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Creates or updates a secret by name. Scoped to the caller's primary team \u2014 use the team-scoped variant to target a specific team.",
+                "description": "Creates or updates a secret by name. Scoped to the caller's primary team; use the team-scoped variant to target a specific team.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -228,7 +228,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/environment_groups\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists the environment groups for the team specified in the path, or for the caller's organization default team when no team is specified.",
+                "description": "Lists environment groups. The team-scoped path targets the team in the path; the top-level path targets the caller's organization default team.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -256,7 +256,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/environment_groups/{env_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Gets a single environment group by name on the team specified in the path, or on the caller's organization default team when no team is specified.",
+                "description": "Gets a single environment group by name. The team-scoped path targets the team in the path; the top-level path targets the caller's organization default team.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -287,7 +287,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/environment_groups/{env_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'manage_access': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Sets whether the environment is restricted and replaces the list of users granted manage access. Targets the team specified in the path, or the caller's organization default team when no team is specified.",
+                "description": "Sets whether the environment is restricted and replaces the list of users granted manage access. The team-scoped path targets the team in the path; the top-level path targets the caller's organization default team.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -325,7 +325,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/environment_groups\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists the environment groups for the team specified in the path, or for the caller's organization default team when no team is specified.",
+                "description": "Lists environment groups. The team-scoped path targets the team in the path; the top-level path targets the caller's organization default team.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -358,7 +358,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/environment_groups/{env_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Gets a single environment group by name on the team specified in the path, or on the caller's organization default team when no team is specified.",
+                "description": "Gets a single environment group by name. The team-scoped path targets the team in the path; the top-level path targets the caller's organization default team.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -392,7 +392,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/environment_groups/{env_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'manage_access': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Sets whether the environment is restricted and replaces the list of users granted manage access. Targets the team specified in the path, or the caller's organization default team when no team is specified.",
+                "description": "Sets whether the environment is restricted and replaces the list of users granted manage access. The team-scoped path targets the team in the path; the top-level path targets the caller's organization default team.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -431,6 +431,26 @@
                     }
                 ],
                 "description": "Returns a list of all teams the authenticated user has access to.",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only the team with this exact name, if any.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Name"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -507,7 +527,7 @@
         },
         "/v1/loops/user_config": {
             "get": {
-                "summary": "Get the caller's Loops user config.",
+                "summary": "Gets the caller's Loops user config",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -533,7 +553,7 @@
                 }
             },
             "patch": {
-                "summary": "Patch the caller's Loops user config.",
+                "summary": "Patches the caller's Loops user config",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -571,7 +591,7 @@
         },
         "/v1/instance_type_prices": {
             "get": {
-                "summary": "Gets prices for available instance types.",
+                "summary": "Gets prices for available instance types",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -646,6 +666,26 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only models with this exact name, if any. On a team-scoped route this matches at most one model; on the org-wide route it may match models in multiple teams, since names are unique only within a team.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Name"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -671,7 +711,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'source': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Creates a new model in the caller's organization. The `source` field selects how the model is constructed (currently: `library_listing` \u2014 fork an accessible listing from `GET /v1/library_models`). The deployment isn't instantly ready \u2014 poll GET endpoint until status is ACTIVE.",
+                "description": "Creates a new model in the caller's organization. The `source` field selects how the model is constructed (currently `library_listing`, which forks an accessible listing from `GET /v1/library_models`). The deployment isn't instantly ready; poll the GET endpoint until status is ACTIVE.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -709,6 +749,26 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only models with this exact name, if any. On a team-scoped route this matches at most one model; on the org-wide route it may match models in multiple teams, since names are unique only within a team.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Name"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -739,7 +799,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'source': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Creates a new model in the caller's organization. The `source` field selects how the model is constructed (currently: `library_listing` \u2014 fork an accessible listing from `GET /v1/library_models`). The deployment isn't instantly ready \u2014 poll GET endpoint until status is ACTIVE.",
+                "description": "Creates a new model in the caller's organization. The `source` field selects how the model is constructed (currently `library_listing`, which forks an accessible listing from `GET /v1/library_models`). The deployment isn't instantly ready; poll the GET endpoint until status is ACTIVE.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -832,6 +892,26 @@
                     {
                         "lang": "python",
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only the deployment with this exact name, if any.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Name"
+                        }
                     }
                 ],
                 "responses": {
@@ -1161,7 +1241,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/development/promote\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'scale_down_previous_production': True, 'preserve_env_instance_type': True}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Creates a new production deployment from the development deployment, the currently building deployment is returned.",
+                "description": "Creates a new production deployment from the development deployment and returns the deployment that is building.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1598,7 +1678,7 @@
                         "name": "output_format",
                         "in": "query",
                         "required": false,
-                        "description": "'raw': verbatim config.yaml with comments \u2014 not available for deployments created before 2026-04-30. 'parsed': dict with server-side defaults applied \u2014 always available. 'both': both fields populated.",
+                        "description": "'raw': verbatim config.yaml with comments (not available for deployments created before 2026-04-30). 'parsed': dict with server-side defaults applied (always available). 'both': both fields populated.",
                         "schema": {
                             "$ref": "#/components/schemas/DeploymentConfigOutputFormat",
                             "default": "both"
@@ -1629,7 +1709,7 @@
         },
         "/v1/models/{model_id}/deployments/{deployment_id}/logs": {
             "get": {
-                "summary": "Gets the logs for a model deployment.",
+                "summary": "Gets the logs for a model deployment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -1859,7 +1939,7 @@
                 }
             ],
             "post": {
-                "summary": "Gets the logs for a model deployment (deprecated; use GET).",
+                "summary": "Gets the logs for a model deployment (deprecated; use GET)",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -1899,7 +1979,7 @@
         },
         "/v1/models/{model_id}/deployments/{deployment_id}/patches": {
             "post": {
-                "summary": "Stage a patch against a development deployment.",
+                "summary": "Stages a patch against a development deployment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -1946,7 +2026,7 @@
         },
         "/v1/models/{model_id}/deployments/{deployment_id}/patches/state": {
             "get": {
-                "summary": "Get a development deployment's patch state.",
+                "summary": "Gets a development deployment's patch state",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -1983,7 +2063,7 @@
         },
         "/v1/models/{model_id}/deployments/{deployment_id}/patches/sync": {
             "post": {
-                "summary": "Sync staged patches to a development deployment.",
+                "summary": "Syncs staged patches to a development deployment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -2030,7 +2110,7 @@
         },
         "/v1/models/{model_id}/deployments/{deployment_id}/metrics": {
             "get": {
-                "summary": "Gets the metrics for a model deployment.",
+                "summary": "Gets the metrics for a model deployment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -2049,7 +2129,7 @@
                         "required": false,
                         "description": "'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration.",
                         "schema": {
-                            "$ref": "#/components/schemas/DeploymentMetricModeV1",
+                            "$ref": "#/components/schemas/ModelMetricModeV1",
                             "default": "CURRENT"
                         }
                     },
@@ -2093,7 +2173,7 @@
                         "name": "metrics",
                         "in": "query",
                         "required": false,
-                        "description": "Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply to the deployment are omitted from the response.",
+                        "description": "Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply are omitted from the response.",
                         "schema": {
                             "items": {
                                 "type": "string"
@@ -2109,7 +2189,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/GetDeploymentMetricsResponseV1"
+                                    "$ref": "#/components/schemas/GetModelMetricsResponseV1"
                                 }
                             }
                         }
@@ -2167,7 +2247,7 @@
         },
         "/v1/models/{model_id}/deployments/{deployment_id}/ssh/sign": {
             "post": {
-                "summary": "Sign an SSH certificate for an inference model.",
+                "summary": "Signs an SSH certificate for an inference model",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -2213,7 +2293,7 @@
         },
         "/v1/models/{model_id}/environments": {
             "get": {
-                "summary": "Get all environments",
+                "summary": "Gets all environments",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -2224,7 +2304,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Gets all environments for a given model",
+                "description": "Gets all environments for a given model.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -2244,7 +2324,7 @@
                 }
             ],
             "post": {
-                "summary": "Create an environment",
+                "summary": "Creates an environment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -2282,7 +2362,7 @@
         },
         "/v1/models/{model_id}/environments/{env_name}": {
             "get": {
-                "summary": "Get an environment's details",
+                "summary": "Gets an environment's details",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -2316,7 +2396,7 @@
                 }
             ],
             "patch": {
-                "summary": "Update an environment's settings",
+                "summary": "Updates an environment's settings",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -2354,7 +2434,7 @@
         },
         "/v1/models/{model_id}/environments/{env_name}/logs": {
             "get": {
-                "summary": "Gets the logs for a model environment.",
+                "summary": "Gets the logs for a model environment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -2574,6 +2654,104 @@
                         }
                     }
                 }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/env_name"
+                }
+            ]
+        },
+        "/v1/models/{model_id}/environments/{env_name}/metrics": {
+            "get": {
+                "summary": "Gets the metrics for a model environment.",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/metrics \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/metrics\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Gets metrics aggregated across every deployment that was active on the environment in the given time range. In series mode the window is split at each promotion so that every point reflects the deployment(s) serving the environment at that time.",
+                "parameters": [
+                    {
+                        "name": "mode",
+                        "in": "query",
+                        "required": false,
+                        "description": "'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ModelMetricModeV1",
+                            "default": "CURRENT"
+                        }
+                    },
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to start fetching metrics. Defaults to one hour before the end.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to end fetching metrics. Defaults to the current time. The window between start and end must not exceed 7 days.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "metrics",
+                        "in": "query",
+                        "required": false,
+                        "description": "Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply are omitted from the response.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Metrics",
+                            "type": "array"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetModelMetricsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
             },
             "parameters": [
                 {
@@ -3096,7 +3274,7 @@
         },
         "/v1/chains/{chain_id}/deployments/{chain_deployment_id}/chainlets/{chainlet_id}/logs": {
             "get": {
-                "summary": "Gets the logs for a chainlet within a chain deployment.",
+                "summary": "Gets the logs for a chainlet within a chain deployment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3331,7 +3509,7 @@
         },
         "/v1/chains/{chain_id}/environments": {
             "get": {
-                "summary": "Get all chain environments",
+                "summary": "Gets all chain environments",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3342,7 +3520,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/chains/{chain_id}/environments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Gets all chain environments for a given chain",
+                "description": "Gets all chain environments for a given chain.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -3362,7 +3540,7 @@
                 }
             ],
             "post": {
-                "summary": "Create a chain environment",
+                "summary": "Creates a chain environment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3373,7 +3551,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/chains/{chain_id}/environments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'staging', 'promotion_settings': {'promotion_cleanup_strategy': None, 'ramp_up_duration_seconds': 600, 'ramp_up_while_promoting': True, 'redeploy_on_promotion': True, 'rolling_deploy': None, 'rolling_deploy_config': None}, 'chainlet_settings': [{'autoscaling_settings': {'autoscaling_window': 800, 'concurrency_target': 4, 'max_replica': 3, 'max_scale_down_rate': None, 'min_replica': 2, 'scale_down_delay': 63, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'chainlet_name': 'HelloWorld', 'instance_type_id': '2x8'}, {'autoscaling_settings': {'autoscaling_window': None, 'concurrency_target': None, 'max_replica': 3, 'max_scale_down_rate': None, 'min_replica': 3, 'scale_down_delay': None, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'chainlet_name': 'RandInt', 'instance_type_id': 'A10Gx8x32'}]}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Create a chain environment. Returns the resulting environment.",
+                "description": "Creates a chain environment. Returns the resulting environment.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -3400,7 +3578,7 @@
         },
         "/v1/chains/{chain_id}/environments/{env_name}": {
             "get": {
-                "summary": "Get a chain environment's details",
+                "summary": "Gets a chain environment's details",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3434,7 +3612,7 @@
                 }
             ],
             "patch": {
-                "summary": "Update a chain environment's settings",
+                "summary": "Updates a chain environment's settings",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3445,7 +3623,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/chains/{chain_id}/environments/{env_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'promotion_settings': {'promotion_cleanup_strategy': None, 'ramp_up_duration_seconds': 600, 'ramp_up_while_promoting': True, 'redeploy_on_promotion': None, 'rolling_deploy': None, 'rolling_deploy_config': None}}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Update a chain environment's settings and returns the chain environment.",
+                "description": "Updates a chain environment's settings and returns the chain environment.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -3518,7 +3696,7 @@
         },
         "/v1/chains/{chain_id}/environments/{env_name}/chainlet_settings/autoscaling_settings": {
             "patch": {
-                "summary": "Update a chainlet environment's autoscaling settings",
+                "summary": "Updates a chainlet environment's autoscaling settings",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3564,7 +3742,7 @@
         },
         "/v1/chains/{chain_id}/environments/{env_name}/chainlet_settings/instance_types/update": {
             "post": {
-                "summary": "Update a chainlet environment's instance type settings.",
+                "summary": "Updates a chainlet environment's instance type settings",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3610,7 +3788,7 @@
         },
         "/v1/teams/{team_id}/training_projects": {
             "post": {
-                "summary": "Upsert a training project in a specific team.",
+                "summary": "Upserts a training project in a specific team",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3653,7 +3831,7 @@
         },
         "/v1/training_projects": {
             "get": {
-                "summary": "List training projects.",
+                "summary": "Lists training projects",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3664,7 +3842,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "List all training projects for the organization.",
+                "description": "Lists all training projects for the organization.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -3679,7 +3857,7 @@
                 }
             },
             "post": {
-                "summary": "Upsert a training project.",
+                "summary": "Upserts a training project",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3717,7 +3895,7 @@
         },
         "/v1/training_projects/{training_project_id}/jobs": {
             "get": {
-                "summary": "List training jobs.",
+                "summary": "Lists training jobs",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3728,7 +3906,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "List all training jobs for the training project.",
+                "description": "Lists all training jobs for the training project.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -3748,7 +3926,7 @@
                 }
             ],
             "post": {
-                "summary": "Create a training job.",
+                "summary": "Creates a training job",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3786,7 +3964,7 @@
         },
         "/v1/training_projects/{training_project_id}/jobs/{training_job_id}": {
             "delete": {
-                "summary": "Delete a training job.",
+                "summary": "Deletes a training job",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3820,7 +3998,7 @@
                 }
             ],
             "get": {
-                "summary": "Get a training job.",
+                "summary": "Gets a training job",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3831,7 +4009,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Get the details of an existing training job.",
+                "description": "Gets the details of an existing training job.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -3846,7 +4024,7 @@
                 }
             },
             "patch": {
-                "summary": "Update a training job.",
+                "summary": "Updates a training job",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3857,7 +4035,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'priority': 0}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Update mutable fields on a training job. Currently supports changing the queue priority of a PENDING job; higher priorities are dequeued first.",
+                "description": "Updates mutable fields on a training job. Currently supports changing the queue priority of a PENDING job; higher priorities are dequeued first.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -3884,7 +4062,7 @@
         },
         "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/download": {
             "get": {
-                "summary": "Get the uploaded training job as a S3 Artifact",
+                "summary": "Gets presigned URLs for a training job's artifacts",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3895,7 +4073,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/download\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Get the uploaded training job as a S3 Artifact",
+                "description": "Returns presigned S3 URLs for the artifacts uploaded by a training job.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -3920,7 +4098,7 @@
         },
         "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/recreate": {
             "post": {
-                "summary": "Recreate a training job",
+                "summary": "Recreates a training job",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3931,7 +4109,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/recreate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Create a new training job with the same configuration as an existing training job.",
+                "description": "Creates a new training job with the same configuration as an existing training job.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -3956,7 +4134,7 @@
         },
         "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/logs": {
             "get": {
-                "summary": "Get the logs for a training job.",
+                "summary": "Gets the logs for a training job",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -3967,7 +4145,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/logs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Get the logs for a training job with the provided filters.",
+                "description": "Gets the logs for a training job with the provided filters.",
                 "parameters": [
                     {
                         "name": "start_epoch_millis",
@@ -4082,7 +4260,7 @@
                 }
             ],
             "post": {
-                "summary": "Get the logs for a training job (deprecated; use GET).",
+                "summary": "Gets the logs for a training job (deprecated; use GET)",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4122,7 +4300,7 @@
         },
         "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/metrics": {
             "get": {
-                "summary": "Get the metrics for a training job.",
+                "summary": "Gets the metrics for a training job",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4133,7 +4311,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/metrics\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Get the metrics for a training job.",
+                "description": "Gets the metrics for a training job.",
                 "parameters": [
                     {
                         "name": "end_epoch_millis",
@@ -4212,7 +4390,7 @@
                 }
             ],
             "post": {
-                "summary": "Get the metrics for a training job (deprecated; use GET).",
+                "summary": "Gets the metrics for a training job (deprecated; use GET)",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4252,7 +4430,7 @@
         },
         "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/stop": {
             "post": {
-                "summary": "Stop a training job.",
+                "summary": "Stops a training job",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4298,7 +4476,7 @@
         },
         "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/checkpoints": {
             "get": {
-                "summary": "Get training job checkpoints.",
+                "summary": "Gets training job checkpoints",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4309,7 +4487,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/checkpoints\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Get the checkpoints for a training job.",
+                "description": "Gets the checkpoints for a training job.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4334,7 +4512,7 @@
         },
         "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/checkpoint_files": {
             "get": {
-                "summary": "Get training job checkpoint files.",
+                "summary": "Gets training job checkpoint files",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4345,7 +4523,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/checkpoint_files\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Get presigned URLs for all checkpoint files for a training job.",
+                "description": "Gets presigned URLs for all checkpoint files for a training job.",
                 "parameters": [
                     {
                         "name": "page_size",
@@ -4396,7 +4574,7 @@
         },
         "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/auth_codes": {
             "get": {
-                "summary": "Get auth codes for a training job.",
+                "summary": "Gets auth codes for a training job",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4407,7 +4585,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/auth_codes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Get authentication codes for all nodes of a training job's interactive sessions.",
+                "description": "Gets authentication codes for all nodes of a training job's interactive sessions.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4432,7 +4610,7 @@
         },
         "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/interactive_sessions/{session_id}": {
             "patch": {
-                "summary": "Patch an interactive session.",
+                "summary": "Patches an interactive session",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4443,7 +4621,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/interactive_sessions/{session_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'timeout_minutes': None, 'trigger': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Update specific fields on a training job's interactive session. Only provided (non-null) fields are updated.",
+                "description": "Updates specific fields on a training job's interactive session. Only provided (non-null) fields are updated.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -4481,7 +4659,7 @@
         },
         "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/ssh/sign": {
             "post": {
-                "summary": "Sign an SSH certificate for a training job.",
+                "summary": "Signs an SSH certificate for a training job",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4527,7 +4705,7 @@
         },
         "/v1/training_projects/{training_project_id}/cache/summary": {
             "get": {
-                "summary": "Get training project cache summary.",
+                "summary": "Gets training project cache summary",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4538,7 +4716,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/cache/summary\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Get the cache summary for the most recent training job in the project.",
+                "description": "Gets the cache summary for the most recent training job in the project.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4560,7 +4738,7 @@
         },
         "/v1/training_projects/{training_project_id}": {
             "delete": {
-                "summary": "Delete a training project.",
+                "summary": "Deletes a training project",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4591,7 +4769,7 @@
                 }
             ],
             "get": {
-                "summary": "Get a training project.",
+                "summary": "Gets a training project",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4602,7 +4780,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Get the details of an existing training project.",
+                "description": "Gets the details of an existing training project.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4619,7 +4797,7 @@
         },
         "/v1/training_jobs/search": {
             "post": {
-                "summary": "Search training jobs.",
+                "summary": "Searches training jobs",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4630,7 +4808,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_jobs/search\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'project_id': 'n4q95w5', 'job_id': 'p7qr9qv', 'statuses': ['TRAINING_JOB_RUNNING', 'TRAINING_JOB_COMPLETED']}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Search training jobs for the organization.",
+                "description": "Searches training jobs for the organization.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -4657,7 +4835,7 @@
         },
         "/v1/loops/capabilities": {
             "get": {
-                "summary": "Get Loops server capabilities.",
+                "summary": "Gets Loops server capabilities",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4685,7 +4863,7 @@
         },
         "/v1/loops/sessions": {
             "post": {
-                "summary": "Create a Loops session.",
+                "summary": "Creates a Loops session",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4713,7 +4891,7 @@
         },
         "/v1/loops/sessions/{session_id}": {
             "get": {
-                "summary": "Get a Loops session.",
+                "summary": "Gets a Loops session",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4724,7 +4902,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/sessions/{session_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Fetch a Loops session by ID.",
+                "description": "Fetches a Loops session by ID.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4746,7 +4924,7 @@
         },
         "/v1/loops/runs": {
             "get": {
-                "summary": "List Loops runs.",
+                "summary": "Lists Loops runs",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4757,7 +4935,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "List Loops runs visible to the requesting user, optionally filtered by run id and/or base model.",
+                "description": "Lists Loops runs visible to the requesting user, optionally filtered by run id and/or base model.",
                 "parameters": [
                     {
                         "name": "run_id",
@@ -4816,7 +4994,7 @@
                 }
             },
             "post": {
-                "summary": "Create a Loops run.",
+                "summary": "Creates a Loops run",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4854,7 +5032,7 @@
         },
         "/v1/loops/runs/{run_id}": {
             "get": {
-                "summary": "Get a Loops run.",
+                "summary": "Gets a Loops run",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4865,7 +5043,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs/{run_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Fetch a Loops run by ID.",
+                "description": "Fetches a Loops run by ID.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4887,7 +5065,7 @@
         },
         "/v1/loops/samplers": {
             "get": {
-                "summary": "List Loops samplers.",
+                "summary": "Lists Loops samplers",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4898,7 +5076,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "List Loops samplers visible to the requesting user.",
+                "description": "Lists Loops samplers visible to the requesting user.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4913,7 +5091,7 @@
                 }
             },
             "post": {
-                "summary": "Create a Loops sampler.",
+                "summary": "Creates a Loops sampler",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4951,7 +5129,7 @@
         },
         "/v1/loops/samplers/{sampler_id}": {
             "get": {
-                "summary": "Get a Loops sampler.",
+                "summary": "Gets a Loops sampler",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4962,7 +5140,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers/{sampler_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Fetch a Loops sampler by ID.",
+                "description": "Fetches a Loops sampler by ID.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -4984,7 +5162,7 @@
         },
         "/v1/loops/checkpoints": {
             "get": {
-                "summary": "List Loops checkpoints.",
+                "summary": "Lists Loops checkpoints",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -4995,7 +5173,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/checkpoints\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "List Loops checkpoints filtered by run id, base model, or bt:// URI. Provide exactly one filter.",
+                "description": "Lists Loops checkpoints filtered by run id, base model, or bt:// URI. Provide exactly one filter.",
                 "parameters": [
                     {
                         "name": "run_id",
@@ -5077,7 +5255,7 @@
         },
         "/v1/loops/checkpoints/validate": {
             "post": {
-                "summary": "Validate a Loops checkpoint bt:// URI.",
+                "summary": "Validates a Loops checkpoint bt:// URI",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5088,7 +5266,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/checkpoints/validate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'checkpoint_path': 'bt://loops:k4q95w5/sampler_weights/step-100'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Whether the caller can manage and use this checkpoint.",
+                "description": "Returns whether the caller can manage and use this checkpoint.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -5115,7 +5293,7 @@
         },
         "/v1/loops/checkpoints/{checkpoint_id}/files": {
             "get": {
-                "summary": "Get Loops checkpoint files.",
+                "summary": "Gets Loops checkpoint files",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5126,7 +5304,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/checkpoints/{checkpoint_id}/files\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Get presigned URLs for the files under a Loops checkpoint. Returns a paginated list.",
+                "description": "Gets presigned URLs for the files under a Loops checkpoint. Returns a paginated list.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -5148,7 +5326,7 @@
         },
         "/v1/loops/deployments": {
             "get": {
-                "summary": "List Loops deployments.",
+                "summary": "Lists Loops deployments",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5159,7 +5337,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/deployments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "List Loops deployments. Defaults to the caller's own; pass ?scope=org to list every deployment in the caller's organization. Returns every deployment regardless of status; clients filter terminal states.",
+                "description": "Lists Loops deployments. Defaults to the caller's own; pass ?scope=org to list every deployment in the caller's organization. Returns every deployment regardless of status; clients filter terminal states.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -5176,7 +5354,7 @@
         },
         "/v1/loops/deployments/{deployment_id}/deactivate": {
             "post": {
-                "summary": "Deactivate a Loops deployment.",
+                "summary": "Deactivates a Loops deployment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5187,7 +5365,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/deployments/{deployment_id}/deactivate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Shut down a Loops deployment by ID. Saved checkpoints remain accessible. Resolving base_model -> deployment_id is the caller's responsibility \u2014 list deployments and pick the active one.",
+                "description": "Shuts down a Loops deployment by ID. Saved checkpoints remain accessible. Resolving the base model to a deployment ID is the caller's responsibility: list deployments and pick the active one.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -5209,7 +5387,7 @@
         },
         "/v1/loops/deployments/{deployment_id}": {
             "get": {
-                "summary": "Get a Loops deployment.",
+                "summary": "Gets a Loops deployment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5220,7 +5398,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/deployments/{deployment_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Fetch a Loops deployment by ID, including its latest status.",
+                "description": "Fetches a Loops deployment by ID, including its latest status.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -5242,7 +5420,7 @@
         },
         "/v1/loops/deployments/{deployment_id}/metrics": {
             "post": {
-                "summary": "Get metrics for a Loops trainer deployment.",
+                "summary": "Gets metrics for a Loops trainer deployment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5285,7 +5463,7 @@
         },
         "/v1/loops/deployments/{deployment_id}/logs": {
             "get": {
-                "summary": "Get logs for a Loops trainer deployment.",
+                "summary": "Gets logs for a Loops trainer deployment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5296,7 +5474,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/deployments/{deployment_id}/logs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Fetch logs from the trainer pods of a Loops deployment. Visible to any member of the deployment's team.",
+                "description": "Fetches logs from the trainer pods of a Loops deployment. Visible to any member of the deployment's team.",
                 "parameters": [
                     {
                         "name": "start_epoch_millis",
@@ -5410,7 +5588,7 @@
         },
         "/v1/training/capacity": {
             "get": {
-                "summary": "Get training GPU capacity.",
+                "summary": "Gets training GPU capacity",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5434,11 +5612,47 @@
                         }
                     }
                 }
+            },
+            "patch": {
+                "summary": "Sets a team's training GPU capacity",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/training/capacity \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"team_id\": null,\n  \"gpu_type\": null,\n  \"max_gpus\": 8\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training/capacity\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'team_id': None, 'gpu_type': None, 'max_gpus': 8}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Sets the max concurrent GPUs of a given type a team may use. Creates the limit if one doesn't exist for this (team, gpu_type) pair, otherwise updates it in place. Org-admin only: this is a ceiling the org imposes on the team, not something the team manages for itself.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchTeamTrainingGpuCapacityRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PatchTeamTrainingGpuCapacityResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/v1/training/jobs/{training_job_id}/queue_context": {
             "get": {
-                "summary": "Reconstruct queue context for a training job.",
+                "summary": "Reconstructs queue context for a training job",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5449,7 +5663,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training/jobs/{training_job_id}/queue_context\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the (org, gpu_type) capacity pool the job was gated by, jobs that were holding GPU capacity in that pool when this job was submitted, and every TrainingJobStatus event in [submitted_at, released_at] for those jobs \u2014 useful for understanding why a job sat in PENDING. Caller must be an org admin and the job must belong to the caller's org.",
+                "description": "Returns the (org, gpu_type) capacity pool the job was gated by, jobs that were holding GPU capacity in that pool when this job was submitted, and every TrainingJobStatus event in [submitted_at, released_at] for those jobs, useful for understanding why a job sat in PENDING. Caller must be an org admin and the job must belong to the caller's org.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -5472,7 +5686,7 @@
         },
         "/v1/blobs/credentials/model": {
             "get": {
-                "summary": "Get blob credentials for models.",
+                "summary": "Gets blob credentials for models",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5499,7 +5713,7 @@
         },
         "/v1/blobs/credentials/train": {
             "get": {
-                "summary": "Get blob credentials for training.",
+                "summary": "Gets blob credentials for training",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5665,7 +5879,7 @@
         },
         "/v1/model_apis/snapshots": {
             "get": {
-                "summary": "Get the latest model weight snapshot",
+                "summary": "Gets the latest model weight snapshot",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5691,7 +5905,7 @@
                 }
             },
             "post": {
-                "summary": "Create a model weight snapshot",
+                "summary": "Creates a model weight snapshot",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5729,7 +5943,7 @@
         },
         "/v1/model_apis/snapshots/{model_id}": {
             "get": {
-                "summary": "Get the latest model weight snapshot",
+                "summary": "Gets the latest model weight snapshot",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5760,7 +5974,7 @@
                 }
             ],
             "post": {
-                "summary": "Create a model weight snapshot",
+                "summary": "Creates a model weight snapshot",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5798,7 +6012,7 @@
         },
         "/v1/model_apis": {
             "get": {
-                "summary": "List Model APIs.",
+                "summary": "Lists Model APIs",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5809,7 +6023,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/model_apis\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "List Model APIs visible to the caller. By default returns the full catalog; pass `added_only=true` to restrict to Model APIs the workspace has added.",
+                "description": "Lists Model APIs visible to the caller. By default returns the full catalog; pass `added_only=true` to restrict to Model APIs the workspace has added.",
                 "parameters": [
                     {
                         "name": "cursor",
@@ -5870,7 +6084,7 @@
         },
         "/v1/model_apis/{model_api_name}": {
             "get": {
-                "summary": "Get a Model API.",
+                "summary": "Gets a Model API",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5881,7 +6095,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/model_apis/{model_api_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Fetch a Model API by name, with workspace overlay when added.",
+                "description": "Fetches a Model API by name, with workspace overlay when added.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -5903,7 +6117,7 @@
         },
         "/v1/llm_models": {
             "post": {
-                "summary": "Creates a new BIS LLM deployment",
+                "summary": "Creates a new BIS-LLM deployment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5940,7 +6154,7 @@
         },
         "/v1/teams/{team_id}/llm_models": {
             "post": {
-                "summary": "Creates a new BIS LLM deployment",
+                "summary": "Creates a new BIS-LLM deployment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5982,7 +6196,7 @@
         },
         "/v1/llm_models/{model_id}/deployments": {
             "post": {
-                "summary": "Creates a new BIS LLM deployment version",
+                "summary": "Creates a new BIS-LLM deployment version",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -6263,7 +6477,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/library_listings/{user_defined_listing_id}/versions/{version_tag}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Deletes a specific version of a library listing. Deleting a live version will fail with a 400 error \u2014 demote the version first by setting another version as live.",
+                "description": "Deletes a specific version of a library listing. Deleting a live version will fail with a 400 error; demote the version first by setting another version as live.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -6445,6 +6659,24 @@
                             "title": "Limit",
                             "type": "integer"
                         }
+                    },
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only users with this exact email, if any.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Email"
+                        }
                     }
                 ],
                 "responses": {
@@ -6527,7 +6759,7 @@
         },
         "/v1/gateway/endpoints": {
             "get": {
-                "summary": "List Gateway endpoints",
+                "summary": "Lists Gateway endpoints",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -6552,7 +6784,7 @@
                 }
             },
             "post": {
-                "summary": "Create a Gateway endpoint",
+                "summary": "Creates a Gateway endpoint",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -6590,7 +6822,7 @@
         },
         "/v1/gateway/endpoints/{endpoint_id}": {
             "delete": {
-                "summary": "Delete a Gateway endpoint",
+                "summary": "Deletes a Gateway endpoint",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -6620,7 +6852,7 @@
                 }
             ],
             "get": {
-                "summary": "Get a Gateway endpoint",
+                "summary": "Gets a Gateway endpoint",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -6645,7 +6877,7 @@
                 }
             },
             "patch": {
-                "summary": "Update a Gateway endpoint",
+                "summary": "Updates a Gateway endpoint",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -6683,7 +6915,7 @@
         },
         "/v1/gateway/groups": {
             "get": {
-                "summary": "List groups",
+                "summary": "Lists groups",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -6708,7 +6940,7 @@
                 }
             },
             "post": {
-                "summary": "Create a group",
+                "summary": "Creates a group",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -6719,7 +6951,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/groups\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'metadata': {'name': 'Acme prod', 'external_entity_id': 'cust_42'}, 'models': None, 'hierarchy': {'limit_enforcement': 'INDEPENDENT', 'parent_group_id': 'abc123'}}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Creates a group and its endpoint configuration",
+                "description": "Creates a group and its endpoint configuration.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -6746,7 +6978,7 @@
         },
         "/v1/gateway/groups/{group_id}": {
             "get": {
-                "summary": "Get a group",
+                "summary": "Gets a group",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -6776,7 +7008,7 @@
                 }
             ],
             "patch": {
-                "summary": "Update a group",
+                "summary": "Updates a group",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -6787,7 +7019,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/groups/{group_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'metadata': {'name': 'Acme Prod'}, 'models': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Updates the group's mutable fields",
+                "description": "Updates the group's mutable fields.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -6814,7 +7046,7 @@
         },
         "/v1/gateway/groups/{group_id}/api_keys": {
             "get": {
-                "summary": "List API keys for a group",
+                "summary": "Lists API keys for a group",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -6844,7 +7076,7 @@
                 }
             ],
             "post": {
-                "summary": "Create an API key for a group",
+                "summary": "Creates an API key for a group",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -6855,7 +7087,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/groups/{group_id}/api_keys\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'prod-key-1'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Creates a new API key for the given group",
+                "description": "Creates a new API key for the given group.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -6882,7 +7114,7 @@
         },
         "/v1/gateway/groups/{group_id}/api_keys/register": {
             "post": {
-                "summary": "Register an API key for a group",
+                "summary": "Registers an API key for a group",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -6893,7 +7125,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/groups/{group_id}/api_keys/register\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'my-model-api-key', 'key': 'my-secure-api-key-value'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Registers a Gateway API key with provided value, name.",
+                "description": "Registers a Gateway API key with the provided value and name.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -6925,7 +7157,7 @@
         },
         "/v1/gateway/groups/{group_id}/api_keys/{api_key_prefix}": {
             "get": {
-                "summary": "Get an API key for a group",
+                "summary": "Gets an API key for a group",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -7299,6 +7531,26 @@
                     "teams"
                 ],
                 "title": "TeamsV1",
+                "type": "object"
+            },
+            "TeamsRequestV1": {
+                "description": "Request parameters for listing teams.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "When set, returns only the team with this exact name, if any.",
+                        "title": "Name"
+                    }
+                },
+                "title": "TeamsRequestV1",
                 "type": "object"
             },
             "InstanceTypeV1": {
@@ -7892,6 +8144,26 @@
                 "title": "ModelsV1",
                 "type": "object"
             },
+            "ModelsRequestV1": {
+                "description": "Request parameters for listing models.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "When set, returns only models with this exact name, if any. On a team-scoped route this matches at most one model; on the org-wide route it may match models in multiple teams, since names are unique only within a team.",
+                        "title": "Name"
+                    }
+                },
+                "title": "ModelsRequestV1",
+                "type": "object"
+            },
             "LibraryListingSourceV1": {
                 "description": "Create a model by forking a library listing accessible to the caller's organization.",
                 "properties": {
@@ -8277,6 +8549,26 @@
                     "deployments"
                 ],
                 "title": "DeploymentsV1",
+                "type": "object"
+            },
+            "DeploymentsRequestV1": {
+                "description": "Request parameters for listing a model's deployments.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "When set, returns only the deployment with this exact name, if any.",
+                        "title": "Name"
+                    }
+                },
+                "title": "DeploymentsRequestV1",
                 "type": "object"
             },
             "DeploymentArchiveSourceV1": {
@@ -8673,7 +8965,7 @@
                     "output_format": {
                         "$ref": "#/components/schemas/DeploymentConfigOutputFormat",
                         "default": "both",
-                        "description": "'raw': verbatim config.yaml with comments \u2014 not available for deployments created before 2026-04-30. 'parsed': dict with server-side defaults applied \u2014 always available. 'both': both fields populated."
+                        "description": "'raw': verbatim config.yaml with comments (not available for deployments created before 2026-04-30). 'parsed': dict with server-side defaults applied (always available). 'both': both fields populated."
                     }
                 },
                 "title": "GetDeploymentConfigRequestV1",
@@ -9372,7 +9664,7 @@
                 "title": "SyncDeploymentPatchesResponseV1",
                 "type": "object"
             },
-            "DeploymentMetricDescriptorV1": {
+            "ModelMetricDescriptorV1": {
                 "description": "Describes one metric. Its position in the response ``metric_descriptors``\nlist is the index used to read that metric out of each value set's ``values``.\n\nA metric may break down into multiple labeled series (e.g. latency quantiles,\nor volume by status). ``label_sets`` enumerates those series in order; each\nvalue set's value for this metric is a list aligned to that order.",
                 "properties": {
                     "name": {
@@ -9381,11 +9673,11 @@
                         "type": "string"
                     },
                     "unit_hint": {
-                        "$ref": "#/components/schemas/DeploymentMetricUnitHintV1",
+                        "$ref": "#/components/schemas/ModelMetricUnitHintV1",
                         "description": "Advisory unit of the metric's values."
                     },
                     "kind": {
-                        "$ref": "#/components/schemas/DeploymentMetricKindV1",
+                        "$ref": "#/components/schemas/ModelMetricKindV1",
                         "description": "Semantic hint for how the metric behaves (GAUGE, COUNTER, HISTOGRAM)."
                     },
                     "label_sets": {
@@ -9406,30 +9698,30 @@
                     "kind",
                     "label_sets"
                 ],
-                "title": "DeploymentMetricDescriptorV1",
+                "title": "ModelMetricDescriptorV1",
                 "type": "object"
             },
-            "DeploymentMetricKindV1": {
-                "description": "Semantic hint for how a metric behaves, to aid client rendering and\naggregation. It does not describe the value's shape \u2014 that is carried by the\ndescriptor's ``label_sets`` (a metric may break down into multiple series).\n\n- ``GAUGE``: an instantaneous value (e.g. queue size, running requests).\n- ``COUNTER``: a cumulative total over the step (e.g. tokens, restarts).\n- ``HISTOGRAM``: a distribution, exposed as quantile/average series.",
+            "ModelMetricKindV1": {
+                "description": "Semantic hint for how a metric behaves, to aid client rendering and\naggregation. It does not describe the value's shape (that is carried by the\ndescriptor's ``label_sets``; a metric may break down into multiple series).\n\n- ``GAUGE``: an instantaneous value (e.g. queue size, running requests).\n- ``COUNTER``: a cumulative total over the step (e.g. tokens, restarts).\n- ``HISTOGRAM``: a distribution, exposed as quantile/average series.",
                 "enum": [
                     "GAUGE",
                     "COUNTER",
                     "HISTOGRAM"
                 ],
-                "title": "DeploymentMetricKindV1",
+                "title": "ModelMetricKindV1",
                 "type": "string"
             },
-            "DeploymentMetricModeV1": {
+            "ModelMetricModeV1": {
                 "description": "How metric values are aggregated over the request.",
                 "enum": [
                     "CURRENT",
                     "SUMMARY",
                     "SERIES"
                 ],
-                "title": "DeploymentMetricModeV1",
+                "title": "ModelMetricModeV1",
                 "type": "string"
             },
-            "DeploymentMetricUnitHintV1": {
+            "ModelMetricUnitHintV1": {
                 "description": "Advisory unit of a metric's values. Values are reported as scraped, so the\nhint describes the raw value (e.g. GPU memory is reported in mebibytes).\n\n- ``PER_SECOND``: a rate per second.\n- ``SECONDS``: a duration in seconds.\n- ``BYTES``: a size in bytes.\n- ``MEBIBYTES``: a size in mebibytes (MiB).\n- ``COUNT``: a dimensionless tally of discrete things.\n- ``RATIO``: a dimensionless ratio. Usually in ``[0, 1]`` but may exceed 1\n  (e.g. CPU usage in cores = cpu-seconds/second).",
                 "enum": [
                     "PER_SECOND",
@@ -9439,10 +9731,10 @@
                     "COUNT",
                     "RATIO"
                 ],
-                "title": "DeploymentMetricUnitHintV1",
+                "title": "ModelMetricUnitHintV1",
                 "type": "string"
             },
-            "DeploymentMetricValueSetV1": {
+            "ModelMetricValueSetV1": {
                 "description": "The metric values for one time step. ``values`` is aligned by index to the\nresponse ``metric_descriptors`` list.",
                 "properties": {
                     "start_epoch_millis": {
@@ -9473,11 +9765,11 @@
                     "start_epoch_millis",
                     "values"
                 ],
-                "title": "DeploymentMetricValueSetV1",
+                "title": "ModelMetricValueSetV1",
                 "type": "object"
             },
-            "GetDeploymentMetricsResponseV1": {
-                "description": "Deployment metrics over a time window, index-mapped: metric descriptors\nappear once in ``metric_descriptors``; each value set's ``values`` are aligned\nto that order.",
+            "GetModelMetricsResponseV1": {
+                "description": "Model metrics over a time window, index-mapped: metric descriptors appear once\nin ``metric_descriptors``; each value set's ``values`` are aligned to that order.",
                 "properties": {
                     "start_epoch_millis": {
                         "description": "Start of the returned window.",
@@ -9490,7 +9782,7 @@
                         "type": "integer"
                     },
                     "mode": {
-                        "$ref": "#/components/schemas/DeploymentMetricModeV1",
+                        "$ref": "#/components/schemas/ModelMetricModeV1",
                         "description": "The aggregation mode used."
                     },
                     "step_seconds": {
@@ -9508,7 +9800,7 @@
                     "metric_descriptors": {
                         "description": "Descriptors for each metric; position defines the values index.",
                         "items": {
-                            "$ref": "#/components/schemas/DeploymentMetricDescriptorV1"
+                            "$ref": "#/components/schemas/ModelMetricDescriptorV1"
                         },
                         "title": "Metric Descriptors",
                         "type": "array"
@@ -9516,7 +9808,7 @@
                     "metric_values": {
                         "description": "Metric values per time step covering the window. In summary mode this always contains exactly one value set spanning the whole window.",
                         "items": {
-                            "$ref": "#/components/schemas/DeploymentMetricValueSetV1"
+                            "$ref": "#/components/schemas/ModelMetricValueSetV1"
                         },
                         "title": "Metric Values",
                         "type": "array"
@@ -9530,14 +9822,14 @@
                     "metric_descriptors",
                     "metric_values"
                 ],
-                "title": "GetDeploymentMetricsResponseV1",
+                "title": "GetModelMetricsResponseV1",
                 "type": "object"
             },
             "GetDeploymentMetricsRequestV1": {
                 "description": "Query params for ``GET /v1/models/.../deployments/.../metrics``.",
                 "properties": {
                     "mode": {
-                        "$ref": "#/components/schemas/DeploymentMetricModeV1",
+                        "$ref": "#/components/schemas/ModelMetricModeV1",
                         "default": "CURRENT",
                         "description": "'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration."
                     },
@@ -9568,7 +9860,7 @@
                         "title": "End Epoch Millis"
                     },
                     "metrics": {
-                        "description": "Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply to the deployment are omitted from the response.",
+                        "description": "Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply are omitted from the response.",
                         "items": {
                             "type": "string"
                         },
@@ -9912,10 +10204,10 @@
                         ]
                     },
                     "max_surge_percent": {
-                        "default": 10,
+                        "default": 25,
                         "description": "The maximum surge percentage for rolling deploys.",
                         "examples": [
-                            10
+                            25
                         ],
                         "title": "Max Surge Percent",
                         "type": "integer"
@@ -10101,10 +10393,10 @@
                                 "type": "null"
                             }
                         ],
-                        "default": 10,
+                        "default": null,
                         "description": "The maximum surge percentage for rolling deploys.",
                         "examples": [
-                            10
+                            25
                         ],
                         "title": "Max Surge Percent"
                     },
@@ -10422,6 +10714,52 @@
                     }
                 },
                 "title": "GetEnvironmentLogsRequestV1",
+                "type": "object"
+            },
+            "GetEnvironmentMetricsRequestV1": {
+                "description": "Query params for ``GET /v1/models/.../environments/.../metrics``.",
+                "properties": {
+                    "mode": {
+                        "$ref": "#/components/schemas/ModelMetricModeV1",
+                        "default": "CURRENT",
+                        "description": "'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration."
+                    },
+                    "start_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch millis timestamp to start fetching metrics. Defaults to one hour before the end.",
+                        "title": "Start Epoch Millis"
+                    },
+                    "end_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch millis timestamp to end fetching metrics. Defaults to the current time. The window between start and end must not exceed 7 days.",
+                        "title": "End Epoch Millis"
+                    },
+                    "metrics": {
+                        "description": "Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply are omitted from the response.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Metrics",
+                        "type": "array"
+                    }
+                },
+                "title": "GetEnvironmentMetricsRequestV1",
                 "type": "object"
             },
             "PromoteToEnvironmentRequestV1": {
@@ -12802,10 +13140,10 @@
                 "type": "object"
             },
             "DownloadTrainingJobResponseV1": {
-                "description": "A response that includes the artifacts for a training job",
+                "description": "A response with presigned URLs for a training job's artifacts.",
                 "properties": {
                     "artifact_presigned_urls": {
-                        "description": "Presigned URL's for the artifacts",
+                        "description": "Presigned URLs for the job's uploaded artifacts.",
                         "items": {
                             "type": "string"
                         },
@@ -13982,6 +14320,11 @@
                         "title": "Session Id",
                         "type": "string"
                     },
+                    "deployment_id": {
+                        "description": "The ID of the Loops deployment the run executes on.",
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
                     "name": {
                         "description": "The run's display name.",
                         "title": "Name",
@@ -14011,6 +14354,7 @@
                 "required": [
                     "id",
                     "session_id",
+                    "deployment_id",
                     "name",
                     "base_model",
                     "base_url",
@@ -14638,6 +14982,19 @@
                         "title": "Id",
                         "type": "string"
                     },
+                    "active_run_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The ID of the run currently active on this deployment, if any. Null when the deployment's runs have been marked inactive (e.g. scale-to-zero) without a successor.",
+                        "title": "Active Run Id"
+                    },
                     "base_model": {
                         "description": "The HuggingFace base model the deployment is fine-tuning.",
                         "title": "Base Model",
@@ -15254,6 +15611,52 @@
                     "gpu_capacities"
                 ],
                 "title": "GetTrainingGpuCapacityResponseV1",
+                "type": "object"
+            },
+            "PatchTeamTrainingGpuCapacityRequestV1": {
+                "description": "A request to set the GPU capacity ceiling for a (team, gpu_type) pair.\n\nCreates the limit if one doesn't already exist for this team and GPU type,\notherwise updates it in place.",
+                "properties": {
+                    "team_id": {
+                        "description": "Team identifier",
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "gpu_type": {
+                        "description": "GPU type identifier (e.g. H100, A100-40GB)",
+                        "title": "Gpu Type",
+                        "type": "string"
+                    },
+                    "max_gpus": {
+                        "description": "Max concurrent GPUs of this type the team may use",
+                        "examples": [
+                            8,
+                            16,
+                            32
+                        ],
+                        "title": "Max Gpus",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "team_id",
+                    "gpu_type",
+                    "max_gpus"
+                ],
+                "title": "PatchTeamTrainingGpuCapacityRequestV1",
+                "type": "object"
+            },
+            "PatchTeamTrainingGpuCapacityResponseV1": {
+                "description": "Response for setting a team's GPU capacity ceiling.",
+                "properties": {
+                    "team_gpu_capacity": {
+                        "$ref": "#/components/schemas/TeamTrainingGpuCapacityItemV1",
+                        "description": "The updated per-team GPU capacity limit"
+                    }
+                },
+                "required": [
+                    "team_gpu_capacity"
+                ],
+                "title": "PatchTeamTrainingGpuCapacityResponseV1",
                 "type": "object"
             },
             "ActiveJobAtSubmitV1": {
@@ -16076,7 +16479,7 @@
                             1000,
                             50000
                         ],
-                        "minimum": 1,
+                        "minimum": 0,
                         "title": "Threshold",
                         "type": "integer"
                     }
@@ -16147,7 +16550,7 @@
                 "type": "object"
             },
             "CreateLLMModelRequestV1": {
-                "description": "A request to create a BIS LLM model",
+                "description": "A request to create a BIS-LLM model",
                 "properties": {
                     "resources": {
                         "additionalProperties": true,
@@ -16301,7 +16704,7 @@
                 "type": "object"
             },
             "LLMModelHandleV1": {
-                "description": "Handle for a BIS LLM model deployment.",
+                "description": "Handle for a BIS-LLM model deployment.",
                 "properties": {
                     "model_id": {
                         "description": "Unique identifier of the model",
@@ -16341,7 +16744,7 @@
                 "type": "object"
             },
             "CreateLLMModelVersionRequestV1": {
-                "description": "A request to create a BIS LLM model version",
+                "description": "A request to create a BIS-LLM model version",
                 "properties": {
                     "resources": {
                         "additionalProperties": true,
@@ -16952,6 +17355,32 @@
                         "description": "Subtotal cost incurred on this date in dollars",
                         "title": "Subtotal"
                     },
+                    "compute_cost": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            }
+                        ],
+                        "description": "Compute cost incurred on this date in dollars",
+                        "title": "Compute Cost"
+                    },
+                    "surcharge_cost": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            }
+                        ],
+                        "description": "Model distribution surcharge incurred on this date in dollars",
+                        "title": "Surcharge Cost"
+                    },
                     "minutes": {
                         "description": "Minutes used on this date",
                         "title": "Minutes",
@@ -16966,6 +17395,8 @@
                 "required": [
                     "date",
                     "subtotal",
+                    "compute_cost",
+                    "surcharge_cost",
                     "minutes",
                     "inference_requests"
                 ],
@@ -17073,6 +17504,32 @@
                         "description": "Subtotal cost in dollars for this billable resource",
                         "title": "Subtotal"
                     },
+                    "compute_cost": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            }
+                        ],
+                        "description": "Compute cost in dollars for this billable resource",
+                        "title": "Compute Cost"
+                    },
+                    "surcharge_cost": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            }
+                        ],
+                        "description": "Model distribution surcharge in dollars for this billable resource",
+                        "title": "Surcharge Cost"
+                    },
                     "minutes": {
                         "description": "Total minutes used for this billable resource",
                         "title": "Minutes",
@@ -17095,6 +17552,8 @@
                 "required": [
                     "billable_resource",
                     "subtotal",
+                    "compute_cost",
+                    "surcharge_cost",
                     "minutes",
                     "inference_requests"
                 ],
@@ -17569,6 +18028,19 @@
                         "minimum": 1,
                         "title": "Limit",
                         "type": "integer"
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "When set, returns only users with this exact email, if any.",
+                        "title": "Email"
                     }
                 },
                 "title": "UsersRequestV1",
@@ -17688,11 +18160,13 @@
                 "type": "object"
             },
             "GatewayProvider": {
-                "description": "Customer-facing provider for an endpoint target.\n\nExternal providers resolve to a fixed upstream host + protocol adapter via\n``_EXTERNAL_PROVIDER_CONFIGS``; ``BASETEN`` derives its host from the referenced oracle.",
+                "description": "Customer-facing provider for an endpoint target.\n\nExternal providers resolve to a fixed upstream host + protocol adapter via\n``external_provider_configs()``; ``BASETEN`` derives its host from the referenced oracle.",
                 "enum": [
                     "ANTHROPIC",
                     "OPENAI",
-                    "BASETEN"
+                    "BASETEN",
+                    "BASETEN_MODEL_API",
+                    "VERTEX"
                 ],
                 "title": "GatewayProvider",
                 "type": "string"
@@ -17961,7 +18435,7 @@
                             1000,
                             50000
                         ],
-                        "minimum": 1,
+                        "minimum": 0,
                         "title": "Threshold",
                         "type": "integer"
                     },
@@ -18005,7 +18479,7 @@
                         "examples": [
                             10000000
                         ],
-                        "minimum": 1,
+                        "minimum": 0,
                         "title": "Threshold",
                         "type": "integer"
                     },
@@ -18202,7 +18676,7 @@
                         "examples": [
                             10000000
                         ],
-                        "minimum": 1,
+                        "minimum": 0,
                         "title": "Threshold",
                         "type": "integer"
                     }
@@ -18248,6 +18722,7 @@
                         "items": {
                             "$ref": "#/components/schemas/ModelConfigV1"
                         },
+                        "minItems": 1,
                         "title": "Models",
                         "type": "array"
                     },
