@@ -188,7 +188,7 @@ func writeArchive(
 	tw := tar.NewWriter(w)
 	defer tw.Close()
 
-	emitted := map[string]struct{}{}
+	emitted := map[string]string{}
 
 	if opts.ConfigYAMLOverride != nil {
 		if err := emitBytes(tw, "config.yaml", opts.ConfigYAMLOverride, emitted); err != nil {
@@ -268,7 +268,7 @@ func writeArchive(
 // into the archive under bundledPackagesDir (matching Python's gather:
 // children of the external dir land directly under bundled_packages_dir, the
 // external dir's own basename is not preserved).
-func walkExternalDir(ctx context.Context, tw *tar.Writer, extDir, bundledPackagesDir string, ignoreFn IgnoreFileFunc, emitted map[string]struct{}) error {
+func walkExternalDir(ctx context.Context, tw *tar.Writer, extDir, bundledPackagesDir string, ignoreFn IgnoreFileFunc, emitted map[string]string) error {
 	return filepath.WalkDir(extDir, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -312,9 +312,12 @@ func walkExternalDir(ctx context.Context, tw *tar.Writer, extDir, bundledPackage
 	})
 }
 
-func emitFile(tw *tar.Writer, archivePath, srcPath string, info fs.FileInfo, emitted map[string]struct{}) error {
-	if _, dup := emitted[archivePath]; dup {
-		return fmt.Errorf("modelarchive: duplicate archive entry %s (from %s)", archivePath, srcPath)
+func emitFile(tw *tar.Writer, archivePath, srcPath string, info fs.FileInfo, emitted map[string]string) error {
+	if prev, dup := emitted[archivePath]; dup {
+		return fmt.Errorf("modelarchive: duplicate archive entry %q: both %s and %s map to it. "+
+			"Two source files resolve to the same archive path, commonly because multiple external_package_dirs "+
+			"(or an external_package_dir and the model directory) contain a file with the same relative path. "+
+			"Rename or remove one so each archive path is unique", archivePath, prev, srcPath)
 	}
 	f, err := os.Open(srcPath)
 	if err != nil {
@@ -325,18 +328,18 @@ func emitFile(tw *tar.Writer, archivePath, srcPath string, info fs.FileInfo, emi
 	if err != nil {
 		return err
 	}
-	emitted[archivePath] = struct{}{}
+	emitted[archivePath] = srcPath
 	return nil
 }
 
-func emitBytes(tw *tar.Writer, archivePath string, data []byte, emitted map[string]struct{}) error {
+func emitBytes(tw *tar.Writer, archivePath string, data []byte, emitted map[string]string) error {
 	if _, dup := emitted[archivePath]; dup {
 		return fmt.Errorf("modelarchive: duplicate archive entry %s", archivePath)
 	}
 	if err := writeTarEntry(tw, archivePath, nil, bytes.NewReader(data), int64(len(data))); err != nil {
 		return err
 	}
-	emitted[archivePath] = struct{}{}
+	emitted[archivePath] = archivePath
 	return nil
 }
 
