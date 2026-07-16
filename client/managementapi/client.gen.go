@@ -201,12 +201,25 @@ func (c *Client) DeleteTrainingProjectsJobs(ctx context.Context, trainingProject
 	})
 }
 
-// GetApiKeys: Lists the user's API keys (metadata only, no plain text keys)
+// GetApiKeys: Lists API keys (metadata only, no plain text keys)
 func (c *Client) GetApiKeys(ctx context.Context) (*APIKeys, error) {
 	return doJSON[APIKeys](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/api_keys",
 		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetAuditLogs: Gets the audit log for the workspace
+func (c *Client) GetAuditLogs(ctx context.Context, params GetV1AuditLogsParams) (*ListAuditLogsResponse, error) {
+	return doJSON[ListAuditLogsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/audit_logs",
+		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -256,6 +269,19 @@ func (c *Client) GetChains(ctx context.Context) (*Chains, error) {
 		method:      "GET",
 		pathFmt:     "/v1/chains",
 		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetChainsAuditLogs: Gets the audit log for a chain
+func (c *Client) GetChainsAuditLogs(ctx context.Context, chainId string, params GetV1ChainsChainIdAuditLogsParams) (*ListAuditLogsResponse, error) {
+	return doJSON[ListAuditLogsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/chains/%s/audit_logs",
+		pathArgs:    []any{chainId},
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -705,6 +731,19 @@ func (c *Client) GetModels(ctx context.Context, params GetV1ModelsParams) (*Mode
 		method:      "GET",
 		pathFmt:     "/v1/models",
 		pathArgs:    nil,
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetModelsAuditLogs: Gets the audit log for a model
+func (c *Client) GetModelsAuditLogs(ctx context.Context, modelId string, params GetV1ModelsModelIdAuditLogsParams) (*ListAuditLogsResponse, error) {
+	return doJSON[ListAuditLogsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/models/%s/audit_logs",
+		pathArgs:    []any{modelId},
 		queryParams: params,
 		body:        nil,
 		successCode: 200,
@@ -2178,7 +2217,9 @@ func decodeErrorType(et errorType, statusCode int, body []byte) error {
 
 // encodeQuery walks a Params struct emitted by oapi-codegen and renders its
 // fields as url.Values using the "form" struct tag. Pointer fields that are
-// nil are skipped. time.Time values are rendered as RFC 3339.
+// nil are skipped. time.Time values are rendered as RFC 3339. Slice fields
+// (including named-element slices like []Enum) are exploded into one repeated
+// query parameter per element.
 func encodeQuery(p any) url.Values {
 	q := url.Values{}
 	v := reflect.ValueOf(p)
@@ -2208,13 +2249,15 @@ func encodeQuery(p any) url.Values {
 			}
 			fv = fv.Elem()
 		}
+		if fv.Kind() == reflect.Slice {
+			for j := 0; j < fv.Len(); j++ {
+				q.Add(name, fmt.Sprint(fv.Index(j).Interface()))
+			}
+			continue
+		}
 		switch x := fv.Interface().(type) {
 		case time.Time:
 			q.Set(name, x.Format(time.RFC3339))
-		case []string:
-			for _, s := range x {
-				q.Add(name, s)
-			}
 		default:
 			switch fv.Kind() {
 			case reflect.String:

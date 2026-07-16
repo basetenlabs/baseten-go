@@ -10,15 +10,17 @@ import (
 // postProcess removes the oapi-codegen runtime dependency from generated code
 // and fixes known codegen bugs. discriminatorValues maps a Go schema name to
 // the OpenAPI discriminator mapping key that should appear on the wire
-// (see fixDiscriminatorValueLiteral).
-func postProcess(src []byte, discriminatorValues map[string]string) ([]byte, error) {
+// (see fixDiscriminatorValueLiteral). discriminatorRequired maps a Go schema
+// name to whether its discriminator field is required, hence non-pointer
+// (see fixDiscriminatorPointerAssign).
+func postProcess(src []byte, discriminatorValues map[string]string, discriminatorRequired map[string]bool) ([]byte, error) {
 	s := string(src)
 
 	s = fixPackageComment(s)
 	s = removeMergeMethods(s)
 	s = removeRuntimeImport(s)
 	s = fixDiscriminatorValueLiteral(s, discriminatorValues)
-	s = fixDiscriminatorPointerAssign(s)
+	s = fixDiscriminatorPointerAssign(s, discriminatorRequired)
 	s = underscoreEnumConstants(s)
 
 	out, err := format.Source([]byte(s))
@@ -58,13 +60,25 @@ func removeRuntimeImport(s string) string {
 
 // discriminatorRe matches discriminator assignments in From* methods
 // (oapi-codegen#2297): v.Field = "literal" where Field is actually *string.
-// We wrap with a temporary variable to take the address.
+// We wrap with a temporary variable to take the address. Group 2 is the schema
+// name (the From{Name} suffix), used to look up whether the field is a pointer.
 var discriminatorRe = regexp.MustCompile(
-	`(func \([^)]+\) From\w+\([^)]*\) error \{\n)\t(\w+\.\w+) = (".*")`,
+	`(func \([^)]+\) From(\w+)\([^)]*\) error \{\n)\t(\w+\.\w+) = (".*")`,
 )
 
-func fixDiscriminatorPointerAssign(s string) string {
-	return discriminatorRe.ReplaceAllString(s, "${1}\t_v := $3\n\t$2 = &_v")
+// fixDiscriminatorPointerAssign takes the address of the discriminator literal
+// only when the member's field is a pointer. A member that requires its
+// discriminator property gets a non-pointer string field from oapi-codegen, so
+// the plain literal assignment is already correct and left untouched.
+func fixDiscriminatorPointerAssign(s string, discriminatorRequired map[string]bool) string {
+	return discriminatorRe.ReplaceAllStringFunc(s, func(match string) string {
+		sub := discriminatorRe.FindStringSubmatch(match)
+		prefix, schemaName, field, literal := sub[1], sub[2], sub[3], sub[4]
+		if discriminatorRequired[schemaName] {
+			return match
+		}
+		return prefix + "\t_v := " + literal + "\n\t" + field + " = &_v"
+	})
 }
 
 // fromMethodLiteralRe matches the literal assigned to the discriminator field

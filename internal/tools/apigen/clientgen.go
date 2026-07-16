@@ -559,7 +559,9 @@ func decodeErrorType(et errorType, statusCode int, body []byte) error {
 		pf(`
 // encodeQuery walks a Params struct emitted by oapi-codegen and renders its
 // fields as url.Values using the "form" struct tag. Pointer fields that are
-// nil are skipped. time.Time values are rendered as RFC 3339.
+// nil are skipped. time.Time values are rendered as RFC 3339. Slice fields
+// (including named-element slices like []Enum) are exploded into one repeated
+// query parameter per element.
 func encodeQuery(p any) url.Values {
 	q := url.Values{}
 	v := reflect.ValueOf(p)
@@ -589,13 +591,15 @@ func encodeQuery(p any) url.Values {
 			}
 			fv = fv.Elem()
 		}
+		if fv.Kind() == reflect.Slice {
+			for j := 0; j < fv.Len(); j++ {
+				q.Add(name, fmt.Sprint(fv.Index(j).Interface()))
+			}
+			continue
+		}
 		switch x := fv.Interface().(type) {
 		case time.Time:
 			q.Set(name, x.Format(time.RFC3339))
-		case []string:
-			for _, s := range x {
-				q.Add(name, s)
-			}
 		default:
 			switch fv.Kind() {
 			case reflect.String:

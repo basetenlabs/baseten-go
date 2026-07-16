@@ -955,6 +955,7 @@ const WeightsAuthMethodGCPOIDC WeightsAuthMethod = "GCP_OIDC"
 // - gs:// -> Google Cloud Storage (e.g., "gs://bucket/path")
 // - azure:// -> Azure Blob Storage (e.g., "azure://account/container/path")
 // - r2:// -> CloudFlare R2 Storage (e.g., "r2://account_id.bucket/path")
+// - cw:// -> CoreWeave AI Object Storage (e.g., "cw://bucket/path")
 // - https:// -> Direct URL download (e.g., "https://example.com/model.bin")
 //
 // For HuggingFace sources, you can specify a revision (branch, tag, or commit SHA)
@@ -984,8 +985,8 @@ type WeightsSource struct {
 	// Absolute path where weights will be mounted at runtime.
 	MountLocation string `json:"mount_location" yaml:"mount_location"`
 
-	// URI with scheme prefix. Use hf://, s3://, gs://, azure://, r2://, or https://.
-	// For HuggingFace, use @revision suffix (e.g., hf://owner/repo@main).
+	// URI with scheme prefix. Use hf://, s3://, gs://, azure://, r2://, cw://, or
+	// https://. For HuggingFace, use @revision suffix (e.g., hf://owner/repo@main).
 	Source string `json:"source" yaml:"source"`
 
 	AdditionalProperties interface{} `mapstructure:",remain"`
