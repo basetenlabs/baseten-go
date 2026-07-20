@@ -2742,8 +2742,8 @@ type DeploymentArchiveSource struct {
 	Deployment DeploymentArchivePayload `json:"deployment"`
 	Kind       *string                  `json:"kind,omitempty"`
 
-	// S3Key S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`.
-	S3Key string `json:"s3_key"`
+	// S3Key S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`. Omit for model formats that are not built from an archive (for example, BIS-LLM), where prepare issues no upload target.
+	S3Key *string `json:"s3_key,omitempty"`
 }
 
 // DeploymentConfigOutputFormat defines model for DeploymentConfigOutputFormat.
@@ -4304,8 +4304,8 @@ type ModelArchiveSource struct {
 	// Name Name of the new model.
 	Name string `json:"name"`
 
-	// S3Key S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`.
-	S3Key string `json:"s3_key"`
+	// S3Key S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`. Omit for model formats that are not built from an archive (for example, BIS-LLM), where prepare issues no upload target.
+	S3Key *string `json:"s3_key,omitempty"`
 }
 
 // ModelConfig defines model for ModelConfig.
@@ -4546,20 +4546,22 @@ type PrepareModelUploadRequest struct {
 
 // PrepareModelUploadResponse Response from `POST /v1/prepare_model_upload`.
 //
-// On success with `dry_run=false`, returns STS upload credentials. On success
-// with `dry_run=true`, `creds`, `s3_bucket`, and `s3_key` are `null` and only
-// validation has run.
+// Returns STS upload credentials when the push requires an archive upload. All
+// four fields (`creds`, `s3_bucket`, `s3_key`, `s3_region`) are `null` when no
+// upload is needed: either `dry_run=true` (validation only) or a model format
+// that is not built from an uploaded archive (for example, BIS-LLM, which is
+// built from its config alone).
 type PrepareModelUploadResponse struct {
 	// Creds AWS credentials
 	Creds *AWSCredentials `json:"creds,omitempty"`
 
-	// S3Bucket S3 bucket the credentials are scoped to.
+	// S3Bucket S3 bucket the credentials are scoped to. Null when no archive upload is required.
 	S3Bucket *string `json:"s3_bucket,omitempty"`
 
-	// S3Key S3 key the credentials are scoped to. Pass this to `POST /v1/models` (in the `model_archive` source) once the upload completes.
+	// S3Key S3 key the credentials are scoped to. Pass this to `POST /v1/models` (in the `model_archive` source) once the upload completes. Null when no archive upload is required.
 	S3Key *string `json:"s3_key,omitempty"`
 
-	// S3Region AWS region the S3 bucket resides in.
+	// S3Region AWS region the S3 bucket resides in. Null when no archive upload is required.
 	S3Region *string `json:"s3_region,omitempty"`
 }
 
@@ -4877,11 +4879,17 @@ type TeamTrainingGpuCapacityItem struct {
 	// Baseline Baseline GPU allocation for the team. 0 if not configured.
 	Baseline int `json:"baseline"`
 
+	// DedicatedUsageCount Portion of usage_count from dedicated (on-demand) jobs.
+	DedicatedUsageCount *int `json:"dedicated_usage_count,omitempty"`
+
 	// GpuType GPU type identifier (e.g. H100, A100-40GB)
 	GpuType string `json:"gpu_type"`
 
 	// Limit Maximum concurrent GPUs of this type for this team
 	Limit int `json:"limit"`
+
+	// SpotUsageCount Portion of usage_count from spot jobs.
+	SpotUsageCount *int `json:"spot_usage_count,omitempty"`
 
 	// TeamId Team identifier
 	TeamId string `json:"team_id"`
@@ -4918,11 +4926,17 @@ type TrainingGpuCapacityItem struct {
 	// Baseline Baseline GPU allocation; jobs below this threshold are expected to run immediately. 0 if not configured.
 	Baseline int `json:"baseline"`
 
+	// DedicatedUsageCount Portion of usage_count from dedicated (on-demand) jobs, which run against the baseline.
+	DedicatedUsageCount *int `json:"dedicated_usage_count,omitempty"`
+
 	// GpuType GPU type identifier (e.g. H100, A100-40GB)
 	GpuType string `json:"gpu_type"`
 
 	// Limit Maximum concurrent GPUs of this type for this org
 	Limit int `json:"limit"`
+
+	// SpotUsageCount Portion of usage_count from spot jobs, which burst into the peak and may push usage above the limit.
+	SpotUsageCount *int `json:"spot_usage_count,omitempty"`
 
 	// UsageCount GPUs currently in use by active training jobs
 	UsageCount int `json:"usage_count"`

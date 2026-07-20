@@ -8618,7 +8618,7 @@
                 "type": "object"
             },
             "PrepareModelUploadResponseV1": {
-                "description": "Response from `POST /v1/prepare_model_upload`.\n\nOn success with `dry_run=false`, returns STS upload credentials. On success\nwith `dry_run=true`, `creds`, `s3_bucket`, and `s3_key` are `null` and only\nvalidation has run.",
+                "description": "Response from `POST /v1/prepare_model_upload`.\n\nReturns STS upload credentials when the push requires an archive upload. All\nfour fields (`creds`, `s3_bucket`, `s3_key`, `s3_region`) are `null` when no\nupload is needed: either `dry_run=true` (validation only) or a model format\nthat is not built from an uploaded archive (for example, BIS-LLM, which is\nbuilt from its config alone).",
                 "properties": {
                     "creds": {
                         "anyOf": [
@@ -8630,7 +8630,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "STS credentials to upload the model archive."
+                        "description": "STS credentials to upload the model archive. Null when no archive upload is required."
                     },
                     "s3_bucket": {
                         "anyOf": [
@@ -8642,7 +8642,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "S3 bucket the credentials are scoped to.",
+                        "description": "S3 bucket the credentials are scoped to. Null when no archive upload is required.",
                         "title": "S3 Bucket"
                     },
                     "s3_key": {
@@ -8655,7 +8655,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "S3 key the credentials are scoped to. Pass this to `POST /v1/models` (in the `model_archive` source) once the upload completes.",
+                        "description": "S3 key the credentials are scoped to. Pass this to `POST /v1/models` (in the `model_archive` source) once the upload completes. Null when no archive upload is required.",
                         "title": "S3 Key"
                     },
                     "s3_region": {
@@ -8668,7 +8668,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "AWS region the S3 bucket resides in.",
+                        "description": "AWS region the S3 bucket resides in. Null when no archive upload is required.",
                         "title": "S3 Region"
                     }
                 },
@@ -11768,9 +11768,17 @@
                         "description": "Deployment-level configuration for the model's first deployment."
                     },
                     "s3_key": {
-                        "description": "S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`.",
-                        "title": "S3 Key",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`. Omit for model formats that are not built from an archive (for example, BIS-LLM), where prepare issues no upload target.",
+                        "title": "S3 Key"
                     },
                     "disable_archive_download": {
                         "default": false,
@@ -11781,8 +11789,7 @@
                 },
                 "required": [
                     "name",
-                    "deployment",
-                    "s3_key"
+                    "deployment"
                 ],
                 "title": "ModelArchiveSourceV1",
                 "type": "object"
@@ -12130,14 +12137,21 @@
                         "description": "Deployment-level configuration."
                     },
                     "s3_key": {
-                        "description": "S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`.",
-                        "title": "S3 Key",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`. Omit for model formats that are not built from an archive (for example, BIS-LLM), where prepare issues no upload target.",
+                        "title": "S3 Key"
                     }
                 },
                 "required": [
-                    "deployment",
-                    "s3_key"
+                    "deployment"
                 ],
                 "title": "DeploymentArchiveSourceV1",
                 "type": "object"
@@ -19087,6 +19101,18 @@
                         "description": "GPUs currently in use by the team's active training jobs",
                         "title": "Usage Count",
                         "type": "integer"
+                    },
+                    "dedicated_usage_count": {
+                        "default": 0,
+                        "description": "Portion of usage_count from dedicated (on-demand) jobs.",
+                        "title": "Dedicated Usage Count",
+                        "type": "integer"
+                    },
+                    "spot_usage_count": {
+                        "default": 0,
+                        "description": "Portion of usage_count from spot jobs.",
+                        "title": "Spot Usage Count",
+                        "type": "integer"
                     }
                 },
                 "required": [
@@ -19121,6 +19147,18 @@
                     "usage_count": {
                         "description": "GPUs currently in use by active training jobs",
                         "title": "Usage Count",
+                        "type": "integer"
+                    },
+                    "dedicated_usage_count": {
+                        "default": 0,
+                        "description": "Portion of usage_count from dedicated (on-demand) jobs, which run against the baseline.",
+                        "title": "Dedicated Usage Count",
+                        "type": "integer"
+                    },
+                    "spot_usage_count": {
+                        "default": 0,
+                        "description": "Portion of usage_count from spot jobs, which burst into the peak and may push usage above the limit.",
+                        "title": "Spot Usage Count",
                         "type": "integer"
                     }
                 },
