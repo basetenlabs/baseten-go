@@ -14,6 +14,12 @@ import (
 type preprocessedSpec struct {
 	data                []byte
 	discriminatorValues map[string]string
+	// discriminatorRequired is keyed by Go schema name (post V1 rename) and
+	// is true when the union member requires its discriminator property.
+	// oapi-codegen then emits that field as a non-pointer string, so
+	// postProcess must assign the wire literal directly instead of taking its
+	// address.
+	discriminatorRequired map[string]bool
 }
 
 // preprocessSpec transforms an OpenAPI 3.1 spec to 3.0-compatible form so
@@ -36,6 +42,10 @@ func preprocessSpec(data []byte) (*preprocessedSpec, error) {
 		return nil, err
 	}
 
+	// Harvest discriminator required-ness before the schema keys are renamed,
+	// so member $refs still resolve against the original schema names.
+	discriminatorRequired := harvestDiscriminatorRequired(doc, schemaRenames)
+
 	// Rename the schema keys themselves.
 	if schemas := componentSchemas(doc); schemas != nil {
 		for old, renamed := range schemaRenames {
@@ -48,7 +58,82 @@ func preprocessSpec(data []byte) (*preprocessedSpec, error) {
 	if err != nil {
 		return nil, fmt.Errorf("marshaling converted spec: %w", err)
 	}
-	return &preprocessedSpec{data: out, discriminatorValues: discriminatorValues}, nil
+	return &preprocessedSpec{data: out, discriminatorValues: discriminatorValues, discriminatorRequired: discriminatorRequired}, nil
+}
+
+// harvestDiscriminatorRequired records, for each discriminated-union member
+// schema, whether the member requires the union's discriminator property.
+// Results are keyed by Go schema name (post V1 rename) to match the From{Name}
+// methods postProcess rewrites. Must run before schema keys are renamed so the
+// mapping $refs still resolve against the original names. Discriminators can be
+// nested anywhere in the doc (e.g. on a property schema), so this walks the
+// whole tree while resolving members against the top-level schema map.
+func harvestDiscriminatorRequired(doc map[string]any, schemaRenames map[string]string) map[string]bool {
+	required := map[string]bool{}
+	schemas := componentSchemas(doc)
+	if schemas == nil {
+		return required
+	}
+	var walk func(node any)
+	walk = func(node any) {
+		switch v := node.(type) {
+		case map[string]any:
+			harvestDiscriminatorNode(v, schemas, schemaRenames, required)
+			for _, child := range v {
+				walk(child)
+			}
+		case []any:
+			for _, child := range v {
+				walk(child)
+			}
+		}
+	}
+	walk(doc)
+	return required
+}
+
+// harvestDiscriminatorNode records member required-ness for a single schema
+// node that carries a discriminator with an explicit mapping.
+func harvestDiscriminatorNode(schema, schemas map[string]any, schemaRenames map[string]string, required map[string]bool) {
+	d, ok := schema["discriminator"].(map[string]any)
+	if !ok {
+		return
+	}
+	propName, _ := d["propertyName"].(string)
+	mapping, ok := d["mapping"].(map[string]any)
+	if propName == "" || !ok {
+		return
+	}
+	const prefix = "#/components/schemas/"
+	for _, refAny := range mapping {
+		ref, _ := refAny.(string)
+		memberName, ok := strings.CutPrefix(ref, prefix)
+		if !ok {
+			continue
+		}
+		member, ok := schemas[memberName].(map[string]any)
+		if !ok {
+			continue
+		}
+		goName := memberName
+		if renamed, ok := schemaRenames[memberName]; ok {
+			goName = renamed
+		}
+		required[goName] = propertyRequired(member, propName)
+	}
+}
+
+func propertyRequired(schema map[string]any, prop string) bool {
+	req, ok := schema["required"].([]any)
+	if !ok {
+		return false
+	}
+	for _, r := range req {
+		if s, _ := r.(string); s == prop {
+			return true
+		}
+	}
+	return false
 }
 
 func componentSchemas(doc map[string]any) map[string]any {

@@ -149,7 +149,7 @@ func generateAPI(apigenDir, specSource, clientDir, pkgName string) error {
 	if err != nil {
 		return fmt.Errorf("reading generated file: %w", err)
 	}
-	src, err = postProcess(src, specData.discriminatorValues)
+	src, err = postProcess(src, specData.discriminatorValues, specData.discriminatorRequired)
 	if err != nil {
 		return fmt.Errorf("post-processing: %w", err)
 	}
@@ -169,9 +169,10 @@ func generateAPI(apigenDir, specSource, clientDir, pkgName string) error {
 }
 
 type resolvedSpec struct {
-	preprocessed        []byte // JSON bytes after preprocessing
-	tmpFile             string // temp file path for oapi-codegen
-	discriminatorValues map[string]string
+	preprocessed          []byte // JSON bytes after preprocessing
+	tmpFile               string // temp file path for oapi-codegen
+	discriminatorValues   map[string]string
+	discriminatorRequired map[string]bool
 }
 
 // resolveSpec reads and preprocesses a spec file, returning the preprocessed
@@ -202,7 +203,12 @@ func resolveSpec(source string) (*resolvedSpec, func(), error) {
 		os.Remove(tmp.Name())
 		return nil, noop, err
 	}
-	return &resolvedSpec{preprocessed: pre.data, tmpFile: tmp.Name(), discriminatorValues: pre.discriminatorValues}, func() { os.Remove(tmp.Name()) }, nil
+	return &resolvedSpec{
+		preprocessed:          pre.data,
+		tmpFile:               tmp.Name(),
+		discriminatorValues:   pre.discriminatorValues,
+		discriminatorRequired: pre.discriminatorRequired,
+	}, func() { os.Remove(tmp.Name()) }, nil
 }
 
 func downloadSpecToFile(url, destFile string) error {

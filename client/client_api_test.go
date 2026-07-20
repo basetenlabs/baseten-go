@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/basetenlabs/baseten-go/client"
@@ -18,6 +20,7 @@ type requestCapture struct {
 	Method  string
 	Path    string
 	RawPath string
+	Query   url.Values
 	Header  http.Header
 	Body    string
 }
@@ -35,6 +38,7 @@ func newTestServer(t *testing.T, statusCode int, response any, capture *requestC
 				Method:  r.Method,
 				Path:    r.URL.Path,
 				RawPath: rawPath,
+				Query:   r.URL.Query(),
 				Header:  r.Header,
 				Body:    string(body),
 			}
@@ -121,6 +125,147 @@ func TestManagementPostBody(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(cap.Body), &body))
 	require.MapEqual(t, body, "name", "MY_SECRET")
 	require.MapEqual(t, body, "value", "s3cret")
+}
+
+func TestManagementGetAuditLogs(t *testing.T) {
+	var cap requestCapture
+	srv := newTestServer(t, 200, map[string]any{
+		"items": []map[string]any{
+			{
+				"id":         "log-1",
+				"created":    "2024-01-01T00:00:00Z",
+				"actor":      map[string]any{"type": "USER", "email": "user@example.com"},
+				"source":     "API",
+				"event_type": "MODEL_DEPLOYED",
+				"event_data": map[string]any{
+					"event_type":             "MODEL_DEPLOYED",
+					"model_id":               "model-123",
+					"model_name":             "my-model",
+					"deployment_id":          "deploy-456",
+					"deployment_name":        "my-deployment",
+					"environment_name":       "production",
+					"scale_previous_to_zero": true,
+					"trusted":                false,
+					"publish":                true,
+					// A field the client doesn't know about yet; must survive a
+					// marshal round-trip since event_data is stored as raw JSON.
+					"future_field": "future_value",
+				},
+			},
+			{
+				"id":         "log-2",
+				"created":    "2024-01-02T00:00:00Z",
+				"actor":      map[string]any{"type": "USER", "email": "user@example.com"},
+				"source":     "API",
+				"event_type": "MODEL_DELETED",
+				"event_data": map[string]any{
+					"event_type": "MODEL_DELETED",
+					"model_id":   "model-123",
+					"model_name": "my-model",
+				},
+			},
+			{
+				// An event type the client was generated before it existed.
+				"id":         "log-3",
+				"created":    "2024-01-03T00:00:00Z",
+				"actor":      map[string]any{"type": "USER", "email": "user@example.com"},
+				"source":     "API",
+				"event_type": "QUANTUM_TELEPORTED",
+				"event_data": map[string]any{
+					"event_type":   "QUANTUM_TELEPORTED",
+					"qubit_id":     "q-99",
+					"entanglement": true,
+				},
+			},
+		},
+		"pagination": map[string]any{"has_more": false},
+	}, &cap)
+	api := newManagementClient(t, srv)
+
+	limit := 50
+	direction := managementapi.AuditLogSortDirection_DESC
+	resp, err := api.GetAuditLogs(context.Background(), managementapi.GetV1AuditLogsParams{
+		Limit:     &limit,
+		Direction: &direction,
+		EventTypeGroups: &[]managementapi.AuditLogEventTypeGroup{
+			managementapi.AuditLogEventTypeGroup_DEPLOYED,
+			managementapi.AuditLogEventTypeGroup_PROMOTED,
+		},
+		Sources: &[]managementapi.AuditLogSource{managementapi.AuditLogSource_UI},
+		UserIds: &[]string{"u1", "u2"},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Len(t, resp.Items, 3)
+
+	// Scalar query params render as a single value: a plain int (limit) and a
+	// named-string enum (direction).
+	require.Equal(t, "50", cap.Query.Get("limit"))
+	require.Equal(t, "DESC", cap.Query.Get("direction"))
+
+	// Slice query params explode into one repeated parameter per element. This
+	// covers both named-element slices (event_type_groups, sources) and plain
+	// []string (user_ids); the named-element case is the one that regressed to
+	// a single "[A B]"-style value before encodeQuery handled slices generically.
+	require.Equal(t, "DEPLOYED,PROMOTED", strings.Join(cap.Query["event_type_groups"], ","))
+	require.Equal(t, "UI", strings.Join(cap.Query["sources"], ","))
+	require.Equal(t, "u1,u2", strings.Join(cap.Query["user_ids"], ","))
+
+	// A known event deserializes to its concrete type via the discriminator,
+	// ignoring the unknown field.
+	deployedEntry := resp.Items[0]
+	require.Equal(t, managementapi.AuditLogEventType_MODEL_DEPLOYED, deployedEntry.EventType)
+	value, err := deployedEntry.EventData.ValueByDiscriminator()
+	require.NoError(t, err)
+	deployed, ok := value.(managementapi.AuditLogEventModelDeployed)
+	require.True(t, ok, "expected AuditLogEventModelDeployed, got %T", value)
+	require.Equal(t, "model-123", deployed.ModelId)
+	require.Equal(t, "production", *deployed.EnvironmentName)
+	require.True(t, deployed.Publish, "expected publish to be true")
+
+	// The unknown field survives a marshal round-trip: event_data is retained
+	// as raw JSON rather than re-encoded from the typed struct.
+	remarshaled, err := json.Marshal(deployedEntry.EventData)
+	require.NoError(t, err)
+	require.Contains(t, string(remarshaled), `"future_field":"future_value"`)
+
+	// A second known event type resolves to its own concrete type.
+	deletedEntry := resp.Items[1]
+	require.Equal(t, managementapi.AuditLogEventType_MODEL_DELETED, deletedEntry.EventType)
+	deletedValue, err := deletedEntry.EventData.ValueByDiscriminator()
+	require.NoError(t, err)
+	deleted, ok := deletedValue.(managementapi.AuditLogEventModelDeleted)
+	require.True(t, ok, "expected AuditLogEventModelDeleted, got %T", deletedValue)
+	require.Equal(t, "my-model", deleted.ModelName)
+
+	// An unknown event type still deserializes at the response level; only
+	// ValueByDiscriminator reports it can't resolve a concrete type. The raw
+	// discriminator and the whole event_data payload remain accessible.
+	unknownEntry := resp.Items[2]
+	require.Equal(t, managementapi.AuditLogEventType("QUANTUM_TELEPORTED"), unknownEntry.EventType)
+	_, err = unknownEntry.EventData.ValueByDiscriminator()
+	require.Error(t, err)
+	discriminator, err := unknownEntry.EventData.Discriminator()
+	require.NoError(t, err)
+	require.Equal(t, "QUANTUM_TELEPORTED", discriminator)
+	unknownJSON, err := json.Marshal(unknownEntry.EventData)
+	require.NoError(t, err)
+	require.Contains(t, string(unknownJSON), `"qubit_id":"q-99"`)
+
+	// The union round-trips the other direction too: From* stamps the
+	// discriminator so ValueByDiscriminator resolves the concrete type again.
+	var union managementapi.AuditLogEntry_EventData
+	require.NoError(t, union.FromAuditLogEventModelDeployed(managementapi.AuditLogEventModelDeployed{
+		ModelId:      "model-789",
+		DeploymentId: "deploy-789",
+	}))
+	marshaled, err := json.Marshal(union)
+	require.NoError(t, err)
+	require.Contains(t, string(marshaled), `"event_type":"MODEL_DEPLOYED"`)
+	roundTripped, err := union.ValueByDiscriminator()
+	require.NoError(t, err)
+	_, ok = roundTripped.(managementapi.AuditLogEventModelDeployed)
+	require.True(t, ok, "expected AuditLogEventModelDeployed after round-trip, got %T", roundTripped)
 }
 
 func TestManagementResponseError(t *testing.T) {

@@ -36,6 +36,336 @@ func (e APIKeyCategory) Valid() bool {
 	}
 }
 
+// Defines values for AuditLogActorType.
+const (
+	AuditLogActorType_API_KEY        AuditLogActorType = "API_KEY"
+	AuditLogActorType_BASETEN_SYSTEM AuditLogActorType = "BASETEN_SYSTEM"
+	AuditLogActorType_BASETEN_USER   AuditLogActorType = "BASETEN_USER"
+	AuditLogActorType_TOMBSTONE_USER AuditLogActorType = "TOMBSTONE_USER"
+	AuditLogActorType_USER           AuditLogActorType = "USER"
+)
+
+// Valid indicates whether the value is a known member of the AuditLogActorType enum.
+func (e AuditLogActorType) Valid() bool {
+	switch e {
+	case AuditLogActorType_API_KEY:
+		return true
+	case AuditLogActorType_BASETEN_SYSTEM:
+		return true
+	case AuditLogActorType_BASETEN_USER:
+		return true
+	case AuditLogActorType_TOMBSTONE_USER:
+		return true
+	case AuditLogActorType_USER:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AuditLogApiKeyType.
+const (
+	AuditLogApiKeyType_CREATOR_SERVICE_ACCOUNT                         AuditLogApiKeyType = "CREATOR_SERVICE_ACCOUNT"
+	AuditLogApiKeyType_EXPORT_METRICS_ALL_MODELS_SERVICE_ACCOUNT       AuditLogApiKeyType = "EXPORT_METRICS_ALL_MODELS_SERVICE_ACCOUNT"
+	AuditLogApiKeyType_EXPORT_METRICS_ALLOWED_MODELS_SERVICE_ACCOUNT   AuditLogApiKeyType = "EXPORT_METRICS_ALLOWED_MODELS_SERVICE_ACCOUNT"
+	AuditLogApiKeyType_INVOKE_ALL_MODELS_SERVICE_ACCOUNT               AuditLogApiKeyType = "INVOKE_ALL_MODELS_SERVICE_ACCOUNT"
+	AuditLogApiKeyType_INVOKE_ALLOWED_MODELS_SERVICE_ACCOUNT           AuditLogApiKeyType = "INVOKE_ALLOWED_MODELS_SERVICE_ACCOUNT"
+	AuditLogApiKeyType_INVOKE_ALLOWED_SHARED_ENDPOINTS_SERVICE_ACCOUNT AuditLogApiKeyType = "INVOKE_ALLOWED_SHARED_ENDPOINTS_SERVICE_ACCOUNT"
+	AuditLogApiKeyType_INVOKE_ALL_SHARED_ENDPOINTS_SERVICE_ACCOUNT     AuditLogApiKeyType = "INVOKE_ALL_SHARED_ENDPOINTS_SERVICE_ACCOUNT"
+	AuditLogApiKeyType_INVOKE_SCOPED_ENVS_AND_MODELS_SERVICE_ACCOUNT   AuditLogApiKeyType = "INVOKE_SCOPED_ENVS_AND_MODELS_SERVICE_ACCOUNT"
+	AuditLogApiKeyType_PERSONAL                                        AuditLogApiKeyType = "PERSONAL"
+)
+
+// Valid indicates whether the value is a known member of the AuditLogApiKeyType enum.
+func (e AuditLogApiKeyType) Valid() bool {
+	switch e {
+	case AuditLogApiKeyType_CREATOR_SERVICE_ACCOUNT:
+		return true
+	case AuditLogApiKeyType_EXPORT_METRICS_ALL_MODELS_SERVICE_ACCOUNT:
+		return true
+	case AuditLogApiKeyType_EXPORT_METRICS_ALLOWED_MODELS_SERVICE_ACCOUNT:
+		return true
+	case AuditLogApiKeyType_INVOKE_ALL_MODELS_SERVICE_ACCOUNT:
+		return true
+	case AuditLogApiKeyType_INVOKE_ALLOWED_MODELS_SERVICE_ACCOUNT:
+		return true
+	case AuditLogApiKeyType_INVOKE_ALLOWED_SHARED_ENDPOINTS_SERVICE_ACCOUNT:
+		return true
+	case AuditLogApiKeyType_INVOKE_ALL_SHARED_ENDPOINTS_SERVICE_ACCOUNT:
+		return true
+	case AuditLogApiKeyType_INVOKE_SCOPED_ENVS_AND_MODELS_SERVICE_ACCOUNT:
+		return true
+	case AuditLogApiKeyType_PERSONAL:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AuditLogEventType.
+const (
+	AuditLogEventType_API_KEY_CREATED                               AuditLogEventType = "API_KEY_CREATED"
+	AuditLogEventType_API_KEY_DELETED                               AuditLogEventType = "API_KEY_DELETED"
+	AuditLogEventType_CHAIN_DELETED                                 AuditLogEventType = "CHAIN_DELETED"
+	AuditLogEventType_CHAIN_DEPLOYED                                AuditLogEventType = "CHAIN_DEPLOYED"
+	AuditLogEventType_CHAIN_DEPLOYMENT_ACTIVATED                    AuditLogEventType = "CHAIN_DEPLOYMENT_ACTIVATED"
+	AuditLogEventType_CHAIN_DEPLOYMENT_DEACTIVATED                  AuditLogEventType = "CHAIN_DEPLOYMENT_DEACTIVATED"
+	AuditLogEventType_CHAIN_DEPLOYMENT_DELETED                      AuditLogEventType = "CHAIN_DEPLOYMENT_DELETED"
+	AuditLogEventType_CHAIN_DEPLOYMENT_PROMOTED                     AuditLogEventType = "CHAIN_DEPLOYMENT_PROMOTED"
+	AuditLogEventType_CHAIN_ENVIRONMENT_CREATED                     AuditLogEventType = "CHAIN_ENVIRONMENT_CREATED"
+	AuditLogEventType_CHAIN_ENVIRONMENT_UPDATED                     AuditLogEventType = "CHAIN_ENVIRONMENT_UPDATED"
+	AuditLogEventType_CHAINLET_AUTOSCALING_SETTINGS_CHANGED         AuditLogEventType = "CHAINLET_AUTOSCALING_SETTINGS_CHANGED"
+	AuditLogEventType_CHAINLET_INSTANCE_TYPE_CHANGED                AuditLogEventType = "CHAINLET_INSTANCE_TYPE_CHANGED"
+	AuditLogEventType_DIRECTORY_GROUP_ROLE_UPDATED                  AuditLogEventType = "DIRECTORY_GROUP_ROLE_UPDATED"
+	AuditLogEventType_ENVIRONMENT_CREATED                           AuditLogEventType = "ENVIRONMENT_CREATED"
+	AuditLogEventType_ENVIRONMENT_DELETED                           AuditLogEventType = "ENVIRONMENT_DELETED"
+	AuditLogEventType_ENVIRONMENT_UPDATED                           AuditLogEventType = "ENVIRONMENT_UPDATED"
+	AuditLogEventType_GATEWAY_ENDPOINT_CREATED                      AuditLogEventType = "GATEWAY_ENDPOINT_CREATED"
+	AuditLogEventType_GATEWAY_ENDPOINT_DELETED                      AuditLogEventType = "GATEWAY_ENDPOINT_DELETED"
+	AuditLogEventType_GATEWAY_ENDPOINT_UPDATED                      AuditLogEventType = "GATEWAY_ENDPOINT_UPDATED"
+	AuditLogEventType_MODEL_DELETED                                 AuditLogEventType = "MODEL_DELETED"
+	AuditLogEventType_MODEL_DEPLOYED                                AuditLogEventType = "MODEL_DEPLOYED"
+	AuditLogEventType_MODEL_DEPLOYMENT_ACTIVATED                    AuditLogEventType = "MODEL_DEPLOYMENT_ACTIVATED"
+	AuditLogEventType_MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED AuditLogEventType = "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED"
+	AuditLogEventType_MODEL_DEPLOYMENT_DEACTIVATED                  AuditLogEventType = "MODEL_DEPLOYMENT_DEACTIVATED"
+	AuditLogEventType_MODEL_DEPLOYMENT_DELETED                      AuditLogEventType = "MODEL_DEPLOYMENT_DELETED"
+	AuditLogEventType_MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED        AuditLogEventType = "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED"
+	AuditLogEventType_MODEL_DEPLOYMENT_PROMOTED                     AuditLogEventType = "MODEL_DEPLOYMENT_PROMOTED"
+	AuditLogEventType_MODEL_DEPLOYMENT_RETRIED                      AuditLogEventType = "MODEL_DEPLOYMENT_RETRIED"
+	AuditLogEventType_MODEL_PROMOTION_CONTROL_ACTION                AuditLogEventType = "MODEL_PROMOTION_CONTROL_ACTION"
+	AuditLogEventType_REPLICA_TERMINATED                            AuditLogEventType = "REPLICA_TERMINATED"
+	AuditLogEventType_REQUIRE_GROUP_BASED_ADMINS_ENABLED            AuditLogEventType = "REQUIRE_GROUP_BASED_ADMINS_ENABLED"
+	AuditLogEventType_SECRET_DELETED                                AuditLogEventType = "SECRET_DELETED"
+	AuditLogEventType_SECRET_UPDATED                                AuditLogEventType = "SECRET_UPDATED"
+	AuditLogEventType_SSH_CERTIFICATE_SIGNED                        AuditLogEventType = "SSH_CERTIFICATE_SIGNED"
+	AuditLogEventType_USER_INVITED                                  AuditLogEventType = "USER_INVITED"
+	AuditLogEventType_USER_JOINED_ORGANIZATION                      AuditLogEventType = "USER_JOINED_ORGANIZATION"
+	AuditLogEventType_USER_REMOVED                                  AuditLogEventType = "USER_REMOVED"
+	AuditLogEventType_USER_ROLE_UPDATED                             AuditLogEventType = "USER_ROLE_UPDATED"
+	AuditLogEventType_USER_TEAM_ROLE_UPDATED                        AuditLogEventType = "USER_TEAM_ROLE_UPDATED"
+	AuditLogEventType_WEBHOOK_SIGNING_SECRET_CREATED                AuditLogEventType = "WEBHOOK_SIGNING_SECRET_CREATED"
+	AuditLogEventType_WEBHOOK_SIGNING_SECRET_DELETED                AuditLogEventType = "WEBHOOK_SIGNING_SECRET_DELETED"
+	AuditLogEventType_WEBHOOK_SIGNING_SECRET_ROTATED                AuditLogEventType = "WEBHOOK_SIGNING_SECRET_ROTATED"
+)
+
+// Valid indicates whether the value is a known member of the AuditLogEventType enum.
+func (e AuditLogEventType) Valid() bool {
+	switch e {
+	case AuditLogEventType_API_KEY_CREATED:
+		return true
+	case AuditLogEventType_API_KEY_DELETED:
+		return true
+	case AuditLogEventType_CHAIN_DELETED:
+		return true
+	case AuditLogEventType_CHAIN_DEPLOYED:
+		return true
+	case AuditLogEventType_CHAIN_DEPLOYMENT_ACTIVATED:
+		return true
+	case AuditLogEventType_CHAIN_DEPLOYMENT_DEACTIVATED:
+		return true
+	case AuditLogEventType_CHAIN_DEPLOYMENT_DELETED:
+		return true
+	case AuditLogEventType_CHAIN_DEPLOYMENT_PROMOTED:
+		return true
+	case AuditLogEventType_CHAIN_ENVIRONMENT_CREATED:
+		return true
+	case AuditLogEventType_CHAIN_ENVIRONMENT_UPDATED:
+		return true
+	case AuditLogEventType_CHAINLET_AUTOSCALING_SETTINGS_CHANGED:
+		return true
+	case AuditLogEventType_CHAINLET_INSTANCE_TYPE_CHANGED:
+		return true
+	case AuditLogEventType_DIRECTORY_GROUP_ROLE_UPDATED:
+		return true
+	case AuditLogEventType_ENVIRONMENT_CREATED:
+		return true
+	case AuditLogEventType_ENVIRONMENT_DELETED:
+		return true
+	case AuditLogEventType_ENVIRONMENT_UPDATED:
+		return true
+	case AuditLogEventType_GATEWAY_ENDPOINT_CREATED:
+		return true
+	case AuditLogEventType_GATEWAY_ENDPOINT_DELETED:
+		return true
+	case AuditLogEventType_GATEWAY_ENDPOINT_UPDATED:
+		return true
+	case AuditLogEventType_MODEL_DELETED:
+		return true
+	case AuditLogEventType_MODEL_DEPLOYED:
+		return true
+	case AuditLogEventType_MODEL_DEPLOYMENT_ACTIVATED:
+		return true
+	case AuditLogEventType_MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED:
+		return true
+	case AuditLogEventType_MODEL_DEPLOYMENT_DEACTIVATED:
+		return true
+	case AuditLogEventType_MODEL_DEPLOYMENT_DELETED:
+		return true
+	case AuditLogEventType_MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED:
+		return true
+	case AuditLogEventType_MODEL_DEPLOYMENT_PROMOTED:
+		return true
+	case AuditLogEventType_MODEL_DEPLOYMENT_RETRIED:
+		return true
+	case AuditLogEventType_MODEL_PROMOTION_CONTROL_ACTION:
+		return true
+	case AuditLogEventType_REPLICA_TERMINATED:
+		return true
+	case AuditLogEventType_REQUIRE_GROUP_BASED_ADMINS_ENABLED:
+		return true
+	case AuditLogEventType_SECRET_DELETED:
+		return true
+	case AuditLogEventType_SECRET_UPDATED:
+		return true
+	case AuditLogEventType_SSH_CERTIFICATE_SIGNED:
+		return true
+	case AuditLogEventType_USER_INVITED:
+		return true
+	case AuditLogEventType_USER_JOINED_ORGANIZATION:
+		return true
+	case AuditLogEventType_USER_REMOVED:
+		return true
+	case AuditLogEventType_USER_ROLE_UPDATED:
+		return true
+	case AuditLogEventType_USER_TEAM_ROLE_UPDATED:
+		return true
+	case AuditLogEventType_WEBHOOK_SIGNING_SECRET_CREATED:
+		return true
+	case AuditLogEventType_WEBHOOK_SIGNING_SECRET_DELETED:
+		return true
+	case AuditLogEventType_WEBHOOK_SIGNING_SECRET_ROTATED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AuditLogEventTypeGroup.
+const (
+	AuditLogEventTypeGroup_ACTIVATED_DEACTIVATED      AuditLogEventTypeGroup = "ACTIVATED_DEACTIVATED"
+	AuditLogEventTypeGroup_API_KEYS                   AuditLogEventTypeGroup = "API_KEYS"
+	AuditLogEventTypeGroup_AUTOSCALING_SETTINGS       AuditLogEventTypeGroup = "AUTOSCALING_SETTINGS"
+	AuditLogEventTypeGroup_DELETED                    AuditLogEventTypeGroup = "DELETED"
+	AuditLogEventTypeGroup_DEPLOYED                   AuditLogEventTypeGroup = "DEPLOYED"
+	AuditLogEventTypeGroup_DIRECTORY_GROUP_MANAGEMENT AuditLogEventTypeGroup = "DIRECTORY_GROUP_MANAGEMENT"
+	AuditLogEventTypeGroup_ENVIRONMENT_SETTINGS       AuditLogEventTypeGroup = "ENVIRONMENT_SETTINGS"
+	AuditLogEventTypeGroup_GATEWAY                    AuditLogEventTypeGroup = "GATEWAY"
+	AuditLogEventTypeGroup_INSTANCE_TYPE_CHANGED      AuditLogEventTypeGroup = "INSTANCE_TYPE_CHANGED"
+	AuditLogEventTypeGroup_PROMOTED                   AuditLogEventTypeGroup = "PROMOTED"
+	AuditLogEventTypeGroup_REPLICA_TERMINATED         AuditLogEventTypeGroup = "REPLICA_TERMINATED"
+	AuditLogEventTypeGroup_SECRETS                    AuditLogEventTypeGroup = "SECRETS"
+	AuditLogEventTypeGroup_SSH                        AuditLogEventTypeGroup = "SSH"
+	AuditLogEventTypeGroup_USER_MANAGEMENT            AuditLogEventTypeGroup = "USER_MANAGEMENT"
+	AuditLogEventTypeGroup_WEBHOOK_SIGNING_SECRETS    AuditLogEventTypeGroup = "WEBHOOK_SIGNING_SECRETS"
+)
+
+// Valid indicates whether the value is a known member of the AuditLogEventTypeGroup enum.
+func (e AuditLogEventTypeGroup) Valid() bool {
+	switch e {
+	case AuditLogEventTypeGroup_ACTIVATED_DEACTIVATED:
+		return true
+	case AuditLogEventTypeGroup_API_KEYS:
+		return true
+	case AuditLogEventTypeGroup_AUTOSCALING_SETTINGS:
+		return true
+	case AuditLogEventTypeGroup_DELETED:
+		return true
+	case AuditLogEventTypeGroup_DEPLOYED:
+		return true
+	case AuditLogEventTypeGroup_DIRECTORY_GROUP_MANAGEMENT:
+		return true
+	case AuditLogEventTypeGroup_ENVIRONMENT_SETTINGS:
+		return true
+	case AuditLogEventTypeGroup_GATEWAY:
+		return true
+	case AuditLogEventTypeGroup_INSTANCE_TYPE_CHANGED:
+		return true
+	case AuditLogEventTypeGroup_PROMOTED:
+		return true
+	case AuditLogEventTypeGroup_REPLICA_TERMINATED:
+		return true
+	case AuditLogEventTypeGroup_SECRETS:
+		return true
+	case AuditLogEventTypeGroup_SSH:
+		return true
+	case AuditLogEventTypeGroup_USER_MANAGEMENT:
+		return true
+	case AuditLogEventTypeGroup_WEBHOOK_SIGNING_SECRETS:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AuditLogPromotionControlAction.
+const (
+	AuditLogPromotionControlAction_FORCE_CANCEL       AuditLogPromotionControlAction = "FORCE_CANCEL"
+	AuditLogPromotionControlAction_FORCE_ROLL_FORWARD AuditLogPromotionControlAction = "FORCE_ROLL_FORWARD"
+	AuditLogPromotionControlAction_GRACEFUL_CANCEL    AuditLogPromotionControlAction = "GRACEFUL_CANCEL"
+	AuditLogPromotionControlAction_PAUSE              AuditLogPromotionControlAction = "PAUSE"
+	AuditLogPromotionControlAction_RESUME             AuditLogPromotionControlAction = "RESUME"
+)
+
+// Valid indicates whether the value is a known member of the AuditLogPromotionControlAction enum.
+func (e AuditLogPromotionControlAction) Valid() bool {
+	switch e {
+	case AuditLogPromotionControlAction_FORCE_CANCEL:
+		return true
+	case AuditLogPromotionControlAction_FORCE_ROLL_FORWARD:
+		return true
+	case AuditLogPromotionControlAction_GRACEFUL_CANCEL:
+		return true
+	case AuditLogPromotionControlAction_PAUSE:
+		return true
+	case AuditLogPromotionControlAction_RESUME:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AuditLogSortDirection.
+const (
+	AuditLogSortDirection_ASC  AuditLogSortDirection = "ASC"
+	AuditLogSortDirection_DESC AuditLogSortDirection = "DESC"
+)
+
+// Valid indicates whether the value is a known member of the AuditLogSortDirection enum.
+func (e AuditLogSortDirection) Valid() bool {
+	switch e {
+	case AuditLogSortDirection_ASC:
+		return true
+	case AuditLogSortDirection_DESC:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AuditLogSource.
+const (
+	AuditLogSource_API   AuditLogSource = "API"
+	AuditLogSource_MCP   AuditLogSource = "MCP"
+	AuditLogSource_OTHER AuditLogSource = "OTHER"
+	AuditLogSource_UI    AuditLogSource = "UI"
+)
+
+// Valid indicates whether the value is a known member of the AuditLogSource enum.
+func (e AuditLogSource) Valid() bool {
+	switch e {
+	case AuditLogSource_API:
+		return true
+	case AuditLogSource_MCP:
+		return true
+	case AuditLogSource_OTHER:
+		return true
+	case AuditLogSource_UI:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CancelPromotionStatus.
 const (
 	CancelPromotionStatus_CANCELED     CancelPromotionStatus = "CANCELED"
@@ -201,6 +531,7 @@ const (
 	GatewayProvider_BASETEN           GatewayProvider = "BASETEN"
 	GatewayProvider_BASETEN_MODEL_API GatewayProvider = "BASETEN_MODEL_API"
 	GatewayProvider_OPENAI            GatewayProvider = "OPENAI"
+	GatewayProvider_OPENAI_COMPATIBLE GatewayProvider = "OPENAI_COMPATIBLE"
 	GatewayProvider_VERTEX            GatewayProvider = "VERTEX"
 )
 
@@ -214,6 +545,8 @@ func (e GatewayProvider) Valid() bool {
 	case GatewayProvider_BASETEN_MODEL_API:
 		return true
 	case GatewayProvider_OPENAI:
+		return true
+	case GatewayProvider_OPENAI_COMPATIBLE:
 		return true
 	case GatewayProvider_VERTEX:
 		return true
@@ -677,6 +1010,9 @@ type APIKeyInfo struct {
 	// Name Optional name for the API key
 	Name *string `json:"name,omitempty"`
 
+	// Owner The user who owns a personal API key.
+	Owner *APIKeyOwner `json:"owner,omitempty"`
+
 	// Prefix The prefix of the API key
 	Prefix string `json:"prefix"`
 
@@ -685,6 +1021,18 @@ type APIKeyInfo struct {
 
 	// Type Enum representing the category of an API key.
 	Type APIKeyCategory `json:"type"`
+}
+
+// APIKeyOwner The user who owns a personal API key.
+type APIKeyOwner struct {
+	// Email Email address of the user
+	Email *string `json:"email,omitempty"`
+
+	// Name Display name of the user
+	Name *string `json:"name,omitempty"`
+
+	// UserId Unique identifier for the user
+	UserId string `json:"user_id"`
 }
 
 // APIKeyTombstone An API key tombstone.
@@ -741,6 +1089,527 @@ type ActiveJobAtSubmit struct {
 	// WorkloadPlaneName Workload plane the other job was on
 	WorkloadPlaneName string `json:"workload_plane_name"`
 }
+
+// AuditLogActor The actor that performed an audited action.
+type AuditLogActor struct {
+	// ApiKeyPrefix Prefix of the acting API key, when the actor is an API key.
+	ApiKeyPrefix *string `json:"api_key_prefix,omitempty"`
+
+	// Email Email of the acting user, when the actor is a user.
+	Email *string `json:"email,omitempty"`
+
+	// Type Kind of actor that performed an audited action.
+	Type AuditLogActorType `json:"type"`
+}
+
+// AuditLogActorType Kind of actor that performed an audited action.
+type AuditLogActorType string
+
+// AuditLogApiKeyType Type of API key recorded on an API-key event.
+type AuditLogApiKeyType string
+
+// AuditLogEntry A single audit-log entry.
+type AuditLogEntry struct {
+	// Actor The actor that performed an audited action.
+	Actor AuditLogActor `json:"actor"`
+
+	// ClientName Name of the client that issued the action, if known.
+	ClientName *string `json:"client_name,omitempty"`
+
+	// ClientSessionId Opaque identifier grouping actions from the same client session, if known.
+	ClientSessionId *string `json:"client_session_id,omitempty"`
+
+	// ClientVersion Version of the client that issued the action, if known.
+	ClientVersion *string `json:"client_version,omitempty"`
+
+	// Created Time the action occurred, in ISO 8601 format.
+	Created time.Time `json:"created"`
+
+	// EventData Structured details of the action, discriminated by `event_type`.
+	EventData AuditLogEntry_EventData `json:"event_data"`
+
+	// EventType Type of action recorded by an audit-log entry.
+	EventType AuditLogEventType `json:"event_type"`
+
+	// Id Unique identifier of the audit-log entry.
+	Id string `json:"id"`
+
+	// Source Surface that issued the audited action.
+	Source *AuditLogSource `json:"source,omitempty"`
+}
+
+// AuditLogEntry_EventData Structured details of the action, discriminated by `event_type`.
+type AuditLogEntry_EventData struct {
+	union json.RawMessage
+}
+
+// AuditLogEventApiKeyCreated An API key was created.
+type AuditLogEventApiKeyCreated struct {
+	ApiKeyId string `json:"api_key_id"`
+
+	// ApiKeyType Type of API key recorded on an API-key event.
+	ApiKeyType AuditLogApiKeyType `json:"api_key_type"`
+	EventType  string             `json:"event_type"`
+	Prefix     string             `json:"prefix"`
+}
+
+// AuditLogEventApiKeyDeleted An API key was revoked.
+type AuditLogEventApiKeyDeleted struct {
+	ApiKeyId string `json:"api_key_id"`
+
+	// ApiKeyType Type of API key recorded on an API-key event.
+	ApiKeyType AuditLogApiKeyType `json:"api_key_type"`
+	EventType  string             `json:"event_type"`
+	Prefix     string             `json:"prefix"`
+}
+
+// AuditLogEventAutoscalingSettings Autoscaling settings for a deployment or environment.
+type AuditLogEventAutoscalingSettings struct {
+	AutoscalingWindow           *int     `json:"autoscaling_window"`
+	ConcurrencyTarget           int      `json:"concurrency_target"`
+	MaxReplica                  int      `json:"max_replica"`
+	MaxScaleDownRate            *float32 `json:"max_scale_down_rate"`
+	MinReplica                  int      `json:"min_replica"`
+	ScaleDownDelay              *int     `json:"scale_down_delay"`
+	TargetInFlightTokens        *int     `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int     `json:"target_utilization_percentage"`
+}
+
+// AuditLogEventChainDeleted A chain was deleted.
+type AuditLogEventChainDeleted struct {
+	ChainDeploymentName *string `json:"chain_deployment_name"`
+	ChainId             string  `json:"chain_id"`
+	ChainName           string  `json:"chain_name"`
+	EventType           string  `json:"event_type"`
+}
+
+// AuditLogEventChainDeployed A chain deployment was created.
+type AuditLogEventChainDeployed struct {
+	ChainDeploymentId   string  `json:"chain_deployment_id"`
+	ChainDeploymentName *string `json:"chain_deployment_name"`
+	ChainId             string  `json:"chain_id"`
+	ChainName           string  `json:"chain_name"`
+	EventType           string  `json:"event_type"`
+	IsPrimary           bool    `json:"is_primary"`
+	Publish             bool    `json:"publish"`
+}
+
+// AuditLogEventChainDeploymentActivated A chain deployment was activated.
+type AuditLogEventChainDeploymentActivated struct {
+	ChainDeploymentId   string  `json:"chain_deployment_id"`
+	ChainDeploymentName *string `json:"chain_deployment_name"`
+	ChainId             string  `json:"chain_id"`
+	ChainName           string  `json:"chain_name"`
+	EventType           string  `json:"event_type"`
+}
+
+// AuditLogEventChainDeploymentDeactivated A chain deployment was deactivated.
+type AuditLogEventChainDeploymentDeactivated struct {
+	ChainDeploymentId   string  `json:"chain_deployment_id"`
+	ChainDeploymentName *string `json:"chain_deployment_name"`
+	ChainId             string  `json:"chain_id"`
+	ChainName           string  `json:"chain_name"`
+	EventType           string  `json:"event_type"`
+}
+
+// AuditLogEventChainDeploymentDeleted A chain deployment was deleted.
+type AuditLogEventChainDeploymentDeleted struct {
+	ChainDeploymentId string  `json:"chain_deployment_id"`
+	ChainId           string  `json:"chain_id"`
+	ChainName         string  `json:"chain_name"`
+	DeploymentName    *string `json:"deployment_name"`
+	EventType         string  `json:"event_type"`
+}
+
+// AuditLogEventChainDeploymentPromoted A chain deployment was promoted to an environment.
+type AuditLogEventChainDeploymentPromoted struct {
+	ChainDeploymentId   string  `json:"chain_deployment_id"`
+	ChainDeploymentName *string `json:"chain_deployment_name"`
+	ChainId             string  `json:"chain_id"`
+	ChainName           string  `json:"chain_name"`
+	EnvironmentId       *string `json:"environment_id"`
+	EnvironmentName     *string `json:"environment_name"`
+	EventType           string  `json:"event_type"`
+}
+
+// AuditLogEventChainEnvironmentCreated A chain environment was created.
+type AuditLogEventChainEnvironmentCreated struct {
+	ChainId               string `json:"chain_id"`
+	ChainName             string `json:"chain_name"`
+	EnvironmentName       string `json:"environment_name"`
+	EventType             string `json:"event_type"`
+	RampUpDurationSeconds *int   `json:"ramp_up_duration_seconds"`
+	RampUpWhilePromoting  *bool  `json:"ramp_up_while_promoting"`
+	RedeployOnPromotion   *bool  `json:"redeploy_on_promotion"`
+}
+
+// AuditLogEventChainEnvironmentUpdated A chain environment was updated.
+type AuditLogEventChainEnvironmentUpdated struct {
+	ChainId               string `json:"chain_id"`
+	ChainName             string `json:"chain_name"`
+	EnvironmentName       string `json:"environment_name"`
+	EventType             string `json:"event_type"`
+	RampUpDurationSeconds *int   `json:"ramp_up_duration_seconds"`
+	RampUpWhilePromoting  *bool  `json:"ramp_up_while_promoting"`
+	RedeployOnPromotion   *bool  `json:"redeploy_on_promotion"`
+}
+
+// AuditLogEventChainletAutoscalingSettingsChanged A chainlet's autoscaling settings were changed.
+type AuditLogEventChainletAutoscalingSettingsChanged struct {
+	AutoscalingWindow   *int     `json:"autoscaling_window"`
+	ChainDeploymentId   string   `json:"chain_deployment_id"`
+	ChainDeploymentName *string  `json:"chain_deployment_name"`
+	ChainId             string   `json:"chain_id"`
+	ChainName           string   `json:"chain_name"`
+	ChainletId          string   `json:"chainlet_id"`
+	ChainletName        string   `json:"chainlet_name"`
+	ConcurrencyTarget   int      `json:"concurrency_target"`
+	EventType           string   `json:"event_type"`
+	MaxReplica          int      `json:"max_replica"`
+	MaxScaleDownRate    *float32 `json:"max_scale_down_rate"`
+	MinReplica          int      `json:"min_replica"`
+
+	// PreviousSettings Autoscaling settings for a deployment or environment.
+	PreviousSettings            AuditLogEventAutoscalingSettings `json:"previous_settings"`
+	ScaleDownDelay              *int                             `json:"scale_down_delay"`
+	TargetInFlightTokens        *int                             `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int                             `json:"target_utilization_percentage"`
+}
+
+// AuditLogEventChainletInstanceTypeChanged A chainlet's instance type was changed.
+type AuditLogEventChainletInstanceTypeChanged struct {
+	ChainDeploymentId   string  `json:"chain_deployment_id"`
+	ChainDeploymentName *string `json:"chain_deployment_name"`
+	ChainId             string  `json:"chain_id"`
+	ChainName           string  `json:"chain_name"`
+	ChainletId          string  `json:"chainlet_id"`
+	ChainletName        string  `json:"chainlet_name"`
+	EventType           string  `json:"event_type"`
+	InstanceTypeName    string  `json:"instance_type_name"`
+}
+
+// AuditLogEventDirectoryGroupRoleUpdated A directory group's role was updated.
+type AuditLogEventDirectoryGroupRoleUpdated struct {
+	DirectoryGroupId   string  `json:"directory_group_id"`
+	DirectoryGroupName string  `json:"directory_group_name"`
+	EventType          string  `json:"event_type"`
+	NewRoleName        string  `json:"new_role_name"`
+	TeamId             *string `json:"team_id"`
+	TeamName           *string `json:"team_name"`
+}
+
+// AuditLogEventEnvironmentCreated A model environment was created.
+type AuditLogEventEnvironmentCreated struct {
+	AutoscalingWindow           *int     `json:"autoscaling_window"`
+	ConcurrencyTarget           int      `json:"concurrency_target"`
+	DeploymentType              *string  `json:"deployment_type"`
+	EnvironmentName             string   `json:"environment_name"`
+	EventType                   string   `json:"event_type"`
+	MaxReplica                  int      `json:"max_replica"`
+	MaxScaleDownRate            *float32 `json:"max_scale_down_rate"`
+	MaxSurgePercent             *int     `json:"max_surge_percent"`
+	MaxUnavailablePercent       *int     `json:"max_unavailable_percent"`
+	MinReplica                  int      `json:"min_replica"`
+	ModelId                     string   `json:"model_id"`
+	ModelName                   string   `json:"model_name"`
+	PromotionCleanupStrategy    *string  `json:"promotion_cleanup_strategy"`
+	RampUpDurationSeconds       *int     `json:"ramp_up_duration_seconds"`
+	RampUpStepSize              *int     `json:"ramp_up_step_size"`
+	RampUpWhilePromoting        *bool    `json:"ramp_up_while_promoting"`
+	RedeployOnPromotion         *bool    `json:"redeploy_on_promotion"`
+	ReplicaOverheadPercent      *int     `json:"replica_overhead_percent"`
+	RollingDeploy               *bool    `json:"rolling_deploy"`
+	RollingDeployStrategy       *string  `json:"rolling_deploy_strategy"`
+	ScaleDownDelay              *int     `json:"scale_down_delay"`
+	StabilizationTimeSeconds    *int     `json:"stabilization_time_seconds"`
+	TargetInFlightTokens        *int     `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int     `json:"target_utilization_percentage"`
+}
+
+// AuditLogEventEnvironmentDeleted A model environment was deleted.
+type AuditLogEventEnvironmentDeleted struct {
+	EnvironmentName string `json:"environment_name"`
+	EventType       string `json:"event_type"`
+	ModelId         string `json:"model_id"`
+	ModelName       string `json:"model_name"`
+}
+
+// AuditLogEventEnvironmentUpdated A model environment's settings were updated.
+type AuditLogEventEnvironmentUpdated struct {
+	AutoscalingWindow     *int     `json:"autoscaling_window"`
+	ConcurrencyTarget     int      `json:"concurrency_target"`
+	DeploymentType        *string  `json:"deployment_type"`
+	EnvironmentName       string   `json:"environment_name"`
+	EventType             string   `json:"event_type"`
+	MaxReplica            int      `json:"max_replica"`
+	MaxScaleDownRate      *float32 `json:"max_scale_down_rate"`
+	MaxSurgePercent       *int     `json:"max_surge_percent"`
+	MaxUnavailablePercent *int     `json:"max_unavailable_percent"`
+	MinReplica            int      `json:"min_replica"`
+	ModelId               string   `json:"model_id"`
+	ModelName             string   `json:"model_name"`
+
+	// PreviousSettings Autoscaling settings for a deployment or environment.
+	PreviousSettings            AuditLogEventAutoscalingSettings `json:"previous_settings"`
+	PromotionCleanupStrategy    *string                          `json:"promotion_cleanup_strategy"`
+	RampUpDurationSeconds       *int                             `json:"ramp_up_duration_seconds"`
+	RampUpStepSize              *int                             `json:"ramp_up_step_size"`
+	RampUpWhilePromoting        *bool                            `json:"ramp_up_while_promoting"`
+	RedeployOnPromotion         *bool                            `json:"redeploy_on_promotion"`
+	ReplicaOverheadPercent      *int                             `json:"replica_overhead_percent"`
+	RollingDeploy               *bool                            `json:"rolling_deploy"`
+	RollingDeployStrategy       *string                          `json:"rolling_deploy_strategy"`
+	ScaleDownDelay              *int                             `json:"scale_down_delay"`
+	StabilizationTimeSeconds    *int                             `json:"stabilization_time_seconds"`
+	TargetInFlightTokens        *int                             `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int                             `json:"target_utilization_percentage"`
+}
+
+// AuditLogEventGatewayEndpointCreated A Frontier Gateway endpoint was created.
+type AuditLogEventGatewayEndpointCreated struct {
+	EventType         string `json:"event_type"`
+	GatewayEndpointId string `json:"gateway_endpoint_id"`
+	Slug              string `json:"slug"`
+}
+
+// AuditLogEventGatewayEndpointDeleted A Frontier Gateway endpoint was deleted.
+type AuditLogEventGatewayEndpointDeleted struct {
+	EventType         string `json:"event_type"`
+	GatewayEndpointId string `json:"gateway_endpoint_id"`
+	Slug              string `json:"slug"`
+}
+
+// AuditLogEventGatewayEndpointUpdated A Frontier Gateway endpoint was updated.
+type AuditLogEventGatewayEndpointUpdated struct {
+	EventType         string  `json:"event_type"`
+	GatewayEndpointId string  `json:"gateway_endpoint_id"`
+	PreviousSlug      *string `json:"previous_slug"`
+	Slug              string  `json:"slug"`
+}
+
+// AuditLogEventModelDeleted A model was deleted.
+type AuditLogEventModelDeleted struct {
+	EventType string `json:"event_type"`
+	ModelId   string `json:"model_id"`
+	ModelName string `json:"model_name"`
+}
+
+// AuditLogEventModelDeployed A model deployment was created.
+type AuditLogEventModelDeployed struct {
+	DeploymentId        string  `json:"deployment_id"`
+	DeploymentName      string  `json:"deployment_name"`
+	EnvironmentName     *string `json:"environment_name"`
+	EventType           string  `json:"event_type"`
+	ModelId             string  `json:"model_id"`
+	ModelName           string  `json:"model_name"`
+	Publish             bool    `json:"publish"`
+	ScalePreviousToZero bool    `json:"scale_previous_to_zero"`
+	Trusted             bool    `json:"trusted"`
+}
+
+// AuditLogEventModelDeploymentActivated A model deployment was activated.
+type AuditLogEventModelDeploymentActivated struct {
+	DeploymentId   string `json:"deployment_id"`
+	DeploymentName string `json:"deployment_name"`
+	EventType      string `json:"event_type"`
+	ModelId        string `json:"model_id"`
+	ModelName      string `json:"model_name"`
+}
+
+// AuditLogEventModelDeploymentAutoscalingSettingsChanged A model deployment's autoscaling settings were changed.
+type AuditLogEventModelDeploymentAutoscalingSettingsChanged struct {
+	AutoscalingWindow *int     `json:"autoscaling_window"`
+	ConcurrencyTarget int      `json:"concurrency_target"`
+	DeploymentId      string   `json:"deployment_id"`
+	DeploymentName    string   `json:"deployment_name"`
+	DeploymentType    *string  `json:"deployment_type"`
+	EventType         string   `json:"event_type"`
+	MaxReplica        int      `json:"max_replica"`
+	MaxScaleDownRate  *float32 `json:"max_scale_down_rate"`
+	MinReplica        int      `json:"min_replica"`
+	ModelId           string   `json:"model_id"`
+	ModelName         string   `json:"model_name"`
+
+	// PreviousSettings Autoscaling settings for a deployment or environment.
+	PreviousSettings            AuditLogEventAutoscalingSettings `json:"previous_settings"`
+	ScaleDownDelay              *int                             `json:"scale_down_delay"`
+	TargetInFlightTokens        *int                             `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int                             `json:"target_utilization_percentage"`
+}
+
+// AuditLogEventModelDeploymentDeactivated A model deployment was deactivated.
+type AuditLogEventModelDeploymentDeactivated struct {
+	DeploymentId   string `json:"deployment_id"`
+	DeploymentName string `json:"deployment_name"`
+	EventType      string `json:"event_type"`
+	ModelId        string `json:"model_id"`
+	ModelName      string `json:"model_name"`
+}
+
+// AuditLogEventModelDeploymentDeleted A model deployment was deleted.
+type AuditLogEventModelDeploymentDeleted struct {
+	DeploymentId   string `json:"deployment_id"`
+	DeploymentName string `json:"deployment_name"`
+	EventType      string `json:"event_type"`
+	ModelId        string `json:"model_id"`
+	ModelName      string `json:"model_name"`
+}
+
+// AuditLogEventModelDeploymentInstanceTypeChanged A model deployment's instance type was changed.
+type AuditLogEventModelDeploymentInstanceTypeChanged struct {
+	DeploymentId     string `json:"deployment_id"`
+	DeploymentName   string `json:"deployment_name"`
+	EventType        string `json:"event_type"`
+	InstanceTypeName string `json:"instance_type_name"`
+	ModelId          string `json:"model_id"`
+	ModelName        string `json:"model_name"`
+}
+
+// AuditLogEventModelDeploymentPromoted A model deployment was promoted to an environment.
+type AuditLogEventModelDeploymentPromoted struct {
+	DeploymentId    string  `json:"deployment_id"`
+	DeploymentName  string  `json:"deployment_name"`
+	EnvironmentId   *string `json:"environment_id"`
+	EnvironmentName *string `json:"environment_name"`
+	EventType       string  `json:"event_type"`
+	ModelId         string  `json:"model_id"`
+	ModelName       string  `json:"model_name"`
+}
+
+// AuditLogEventModelDeploymentRetried A model deployment build was retried.
+type AuditLogEventModelDeploymentRetried struct {
+	DeploymentId   string `json:"deployment_id"`
+	DeploymentName string `json:"deployment_name"`
+	EventType      string `json:"event_type"`
+	ModelId        string `json:"model_id"`
+	ModelName      string `json:"model_name"`
+	Retried        bool   `json:"retried"`
+}
+
+// AuditLogEventModelPromotionControlAction A user-initiated promotion control signal was sent to a rolling promotion.
+type AuditLogEventModelPromotionControlAction struct {
+	// Action User-initiated promotion control signal recorded on a promotion-control event.
+	Action          AuditLogPromotionControlAction `json:"action"`
+	DeploymentId    string                         `json:"deployment_id"`
+	DeploymentName  string                         `json:"deployment_name"`
+	EnvironmentId   *string                        `json:"environment_id"`
+	EnvironmentName string                         `json:"environment_name"`
+	EventType       string                         `json:"event_type"`
+	ModelId         string                         `json:"model_id"`
+	ModelName       string                         `json:"model_name"`
+}
+
+// AuditLogEventReplicaTerminated A replica of a model deployment was terminated.
+type AuditLogEventReplicaTerminated struct {
+	DeploymentId   string `json:"deployment_id"`
+	DeploymentName string `json:"deployment_name"`
+	EventType      string `json:"event_type"`
+	ModelId        string `json:"model_id"`
+	ModelName      string `json:"model_name"`
+	ReplicaId      string `json:"replica_id"`
+}
+
+// AuditLogEventRequireGroupBasedAdminsEnabled Group-based admin enforcement was enabled for the organization.
+type AuditLogEventRequireGroupBasedAdminsEnabled struct {
+	EventType      string `json:"event_type"`
+	OrganizationId string `json:"organization_id"`
+}
+
+// AuditLogEventSecretDeleted A secret was deleted.
+type AuditLogEventSecretDeleted struct {
+	EventType  string `json:"event_type"`
+	SecretId   string `json:"secret_id"`
+	SecretName string `json:"secret_name"`
+}
+
+// AuditLogEventSecretUpdated A secret was created or updated.
+type AuditLogEventSecretUpdated struct {
+	EventType  string `json:"event_type"`
+	SecretId   string `json:"secret_id"`
+	SecretName string `json:"secret_name"`
+}
+
+// AuditLogEventSshCertificateSigned An SSH certificate was signed for a workload.
+type AuditLogEventSshCertificateSigned struct {
+	EventType    string `json:"event_type"`
+	ExpiresAt    string `json:"expires_at"`
+	ProjectId    string `json:"project_id"`
+	ProxyAddress string `json:"proxy_address"`
+	ReplicaId    string `json:"replica_id"`
+	WorkloadId   string `json:"workload_id"`
+	WorkloadType string `json:"workload_type"`
+}
+
+// AuditLogEventType Type of action recorded by an audit-log entry.
+type AuditLogEventType string
+
+// AuditLogEventTypeGroup Coarse grouping of event types, used to filter the audit log.
+type AuditLogEventTypeGroup string
+
+// AuditLogEventUserInvited A user was invited to the organization.
+type AuditLogEventUserInvited struct {
+	EventType        string `json:"event_type"`
+	InvitedUserEmail string `json:"invited_user_email"`
+	RoleName         string `json:"role_name"`
+}
+
+// AuditLogEventUserJoinedOrganization A user joined the organization.
+type AuditLogEventUserJoinedOrganization struct {
+	EventType    string `json:"event_type"`
+	NewUserEmail string `json:"new_user_email"`
+	UserId       string `json:"user_id"`
+}
+
+// AuditLogEventUserRemoved A user was removed from the organization.
+type AuditLogEventUserRemoved struct {
+	EventType        string `json:"event_type"`
+	RemovedUserEmail string `json:"removed_user_email"`
+}
+
+// AuditLogEventUserRoleUpdated A user's organization role was updated.
+type AuditLogEventUserRoleUpdated struct {
+	EventType   string `json:"event_type"`
+	NewRoleName string `json:"new_role_name"`
+	UserEmail   string `json:"user_email"`
+	UserId      string `json:"user_id"`
+}
+
+// AuditLogEventUserTeamRoleUpdated A user's team role was updated.
+type AuditLogEventUserTeamRoleUpdated struct {
+	EventType   string `json:"event_type"`
+	NewRoleName string `json:"new_role_name"`
+	TeamId      string `json:"team_id"`
+	TeamName    string `json:"team_name"`
+	UserEmail   string `json:"user_email"`
+	UserId      string `json:"user_id"`
+}
+
+// AuditLogEventWebhookSigningSecretCreated A webhook signing secret was created.
+type AuditLogEventWebhookSigningSecretCreated struct {
+	EventType              string `json:"event_type"`
+	WebhookSigningSecretId string `json:"webhook_signing_secret_id"`
+}
+
+// AuditLogEventWebhookSigningSecretDeleted A webhook signing secret was deleted.
+type AuditLogEventWebhookSigningSecretDeleted struct {
+	EventType              string `json:"event_type"`
+	WebhookSigningSecretId string `json:"webhook_signing_secret_id"`
+}
+
+// AuditLogEventWebhookSigningSecretRotated A webhook signing secret was rotated.
+type AuditLogEventWebhookSigningSecretRotated struct {
+	EventType              string `json:"event_type"`
+	WebhookSigningSecretId string `json:"webhook_signing_secret_id"`
+}
+
+// AuditLogPromotionControlAction User-initiated promotion control signal recorded on a promotion-control event.
+type AuditLogPromotionControlAction string
+
+// AuditLogSortDirection Sort order of returned entries, by creation time.
+type AuditLogSortDirection string
+
+// AuditLogSource Surface that issued the audited action.
+type AuditLogSource string
 
 // AuthCode Authentication code for a training job interactive session node.
 type AuthCode struct {
@@ -1181,9 +2050,9 @@ type CreateGroupRequest struct {
 
 // CreateJobWeightConfig Weight source configuration for MDN (Model Distribution Network).
 //
-// Enables training jobs to mount external model weights from HuggingFace, S3, GCS, or R2
-// via MDN's caching and CSI mounting infrastructure. Weights are mirrored once and
-// deduplicated across training jobs.
+// Enables training jobs to mount external model weights from HuggingFace, S3, GCS, R2,
+// or CoreWeave via MDN's caching and CSI mounting infrastructure. Weights are mirrored
+// once and deduplicated across training jobs.
 type CreateJobWeightConfig struct {
 	// AllowPatterns File patterns to include (Unix-style shell patterns)
 	AllowPatterns *[]string `json:"allow_patterns,omitempty"`
@@ -1200,7 +2069,7 @@ type CreateJobWeightConfig struct {
 	// MountLocation Path where weights will be mounted in the container
 	MountLocation string `json:"mount_location"`
 
-	// Source Weight source URI. Supported formats: hf://, s3://, gs://, r2://
+	// Source Weight source URI. Supported formats: hf://, s3://, gs://, r2://, cw://
 	Source string `json:"source"`
 }
 
@@ -1873,8 +2742,8 @@ type DeploymentArchiveSource struct {
 	Deployment DeploymentArchivePayload `json:"deployment"`
 	Kind       *string                  `json:"kind,omitempty"`
 
-	// S3Key S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`.
-	S3Key string `json:"s3_key"`
+	// S3Key S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`. Omit for model formats that are not built from an archive (for example, BIS-LLM), where prepare issues no upload target.
+	S3Key *string `json:"s3_key,omitempty"`
 }
 
 // DeploymentConfigOutputFormat defines model for DeploymentConfigOutputFormat.
@@ -2127,6 +2996,9 @@ type Endpoint struct {
 
 // EndpointTarget One configured upstream target of an endpoint.
 type EndpointTarget struct {
+	// BaseUrl Custom OpenAI-compatible base URL, if any.
+	BaseUrl *string `json:"base_url,omitempty"`
+
 	// EnvironmentName Baseten model environment, if non-production.
 	EnvironmentName *string `json:"environment_name,omitempty"`
 
@@ -2143,12 +3015,16 @@ type EndpointTarget struct {
 	SecretId *string `json:"secret_id,omitempty"`
 
 	// TargetModel Upstream model name, if any.
-	TargetModel *string `json:"target_model,omitempty"`
+	TargetModel  *string             `json:"target_model,omitempty"`
+	VertexConfig *VertexTargetConfig `json:"vertex_config,omitempty"`
 }
 
 // EndpointTargetRequest One desired upstream target. The customer picks a provider; Baseten owns the
 // upstream host and protocol adapter.
 type EndpointTargetRequest struct {
+	// BaseUrl HTTPS base URL of the upstream OpenAI-compatible server. Must not include a port. Required for and only valid with OPENAI_COMPATIBLE.
+	BaseUrl *string `json:"base_url,omitempty"`
+
 	// EnvironmentName Baseten model environment to route to. Only valid with BASETEN. Omit or pass `production` to target production.
 	EnvironmentName *string `json:"environment_name,omitempty"`
 
@@ -2165,7 +3041,8 @@ type EndpointTargetRequest struct {
 	SecretId *string `json:"secret_id,omitempty"`
 
 	// TargetModel Model name to send upstream. Required for external providers and optional for BASETEN targets.
-	TargetModel *string `json:"target_model,omitempty"`
+	TargetModel  *string             `json:"target_model,omitempty"`
+	VertexConfig *VertexTargetConfig `json:"vertex_config,omitempty"`
 }
 
 // EndpointTombstone defines model for EndpointTombstone.
@@ -2917,6 +3794,13 @@ type LimitEnforcement string
 // LimitType defines model for LimitType.
 type LimitType string
 
+// ListAuditLogsResponse A page of audit-log entries, newest first by default.
+type ListAuditLogsResponse struct {
+	// Items Items in this page.
+	Items      []AuditLogEntry    `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
 // ListLoopsCheckpointsResponse Checkpoints matching the query filter.
 type ListLoopsCheckpointsResponse struct {
 	// Checkpoints Matching checkpoints.
@@ -3420,8 +4304,8 @@ type ModelArchiveSource struct {
 	// Name Name of the new model.
 	Name string `json:"name"`
 
-	// S3Key S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`.
-	S3Key string `json:"s3_key"`
+	// S3Key S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`. Omit for model formats that are not built from an archive (for example, BIS-LLM), where prepare issues no upload target.
+	S3Key *string `json:"s3_key,omitempty"`
 }
 
 // ModelConfig defines model for ModelConfig.
@@ -3662,20 +4546,22 @@ type PrepareModelUploadRequest struct {
 
 // PrepareModelUploadResponse Response from `POST /v1/prepare_model_upload`.
 //
-// On success with `dry_run=false`, returns STS upload credentials. On success
-// with `dry_run=true`, `creds`, `s3_bucket`, and `s3_key` are `null` and only
-// validation has run.
+// Returns STS upload credentials when the push requires an archive upload. All
+// four fields (`creds`, `s3_bucket`, `s3_key`, `s3_region`) are `null` when no
+// upload is needed: either `dry_run=true` (validation only) or a model format
+// that is not built from an uploaded archive (for example, BIS-LLM, which is
+// built from its config alone).
 type PrepareModelUploadResponse struct {
 	// Creds AWS credentials
 	Creds *AWSCredentials `json:"creds,omitempty"`
 
-	// S3Bucket S3 bucket the credentials are scoped to.
+	// S3Bucket S3 bucket the credentials are scoped to. Null when no archive upload is required.
 	S3Bucket *string `json:"s3_bucket,omitempty"`
 
-	// S3Key S3 key the credentials are scoped to. Pass this to `POST /v1/models` (in the `model_archive` source) once the upload completes.
+	// S3Key S3 key the credentials are scoped to. Pass this to `POST /v1/models` (in the `model_archive` source) once the upload completes. Null when no archive upload is required.
 	S3Key *string `json:"s3_key,omitempty"`
 
-	// S3Region AWS region the S3 bucket resides in.
+	// S3Region AWS region the S3 bucket resides in. Null when no archive upload is required.
 	S3Region *string `json:"s3_region,omitempty"`
 }
 
@@ -3993,11 +4879,17 @@ type TeamTrainingGpuCapacityItem struct {
 	// Baseline Baseline GPU allocation for the team. 0 if not configured.
 	Baseline int `json:"baseline"`
 
+	// DedicatedUsageCount Portion of usage_count from dedicated (on-demand) jobs.
+	DedicatedUsageCount *int `json:"dedicated_usage_count,omitempty"`
+
 	// GpuType GPU type identifier (e.g. H100, A100-40GB)
 	GpuType string `json:"gpu_type"`
 
 	// Limit Maximum concurrent GPUs of this type for this team
 	Limit int `json:"limit"`
+
+	// SpotUsageCount Portion of usage_count from spot jobs.
+	SpotUsageCount *int `json:"spot_usage_count,omitempty"`
 
 	// TeamId Team identifier
 	TeamId string `json:"team_id"`
@@ -4034,11 +4926,17 @@ type TrainingGpuCapacityItem struct {
 	// Baseline Baseline GPU allocation; jobs below this threshold are expected to run immediately. 0 if not configured.
 	Baseline int `json:"baseline"`
 
+	// DedicatedUsageCount Portion of usage_count from dedicated (on-demand) jobs, which run against the baseline.
+	DedicatedUsageCount *int `json:"dedicated_usage_count,omitempty"`
+
 	// GpuType GPU type identifier (e.g. H100, A100-40GB)
 	GpuType string `json:"gpu_type"`
 
 	// Limit Maximum concurrent GPUs of this type for this org
 	Limit int `json:"limit"`
+
+	// SpotUsageCount Portion of usage_count from spot jobs, which burst into the peak and may push usage above the limit.
+	SpotUsageCount *int `json:"spot_usage_count,omitempty"`
 
 	// UsageCount GPUs currently in use by active training jobs
 	UsageCount int `json:"usage_count"`
@@ -4587,6 +5485,15 @@ type ValidateLoopsCheckpointRequest struct {
 // inaccessible or malformed paths raise 400.
 type ValidateLoopsCheckpointResponse = map[string]interface{}
 
+// VertexTargetConfig defines model for VertexTargetConfig.
+type VertexTargetConfig struct {
+	// Location Google Cloud location.
+	Location string `json:"location"`
+
+	// ProjectId Google Cloud project ID or project number.
+	ProjectId string `json:"project_id"`
+}
+
 // ApiKeyPrefix defines model for api_key_prefix.
 type ApiKeyPrefix = string
 
@@ -4653,6 +5560,45 @@ type UserId = string
 // VersionTag defines model for version_tag.
 type VersionTag = string
 
+// GetV1AuditLogsParams defines parameters for GetV1AuditLogs.
+type GetV1AuditLogsParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of entries to return per page. Defaults to 20, and must be between 1 and 200.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Direction Sort order by the time the action occurred. Defaults to DESC (newest first). Ignored when paginating with a cursor.
+	Direction *AuditLogSortDirection `form:"direction,omitempty" json:"direction,omitempty"`
+
+	// Search Case-insensitive substring matched against resource names and IDs in the entry.
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// EventTypeGroups When set, returns only entries whose event type falls in one of these groups.
+	EventTypeGroups *[]AuditLogEventTypeGroup `form:"event_type_groups,omitempty" json:"event_type_groups,omitempty"`
+
+	// UserIds When set, returns only entries whose acting user is one of these IDs.
+	UserIds *[]string `form:"user_ids,omitempty" json:"user_ids,omitempty"`
+
+	// DeploymentIds When set, returns only entries referencing one of these model deployment IDs.
+	DeploymentIds *[]string `form:"deployment_ids,omitempty" json:"deployment_ids,omitempty"`
+
+	// ChainDeploymentIds When set, returns only entries referencing one of these chain deployment IDs.
+	ChainDeploymentIds *[]string `form:"chain_deployment_ids,omitempty" json:"chain_deployment_ids,omitempty"`
+
+	// EnvironmentNames When set, returns only entries for one of these environments.
+	EnvironmentNames *[]string `form:"environment_names,omitempty" json:"environment_names,omitempty"`
+
+	// Sources When set, returns only entries issued from one of these surfaces.
+	Sources *[]AuditLogSource `form:"sources,omitempty" json:"sources,omitempty"`
+
+	// StartEpochMillis Epoch milliseconds for the start of the window. Defaults to the beginning of the audit-log history.
+	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// EndEpochMillis Epoch milliseconds for the end of the window. Defaults to the current time.
+	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
+}
+
 // GetV1BillingUsageSummaryParams defines parameters for GetV1BillingUsageSummary.
 type GetV1BillingUsageSummaryParams struct {
 	// StartDate Start date (ISO 8601, UTC). Earliest queryable: 2026-01-01.
@@ -4660,6 +5606,45 @@ type GetV1BillingUsageSummaryParams struct {
 
 	// EndDate End date in ISO 8601 format (UTC). Date range cannot exceed 31 days.
 	EndDate time.Time `form:"end_date" json:"end_date"`
+}
+
+// GetV1ChainsChainIdAuditLogsParams defines parameters for GetV1ChainsChainIdAuditLogs.
+type GetV1ChainsChainIdAuditLogsParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of entries to return per page. Defaults to 20, and must be between 1 and 200.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Direction Sort order by the time the action occurred. Defaults to DESC (newest first). Ignored when paginating with a cursor.
+	Direction *AuditLogSortDirection `form:"direction,omitempty" json:"direction,omitempty"`
+
+	// Search Case-insensitive substring matched against resource names and IDs in the entry.
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// EventTypeGroups When set, returns only entries whose event type falls in one of these groups.
+	EventTypeGroups *[]AuditLogEventTypeGroup `form:"event_type_groups,omitempty" json:"event_type_groups,omitempty"`
+
+	// UserIds When set, returns only entries whose acting user is one of these IDs.
+	UserIds *[]string `form:"user_ids,omitempty" json:"user_ids,omitempty"`
+
+	// DeploymentIds When set, returns only entries referencing one of these model deployment IDs.
+	DeploymentIds *[]string `form:"deployment_ids,omitempty" json:"deployment_ids,omitempty"`
+
+	// ChainDeploymentIds When set, returns only entries referencing one of these chain deployment IDs.
+	ChainDeploymentIds *[]string `form:"chain_deployment_ids,omitempty" json:"chain_deployment_ids,omitempty"`
+
+	// EnvironmentNames When set, returns only entries for one of these environments.
+	EnvironmentNames *[]string `form:"environment_names,omitempty" json:"environment_names,omitempty"`
+
+	// Sources When set, returns only entries issued from one of these surfaces.
+	Sources *[]AuditLogSource `form:"sources,omitempty" json:"sources,omitempty"`
+
+	// StartEpochMillis Epoch milliseconds for the start of the window. Defaults to the beginning of the audit-log history.
+	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// EndEpochMillis Epoch milliseconds for the end of the window. Defaults to the current time.
+	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
 }
 
 // GetV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsParams defines parameters for GetV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogs.
@@ -4753,6 +5738,45 @@ type GetV1ModelApisParams struct {
 type GetV1ModelsParams struct {
 	// Name When set, returns only models with this exact name, if any. On a team-scoped route this matches at most one model; on the org-wide route it may match models in multiple teams, since names are unique only within a team.
 	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
+// GetV1ModelsModelIdAuditLogsParams defines parameters for GetV1ModelsModelIdAuditLogs.
+type GetV1ModelsModelIdAuditLogsParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of entries to return per page. Defaults to 20, and must be between 1 and 200.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Direction Sort order by the time the action occurred. Defaults to DESC (newest first). Ignored when paginating with a cursor.
+	Direction *AuditLogSortDirection `form:"direction,omitempty" json:"direction,omitempty"`
+
+	// Search Case-insensitive substring matched against resource names and IDs in the entry.
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// EventTypeGroups When set, returns only entries whose event type falls in one of these groups.
+	EventTypeGroups *[]AuditLogEventTypeGroup `form:"event_type_groups,omitempty" json:"event_type_groups,omitempty"`
+
+	// UserIds When set, returns only entries whose acting user is one of these IDs.
+	UserIds *[]string `form:"user_ids,omitempty" json:"user_ids,omitempty"`
+
+	// DeploymentIds When set, returns only entries referencing one of these model deployment IDs.
+	DeploymentIds *[]string `form:"deployment_ids,omitempty" json:"deployment_ids,omitempty"`
+
+	// ChainDeploymentIds When set, returns only entries referencing one of these chain deployment IDs.
+	ChainDeploymentIds *[]string `form:"chain_deployment_ids,omitempty" json:"chain_deployment_ids,omitempty"`
+
+	// EnvironmentNames When set, returns only entries for one of these environments.
+	EnvironmentNames *[]string `form:"environment_names,omitempty" json:"environment_names,omitempty"`
+
+	// Sources When set, returns only entries issued from one of these surfaces.
+	Sources *[]AuditLogSource `form:"sources,omitempty" json:"sources,omitempty"`
+
+	// StartEpochMillis Epoch milliseconds for the start of the window. Defaults to the beginning of the audit-log history.
+	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// EndEpochMillis Epoch milliseconds for the end of the window. Defaults to the current time.
+	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
 }
 
 // GetV1ModelsModelIdDeploymentsParams defines parameters for GetV1ModelsModelIdDeployments.
@@ -5105,6 +6129,749 @@ type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdSshSignJSONRequestB
 
 // PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody defines body for PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStop for application/json ContentType.
 type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody = StopTrainingJobRequest
+
+// AsAuditLogEventModelDeployed returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeployed
+func (t AuditLogEntry_EventData) AsAuditLogEventModelDeployed() (AuditLogEventModelDeployed, error) {
+	var body AuditLogEventModelDeployed
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventModelDeployed overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeployed
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeployed(v AuditLogEventModelDeployed) error {
+	v.EventType = "MODEL_DEPLOYED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventModelDeploymentActivated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeploymentActivated
+func (t AuditLogEntry_EventData) AsAuditLogEventModelDeploymentActivated() (AuditLogEventModelDeploymentActivated, error) {
+	var body AuditLogEventModelDeploymentActivated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventModelDeploymentActivated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeploymentActivated
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeploymentActivated(v AuditLogEventModelDeploymentActivated) error {
+	v.EventType = "MODEL_DEPLOYMENT_ACTIVATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventModelDeploymentDeactivated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeploymentDeactivated
+func (t AuditLogEntry_EventData) AsAuditLogEventModelDeploymentDeactivated() (AuditLogEventModelDeploymentDeactivated, error) {
+	var body AuditLogEventModelDeploymentDeactivated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventModelDeploymentDeactivated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeploymentDeactivated
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeploymentDeactivated(v AuditLogEventModelDeploymentDeactivated) error {
+	v.EventType = "MODEL_DEPLOYMENT_DEACTIVATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventModelDeploymentRetried returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeploymentRetried
+func (t AuditLogEntry_EventData) AsAuditLogEventModelDeploymentRetried() (AuditLogEventModelDeploymentRetried, error) {
+	var body AuditLogEventModelDeploymentRetried
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventModelDeploymentRetried overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeploymentRetried
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeploymentRetried(v AuditLogEventModelDeploymentRetried) error {
+	v.EventType = "MODEL_DEPLOYMENT_RETRIED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventModelDeploymentPromoted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeploymentPromoted
+func (t AuditLogEntry_EventData) AsAuditLogEventModelDeploymentPromoted() (AuditLogEventModelDeploymentPromoted, error) {
+	var body AuditLogEventModelDeploymentPromoted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventModelDeploymentPromoted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeploymentPromoted
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeploymentPromoted(v AuditLogEventModelDeploymentPromoted) error {
+	v.EventType = "MODEL_DEPLOYMENT_PROMOTED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventModelDeploymentAutoscalingSettingsChanged returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeploymentAutoscalingSettingsChanged
+func (t AuditLogEntry_EventData) AsAuditLogEventModelDeploymentAutoscalingSettingsChanged() (AuditLogEventModelDeploymentAutoscalingSettingsChanged, error) {
+	var body AuditLogEventModelDeploymentAutoscalingSettingsChanged
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventModelDeploymentAutoscalingSettingsChanged overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeploymentAutoscalingSettingsChanged
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeploymentAutoscalingSettingsChanged(v AuditLogEventModelDeploymentAutoscalingSettingsChanged) error {
+	v.EventType = "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventModelDeploymentInstanceTypeChanged returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeploymentInstanceTypeChanged
+func (t AuditLogEntry_EventData) AsAuditLogEventModelDeploymentInstanceTypeChanged() (AuditLogEventModelDeploymentInstanceTypeChanged, error) {
+	var body AuditLogEventModelDeploymentInstanceTypeChanged
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventModelDeploymentInstanceTypeChanged overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeploymentInstanceTypeChanged
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeploymentInstanceTypeChanged(v AuditLogEventModelDeploymentInstanceTypeChanged) error {
+	v.EventType = "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventModelDeploymentDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeploymentDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventModelDeploymentDeleted() (AuditLogEventModelDeploymentDeleted, error) {
+	var body AuditLogEventModelDeploymentDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventModelDeploymentDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeploymentDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeploymentDeleted(v AuditLogEventModelDeploymentDeleted) error {
+	v.EventType = "MODEL_DEPLOYMENT_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventModelDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventModelDeleted() (AuditLogEventModelDeleted, error) {
+	var body AuditLogEventModelDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventModelDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeleted(v AuditLogEventModelDeleted) error {
+	v.EventType = "MODEL_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventChainDeployed returns the union data inside the AuditLogEntry_EventData as a AuditLogEventChainDeployed
+func (t AuditLogEntry_EventData) AsAuditLogEventChainDeployed() (AuditLogEventChainDeployed, error) {
+	var body AuditLogEventChainDeployed
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventChainDeployed overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventChainDeployed
+func (t *AuditLogEntry_EventData) FromAuditLogEventChainDeployed(v AuditLogEventChainDeployed) error {
+	v.EventType = "CHAIN_DEPLOYED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventChainDeploymentActivated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventChainDeploymentActivated
+func (t AuditLogEntry_EventData) AsAuditLogEventChainDeploymentActivated() (AuditLogEventChainDeploymentActivated, error) {
+	var body AuditLogEventChainDeploymentActivated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventChainDeploymentActivated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventChainDeploymentActivated
+func (t *AuditLogEntry_EventData) FromAuditLogEventChainDeploymentActivated(v AuditLogEventChainDeploymentActivated) error {
+	v.EventType = "CHAIN_DEPLOYMENT_ACTIVATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventChainDeploymentDeactivated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventChainDeploymentDeactivated
+func (t AuditLogEntry_EventData) AsAuditLogEventChainDeploymentDeactivated() (AuditLogEventChainDeploymentDeactivated, error) {
+	var body AuditLogEventChainDeploymentDeactivated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventChainDeploymentDeactivated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventChainDeploymentDeactivated
+func (t *AuditLogEntry_EventData) FromAuditLogEventChainDeploymentDeactivated(v AuditLogEventChainDeploymentDeactivated) error {
+	v.EventType = "CHAIN_DEPLOYMENT_DEACTIVATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventChainDeploymentPromoted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventChainDeploymentPromoted
+func (t AuditLogEntry_EventData) AsAuditLogEventChainDeploymentPromoted() (AuditLogEventChainDeploymentPromoted, error) {
+	var body AuditLogEventChainDeploymentPromoted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventChainDeploymentPromoted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventChainDeploymentPromoted
+func (t *AuditLogEntry_EventData) FromAuditLogEventChainDeploymentPromoted(v AuditLogEventChainDeploymentPromoted) error {
+	v.EventType = "CHAIN_DEPLOYMENT_PROMOTED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventChainletAutoscalingSettingsChanged returns the union data inside the AuditLogEntry_EventData as a AuditLogEventChainletAutoscalingSettingsChanged
+func (t AuditLogEntry_EventData) AsAuditLogEventChainletAutoscalingSettingsChanged() (AuditLogEventChainletAutoscalingSettingsChanged, error) {
+	var body AuditLogEventChainletAutoscalingSettingsChanged
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventChainletAutoscalingSettingsChanged overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventChainletAutoscalingSettingsChanged
+func (t *AuditLogEntry_EventData) FromAuditLogEventChainletAutoscalingSettingsChanged(v AuditLogEventChainletAutoscalingSettingsChanged) error {
+	v.EventType = "CHAINLET_AUTOSCALING_SETTINGS_CHANGED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventChainletInstanceTypeChanged returns the union data inside the AuditLogEntry_EventData as a AuditLogEventChainletInstanceTypeChanged
+func (t AuditLogEntry_EventData) AsAuditLogEventChainletInstanceTypeChanged() (AuditLogEventChainletInstanceTypeChanged, error) {
+	var body AuditLogEventChainletInstanceTypeChanged
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventChainletInstanceTypeChanged overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventChainletInstanceTypeChanged
+func (t *AuditLogEntry_EventData) FromAuditLogEventChainletInstanceTypeChanged(v AuditLogEventChainletInstanceTypeChanged) error {
+	v.EventType = "CHAINLET_INSTANCE_TYPE_CHANGED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventChainDeploymentDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventChainDeploymentDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventChainDeploymentDeleted() (AuditLogEventChainDeploymentDeleted, error) {
+	var body AuditLogEventChainDeploymentDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventChainDeploymentDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventChainDeploymentDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventChainDeploymentDeleted(v AuditLogEventChainDeploymentDeleted) error {
+	v.EventType = "CHAIN_DEPLOYMENT_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventChainDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventChainDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventChainDeleted() (AuditLogEventChainDeleted, error) {
+	var body AuditLogEventChainDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventChainDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventChainDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventChainDeleted(v AuditLogEventChainDeleted) error {
+	v.EventType = "CHAIN_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventChainEnvironmentCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventChainEnvironmentCreated
+func (t AuditLogEntry_EventData) AsAuditLogEventChainEnvironmentCreated() (AuditLogEventChainEnvironmentCreated, error) {
+	var body AuditLogEventChainEnvironmentCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventChainEnvironmentCreated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventChainEnvironmentCreated
+func (t *AuditLogEntry_EventData) FromAuditLogEventChainEnvironmentCreated(v AuditLogEventChainEnvironmentCreated) error {
+	v.EventType = "CHAIN_ENVIRONMENT_CREATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventChainEnvironmentUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventChainEnvironmentUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventChainEnvironmentUpdated() (AuditLogEventChainEnvironmentUpdated, error) {
+	var body AuditLogEventChainEnvironmentUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventChainEnvironmentUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventChainEnvironmentUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventChainEnvironmentUpdated(v AuditLogEventChainEnvironmentUpdated) error {
+	v.EventType = "CHAIN_ENVIRONMENT_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventSecretUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventSecretUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventSecretUpdated() (AuditLogEventSecretUpdated, error) {
+	var body AuditLogEventSecretUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventSecretUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventSecretUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventSecretUpdated(v AuditLogEventSecretUpdated) error {
+	v.EventType = "SECRET_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventSecretDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventSecretDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventSecretDeleted() (AuditLogEventSecretDeleted, error) {
+	var body AuditLogEventSecretDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventSecretDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventSecretDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventSecretDeleted(v AuditLogEventSecretDeleted) error {
+	v.EventType = "SECRET_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventApiKeyCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventApiKeyCreated
+func (t AuditLogEntry_EventData) AsAuditLogEventApiKeyCreated() (AuditLogEventApiKeyCreated, error) {
+	var body AuditLogEventApiKeyCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventApiKeyCreated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventApiKeyCreated
+func (t *AuditLogEntry_EventData) FromAuditLogEventApiKeyCreated(v AuditLogEventApiKeyCreated) error {
+	v.EventType = "API_KEY_CREATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventApiKeyDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventApiKeyDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventApiKeyDeleted() (AuditLogEventApiKeyDeleted, error) {
+	var body AuditLogEventApiKeyDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventApiKeyDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventApiKeyDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventApiKeyDeleted(v AuditLogEventApiKeyDeleted) error {
+	v.EventType = "API_KEY_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventGatewayEndpointCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventGatewayEndpointCreated
+func (t AuditLogEntry_EventData) AsAuditLogEventGatewayEndpointCreated() (AuditLogEventGatewayEndpointCreated, error) {
+	var body AuditLogEventGatewayEndpointCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventGatewayEndpointCreated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventGatewayEndpointCreated
+func (t *AuditLogEntry_EventData) FromAuditLogEventGatewayEndpointCreated(v AuditLogEventGatewayEndpointCreated) error {
+	v.EventType = "GATEWAY_ENDPOINT_CREATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventGatewayEndpointUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventGatewayEndpointUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventGatewayEndpointUpdated() (AuditLogEventGatewayEndpointUpdated, error) {
+	var body AuditLogEventGatewayEndpointUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventGatewayEndpointUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventGatewayEndpointUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventGatewayEndpointUpdated(v AuditLogEventGatewayEndpointUpdated) error {
+	v.EventType = "GATEWAY_ENDPOINT_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventGatewayEndpointDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventGatewayEndpointDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventGatewayEndpointDeleted() (AuditLogEventGatewayEndpointDeleted, error) {
+	var body AuditLogEventGatewayEndpointDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventGatewayEndpointDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventGatewayEndpointDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventGatewayEndpointDeleted(v AuditLogEventGatewayEndpointDeleted) error {
+	v.EventType = "GATEWAY_ENDPOINT_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventUserInvited returns the union data inside the AuditLogEntry_EventData as a AuditLogEventUserInvited
+func (t AuditLogEntry_EventData) AsAuditLogEventUserInvited() (AuditLogEventUserInvited, error) {
+	var body AuditLogEventUserInvited
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventUserInvited overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventUserInvited
+func (t *AuditLogEntry_EventData) FromAuditLogEventUserInvited(v AuditLogEventUserInvited) error {
+	v.EventType = "USER_INVITED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventUserJoinedOrganization returns the union data inside the AuditLogEntry_EventData as a AuditLogEventUserJoinedOrganization
+func (t AuditLogEntry_EventData) AsAuditLogEventUserJoinedOrganization() (AuditLogEventUserJoinedOrganization, error) {
+	var body AuditLogEventUserJoinedOrganization
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventUserJoinedOrganization overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventUserJoinedOrganization
+func (t *AuditLogEntry_EventData) FromAuditLogEventUserJoinedOrganization(v AuditLogEventUserJoinedOrganization) error {
+	v.EventType = "USER_JOINED_ORGANIZATION"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventWebhookSigningSecretCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventWebhookSigningSecretCreated
+func (t AuditLogEntry_EventData) AsAuditLogEventWebhookSigningSecretCreated() (AuditLogEventWebhookSigningSecretCreated, error) {
+	var body AuditLogEventWebhookSigningSecretCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventWebhookSigningSecretCreated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventWebhookSigningSecretCreated
+func (t *AuditLogEntry_EventData) FromAuditLogEventWebhookSigningSecretCreated(v AuditLogEventWebhookSigningSecretCreated) error {
+	v.EventType = "WEBHOOK_SIGNING_SECRET_CREATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventWebhookSigningSecretRotated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventWebhookSigningSecretRotated
+func (t AuditLogEntry_EventData) AsAuditLogEventWebhookSigningSecretRotated() (AuditLogEventWebhookSigningSecretRotated, error) {
+	var body AuditLogEventWebhookSigningSecretRotated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventWebhookSigningSecretRotated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventWebhookSigningSecretRotated
+func (t *AuditLogEntry_EventData) FromAuditLogEventWebhookSigningSecretRotated(v AuditLogEventWebhookSigningSecretRotated) error {
+	v.EventType = "WEBHOOK_SIGNING_SECRET_ROTATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventWebhookSigningSecretDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventWebhookSigningSecretDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventWebhookSigningSecretDeleted() (AuditLogEventWebhookSigningSecretDeleted, error) {
+	var body AuditLogEventWebhookSigningSecretDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventWebhookSigningSecretDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventWebhookSigningSecretDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventWebhookSigningSecretDeleted(v AuditLogEventWebhookSigningSecretDeleted) error {
+	v.EventType = "WEBHOOK_SIGNING_SECRET_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventUserRoleUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventUserRoleUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventUserRoleUpdated() (AuditLogEventUserRoleUpdated, error) {
+	var body AuditLogEventUserRoleUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventUserRoleUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventUserRoleUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventUserRoleUpdated(v AuditLogEventUserRoleUpdated) error {
+	v.EventType = "USER_ROLE_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventUserTeamRoleUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventUserTeamRoleUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventUserTeamRoleUpdated() (AuditLogEventUserTeamRoleUpdated, error) {
+	var body AuditLogEventUserTeamRoleUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventUserTeamRoleUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventUserTeamRoleUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventUserTeamRoleUpdated(v AuditLogEventUserTeamRoleUpdated) error {
+	v.EventType = "USER_TEAM_ROLE_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventUserRemoved returns the union data inside the AuditLogEntry_EventData as a AuditLogEventUserRemoved
+func (t AuditLogEntry_EventData) AsAuditLogEventUserRemoved() (AuditLogEventUserRemoved, error) {
+	var body AuditLogEventUserRemoved
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventUserRemoved overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventUserRemoved
+func (t *AuditLogEntry_EventData) FromAuditLogEventUserRemoved(v AuditLogEventUserRemoved) error {
+	v.EventType = "USER_REMOVED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventDirectoryGroupRoleUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventDirectoryGroupRoleUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventDirectoryGroupRoleUpdated() (AuditLogEventDirectoryGroupRoleUpdated, error) {
+	var body AuditLogEventDirectoryGroupRoleUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventDirectoryGroupRoleUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventDirectoryGroupRoleUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventDirectoryGroupRoleUpdated(v AuditLogEventDirectoryGroupRoleUpdated) error {
+	v.EventType = "DIRECTORY_GROUP_ROLE_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventRequireGroupBasedAdminsEnabled returns the union data inside the AuditLogEntry_EventData as a AuditLogEventRequireGroupBasedAdminsEnabled
+func (t AuditLogEntry_EventData) AsAuditLogEventRequireGroupBasedAdminsEnabled() (AuditLogEventRequireGroupBasedAdminsEnabled, error) {
+	var body AuditLogEventRequireGroupBasedAdminsEnabled
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventRequireGroupBasedAdminsEnabled overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventRequireGroupBasedAdminsEnabled
+func (t *AuditLogEntry_EventData) FromAuditLogEventRequireGroupBasedAdminsEnabled(v AuditLogEventRequireGroupBasedAdminsEnabled) error {
+	v.EventType = "REQUIRE_GROUP_BASED_ADMINS_ENABLED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventEnvironmentCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventEnvironmentCreated
+func (t AuditLogEntry_EventData) AsAuditLogEventEnvironmentCreated() (AuditLogEventEnvironmentCreated, error) {
+	var body AuditLogEventEnvironmentCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventEnvironmentCreated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventEnvironmentCreated
+func (t *AuditLogEntry_EventData) FromAuditLogEventEnvironmentCreated(v AuditLogEventEnvironmentCreated) error {
+	v.EventType = "ENVIRONMENT_CREATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventEnvironmentUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventEnvironmentUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventEnvironmentUpdated() (AuditLogEventEnvironmentUpdated, error) {
+	var body AuditLogEventEnvironmentUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventEnvironmentUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventEnvironmentUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventEnvironmentUpdated(v AuditLogEventEnvironmentUpdated) error {
+	v.EventType = "ENVIRONMENT_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventEnvironmentDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventEnvironmentDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventEnvironmentDeleted() (AuditLogEventEnvironmentDeleted, error) {
+	var body AuditLogEventEnvironmentDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventEnvironmentDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventEnvironmentDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventEnvironmentDeleted(v AuditLogEventEnvironmentDeleted) error {
+	v.EventType = "ENVIRONMENT_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventReplicaTerminated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventReplicaTerminated
+func (t AuditLogEntry_EventData) AsAuditLogEventReplicaTerminated() (AuditLogEventReplicaTerminated, error) {
+	var body AuditLogEventReplicaTerminated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventReplicaTerminated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventReplicaTerminated
+func (t *AuditLogEntry_EventData) FromAuditLogEventReplicaTerminated(v AuditLogEventReplicaTerminated) error {
+	v.EventType = "REPLICA_TERMINATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventModelPromotionControlAction returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelPromotionControlAction
+func (t AuditLogEntry_EventData) AsAuditLogEventModelPromotionControlAction() (AuditLogEventModelPromotionControlAction, error) {
+	var body AuditLogEventModelPromotionControlAction
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventModelPromotionControlAction overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelPromotionControlAction
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelPromotionControlAction(v AuditLogEventModelPromotionControlAction) error {
+	v.EventType = "MODEL_PROMOTION_CONTROL_ACTION"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventSshCertificateSigned returns the union data inside the AuditLogEntry_EventData as a AuditLogEventSshCertificateSigned
+func (t AuditLogEntry_EventData) AsAuditLogEventSshCertificateSigned() (AuditLogEventSshCertificateSigned, error) {
+	var body AuditLogEventSshCertificateSigned
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventSshCertificateSigned overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventSshCertificateSigned
+func (t *AuditLogEntry_EventData) FromAuditLogEventSshCertificateSigned(v AuditLogEventSshCertificateSigned) error {
+	v.EventType = "SSH_CERTIFICATE_SIGNED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t AuditLogEntry_EventData) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"event_type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "API_KEY_CREATED":
+		return t.AsAuditLogEventApiKeyCreated()
+	case "API_KEY_DELETED":
+		return t.AsAuditLogEventApiKeyDeleted()
+	case "CHAIN_DELETED":
+		return t.AsAuditLogEventChainDeleted()
+	case "CHAIN_DEPLOYED":
+		return t.AsAuditLogEventChainDeployed()
+	case "CHAIN_DEPLOYMENT_ACTIVATED":
+		return t.AsAuditLogEventChainDeploymentActivated()
+	case "CHAIN_DEPLOYMENT_DEACTIVATED":
+		return t.AsAuditLogEventChainDeploymentDeactivated()
+	case "CHAIN_DEPLOYMENT_DELETED":
+		return t.AsAuditLogEventChainDeploymentDeleted()
+	case "CHAIN_DEPLOYMENT_PROMOTED":
+		return t.AsAuditLogEventChainDeploymentPromoted()
+	case "CHAIN_ENVIRONMENT_CREATED":
+		return t.AsAuditLogEventChainEnvironmentCreated()
+	case "CHAIN_ENVIRONMENT_UPDATED":
+		return t.AsAuditLogEventChainEnvironmentUpdated()
+	case "CHAINLET_AUTOSCALING_SETTINGS_CHANGED":
+		return t.AsAuditLogEventChainletAutoscalingSettingsChanged()
+	case "CHAINLET_INSTANCE_TYPE_CHANGED":
+		return t.AsAuditLogEventChainletInstanceTypeChanged()
+	case "DIRECTORY_GROUP_ROLE_UPDATED":
+		return t.AsAuditLogEventDirectoryGroupRoleUpdated()
+	case "ENVIRONMENT_CREATED":
+		return t.AsAuditLogEventEnvironmentCreated()
+	case "ENVIRONMENT_DELETED":
+		return t.AsAuditLogEventEnvironmentDeleted()
+	case "ENVIRONMENT_UPDATED":
+		return t.AsAuditLogEventEnvironmentUpdated()
+	case "GATEWAY_ENDPOINT_CREATED":
+		return t.AsAuditLogEventGatewayEndpointCreated()
+	case "GATEWAY_ENDPOINT_DELETED":
+		return t.AsAuditLogEventGatewayEndpointDeleted()
+	case "GATEWAY_ENDPOINT_UPDATED":
+		return t.AsAuditLogEventGatewayEndpointUpdated()
+	case "MODEL_DELETED":
+		return t.AsAuditLogEventModelDeleted()
+	case "MODEL_DEPLOYED":
+		return t.AsAuditLogEventModelDeployed()
+	case "MODEL_DEPLOYMENT_ACTIVATED":
+		return t.AsAuditLogEventModelDeploymentActivated()
+	case "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED":
+		return t.AsAuditLogEventModelDeploymentAutoscalingSettingsChanged()
+	case "MODEL_DEPLOYMENT_DEACTIVATED":
+		return t.AsAuditLogEventModelDeploymentDeactivated()
+	case "MODEL_DEPLOYMENT_DELETED":
+		return t.AsAuditLogEventModelDeploymentDeleted()
+	case "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED":
+		return t.AsAuditLogEventModelDeploymentInstanceTypeChanged()
+	case "MODEL_DEPLOYMENT_PROMOTED":
+		return t.AsAuditLogEventModelDeploymentPromoted()
+	case "MODEL_DEPLOYMENT_RETRIED":
+		return t.AsAuditLogEventModelDeploymentRetried()
+	case "MODEL_PROMOTION_CONTROL_ACTION":
+		return t.AsAuditLogEventModelPromotionControlAction()
+	case "REPLICA_TERMINATED":
+		return t.AsAuditLogEventReplicaTerminated()
+	case "REQUIRE_GROUP_BASED_ADMINS_ENABLED":
+		return t.AsAuditLogEventRequireGroupBasedAdminsEnabled()
+	case "SECRET_DELETED":
+		return t.AsAuditLogEventSecretDeleted()
+	case "SECRET_UPDATED":
+		return t.AsAuditLogEventSecretUpdated()
+	case "SSH_CERTIFICATE_SIGNED":
+		return t.AsAuditLogEventSshCertificateSigned()
+	case "USER_INVITED":
+		return t.AsAuditLogEventUserInvited()
+	case "USER_JOINED_ORGANIZATION":
+		return t.AsAuditLogEventUserJoinedOrganization()
+	case "USER_REMOVED":
+		return t.AsAuditLogEventUserRemoved()
+	case "USER_ROLE_UPDATED":
+		return t.AsAuditLogEventUserRoleUpdated()
+	case "USER_TEAM_ROLE_UPDATED":
+		return t.AsAuditLogEventUserTeamRoleUpdated()
+	case "WEBHOOK_SIGNING_SECRET_CREATED":
+		return t.AsAuditLogEventWebhookSigningSecretCreated()
+	case "WEBHOOK_SIGNING_SECRET_DELETED":
+		return t.AsAuditLogEventWebhookSigningSecretDeleted()
+	case "WEBHOOK_SIGNING_SECRET_ROTATED":
+		return t.AsAuditLogEventWebhookSigningSecretRotated()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t AuditLogEntry_EventData) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *AuditLogEntry_EventData) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
 
 // AsDeploymentPatchOpModelCode returns the union data inside the CreateDeploymentPatchRequest_PatchOps_Item as a DeploymentPatchOpModelCode
 func (t CreateDeploymentPatchRequest_PatchOps_Item) AsDeploymentPatchOpModelCode() (DeploymentPatchOpModelCode, error) {

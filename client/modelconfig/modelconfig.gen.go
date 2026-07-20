@@ -725,6 +725,14 @@ type ModelTRTQuantizationConfiguration struct {
 	AdditionalProperties interface{} `mapstructure:",remain"`
 }
 
+// Configuration for runtime-mounting of an OIDC bearer token
+type OIDC struct {
+	// If true, mounts an OIDC bearer token for your model to access at runtime.
+	Enabled *bool `json:"enabled,omitempty,omitzero" yaml:"enabled,omitempty"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
 type PatchKwargs map[string]interface{}
 
 // Configuration for SSH access to running model instances.
@@ -779,6 +787,9 @@ type Runtime struct {
 	// DEPRECATED. Do not set manually. Automatically inferred from transport.kind ==
 	// websocket.
 	IsWebsocketEndpoint *bool `json:"is_websocket_endpoint,omitempty,omitzero" yaml:"is_websocket_endpoint,omitempty"`
+
+	// Configuration for runtime-mounting of an OIDC bearer token.
+	Oidc *OIDC `json:"oidc,omitempty,omitzero" yaml:"oidc,omitempty"`
 
 	// The number of concurrent requests that can run in your model's predict method.
 	// Increase this if your model supports parallelism.
@@ -955,6 +966,7 @@ const WeightsAuthMethodGCPOIDC WeightsAuthMethod = "GCP_OIDC"
 // - gs:// -> Google Cloud Storage (e.g., "gs://bucket/path")
 // - azure:// -> Azure Blob Storage (e.g., "azure://account/container/path")
 // - r2:// -> CloudFlare R2 Storage (e.g., "r2://account_id.bucket/path")
+// - cw:// -> CoreWeave AI Object Storage (e.g., "cw://bucket/path")
 // - https:// -> Direct URL download (e.g., "https://example.com/model.bin")
 //
 // For HuggingFace sources, you can specify a revision (branch, tag, or commit SHA)
@@ -984,8 +996,8 @@ type WeightsSource struct {
 	// Absolute path where weights will be mounted at runtime.
 	MountLocation string `json:"mount_location" yaml:"mount_location"`
 
-	// URI with scheme prefix. Use hf://, s3://, gs://, azure://, r2://, or https://.
-	// For HuggingFace, use @revision suffix (e.g., hf://owner/repo@main).
+	// URI with scheme prefix. Use hf://, s3://, gs://, azure://, r2://, cw://, or
+	// https://. For HuggingFace, use @revision suffix (e.g., hf://owner/repo@main).
 	Source string `json:"source" yaml:"source"`
 
 	AdditionalProperties interface{} `mapstructure:",remain"`

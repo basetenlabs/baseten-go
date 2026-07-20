@@ -653,6 +653,209 @@
                 }
             }
         },
+        "/v1/audit_logs": {
+            "get": {
+                "summary": "Gets the audit log for the workspace",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/audit_logs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/audit_logs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns audit-log entries across the workspace, newest first, covering models, chains, and workspace-level actions. Use the filters to narrow by event type, actor, resource, environment, source, or time window, and the cursor to page. In workspaces with multiple teams, only organization admins can read the workspace audit log.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of entries to return per page. Defaults to 20, and must be between 1 and 200.",
+                        "schema": {
+                            "default": 20,
+                            "maximum": 200,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sort order by the time the action occurred. Defaults to DESC (newest first). Ignored when paginating with a cursor.",
+                        "schema": {
+                            "$ref": "#/components/schemas/AuditLogSortDirectionV1",
+                            "default": "DESC"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "description": "Case-insensitive substring matched against resource names and IDs in the entry.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Search"
+                        }
+                    },
+                    {
+                        "name": "event_type_groups",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries whose event type falls in one of these groups.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/AuditLogEventTypeGroupV1"
+                            },
+                            "title": "Event Type Groups",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "user_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries whose acting user is one of these IDs.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "User Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "deployment_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries referencing one of these model deployment IDs.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Deployment Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "chain_deployment_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries referencing one of these chain deployment IDs.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Chain Deployment Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "environment_names",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries for one of these environments.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Environment Names",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "sources",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries issued from one of these surfaces.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/AuditLogSourceV1"
+                            },
+                            "title": "Sources",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch milliseconds for the start of the window. Defaults to the beginning of the audit-log history.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch milliseconds for the end of the window. Defaults to the current time.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Epoch Millis"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListAuditLogsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/models": {
             "get": {
                 "summary": "Gets all models",
@@ -880,6 +1083,214 @@
                     }
                 }
             }
+        },
+        "/v1/models/{model_id}/audit_logs": {
+            "get": {
+                "summary": "Gets the audit log for a model",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/audit_logs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/audit_logs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns audit-log entries for a single model, newest first. Use the filters to narrow by event type, actor, deployment, environment, source, or time window, and the cursor to page.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of entries to return per page. Defaults to 20, and must be between 1 and 200.",
+                        "schema": {
+                            "default": 20,
+                            "maximum": 200,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sort order by the time the action occurred. Defaults to DESC (newest first). Ignored when paginating with a cursor.",
+                        "schema": {
+                            "$ref": "#/components/schemas/AuditLogSortDirectionV1",
+                            "default": "DESC"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "description": "Case-insensitive substring matched against resource names and IDs in the entry.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Search"
+                        }
+                    },
+                    {
+                        "name": "event_type_groups",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries whose event type falls in one of these groups.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/AuditLogEventTypeGroupV1"
+                            },
+                            "title": "Event Type Groups",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "user_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries whose acting user is one of these IDs.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "User Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "deployment_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries referencing one of these model deployment IDs.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Deployment Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "chain_deployment_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries referencing one of these chain deployment IDs.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Chain Deployment Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "environment_names",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries for one of these environments.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Environment Names",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "sources",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries issued from one of these surfaces.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/AuditLogSourceV1"
+                            },
+                            "title": "Sources",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch milliseconds for the start of the window. Defaults to the beginning of the audit-log history.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch milliseconds for the end of the window. Defaults to the current time.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Epoch Millis"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListAuditLogsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                }
+            ]
         },
         "/v1/models/{model_id}/deployments": {
             "get": {
@@ -3143,6 +3554,214 @@
                     }
                 }
             }
+        },
+        "/v1/chains/{chain_id}/audit_logs": {
+            "get": {
+                "summary": "Gets the audit log for a chain",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/chains/{chain_id}/audit_logs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/chains/{chain_id}/audit_logs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns audit-log entries for a single chain, newest first. Use the filters to narrow by event type, actor, chain deployment, environment, source, or time window, and the cursor to page.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of entries to return per page. Defaults to 20, and must be between 1 and 200.",
+                        "schema": {
+                            "default": 20,
+                            "maximum": 200,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sort order by the time the action occurred. Defaults to DESC (newest first). Ignored when paginating with a cursor.",
+                        "schema": {
+                            "$ref": "#/components/schemas/AuditLogSortDirectionV1",
+                            "default": "DESC"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "description": "Case-insensitive substring matched against resource names and IDs in the entry.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Search"
+                        }
+                    },
+                    {
+                        "name": "event_type_groups",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries whose event type falls in one of these groups.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/AuditLogEventTypeGroupV1"
+                            },
+                            "title": "Event Type Groups",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "user_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries whose acting user is one of these IDs.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "User Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "deployment_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries referencing one of these model deployment IDs.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Deployment Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "chain_deployment_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries referencing one of these chain deployment IDs.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Chain Deployment Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "environment_names",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries for one of these environments.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Environment Names",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "sources",
+                        "in": "query",
+                        "required": false,
+                        "description": "When set, returns only entries issued from one of these surfaces.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/AuditLogSourceV1"
+                            },
+                            "title": "Sources",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch milliseconds for the start of the window. Defaults to the beginning of the audit-log history.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch milliseconds for the end of the window. Defaults to the current time.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Epoch Millis"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListAuditLogsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/chain_id"
+                }
+            ]
         },
         "/v1/chains/{chain_id}/deployments": {
             "get": {
@@ -5783,7 +6402,7 @@
         },
         "/v1/api_keys": {
             "get": {
-                "summary": "Lists the user's API keys (metadata only, no plain text keys)",
+                "summary": "Lists API keys (metadata only, no plain text keys)",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -5794,6 +6413,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/api_keys\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
+                "description": "Returns metadata for your personal API keys and the workspace and team API keys you can manage. Organization admins also receive every member's personal API keys, each with an owner identifying the member it belongs to.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -7998,7 +8618,7 @@
                 "type": "object"
             },
             "PrepareModelUploadResponseV1": {
-                "description": "Response from `POST /v1/prepare_model_upload`.\n\nOn success with `dry_run=false`, returns STS upload credentials. On success\nwith `dry_run=true`, `creds`, `s3_bucket`, and `s3_key` are `null` and only\nvalidation has run.",
+                "description": "Response from `POST /v1/prepare_model_upload`.\n\nReturns STS upload credentials when the push requires an archive upload. All\nfour fields (`creds`, `s3_bucket`, `s3_key`, `s3_region`) are `null` when no\nupload is needed: either `dry_run=true` (validation only) or a model format\nthat is not built from an uploaded archive (for example, BIS-LLM, which is\nbuilt from its config alone).",
                 "properties": {
                     "creds": {
                         "anyOf": [
@@ -8010,7 +8630,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "STS credentials to upload the model archive."
+                        "description": "STS credentials to upload the model archive. Null when no archive upload is required."
                     },
                     "s3_bucket": {
                         "anyOf": [
@@ -8022,7 +8642,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "S3 bucket the credentials are scoped to.",
+                        "description": "S3 bucket the credentials are scoped to. Null when no archive upload is required.",
                         "title": "S3 Bucket"
                     },
                     "s3_key": {
@@ -8035,7 +8655,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "S3 key the credentials are scoped to. Pass this to `POST /v1/models` (in the `model_archive` source) once the upload completes.",
+                        "description": "S3 key the credentials are scoped to. Pass this to `POST /v1/models` (in the `model_archive` source) once the upload completes. Null when no archive upload is required.",
                         "title": "S3 Key"
                     },
                     "s3_region": {
@@ -8048,11 +8668,2936 @@
                             }
                         ],
                         "default": null,
-                        "description": "AWS region the S3 bucket resides in.",
+                        "description": "AWS region the S3 bucket resides in. Null when no archive upload is required.",
                         "title": "S3 Region"
                     }
                 },
                 "title": "PrepareModelUploadResponseV1",
+                "type": "object"
+            },
+            "AuditLogActorTypeV1": {
+                "description": "Kind of actor that performed an audited action.",
+                "enum": [
+                    "USER",
+                    "API_KEY",
+                    "BASETEN_USER",
+                    "BASETEN_SYSTEM",
+                    "TOMBSTONE_USER"
+                ],
+                "title": "AuditLogActorTypeV1",
+                "type": "string"
+            },
+            "AuditLogActorV1": {
+                "description": "The actor that performed an audited action.",
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/AuditLogActorTypeV1",
+                        "description": "Kind of actor that performed the action."
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Email of the acting user, when the actor is a user.",
+                        "title": "Email"
+                    },
+                    "api_key_prefix": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Prefix of the acting API key, when the actor is an API key.",
+                        "title": "Api Key Prefix"
+                    }
+                },
+                "required": [
+                    "type"
+                ],
+                "title": "AuditLogActorV1",
+                "type": "object"
+            },
+            "AuditLogApiKeyTypeV1": {
+                "description": "Type of API key recorded on an API-key event.",
+                "enum": [
+                    "PERSONAL",
+                    "CREATOR_SERVICE_ACCOUNT",
+                    "INVOKE_ALL_MODELS_SERVICE_ACCOUNT",
+                    "INVOKE_ALLOWED_MODELS_SERVICE_ACCOUNT",
+                    "INVOKE_SCOPED_ENVS_AND_MODELS_SERVICE_ACCOUNT",
+                    "EXPORT_METRICS_ALL_MODELS_SERVICE_ACCOUNT",
+                    "EXPORT_METRICS_ALLOWED_MODELS_SERVICE_ACCOUNT",
+                    "INVOKE_ALL_SHARED_ENDPOINTS_SERVICE_ACCOUNT",
+                    "INVOKE_ALLOWED_SHARED_ENDPOINTS_SERVICE_ACCOUNT"
+                ],
+                "title": "AuditLogApiKeyTypeV1",
+                "type": "string"
+            },
+            "AuditLogEntryV1": {
+                "description": "A single audit-log entry.",
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier of the audit-log entry.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "created": {
+                        "description": "Time the action occurred, in ISO 8601 format.",
+                        "format": "date-time",
+                        "title": "Created",
+                        "type": "string"
+                    },
+                    "event_type": {
+                        "$ref": "#/components/schemas/AuditLogEventTypeV1",
+                        "description": "Type of action that was recorded."
+                    },
+                    "event_data": {
+                        "description": "Structured details of the action, discriminated by `event_type`.",
+                        "discriminator": {
+                            "mapping": {
+                                "API_KEY_CREATED": "#/components/schemas/AuditLogEventApiKeyCreatedV1",
+                                "API_KEY_DELETED": "#/components/schemas/AuditLogEventApiKeyDeletedV1",
+                                "CHAINLET_AUTOSCALING_SETTINGS_CHANGED": "#/components/schemas/AuditLogEventChainletAutoscalingSettingsChangedV1",
+                                "CHAINLET_INSTANCE_TYPE_CHANGED": "#/components/schemas/AuditLogEventChainletInstanceTypeChangedV1",
+                                "CHAIN_DELETED": "#/components/schemas/AuditLogEventChainDeletedV1",
+                                "CHAIN_DEPLOYED": "#/components/schemas/AuditLogEventChainDeployedV1",
+                                "CHAIN_DEPLOYMENT_ACTIVATED": "#/components/schemas/AuditLogEventChainDeploymentActivatedV1",
+                                "CHAIN_DEPLOYMENT_DEACTIVATED": "#/components/schemas/AuditLogEventChainDeploymentDeactivatedV1",
+                                "CHAIN_DEPLOYMENT_DELETED": "#/components/schemas/AuditLogEventChainDeploymentDeletedV1",
+                                "CHAIN_DEPLOYMENT_PROMOTED": "#/components/schemas/AuditLogEventChainDeploymentPromotedV1",
+                                "CHAIN_ENVIRONMENT_CREATED": "#/components/schemas/AuditLogEventChainEnvironmentCreatedV1",
+                                "CHAIN_ENVIRONMENT_UPDATED": "#/components/schemas/AuditLogEventChainEnvironmentUpdatedV1",
+                                "DIRECTORY_GROUP_ROLE_UPDATED": "#/components/schemas/AuditLogEventDirectoryGroupRoleUpdatedV1",
+                                "ENVIRONMENT_CREATED": "#/components/schemas/AuditLogEventEnvironmentCreatedV1",
+                                "ENVIRONMENT_DELETED": "#/components/schemas/AuditLogEventEnvironmentDeletedV1",
+                                "ENVIRONMENT_UPDATED": "#/components/schemas/AuditLogEventEnvironmentUpdatedV1",
+                                "GATEWAY_ENDPOINT_CREATED": "#/components/schemas/AuditLogEventGatewayEndpointCreatedV1",
+                                "GATEWAY_ENDPOINT_DELETED": "#/components/schemas/AuditLogEventGatewayEndpointDeletedV1",
+                                "GATEWAY_ENDPOINT_UPDATED": "#/components/schemas/AuditLogEventGatewayEndpointUpdatedV1",
+                                "MODEL_DELETED": "#/components/schemas/AuditLogEventModelDeletedV1",
+                                "MODEL_DEPLOYED": "#/components/schemas/AuditLogEventModelDeployedV1",
+                                "MODEL_DEPLOYMENT_ACTIVATED": "#/components/schemas/AuditLogEventModelDeploymentActivatedV1",
+                                "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED": "#/components/schemas/AuditLogEventModelDeploymentAutoscalingSettingsChangedV1",
+                                "MODEL_DEPLOYMENT_DEACTIVATED": "#/components/schemas/AuditLogEventModelDeploymentDeactivatedV1",
+                                "MODEL_DEPLOYMENT_DELETED": "#/components/schemas/AuditLogEventModelDeploymentDeletedV1",
+                                "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED": "#/components/schemas/AuditLogEventModelDeploymentInstanceTypeChangedV1",
+                                "MODEL_DEPLOYMENT_PROMOTED": "#/components/schemas/AuditLogEventModelDeploymentPromotedV1",
+                                "MODEL_DEPLOYMENT_RETRIED": "#/components/schemas/AuditLogEventModelDeploymentRetriedV1",
+                                "MODEL_PROMOTION_CONTROL_ACTION": "#/components/schemas/AuditLogEventModelPromotionControlActionV1",
+                                "REPLICA_TERMINATED": "#/components/schemas/AuditLogEventReplicaTerminatedV1",
+                                "REQUIRE_GROUP_BASED_ADMINS_ENABLED": "#/components/schemas/AuditLogEventRequireGroupBasedAdminsEnabledV1",
+                                "SECRET_DELETED": "#/components/schemas/AuditLogEventSecretDeletedV1",
+                                "SECRET_UPDATED": "#/components/schemas/AuditLogEventSecretUpdatedV1",
+                                "SSH_CERTIFICATE_SIGNED": "#/components/schemas/AuditLogEventSshCertificateSignedV1",
+                                "USER_INVITED": "#/components/schemas/AuditLogEventUserInvitedV1",
+                                "USER_JOINED_ORGANIZATION": "#/components/schemas/AuditLogEventUserJoinedOrganizationV1",
+                                "USER_REMOVED": "#/components/schemas/AuditLogEventUserRemovedV1",
+                                "USER_ROLE_UPDATED": "#/components/schemas/AuditLogEventUserRoleUpdatedV1",
+                                "USER_TEAM_ROLE_UPDATED": "#/components/schemas/AuditLogEventUserTeamRoleUpdatedV1",
+                                "WEBHOOK_SIGNING_SECRET_CREATED": "#/components/schemas/AuditLogEventWebhookSigningSecretCreatedV1",
+                                "WEBHOOK_SIGNING_SECRET_DELETED": "#/components/schemas/AuditLogEventWebhookSigningSecretDeletedV1",
+                                "WEBHOOK_SIGNING_SECRET_ROTATED": "#/components/schemas/AuditLogEventWebhookSigningSecretRotatedV1"
+                            },
+                            "propertyName": "event_type"
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventModelDeployedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventModelDeploymentActivatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventModelDeploymentDeactivatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventModelDeploymentRetriedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventModelDeploymentPromotedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventModelDeploymentAutoscalingSettingsChangedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventModelDeploymentInstanceTypeChangedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventModelDeploymentDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventModelDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventChainDeployedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventChainDeploymentActivatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventChainDeploymentDeactivatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventChainDeploymentPromotedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventChainletAutoscalingSettingsChangedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventChainletInstanceTypeChangedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventChainDeploymentDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventChainDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventChainEnvironmentCreatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventChainEnvironmentUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventSecretUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventSecretDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventApiKeyCreatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventApiKeyDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventGatewayEndpointCreatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventGatewayEndpointUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventGatewayEndpointDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventUserInvitedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventUserJoinedOrganizationV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventWebhookSigningSecretCreatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventWebhookSigningSecretRotatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventWebhookSigningSecretDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventUserRoleUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventUserTeamRoleUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventUserRemovedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventDirectoryGroupRoleUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventRequireGroupBasedAdminsEnabledV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventEnvironmentCreatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventEnvironmentUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventEnvironmentDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventReplicaTerminatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventModelPromotionControlActionV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventSshCertificateSignedV1"
+                            }
+                        ],
+                        "title": "Event Data"
+                    },
+                    "source": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogSourceV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Surface that issued the action, if known."
+                    },
+                    "actor": {
+                        "$ref": "#/components/schemas/AuditLogActorV1",
+                        "description": "The actor that performed the action."
+                    },
+                    "client_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name of the client that issued the action, if known.",
+                        "title": "Client Name"
+                    },
+                    "client_version": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Version of the client that issued the action, if known.",
+                        "title": "Client Version"
+                    },
+                    "client_session_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque identifier grouping actions from the same client session, if known.",
+                        "title": "Client Session Id"
+                    }
+                },
+                "required": [
+                    "id",
+                    "created",
+                    "event_type",
+                    "event_data",
+                    "actor"
+                ],
+                "title": "AuditLogEntryV1",
+                "type": "object"
+            },
+            "AuditLogEventApiKeyCreatedV1": {
+                "additionalProperties": false,
+                "description": "An API key was created.",
+                "properties": {
+                    "event_type": {
+                        "const": "API_KEY_CREATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "api_key_id": {
+                        "title": "Api Key Id",
+                        "type": "string"
+                    },
+                    "api_key_type": {
+                        "$ref": "#/components/schemas/AuditLogApiKeyTypeV1"
+                    },
+                    "prefix": {
+                        "title": "Prefix",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "api_key_id",
+                    "api_key_type",
+                    "prefix"
+                ],
+                "title": "AuditLogEventApiKeyCreatedV1",
+                "type": "object"
+            },
+            "AuditLogEventApiKeyDeletedV1": {
+                "additionalProperties": false,
+                "description": "An API key was revoked.",
+                "properties": {
+                    "event_type": {
+                        "const": "API_KEY_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "api_key_id": {
+                        "title": "Api Key Id",
+                        "type": "string"
+                    },
+                    "api_key_type": {
+                        "$ref": "#/components/schemas/AuditLogApiKeyTypeV1"
+                    },
+                    "prefix": {
+                        "title": "Prefix",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "api_key_id",
+                    "api_key_type",
+                    "prefix"
+                ],
+                "title": "AuditLogEventApiKeyDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventAutoscalingSettingsV1": {
+                "additionalProperties": false,
+                "description": "Autoscaling settings for a deployment or environment.",
+                "properties": {
+                    "min_replica": {
+                        "title": "Min Replica",
+                        "type": "integer"
+                    },
+                    "max_replica": {
+                        "title": "Max Replica",
+                        "type": "integer"
+                    },
+                    "concurrency_target": {
+                        "title": "Concurrency Target",
+                        "type": "integer"
+                    },
+                    "autoscaling_window": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Autoscaling Window"
+                    },
+                    "scale_down_delay": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scale Down Delay"
+                    },
+                    "target_utilization_percentage": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target Utilization Percentage"
+                    },
+                    "target_in_flight_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target In Flight Tokens"
+                    },
+                    "max_scale_down_rate": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Scale Down Rate"
+                    }
+                },
+                "required": [
+                    "min_replica",
+                    "max_replica",
+                    "concurrency_target",
+                    "autoscaling_window",
+                    "scale_down_delay",
+                    "target_utilization_percentage",
+                    "target_in_flight_tokens",
+                    "max_scale_down_rate"
+                ],
+                "title": "AuditLogEventAutoscalingSettingsV1",
+                "type": "object"
+            },
+            "AuditLogEventChainDeletedV1": {
+                "additionalProperties": false,
+                "description": "A chain was deleted.",
+                "properties": {
+                    "event_type": {
+                        "const": "CHAIN_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "chain_id": {
+                        "title": "Chain Id",
+                        "type": "string"
+                    },
+                    "chain_name": {
+                        "title": "Chain Name",
+                        "type": "string"
+                    },
+                    "chain_deployment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Chain Deployment Name"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "chain_id",
+                    "chain_name",
+                    "chain_deployment_name"
+                ],
+                "title": "AuditLogEventChainDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventChainDeployedV1": {
+                "additionalProperties": false,
+                "description": "A chain deployment was created.",
+                "properties": {
+                    "event_type": {
+                        "const": "CHAIN_DEPLOYED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "chain_id": {
+                        "title": "Chain Id",
+                        "type": "string"
+                    },
+                    "chain_name": {
+                        "title": "Chain Name",
+                        "type": "string"
+                    },
+                    "chain_deployment_id": {
+                        "title": "Chain Deployment Id",
+                        "type": "string"
+                    },
+                    "chain_deployment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Chain Deployment Name"
+                    },
+                    "is_primary": {
+                        "title": "Is Primary",
+                        "type": "boolean"
+                    },
+                    "publish": {
+                        "title": "Publish",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "chain_id",
+                    "chain_name",
+                    "chain_deployment_id",
+                    "chain_deployment_name",
+                    "is_primary",
+                    "publish"
+                ],
+                "title": "AuditLogEventChainDeployedV1",
+                "type": "object"
+            },
+            "AuditLogEventChainDeploymentActivatedV1": {
+                "additionalProperties": false,
+                "description": "A chain deployment was activated.",
+                "properties": {
+                    "event_type": {
+                        "const": "CHAIN_DEPLOYMENT_ACTIVATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "chain_id": {
+                        "title": "Chain Id",
+                        "type": "string"
+                    },
+                    "chain_name": {
+                        "title": "Chain Name",
+                        "type": "string"
+                    },
+                    "chain_deployment_id": {
+                        "title": "Chain Deployment Id",
+                        "type": "string"
+                    },
+                    "chain_deployment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Chain Deployment Name"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "chain_id",
+                    "chain_name",
+                    "chain_deployment_id",
+                    "chain_deployment_name"
+                ],
+                "title": "AuditLogEventChainDeploymentActivatedV1",
+                "type": "object"
+            },
+            "AuditLogEventChainDeploymentDeactivatedV1": {
+                "additionalProperties": false,
+                "description": "A chain deployment was deactivated.",
+                "properties": {
+                    "event_type": {
+                        "const": "CHAIN_DEPLOYMENT_DEACTIVATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "chain_id": {
+                        "title": "Chain Id",
+                        "type": "string"
+                    },
+                    "chain_name": {
+                        "title": "Chain Name",
+                        "type": "string"
+                    },
+                    "chain_deployment_id": {
+                        "title": "Chain Deployment Id",
+                        "type": "string"
+                    },
+                    "chain_deployment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Chain Deployment Name"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "chain_id",
+                    "chain_name",
+                    "chain_deployment_id",
+                    "chain_deployment_name"
+                ],
+                "title": "AuditLogEventChainDeploymentDeactivatedV1",
+                "type": "object"
+            },
+            "AuditLogEventChainDeploymentDeletedV1": {
+                "additionalProperties": false,
+                "description": "A chain deployment was deleted.",
+                "properties": {
+                    "event_type": {
+                        "const": "CHAIN_DEPLOYMENT_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "chain_id": {
+                        "title": "Chain Id",
+                        "type": "string"
+                    },
+                    "chain_name": {
+                        "title": "Chain Name",
+                        "type": "string"
+                    },
+                    "chain_deployment_id": {
+                        "title": "Chain Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Deployment Name"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "chain_id",
+                    "chain_name",
+                    "chain_deployment_id",
+                    "deployment_name"
+                ],
+                "title": "AuditLogEventChainDeploymentDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventChainDeploymentPromotedV1": {
+                "additionalProperties": false,
+                "description": "A chain deployment was promoted to an environment.",
+                "properties": {
+                    "event_type": {
+                        "const": "CHAIN_DEPLOYMENT_PROMOTED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "chain_id": {
+                        "title": "Chain Id",
+                        "type": "string"
+                    },
+                    "chain_name": {
+                        "title": "Chain Name",
+                        "type": "string"
+                    },
+                    "chain_deployment_id": {
+                        "title": "Chain Deployment Id",
+                        "type": "string"
+                    },
+                    "chain_deployment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Chain Deployment Name"
+                    },
+                    "environment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Environment Name"
+                    },
+                    "environment_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Environment Id"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "chain_id",
+                    "chain_name",
+                    "chain_deployment_id",
+                    "chain_deployment_name",
+                    "environment_name",
+                    "environment_id"
+                ],
+                "title": "AuditLogEventChainDeploymentPromotedV1",
+                "type": "object"
+            },
+            "AuditLogEventChainEnvironmentCreatedV1": {
+                "additionalProperties": false,
+                "description": "A chain environment was created.",
+                "properties": {
+                    "event_type": {
+                        "const": "CHAIN_ENVIRONMENT_CREATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "chain_id": {
+                        "title": "Chain Id",
+                        "type": "string"
+                    },
+                    "chain_name": {
+                        "title": "Chain Name",
+                        "type": "string"
+                    },
+                    "environment_name": {
+                        "title": "Environment Name",
+                        "type": "string"
+                    },
+                    "redeploy_on_promotion": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Redeploy On Promotion"
+                    },
+                    "ramp_up_while_promoting": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up While Promoting"
+                    },
+                    "ramp_up_duration_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up Duration Seconds"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "chain_id",
+                    "chain_name",
+                    "environment_name",
+                    "redeploy_on_promotion",
+                    "ramp_up_while_promoting",
+                    "ramp_up_duration_seconds"
+                ],
+                "title": "AuditLogEventChainEnvironmentCreatedV1",
+                "type": "object"
+            },
+            "AuditLogEventChainEnvironmentUpdatedV1": {
+                "additionalProperties": false,
+                "description": "A chain environment was updated.",
+                "properties": {
+                    "event_type": {
+                        "const": "CHAIN_ENVIRONMENT_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "chain_id": {
+                        "title": "Chain Id",
+                        "type": "string"
+                    },
+                    "chain_name": {
+                        "title": "Chain Name",
+                        "type": "string"
+                    },
+                    "environment_name": {
+                        "title": "Environment Name",
+                        "type": "string"
+                    },
+                    "redeploy_on_promotion": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Redeploy On Promotion"
+                    },
+                    "ramp_up_while_promoting": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up While Promoting"
+                    },
+                    "ramp_up_duration_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up Duration Seconds"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "chain_id",
+                    "chain_name",
+                    "environment_name",
+                    "redeploy_on_promotion",
+                    "ramp_up_while_promoting",
+                    "ramp_up_duration_seconds"
+                ],
+                "title": "AuditLogEventChainEnvironmentUpdatedV1",
+                "type": "object"
+            },
+            "AuditLogEventChainletAutoscalingSettingsChangedV1": {
+                "additionalProperties": false,
+                "description": "A chainlet's autoscaling settings were changed.",
+                "properties": {
+                    "min_replica": {
+                        "title": "Min Replica",
+                        "type": "integer"
+                    },
+                    "max_replica": {
+                        "title": "Max Replica",
+                        "type": "integer"
+                    },
+                    "concurrency_target": {
+                        "title": "Concurrency Target",
+                        "type": "integer"
+                    },
+                    "autoscaling_window": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Autoscaling Window"
+                    },
+                    "scale_down_delay": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scale Down Delay"
+                    },
+                    "target_utilization_percentage": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target Utilization Percentage"
+                    },
+                    "target_in_flight_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target In Flight Tokens"
+                    },
+                    "max_scale_down_rate": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Scale Down Rate"
+                    },
+                    "event_type": {
+                        "const": "CHAINLET_AUTOSCALING_SETTINGS_CHANGED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "chain_id": {
+                        "title": "Chain Id",
+                        "type": "string"
+                    },
+                    "chain_name": {
+                        "title": "Chain Name",
+                        "type": "string"
+                    },
+                    "chain_deployment_id": {
+                        "title": "Chain Deployment Id",
+                        "type": "string"
+                    },
+                    "chain_deployment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Chain Deployment Name"
+                    },
+                    "chainlet_name": {
+                        "title": "Chainlet Name",
+                        "type": "string"
+                    },
+                    "chainlet_id": {
+                        "title": "Chainlet Id",
+                        "type": "string"
+                    },
+                    "previous_settings": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventAutoscalingSettingsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "min_replica",
+                    "max_replica",
+                    "concurrency_target",
+                    "autoscaling_window",
+                    "scale_down_delay",
+                    "target_utilization_percentage",
+                    "target_in_flight_tokens",
+                    "max_scale_down_rate",
+                    "event_type",
+                    "chain_id",
+                    "chain_name",
+                    "chain_deployment_id",
+                    "chain_deployment_name",
+                    "chainlet_name",
+                    "chainlet_id",
+                    "previous_settings"
+                ],
+                "title": "AuditLogEventChainletAutoscalingSettingsChangedV1",
+                "type": "object"
+            },
+            "AuditLogEventChainletInstanceTypeChangedV1": {
+                "additionalProperties": false,
+                "description": "A chainlet's instance type was changed.",
+                "properties": {
+                    "event_type": {
+                        "const": "CHAINLET_INSTANCE_TYPE_CHANGED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "chain_id": {
+                        "title": "Chain Id",
+                        "type": "string"
+                    },
+                    "chain_name": {
+                        "title": "Chain Name",
+                        "type": "string"
+                    },
+                    "chain_deployment_id": {
+                        "title": "Chain Deployment Id",
+                        "type": "string"
+                    },
+                    "chain_deployment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Chain Deployment Name"
+                    },
+                    "chainlet_name": {
+                        "title": "Chainlet Name",
+                        "type": "string"
+                    },
+                    "chainlet_id": {
+                        "title": "Chainlet Id",
+                        "type": "string"
+                    },
+                    "instance_type_name": {
+                        "title": "Instance Type Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "chain_id",
+                    "chain_name",
+                    "chain_deployment_id",
+                    "chain_deployment_name",
+                    "chainlet_name",
+                    "chainlet_id",
+                    "instance_type_name"
+                ],
+                "title": "AuditLogEventChainletInstanceTypeChangedV1",
+                "type": "object"
+            },
+            "AuditLogEventDirectoryGroupRoleUpdatedV1": {
+                "additionalProperties": false,
+                "description": "A directory group's role was updated.",
+                "properties": {
+                    "event_type": {
+                        "const": "DIRECTORY_GROUP_ROLE_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "directory_group_id": {
+                        "title": "Directory Group Id",
+                        "type": "string"
+                    },
+                    "directory_group_name": {
+                        "title": "Directory Group Name",
+                        "type": "string"
+                    },
+                    "new_role_name": {
+                        "title": "New Role Name",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Team Id"
+                    },
+                    "team_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Team Name"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "directory_group_id",
+                    "directory_group_name",
+                    "new_role_name",
+                    "team_id",
+                    "team_name"
+                ],
+                "title": "AuditLogEventDirectoryGroupRoleUpdatedV1",
+                "type": "object"
+            },
+            "AuditLogEventEnvironmentCreatedV1": {
+                "additionalProperties": false,
+                "description": "A model environment was created.",
+                "properties": {
+                    "min_replica": {
+                        "title": "Min Replica",
+                        "type": "integer"
+                    },
+                    "max_replica": {
+                        "title": "Max Replica",
+                        "type": "integer"
+                    },
+                    "concurrency_target": {
+                        "title": "Concurrency Target",
+                        "type": "integer"
+                    },
+                    "autoscaling_window": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Autoscaling Window"
+                    },
+                    "scale_down_delay": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scale Down Delay"
+                    },
+                    "target_utilization_percentage": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target Utilization Percentage"
+                    },
+                    "target_in_flight_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target In Flight Tokens"
+                    },
+                    "max_scale_down_rate": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Scale Down Rate"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "environment_name": {
+                        "title": "Environment Name",
+                        "type": "string"
+                    },
+                    "deployment_type": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Deployment Type"
+                    },
+                    "redeploy_on_promotion": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Redeploy On Promotion"
+                    },
+                    "ramp_up_while_promoting": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up While Promoting"
+                    },
+                    "ramp_up_duration_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up Duration Seconds"
+                    },
+                    "ramp_up_step_size": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up Step Size"
+                    },
+                    "rolling_deploy": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Rolling Deploy"
+                    },
+                    "rolling_deploy_strategy": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Rolling Deploy Strategy"
+                    },
+                    "max_unavailable_percent": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Unavailable Percent"
+                    },
+                    "max_surge_percent": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Surge Percent"
+                    },
+                    "stabilization_time_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stabilization Time Seconds"
+                    },
+                    "replica_overhead_percent": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Replica Overhead Percent"
+                    },
+                    "promotion_cleanup_strategy": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Promotion Cleanup Strategy"
+                    },
+                    "event_type": {
+                        "const": "ENVIRONMENT_CREATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "min_replica",
+                    "max_replica",
+                    "concurrency_target",
+                    "autoscaling_window",
+                    "scale_down_delay",
+                    "target_utilization_percentage",
+                    "target_in_flight_tokens",
+                    "max_scale_down_rate",
+                    "model_id",
+                    "model_name",
+                    "environment_name",
+                    "deployment_type",
+                    "redeploy_on_promotion",
+                    "ramp_up_while_promoting",
+                    "ramp_up_duration_seconds",
+                    "ramp_up_step_size",
+                    "rolling_deploy",
+                    "rolling_deploy_strategy",
+                    "max_unavailable_percent",
+                    "max_surge_percent",
+                    "stabilization_time_seconds",
+                    "replica_overhead_percent",
+                    "promotion_cleanup_strategy",
+                    "event_type"
+                ],
+                "title": "AuditLogEventEnvironmentCreatedV1",
+                "type": "object"
+            },
+            "AuditLogEventEnvironmentDeletedV1": {
+                "additionalProperties": false,
+                "description": "A model environment was deleted.",
+                "properties": {
+                    "event_type": {
+                        "const": "ENVIRONMENT_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "environment_name": {
+                        "title": "Environment Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "environment_name"
+                ],
+                "title": "AuditLogEventEnvironmentDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventEnvironmentUpdatedV1": {
+                "additionalProperties": false,
+                "description": "A model environment's settings were updated.",
+                "properties": {
+                    "min_replica": {
+                        "title": "Min Replica",
+                        "type": "integer"
+                    },
+                    "max_replica": {
+                        "title": "Max Replica",
+                        "type": "integer"
+                    },
+                    "concurrency_target": {
+                        "title": "Concurrency Target",
+                        "type": "integer"
+                    },
+                    "autoscaling_window": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Autoscaling Window"
+                    },
+                    "scale_down_delay": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scale Down Delay"
+                    },
+                    "target_utilization_percentage": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target Utilization Percentage"
+                    },
+                    "target_in_flight_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target In Flight Tokens"
+                    },
+                    "max_scale_down_rate": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Scale Down Rate"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "environment_name": {
+                        "title": "Environment Name",
+                        "type": "string"
+                    },
+                    "deployment_type": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Deployment Type"
+                    },
+                    "redeploy_on_promotion": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Redeploy On Promotion"
+                    },
+                    "ramp_up_while_promoting": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up While Promoting"
+                    },
+                    "ramp_up_duration_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up Duration Seconds"
+                    },
+                    "ramp_up_step_size": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up Step Size"
+                    },
+                    "rolling_deploy": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Rolling Deploy"
+                    },
+                    "rolling_deploy_strategy": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Rolling Deploy Strategy"
+                    },
+                    "max_unavailable_percent": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Unavailable Percent"
+                    },
+                    "max_surge_percent": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Surge Percent"
+                    },
+                    "stabilization_time_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stabilization Time Seconds"
+                    },
+                    "replica_overhead_percent": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Replica Overhead Percent"
+                    },
+                    "promotion_cleanup_strategy": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Promotion Cleanup Strategy"
+                    },
+                    "event_type": {
+                        "const": "ENVIRONMENT_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "previous_settings": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventAutoscalingSettingsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "min_replica",
+                    "max_replica",
+                    "concurrency_target",
+                    "autoscaling_window",
+                    "scale_down_delay",
+                    "target_utilization_percentage",
+                    "target_in_flight_tokens",
+                    "max_scale_down_rate",
+                    "model_id",
+                    "model_name",
+                    "environment_name",
+                    "deployment_type",
+                    "redeploy_on_promotion",
+                    "ramp_up_while_promoting",
+                    "ramp_up_duration_seconds",
+                    "ramp_up_step_size",
+                    "rolling_deploy",
+                    "rolling_deploy_strategy",
+                    "max_unavailable_percent",
+                    "max_surge_percent",
+                    "stabilization_time_seconds",
+                    "replica_overhead_percent",
+                    "promotion_cleanup_strategy",
+                    "event_type",
+                    "previous_settings"
+                ],
+                "title": "AuditLogEventEnvironmentUpdatedV1",
+                "type": "object"
+            },
+            "AuditLogEventGatewayEndpointCreatedV1": {
+                "additionalProperties": false,
+                "description": "A Frontier Gateway endpoint was created.",
+                "properties": {
+                    "event_type": {
+                        "const": "GATEWAY_ENDPOINT_CREATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "gateway_endpoint_id": {
+                        "title": "Gateway Endpoint Id",
+                        "type": "string"
+                    },
+                    "slug": {
+                        "title": "Slug",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "gateway_endpoint_id",
+                    "slug"
+                ],
+                "title": "AuditLogEventGatewayEndpointCreatedV1",
+                "type": "object"
+            },
+            "AuditLogEventGatewayEndpointDeletedV1": {
+                "additionalProperties": false,
+                "description": "A Frontier Gateway endpoint was deleted.",
+                "properties": {
+                    "event_type": {
+                        "const": "GATEWAY_ENDPOINT_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "gateway_endpoint_id": {
+                        "title": "Gateway Endpoint Id",
+                        "type": "string"
+                    },
+                    "slug": {
+                        "title": "Slug",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "gateway_endpoint_id",
+                    "slug"
+                ],
+                "title": "AuditLogEventGatewayEndpointDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventGatewayEndpointUpdatedV1": {
+                "additionalProperties": false,
+                "description": "A Frontier Gateway endpoint was updated.",
+                "properties": {
+                    "event_type": {
+                        "const": "GATEWAY_ENDPOINT_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "gateway_endpoint_id": {
+                        "title": "Gateway Endpoint Id",
+                        "type": "string"
+                    },
+                    "slug": {
+                        "title": "Slug",
+                        "type": "string"
+                    },
+                    "previous_slug": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Previous Slug"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "gateway_endpoint_id",
+                    "slug",
+                    "previous_slug"
+                ],
+                "title": "AuditLogEventGatewayEndpointUpdatedV1",
+                "type": "object"
+            },
+            "AuditLogEventModelDeletedV1": {
+                "additionalProperties": false,
+                "description": "A model was deleted.",
+                "properties": {
+                    "event_type": {
+                        "const": "MODEL_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name"
+                ],
+                "title": "AuditLogEventModelDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventModelDeployedV1": {
+                "additionalProperties": false,
+                "description": "A model deployment was created.",
+                "properties": {
+                    "event_type": {
+                        "const": "MODEL_DEPLOYED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "title": "Deployment Name",
+                        "type": "string"
+                    },
+                    "scale_previous_to_zero": {
+                        "title": "Scale Previous To Zero",
+                        "type": "boolean"
+                    },
+                    "trusted": {
+                        "title": "Trusted",
+                        "type": "boolean"
+                    },
+                    "publish": {
+                        "title": "Publish",
+                        "type": "boolean"
+                    },
+                    "environment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Environment Name"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "deployment_id",
+                    "deployment_name",
+                    "scale_previous_to_zero",
+                    "trusted",
+                    "publish",
+                    "environment_name"
+                ],
+                "title": "AuditLogEventModelDeployedV1",
+                "type": "object"
+            },
+            "AuditLogEventModelDeploymentActivatedV1": {
+                "additionalProperties": false,
+                "description": "A model deployment was activated.",
+                "properties": {
+                    "event_type": {
+                        "const": "MODEL_DEPLOYMENT_ACTIVATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "title": "Deployment Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "deployment_id",
+                    "deployment_name"
+                ],
+                "title": "AuditLogEventModelDeploymentActivatedV1",
+                "type": "object"
+            },
+            "AuditLogEventModelDeploymentAutoscalingSettingsChangedV1": {
+                "additionalProperties": false,
+                "description": "A model deployment's autoscaling settings were changed.",
+                "properties": {
+                    "min_replica": {
+                        "title": "Min Replica",
+                        "type": "integer"
+                    },
+                    "max_replica": {
+                        "title": "Max Replica",
+                        "type": "integer"
+                    },
+                    "concurrency_target": {
+                        "title": "Concurrency Target",
+                        "type": "integer"
+                    },
+                    "autoscaling_window": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Autoscaling Window"
+                    },
+                    "scale_down_delay": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scale Down Delay"
+                    },
+                    "target_utilization_percentage": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target Utilization Percentage"
+                    },
+                    "target_in_flight_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target In Flight Tokens"
+                    },
+                    "max_scale_down_rate": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Scale Down Rate"
+                    },
+                    "event_type": {
+                        "const": "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "title": "Deployment Name",
+                        "type": "string"
+                    },
+                    "deployment_type": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Deployment Type"
+                    },
+                    "previous_settings": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventAutoscalingSettingsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "min_replica",
+                    "max_replica",
+                    "concurrency_target",
+                    "autoscaling_window",
+                    "scale_down_delay",
+                    "target_utilization_percentage",
+                    "target_in_flight_tokens",
+                    "max_scale_down_rate",
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "deployment_id",
+                    "deployment_name",
+                    "deployment_type",
+                    "previous_settings"
+                ],
+                "title": "AuditLogEventModelDeploymentAutoscalingSettingsChangedV1",
+                "type": "object"
+            },
+            "AuditLogEventModelDeploymentDeactivatedV1": {
+                "additionalProperties": false,
+                "description": "A model deployment was deactivated.",
+                "properties": {
+                    "event_type": {
+                        "const": "MODEL_DEPLOYMENT_DEACTIVATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "title": "Deployment Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "deployment_id",
+                    "deployment_name"
+                ],
+                "title": "AuditLogEventModelDeploymentDeactivatedV1",
+                "type": "object"
+            },
+            "AuditLogEventModelDeploymentDeletedV1": {
+                "additionalProperties": false,
+                "description": "A model deployment was deleted.",
+                "properties": {
+                    "event_type": {
+                        "const": "MODEL_DEPLOYMENT_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "title": "Deployment Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "deployment_id",
+                    "deployment_name"
+                ],
+                "title": "AuditLogEventModelDeploymentDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventModelDeploymentInstanceTypeChangedV1": {
+                "additionalProperties": false,
+                "description": "A model deployment's instance type was changed.",
+                "properties": {
+                    "event_type": {
+                        "const": "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "title": "Deployment Name",
+                        "type": "string"
+                    },
+                    "instance_type_name": {
+                        "title": "Instance Type Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "deployment_id",
+                    "deployment_name",
+                    "instance_type_name"
+                ],
+                "title": "AuditLogEventModelDeploymentInstanceTypeChangedV1",
+                "type": "object"
+            },
+            "AuditLogEventModelDeploymentPromotedV1": {
+                "additionalProperties": false,
+                "description": "A model deployment was promoted to an environment.",
+                "properties": {
+                    "event_type": {
+                        "const": "MODEL_DEPLOYMENT_PROMOTED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "title": "Deployment Name",
+                        "type": "string"
+                    },
+                    "environment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Environment Name"
+                    },
+                    "environment_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Environment Id"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "deployment_id",
+                    "deployment_name",
+                    "environment_name",
+                    "environment_id"
+                ],
+                "title": "AuditLogEventModelDeploymentPromotedV1",
+                "type": "object"
+            },
+            "AuditLogEventModelDeploymentRetriedV1": {
+                "additionalProperties": false,
+                "description": "A model deployment build was retried.",
+                "properties": {
+                    "event_type": {
+                        "const": "MODEL_DEPLOYMENT_RETRIED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "title": "Deployment Name",
+                        "type": "string"
+                    },
+                    "retried": {
+                        "title": "Retried",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "deployment_id",
+                    "deployment_name",
+                    "retried"
+                ],
+                "title": "AuditLogEventModelDeploymentRetriedV1",
+                "type": "object"
+            },
+            "AuditLogEventModelPromotionControlActionV1": {
+                "additionalProperties": false,
+                "description": "A user-initiated promotion control signal was sent to a rolling promotion.",
+                "properties": {
+                    "event_type": {
+                        "const": "MODEL_PROMOTION_CONTROL_ACTION",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "title": "Deployment Name",
+                        "type": "string"
+                    },
+                    "environment_name": {
+                        "title": "Environment Name",
+                        "type": "string"
+                    },
+                    "environment_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Environment Id"
+                    },
+                    "action": {
+                        "$ref": "#/components/schemas/AuditLogPromotionControlActionV1"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "deployment_id",
+                    "deployment_name",
+                    "environment_name",
+                    "environment_id",
+                    "action"
+                ],
+                "title": "AuditLogEventModelPromotionControlActionV1",
+                "type": "object"
+            },
+            "AuditLogEventReplicaTerminatedV1": {
+                "additionalProperties": false,
+                "description": "A replica of a model deployment was terminated.",
+                "properties": {
+                    "event_type": {
+                        "const": "REPLICA_TERMINATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "title": "Deployment Name",
+                        "type": "string"
+                    },
+                    "replica_id": {
+                        "title": "Replica Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "deployment_id",
+                    "deployment_name",
+                    "replica_id"
+                ],
+                "title": "AuditLogEventReplicaTerminatedV1",
+                "type": "object"
+            },
+            "AuditLogEventRequireGroupBasedAdminsEnabledV1": {
+                "additionalProperties": false,
+                "description": "Group-based admin enforcement was enabled for the organization.",
+                "properties": {
+                    "event_type": {
+                        "const": "REQUIRE_GROUP_BASED_ADMINS_ENABLED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "organization_id": {
+                        "title": "Organization Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "organization_id"
+                ],
+                "title": "AuditLogEventRequireGroupBasedAdminsEnabledV1",
+                "type": "object"
+            },
+            "AuditLogEventSecretDeletedV1": {
+                "additionalProperties": false,
+                "description": "A secret was deleted.",
+                "properties": {
+                    "event_type": {
+                        "const": "SECRET_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "secret_id": {
+                        "title": "Secret Id",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "title": "Secret Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "secret_id",
+                    "secret_name"
+                ],
+                "title": "AuditLogEventSecretDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventSecretUpdatedV1": {
+                "additionalProperties": false,
+                "description": "A secret was created or updated.",
+                "properties": {
+                    "event_type": {
+                        "const": "SECRET_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "secret_id": {
+                        "title": "Secret Id",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "title": "Secret Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "secret_id",
+                    "secret_name"
+                ],
+                "title": "AuditLogEventSecretUpdatedV1",
+                "type": "object"
+            },
+            "AuditLogEventSshCertificateSignedV1": {
+                "additionalProperties": false,
+                "description": "An SSH certificate was signed for a workload.",
+                "properties": {
+                    "event_type": {
+                        "const": "SSH_CERTIFICATE_SIGNED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "workload_type": {
+                        "title": "Workload Type",
+                        "type": "string"
+                    },
+                    "workload_id": {
+                        "title": "Workload Id",
+                        "type": "string"
+                    },
+                    "project_id": {
+                        "title": "Project Id",
+                        "type": "string"
+                    },
+                    "replica_id": {
+                        "title": "Replica Id",
+                        "type": "string"
+                    },
+                    "proxy_address": {
+                        "title": "Proxy Address",
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "title": "Expires At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "workload_type",
+                    "workload_id",
+                    "project_id",
+                    "replica_id",
+                    "proxy_address",
+                    "expires_at"
+                ],
+                "title": "AuditLogEventSshCertificateSignedV1",
+                "type": "object"
+            },
+            "AuditLogEventTypeV1": {
+                "description": "Type of action recorded by an audit-log entry.",
+                "enum": [
+                    "MODEL_DEPLOYED",
+                    "MODEL_DEPLOYMENT_ACTIVATED",
+                    "MODEL_DEPLOYMENT_DEACTIVATED",
+                    "MODEL_DEPLOYMENT_RETRIED",
+                    "MODEL_DEPLOYMENT_PROMOTED",
+                    "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED",
+                    "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED",
+                    "MODEL_DEPLOYMENT_DELETED",
+                    "MODEL_DELETED",
+                    "CHAIN_DEPLOYED",
+                    "CHAIN_DEPLOYMENT_ACTIVATED",
+                    "CHAIN_DEPLOYMENT_DEACTIVATED",
+                    "CHAIN_DEPLOYMENT_PROMOTED",
+                    "CHAINLET_AUTOSCALING_SETTINGS_CHANGED",
+                    "CHAINLET_INSTANCE_TYPE_CHANGED",
+                    "CHAIN_DEPLOYMENT_DELETED",
+                    "CHAIN_DELETED",
+                    "CHAIN_ENVIRONMENT_CREATED",
+                    "CHAIN_ENVIRONMENT_UPDATED",
+                    "SECRET_UPDATED",
+                    "SECRET_DELETED",
+                    "API_KEY_CREATED",
+                    "API_KEY_DELETED",
+                    "GATEWAY_ENDPOINT_CREATED",
+                    "GATEWAY_ENDPOINT_UPDATED",
+                    "GATEWAY_ENDPOINT_DELETED",
+                    "USER_INVITED",
+                    "USER_JOINED_ORGANIZATION",
+                    "WEBHOOK_SIGNING_SECRET_CREATED",
+                    "WEBHOOK_SIGNING_SECRET_ROTATED",
+                    "WEBHOOK_SIGNING_SECRET_DELETED",
+                    "USER_ROLE_UPDATED",
+                    "USER_TEAM_ROLE_UPDATED",
+                    "USER_REMOVED",
+                    "DIRECTORY_GROUP_ROLE_UPDATED",
+                    "REQUIRE_GROUP_BASED_ADMINS_ENABLED",
+                    "ENVIRONMENT_CREATED",
+                    "ENVIRONMENT_UPDATED",
+                    "ENVIRONMENT_DELETED",
+                    "REPLICA_TERMINATED",
+                    "MODEL_PROMOTION_CONTROL_ACTION",
+                    "SSH_CERTIFICATE_SIGNED"
+                ],
+                "title": "AuditLogEventTypeV1",
+                "type": "string"
+            },
+            "AuditLogEventUserInvitedV1": {
+                "additionalProperties": false,
+                "description": "A user was invited to the organization.",
+                "properties": {
+                    "event_type": {
+                        "const": "USER_INVITED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "invited_user_email": {
+                        "title": "Invited User Email",
+                        "type": "string"
+                    },
+                    "role_name": {
+                        "title": "Role Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "invited_user_email",
+                    "role_name"
+                ],
+                "title": "AuditLogEventUserInvitedV1",
+                "type": "object"
+            },
+            "AuditLogEventUserJoinedOrganizationV1": {
+                "additionalProperties": false,
+                "description": "A user joined the organization.",
+                "properties": {
+                    "event_type": {
+                        "const": "USER_JOINED_ORGANIZATION",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "new_user_email": {
+                        "title": "New User Email",
+                        "type": "string"
+                    },
+                    "user_id": {
+                        "title": "User Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "new_user_email",
+                    "user_id"
+                ],
+                "title": "AuditLogEventUserJoinedOrganizationV1",
+                "type": "object"
+            },
+            "AuditLogEventUserRemovedV1": {
+                "additionalProperties": false,
+                "description": "A user was removed from the organization.",
+                "properties": {
+                    "event_type": {
+                        "const": "USER_REMOVED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "removed_user_email": {
+                        "title": "Removed User Email",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "removed_user_email"
+                ],
+                "title": "AuditLogEventUserRemovedV1",
+                "type": "object"
+            },
+            "AuditLogEventUserRoleUpdatedV1": {
+                "additionalProperties": false,
+                "description": "A user's organization role was updated.",
+                "properties": {
+                    "event_type": {
+                        "const": "USER_ROLE_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "user_id": {
+                        "title": "User Id",
+                        "type": "string"
+                    },
+                    "user_email": {
+                        "title": "User Email",
+                        "type": "string"
+                    },
+                    "new_role_name": {
+                        "title": "New Role Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "user_id",
+                    "user_email",
+                    "new_role_name"
+                ],
+                "title": "AuditLogEventUserRoleUpdatedV1",
+                "type": "object"
+            },
+            "AuditLogEventUserTeamRoleUpdatedV1": {
+                "additionalProperties": false,
+                "description": "A user's team role was updated.",
+                "properties": {
+                    "event_type": {
+                        "const": "USER_TEAM_ROLE_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "user_id": {
+                        "title": "User Id",
+                        "type": "string"
+                    },
+                    "user_email": {
+                        "title": "User Email",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "title": "Team Name",
+                        "type": "string"
+                    },
+                    "new_role_name": {
+                        "title": "New Role Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "user_id",
+                    "user_email",
+                    "team_id",
+                    "team_name",
+                    "new_role_name"
+                ],
+                "title": "AuditLogEventUserTeamRoleUpdatedV1",
+                "type": "object"
+            },
+            "AuditLogEventWebhookSigningSecretCreatedV1": {
+                "additionalProperties": false,
+                "description": "A webhook signing secret was created.",
+                "properties": {
+                    "event_type": {
+                        "const": "WEBHOOK_SIGNING_SECRET_CREATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "webhook_signing_secret_id": {
+                        "title": "Webhook Signing Secret Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "webhook_signing_secret_id"
+                ],
+                "title": "AuditLogEventWebhookSigningSecretCreatedV1",
+                "type": "object"
+            },
+            "AuditLogEventWebhookSigningSecretDeletedV1": {
+                "additionalProperties": false,
+                "description": "A webhook signing secret was deleted.",
+                "properties": {
+                    "event_type": {
+                        "const": "WEBHOOK_SIGNING_SECRET_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "webhook_signing_secret_id": {
+                        "title": "Webhook Signing Secret Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "webhook_signing_secret_id"
+                ],
+                "title": "AuditLogEventWebhookSigningSecretDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventWebhookSigningSecretRotatedV1": {
+                "additionalProperties": false,
+                "description": "A webhook signing secret was rotated.",
+                "properties": {
+                    "event_type": {
+                        "const": "WEBHOOK_SIGNING_SECRET_ROTATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "webhook_signing_secret_id": {
+                        "title": "Webhook Signing Secret Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "webhook_signing_secret_id"
+                ],
+                "title": "AuditLogEventWebhookSigningSecretRotatedV1",
+                "type": "object"
+            },
+            "AuditLogPromotionControlActionV1": {
+                "description": "User-initiated promotion control signal recorded on a promotion-control event.",
+                "enum": [
+                    "PAUSE",
+                    "RESUME",
+                    "FORCE_CANCEL",
+                    "FORCE_ROLL_FORWARD",
+                    "GRACEFUL_CANCEL"
+                ],
+                "title": "AuditLogPromotionControlActionV1",
+                "type": "string"
+            },
+            "AuditLogSourceV1": {
+                "description": "Surface that issued the audited action.",
+                "enum": [
+                    "UI",
+                    "API",
+                    "MCP",
+                    "OTHER"
+                ],
+                "title": "AuditLogSourceV1",
+                "type": "string"
+            },
+            "ListAuditLogsResponseV1": {
+                "description": "A page of audit-log entries, newest first by default.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/AuditLogEntryV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "ListAuditLogsResponseV1",
+                "type": "object"
+            },
+            "AuditLogEventTypeGroupV1": {
+                "description": "Coarse grouping of event types, used to filter the audit log.",
+                "enum": [
+                    "DEPLOYED",
+                    "PROMOTED",
+                    "ACTIVATED_DEACTIVATED",
+                    "AUTOSCALING_SETTINGS",
+                    "INSTANCE_TYPE_CHANGED",
+                    "ENVIRONMENT_SETTINGS",
+                    "REPLICA_TERMINATED",
+                    "DELETED",
+                    "SECRETS",
+                    "API_KEYS",
+                    "GATEWAY",
+                    "WEBHOOK_SIGNING_SECRETS",
+                    "USER_MANAGEMENT",
+                    "DIRECTORY_GROUP_MANAGEMENT",
+                    "SSH"
+                ],
+                "title": "AuditLogEventTypeGroupV1",
+                "type": "string"
+            },
+            "AuditLogSortDirectionV1": {
+                "description": "Sort order of returned entries, by creation time.",
+                "enum": [
+                    "DESC",
+                    "ASC"
+                ],
+                "title": "AuditLogSortDirectionV1",
+                "type": "string"
+            },
+            "ListAuditLogsRequestV1": {
+                "description": "Query params for listing audit-log entries.",
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 20,
+                        "description": "Maximum number of entries to return per page. Defaults to 20, and must be between 1 and 200.",
+                        "maximum": 200,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "direction": {
+                        "$ref": "#/components/schemas/AuditLogSortDirectionV1",
+                        "default": "DESC",
+                        "description": "Sort order by the time the action occurred. Defaults to DESC (newest first). Ignored when paginating with a cursor."
+                    },
+                    "search": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Case-insensitive substring matched against resource names and IDs in the entry.",
+                        "title": "Search"
+                    },
+                    "event_type_groups": {
+                        "description": "When set, returns only entries whose event type falls in one of these groups.",
+                        "items": {
+                            "$ref": "#/components/schemas/AuditLogEventTypeGroupV1"
+                        },
+                        "title": "Event Type Groups",
+                        "type": "array"
+                    },
+                    "user_ids": {
+                        "description": "When set, returns only entries whose acting user is one of these IDs.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "User Ids",
+                        "type": "array"
+                    },
+                    "deployment_ids": {
+                        "description": "When set, returns only entries referencing one of these model deployment IDs.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Deployment Ids",
+                        "type": "array"
+                    },
+                    "chain_deployment_ids": {
+                        "description": "When set, returns only entries referencing one of these chain deployment IDs.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Chain Deployment Ids",
+                        "type": "array"
+                    },
+                    "environment_names": {
+                        "description": "When set, returns only entries for one of these environments.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Environment Names",
+                        "type": "array"
+                    },
+                    "sources": {
+                        "description": "When set, returns only entries issued from one of these surfaces.",
+                        "items": {
+                            "$ref": "#/components/schemas/AuditLogSourceV1"
+                        },
+                        "title": "Sources",
+                        "type": "array"
+                    },
+                    "start_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch milliseconds for the start of the window. Defaults to the beginning of the audit-log history.",
+                        "title": "Start Epoch Millis"
+                    },
+                    "end_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch milliseconds for the end of the window. Defaults to the current time.",
+                        "title": "End Epoch Millis"
+                    }
+                },
+                "title": "ListAuditLogsRequestV1",
                 "type": "object"
             },
             "ModelV1": {
@@ -8223,9 +11768,17 @@
                         "description": "Deployment-level configuration for the model's first deployment."
                     },
                     "s3_key": {
-                        "description": "S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`.",
-                        "title": "S3 Key",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`. Omit for model formats that are not built from an archive (for example, BIS-LLM), where prepare issues no upload target.",
+                        "title": "S3 Key"
                     },
                     "disable_archive_download": {
                         "default": false,
@@ -8236,8 +11789,7 @@
                 },
                 "required": [
                     "name",
-                    "deployment",
-                    "s3_key"
+                    "deployment"
                 ],
                 "title": "ModelArchiveSourceV1",
                 "type": "object"
@@ -8585,14 +12137,21 @@
                         "description": "Deployment-level configuration."
                     },
                     "s3_key": {
-                        "description": "S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`.",
-                        "title": "S3 Key",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "S3 key of the uploaded archive, from the credentials returned by `POST /v1/prepare_model_upload`. Omit for model formats that are not built from an archive (for example, BIS-LLM), where prepare issues no upload target.",
+                        "title": "S3 Key"
                     }
                 },
                 "required": [
-                    "deployment",
-                    "s3_key"
+                    "deployment"
                 ],
                 "title": "DeploymentArchiveSourceV1",
                 "type": "object"
@@ -12012,15 +15571,16 @@
                 "type": "object"
             },
             "CreateJobWeightConfigV1": {
-                "description": "Weight source configuration for MDN (Model Distribution Network).\n\nEnables training jobs to mount external model weights from HuggingFace, S3, GCS, or R2\nvia MDN's caching and CSI mounting infrastructure. Weights are mirrored once and\ndeduplicated across training jobs.",
+                "description": "Weight source configuration for MDN (Model Distribution Network).\n\nEnables training jobs to mount external model weights from HuggingFace, S3, GCS, R2,\nor CoreWeave via MDN's caching and CSI mounting infrastructure. Weights are mirrored\nonce and deduplicated across training jobs.",
                 "properties": {
                     "source": {
-                        "description": "Weight source URI. Supported formats: hf://, s3://, gs://, r2://",
+                        "description": "Weight source URI. Supported formats: hf://, s3://, gs://, r2://, cw://",
                         "examples": [
                             "hf://meta-llama/Llama-3-8B@main",
                             "s3://my-bucket/models/llama",
                             "gs://my-bucket/models/llama",
-                            "r2://account_id.bucket/models/llama"
+                            "r2://account_id.bucket/models/llama",
+                            "cw://my-bucket/models/llama"
                         ],
                         "title": "Source",
                         "type": "string"
@@ -15541,6 +19101,18 @@
                         "description": "GPUs currently in use by the team's active training jobs",
                         "title": "Usage Count",
                         "type": "integer"
+                    },
+                    "dedicated_usage_count": {
+                        "default": 0,
+                        "description": "Portion of usage_count from dedicated (on-demand) jobs.",
+                        "title": "Dedicated Usage Count",
+                        "type": "integer"
+                    },
+                    "spot_usage_count": {
+                        "default": 0,
+                        "description": "Portion of usage_count from spot jobs.",
+                        "title": "Spot Usage Count",
+                        "type": "integer"
                     }
                 },
                 "required": [
@@ -15575,6 +19147,18 @@
                     "usage_count": {
                         "description": "GPUs currently in use by active training jobs",
                         "title": "Usage Count",
+                        "type": "integer"
+                    },
+                    "dedicated_usage_count": {
+                        "default": 0,
+                        "description": "Portion of usage_count from dedicated (on-demand) jobs, which run against the baseline.",
+                        "title": "Dedicated Usage Count",
+                        "type": "integer"
+                    },
+                    "spot_usage_count": {
+                        "default": 0,
+                        "description": "Portion of usage_count from spot jobs, which burst into the peak and may push usage above the limit.",
+                        "title": "Spot Usage Count",
                         "type": "integer"
                     }
                 },
@@ -16187,6 +19771,18 @@
                         "default": null,
                         "description": "The name of the team associated with the API key",
                         "title": "Team Name"
+                    },
+                    "owner": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/APIKeyOwnerV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The user who owns the API key. Only present for personal API keys."
                     }
                 },
                 "required": [
@@ -16194,6 +19790,47 @@
                     "type"
                 ],
                 "title": "APIKeyInfoV1",
+                "type": "object"
+            },
+            "APIKeyOwnerV1": {
+                "description": "The user who owns a personal API key.",
+                "properties": {
+                    "user_id": {
+                        "description": "Unique identifier for the user",
+                        "title": "User Id",
+                        "type": "string"
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Email address of the user",
+                        "title": "Email"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Display name of the user",
+                        "title": "Name"
+                    }
+                },
+                "required": [
+                    "user_id"
+                ],
+                "title": "APIKeyOwnerV1",
                 "type": "object"
             },
             "APIKeysV1": {
@@ -18079,6 +21716,19 @@
                         "description": "Upstream model name, if any.",
                         "title": "Target Model"
                     },
+                    "base_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Custom OpenAI-compatible base URL, if any.",
+                        "title": "Base Url"
+                    },
                     "model_id": {
                         "anyOf": [
                             {
@@ -18104,6 +21754,18 @@
                         "default": null,
                         "description": "Baseten model environment, if non-production.",
                         "title": "Environment Name"
+                    },
+                    "vertex_config": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VertexTargetConfigV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Google Vertex configuration, if any."
                     }
                 },
                 "required": [
@@ -18166,10 +21828,38 @@
                     "OPENAI",
                     "BASETEN",
                     "BASETEN_MODEL_API",
-                    "VERTEX"
+                    "VERTEX",
+                    "OPENAI_COMPATIBLE"
                 ],
                 "title": "GatewayProvider",
                 "type": "string"
+            },
+            "VertexTargetConfigV1": {
+                "properties": {
+                    "project_id": {
+                        "description": "Google Cloud project ID or project number.",
+                        "examples": [
+                            "my-gcp-project",
+                            "464036093014"
+                        ],
+                        "title": "Project Id",
+                        "type": "string"
+                    },
+                    "location": {
+                        "description": "Google Cloud location.",
+                        "examples": [
+                            "global"
+                        ],
+                        "title": "Location",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "project_id",
+                    "location"
+                ],
+                "title": "VertexTargetConfigV1",
+                "type": "object"
             },
             "EndpointsResponseV1": {
                 "properties": {
@@ -18202,6 +21892,7 @@
                         "examples": [
                             "ANTHROPIC",
                             "OPENAI",
+                            "OPENAI_COMPATIBLE",
                             "BASETEN"
                         ]
                     },
@@ -18237,6 +21928,22 @@
                         ],
                         "title": "Target Model"
                     },
+                    "base_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "HTTPS base URL of the upstream OpenAI-compatible server. Must not include a port. Required for and only valid with OPENAI_COMPATIBLE.",
+                        "examples": [
+                            "https://my-vllm.example.com"
+                        ],
+                        "title": "Base Url"
+                    },
                     "model_id": {
                         "anyOf": [
                             {
@@ -18268,6 +21975,18 @@
                             "staging"
                         ],
                         "title": "Environment Name"
+                    },
+                    "vertex_config": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VertexTargetConfigV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Google Vertex configuration. Required for and only valid with VERTEX."
                     }
                 },
                 "required": [
@@ -18302,6 +22021,14 @@
                                     "provider": "OPENAI",
                                     "secret_id": "3kZ9xqd",
                                     "target_model": "gpt-4o"
+                                }
+                            ],
+                            [
+                                {
+                                    "base_url": "https://my-vllm.example.com",
+                                    "provider": "OPENAI_COMPATIBLE",
+                                    "secret_id": "3kZ9xqd",
+                                    "target_model": "my-model"
                                 }
                             ]
                         ],
@@ -18374,6 +22101,14 @@
                                     "provider": "OPENAI",
                                     "secret_id": "3kZ9xqd",
                                     "target_model": "gpt-4o"
+                                }
+                            ],
+                            [
+                                {
+                                    "base_url": "https://my-vllm.example.com",
+                                    "provider": "OPENAI_COMPATIBLE",
+                                    "secret_id": "3kZ9xqd",
+                                    "target_model": "my-model"
                                 }
                             ]
                         ],
