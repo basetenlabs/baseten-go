@@ -1,8 +1,17 @@
 # Baseten Go SDK
 
-Go SDK for Baseten.
+[![Release](https://img.shields.io/github/v/release/basetenlabs/baseten-go)](https://github.com/basetenlabs/baseten-go/releases)
+[![Go Reference](https://pkg.go.dev/badge/github.com/basetenlabs/baseten-go.svg)](https://pkg.go.dev/github.com/basetenlabs/baseten-go)
 
-⚠️ Under active development. Nothing should be considered stable at this time.
+Go SDK for Baseten. See the [API documentation](https://pkg.go.dev/github.com/basetenlabs/baseten-go) and [usage](#usage) below.
+
+⚠️ SDK may change in incompatible ways between releases until the SDK reaches 1.0.
+
+## Install
+
+```bash
+go get github.com/basetenlabs/baseten-go
+```
 
 ## Usage
 
