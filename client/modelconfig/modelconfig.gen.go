@@ -243,6 +243,18 @@ type ExternalDataItem struct {
 	AdditionalProperties interface{} `mapstructure:",remain"`
 }
 
+// Network fabric requirements for a deployment.
+type FabricRequirement struct {
+	// Exhaustive list of acceptable network fabrics, in preference order. An empty
+	// list requires no fabric.
+	Preferences []string `json:"preferences,omitempty,omitzero" yaml:"preferences,omitempty"`
+
+	// Whether to use RDMA with any supported fabric.
+	UseRdma *bool `json:"use_rdma,omitempty,omitzero" yaml:"use_rdma,omitempty"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
 type GRPCOptions struct {
 	// Kind corresponds to the JSON schema field "kind".
 	Kind string `json:"kind,omitempty,omitzero" yaml:"kind,omitempty"`
@@ -743,6 +755,20 @@ type RemoteSSH struct {
 	AdditionalProperties interface{} `mapstructure:",remain"`
 }
 
+// Configuration for how the deployment handles requests when at capacity.
+type RequestBackpressure struct {
+	// queue_on_full (default) queues requests while reject_on_full returns HTTP 429
+	// if deployment is at capacity.
+	Policy *RequestBackpressurePolicy `json:"policy,omitempty,omitzero" yaml:"policy,omitempty"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
+type RequestBackpressurePolicy string
+
+const RequestBackpressurePolicyQueueOnFull RequestBackpressurePolicy = "queue_on_full"
+const RequestBackpressurePolicyRejectOnFull RequestBackpressurePolicy = "reject_on_full"
+
 // Compute resources that your model needs, including CPU, memory, and GPU
 // resources.
 type Resources struct {
@@ -753,6 +779,9 @@ type Resources struct {
 	// CPU resources needed, expressed as either a raw number or millicpus. For
 	// example, 500m is half of a CPU core.
 	Cpu string `json:"cpu,omitempty,omitzero" yaml:"cpu,omitempty"`
+
+	// Network fabric requirements for this deployment.
+	Fabric *FabricRequirement `json:"fabric,omitempty,omitzero" yaml:"fabric,omitempty"`
 
 	// The full SKU name for the instance type. When specified, cpu, memory, and
 	// accelerator fields are ignored.
@@ -797,6 +826,10 @@ type Runtime struct {
 
 	// RemoteSsh corresponds to the JSON schema field "remote_ssh".
 	RemoteSsh *RemoteSSH `json:"remote_ssh,omitempty,omitzero" yaml:"remote_ssh,omitempty"`
+
+	// RequestBackpressure corresponds to the JSON schema field
+	// "request_backpressure".
+	RequestBackpressure *RequestBackpressure `json:"request_backpressure,omitempty,omitzero" yaml:"request_backpressure,omitempty"`
 
 	// The timeout in seconds for streaming read operations.
 	StreamingReadTimeout int `json:"streaming_read_timeout,omitempty,omitzero" yaml:"streaming_read_timeout,omitempty"`

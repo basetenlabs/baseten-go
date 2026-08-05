@@ -529,6 +529,48 @@
       "title": "ExternalDataItem",
       "type": "object"
     },
+    "FabricRequirement": {
+      "additionalProperties": true,
+      "description": "Network fabric requirements for a deployment.",
+      "properties": {
+        "use_rdma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether to use RDMA with any supported fabric.",
+          "title": "Use Rdma"
+        },
+        "preferences": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Exhaustive list of acceptable network fabrics, in preference order. An empty list requires no fabric.",
+          "examples": [
+            [
+              "infiniband"
+            ]
+          ],
+          "title": "Preferences"
+        }
+      },
+      "title": "FabricRequirement",
+      "type": "object"
+    },
     "GRPCOptions": {
       "properties": {
         "kind": {
@@ -829,6 +871,31 @@
       "title": "RemoteSSH",
       "type": "object"
     },
+    "RequestBackpressure": {
+      "additionalProperties": true,
+      "description": "Configuration for how the deployment handles requests when at capacity.",
+      "properties": {
+        "policy": {
+          "anyOf": [
+            {
+              "enum": [
+                "queue_on_full",
+                "reject_on_full"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "queue_on_full (default) queues requests while reject_on_full returns HTTP 429 if deployment is at capacity.",
+          "title": "Policy"
+        }
+      },
+      "title": "RequestBackpressure",
+      "type": "object"
+    },
     "Resources": {
       "additionalProperties": true,
       "description": "Compute resources that your model needs, including CPU, memory, and GPU resources.",
@@ -892,6 +959,18 @@
           "default": null,
           "description": "Number of nodes for multi-node deployments.",
           "title": "Node Count"
+        },
+        "fabric": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FabricRequirement"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Network fabric requirements for this deployment."
         }
       },
       "title": "Resources",
@@ -995,6 +1074,9 @@
           "default": null,
           "description": "By default, truss servers are built from the same release as the CLI used to push. This field allows specifying a pinned/specific version instead.",
           "title": "Truss Server Version Override"
+        },
+        "request_backpressure": {
+          "$ref": "#/$defs/RequestBackpressure"
         }
       },
       "title": "Runtime",

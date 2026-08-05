@@ -14,10 +14,11 @@ const (
 
 // Defines values for APIKeyCategory.
 const (
-	APIKeyCategory_PERSONAL                 APIKeyCategory = "PERSONAL"
-	APIKeyCategory_WORKSPACE_EXPORT_METRICS APIKeyCategory = "WORKSPACE_EXPORT_METRICS"
-	APIKeyCategory_WORKSPACE_INVOKE         APIKeyCategory = "WORKSPACE_INVOKE"
-	APIKeyCategory_WORKSPACE_MANAGE_ALL     APIKeyCategory = "WORKSPACE_MANAGE_ALL"
+	APIKeyCategory_PERSONAL                  APIKeyCategory = "PERSONAL"
+	APIKeyCategory_WORKSPACE_EXPORT_METRICS  APIKeyCategory = "WORKSPACE_EXPORT_METRICS"
+	APIKeyCategory_WORKSPACE_INVOKE          APIKeyCategory = "WORKSPACE_INVOKE"
+	APIKeyCategory_WORKSPACE_MANAGE_ALL      APIKeyCategory = "WORKSPACE_MANAGE_ALL"
+	APIKeyCategory_WORKSPACE_MANAGE_API_KEYS APIKeyCategory = "WORKSPACE_MANAGE_API_KEYS"
 )
 
 // Valid indicates whether the value is a known member of the APIKeyCategory enum.
@@ -30,6 +31,8 @@ func (e APIKeyCategory) Valid() bool {
 	case APIKeyCategory_WORKSPACE_INVOKE:
 		return true
 	case APIKeyCategory_WORKSPACE_MANAGE_ALL:
+		return true
+	case APIKeyCategory_WORKSPACE_MANAGE_API_KEYS:
 		return true
 	default:
 		return false
@@ -73,6 +76,7 @@ const (
 	AuditLogApiKeyType_INVOKE_ALLOWED_SHARED_ENDPOINTS_SERVICE_ACCOUNT AuditLogApiKeyType = "INVOKE_ALLOWED_SHARED_ENDPOINTS_SERVICE_ACCOUNT"
 	AuditLogApiKeyType_INVOKE_ALL_SHARED_ENDPOINTS_SERVICE_ACCOUNT     AuditLogApiKeyType = "INVOKE_ALL_SHARED_ENDPOINTS_SERVICE_ACCOUNT"
 	AuditLogApiKeyType_INVOKE_SCOPED_ENVS_AND_MODELS_SERVICE_ACCOUNT   AuditLogApiKeyType = "INVOKE_SCOPED_ENVS_AND_MODELS_SERVICE_ACCOUNT"
+	AuditLogApiKeyType_MANAGE_API_KEYS_SERVICE_ACCOUNT                 AuditLogApiKeyType = "MANAGE_API_KEYS_SERVICE_ACCOUNT"
 	AuditLogApiKeyType_PERSONAL                                        AuditLogApiKeyType = "PERSONAL"
 )
 
@@ -95,7 +99,33 @@ func (e AuditLogApiKeyType) Valid() bool {
 		return true
 	case AuditLogApiKeyType_INVOKE_SCOPED_ENVS_AND_MODELS_SERVICE_ACCOUNT:
 		return true
+	case AuditLogApiKeyType_MANAGE_API_KEYS_SERVICE_ACCOUNT:
+		return true
 	case AuditLogApiKeyType_PERSONAL:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AuditLogEventAutoscalingScheduleAction.
+const (
+	AuditLogEventAutoscalingScheduleAction_CREATED   AuditLogEventAutoscalingScheduleAction = "CREATED"
+	AuditLogEventAutoscalingScheduleAction_DELETED   AuditLogEventAutoscalingScheduleAction = "DELETED"
+	AuditLogEventAutoscalingScheduleAction_UNCHANGED AuditLogEventAutoscalingScheduleAction = "UNCHANGED"
+	AuditLogEventAutoscalingScheduleAction_UPDATED   AuditLogEventAutoscalingScheduleAction = "UPDATED"
+)
+
+// Valid indicates whether the value is a known member of the AuditLogEventAutoscalingScheduleAction enum.
+func (e AuditLogEventAutoscalingScheduleAction) Valid() bool {
+	switch e {
+	case AuditLogEventAutoscalingScheduleAction_CREATED:
+		return true
+	case AuditLogEventAutoscalingScheduleAction_DELETED:
+		return true
+	case AuditLogEventAutoscalingScheduleAction_UNCHANGED:
+		return true
+	case AuditLogEventAutoscalingScheduleAction_UPDATED:
 		return true
 	default:
 		return false
@@ -127,6 +157,7 @@ const (
 	AuditLogEventType_MODEL_DEPLOYED                                AuditLogEventType = "MODEL_DEPLOYED"
 	AuditLogEventType_MODEL_DEPLOYMENT_ACTIVATED                    AuditLogEventType = "MODEL_DEPLOYMENT_ACTIVATED"
 	AuditLogEventType_MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED AuditLogEventType = "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED"
+	AuditLogEventType_MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED  AuditLogEventType = "MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED"
 	AuditLogEventType_MODEL_DEPLOYMENT_DEACTIVATED                  AuditLogEventType = "MODEL_DEPLOYMENT_DEACTIVATED"
 	AuditLogEventType_MODEL_DEPLOYMENT_DELETED                      AuditLogEventType = "MODEL_DEPLOYMENT_DELETED"
 	AuditLogEventType_MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED        AuditLogEventType = "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED"
@@ -197,6 +228,8 @@ func (e AuditLogEventType) Valid() bool {
 		return true
 	case AuditLogEventType_MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED:
 		return true
+	case AuditLogEventType_MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED:
+		return true
 	case AuditLogEventType_MODEL_DEPLOYMENT_DEACTIVATED:
 		return true
 	case AuditLogEventType_MODEL_DEPLOYMENT_DELETED:
@@ -245,6 +278,7 @@ const (
 	AuditLogEventTypeGroup_ACTIVATED_DEACTIVATED      AuditLogEventTypeGroup = "ACTIVATED_DEACTIVATED"
 	AuditLogEventTypeGroup_API_KEYS                   AuditLogEventTypeGroup = "API_KEYS"
 	AuditLogEventTypeGroup_AUTOSCALING_SETTINGS       AuditLogEventTypeGroup = "AUTOSCALING_SETTINGS"
+	AuditLogEventTypeGroup_BACKPRESSURE_POLICY        AuditLogEventTypeGroup = "BACKPRESSURE_POLICY"
 	AuditLogEventTypeGroup_DELETED                    AuditLogEventTypeGroup = "DELETED"
 	AuditLogEventTypeGroup_DEPLOYED                   AuditLogEventTypeGroup = "DEPLOYED"
 	AuditLogEventTypeGroup_DIRECTORY_GROUP_MANAGEMENT AuditLogEventTypeGroup = "DIRECTORY_GROUP_MANAGEMENT"
@@ -267,6 +301,8 @@ func (e AuditLogEventTypeGroup) Valid() bool {
 	case AuditLogEventTypeGroup_API_KEYS:
 		return true
 	case AuditLogEventTypeGroup_AUTOSCALING_SETTINGS:
+		return true
+	case AuditLogEventTypeGroup_BACKPRESSURE_POLICY:
 		return true
 	case AuditLogEventTypeGroup_DELETED:
 		return true
@@ -588,6 +624,42 @@ func (e InProgressPromotionStatus) Valid() bool {
 	}
 }
 
+// Defines values for LibraryListingMetadataInputModalities.
+const (
+	LibraryListingMetadataInputModalities_image LibraryListingMetadataInputModalities = "image"
+	LibraryListingMetadataInputModalities_text  LibraryListingMetadataInputModalities = "text"
+)
+
+// Valid indicates whether the value is a known member of the LibraryListingMetadataInputModalities enum.
+func (e LibraryListingMetadataInputModalities) Valid() bool {
+	switch e {
+	case LibraryListingMetadataInputModalities_image:
+		return true
+	case LibraryListingMetadataInputModalities_text:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for LibraryListingMetadataOutputModalities.
+const (
+	LibraryListingMetadataOutputModalities_image LibraryListingMetadataOutputModalities = "image"
+	LibraryListingMetadataOutputModalities_text  LibraryListingMetadataOutputModalities = "text"
+)
+
+// Valid indicates whether the value is a known member of the LibraryListingMetadataOutputModalities enum.
+func (e LibraryListingMetadataOutputModalities) Valid() bool {
+	switch e {
+	case LibraryListingMetadataOutputModalities_image:
+		return true
+	case LibraryListingMetadataOutputModalities_text:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for LimitEnforcement.
 const (
 	LimitEnforcement_CASCADING   LimitEnforcement = "CASCADING"
@@ -660,6 +732,24 @@ func (e LoopsCheckpointConfigTarget) Valid() bool {
 	case LoopsCheckpointConfigTarget_sampler:
 		return true
 	case LoopsCheckpointConfigTarget_trainer:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for LoopsRunStatusName.
+const (
+	LoopsRunStatusName_ACTIVE   LoopsRunStatusName = "ACTIVE"
+	LoopsRunStatusName_INACTIVE LoopsRunStatusName = "INACTIVE"
+)
+
+// Valid indicates whether the value is a known member of the LoopsRunStatusName enum.
+func (e LoopsRunStatusName) Valid() bool {
+	switch e {
+	case LoopsRunStatusName_ACTIVE:
+		return true
+	case LoopsRunStatusName_INACTIVE:
 		return true
 	default:
 		return false
@@ -801,6 +891,24 @@ func (e RateLimitUnit) Valid() bool {
 	case RateLimitUnit_MINUTE:
 		return true
 	case RateLimitUnit_SECOND:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RequestBackpressurePolicy.
+const (
+	RequestBackpressurePolicy_queue_on_full  RequestBackpressurePolicy = "queue_on_full"
+	RequestBackpressurePolicy_reject_on_full RequestBackpressurePolicy = "reject_on_full"
+)
+
+// Valid indicates whether the value is a known member of the RequestBackpressurePolicy enum.
+func (e RequestBackpressurePolicy) Valid() bool {
+	switch e {
+	case RequestBackpressurePolicy_queue_on_full:
+		return true
+	case RequestBackpressurePolicy_reject_on_full:
 		return true
 	default:
 		return false
@@ -1092,6 +1200,9 @@ type ActiveJobAtSubmit struct {
 
 // AuditLogActor The actor that performed an audited action.
 type AuditLogActor struct {
+	// ApiKeyName Display name of the acting API key, when the actor is an API key.
+	ApiKeyName *string `json:"api_key_name,omitempty"`
+
 	// ApiKeyPrefix Prefix of the acting API key, when the actor is an API key.
 	ApiKeyPrefix *string `json:"api_key_prefix,omitempty"`
 
@@ -1161,6 +1272,48 @@ type AuditLogEventApiKeyDeleted struct {
 	ApiKeyType AuditLogApiKeyType `json:"api_key_type"`
 	EventType  string             `json:"event_type"`
 	Prefix     string             `json:"prefix"`
+}
+
+// AuditLogEventAutoscalingScheduleAction What an autoscaling change did to one schedule.
+type AuditLogEventAutoscalingScheduleAction string
+
+// AuditLogEventAutoscalingScheduleChange What an autoscaling change did to one schedule, and the schedule on either side of it.
+// `previous` is null on a create, `current` on a delete, and an unchanged schedule carries only
+// `current`. Not itself a payload in the discriminated union.
+type AuditLogEventAutoscalingScheduleChange struct {
+	// Action What an autoscaling change did to one schedule.
+	Action AuditLogEventAutoscalingScheduleAction `json:"action"`
+
+	// Current One autoscaling schedule: its recurrence window plus the autoscaling settings it applies while
+	// active. Not itself a payload in the discriminated union.
+	Current AuditLogEventAutoscalingScheduleSettings `json:"current"`
+
+	// Previous One autoscaling schedule: its recurrence window plus the autoscaling settings it applies while
+	// active. Not itself a payload in the discriminated union.
+	Previous   AuditLogEventAutoscalingScheduleSettings `json:"previous"`
+	ScheduleId string                                   `json:"schedule_id"`
+}
+
+// AuditLogEventAutoscalingScheduleSettings One autoscaling schedule: its recurrence window plus the autoscaling settings it applies while
+// active. Not itself a payload in the discriminated union.
+type AuditLogEventAutoscalingScheduleSettings struct {
+	AutoscalingWindow           *int     `json:"autoscaling_window"`
+	Cadence                     string   `json:"cadence"`
+	ConcurrencyTarget           int      `json:"concurrency_target"`
+	Enabled                     bool     `json:"enabled"`
+	EndHour                     *int     `json:"end_hour"`
+	EndMinute                   int      `json:"end_minute"`
+	MaxReplica                  int      `json:"max_replica"`
+	MaxScaleDownRate            *float32 `json:"max_scale_down_rate"`
+	MinReplica                  int      `json:"min_replica"`
+	ScaleDownDelay              *int     `json:"scale_down_delay"`
+	ScheduleName                string   `json:"schedule_name"`
+	StartHour                   *int     `json:"start_hour"`
+	StartMinute                 int      `json:"start_minute"`
+	TargetInFlightTokens        *int     `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int     `json:"target_utilization_percentage"`
+	Timezone                    string   `json:"timezone"`
+	Weekdays                    []string `json:"weekdays"`
 }
 
 // AuditLogEventAutoscalingSettings Autoscaling settings for a deployment or environment.
@@ -1334,6 +1487,31 @@ type AuditLogEventEnvironmentDeleted struct {
 	ModelName       string `json:"model_name"`
 }
 
+// AuditLogEventEnvironmentSettings Full environment settings (autoscaling + rolling promotion + deprecated canary);
+// shared base for the environment events and the type of their previous_settings
+// snapshots. Not itself a payload in the discriminated union.
+type AuditLogEventEnvironmentSettings struct {
+	AutoscalingWindow           *int     `json:"autoscaling_window"`
+	ConcurrencyTarget           int      `json:"concurrency_target"`
+	MaxReplica                  int      `json:"max_replica"`
+	MaxScaleDownRate            *float32 `json:"max_scale_down_rate"`
+	MaxSurgePercent             *int     `json:"max_surge_percent"`
+	MaxUnavailablePercent       *int     `json:"max_unavailable_percent"`
+	MinReplica                  int      `json:"min_replica"`
+	PromotionCleanupStrategy    *string  `json:"promotion_cleanup_strategy"`
+	RampUpDurationSeconds       *int     `json:"ramp_up_duration_seconds"`
+	RampUpStepSize              *int     `json:"ramp_up_step_size"`
+	RampUpWhilePromoting        *bool    `json:"ramp_up_while_promoting"`
+	RedeployOnPromotion         *bool    `json:"redeploy_on_promotion"`
+	ReplicaOverheadPercent      *int     `json:"replica_overhead_percent"`
+	RollingDeploy               *bool    `json:"rolling_deploy"`
+	RollingDeployStrategy       *string  `json:"rolling_deploy_strategy"`
+	ScaleDownDelay              *int     `json:"scale_down_delay"`
+	StabilizationTimeSeconds    *int     `json:"stabilization_time_seconds"`
+	TargetInFlightTokens        *int     `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int     `json:"target_utilization_percentage"`
+}
+
 // AuditLogEventEnvironmentUpdated A model environment's settings were updated.
 type AuditLogEventEnvironmentUpdated struct {
 	AutoscalingWindow     *int     `json:"autoscaling_window"`
@@ -1349,20 +1527,23 @@ type AuditLogEventEnvironmentUpdated struct {
 	ModelId               string   `json:"model_id"`
 	ModelName             string   `json:"model_name"`
 
-	// PreviousSettings Autoscaling settings for a deployment or environment.
-	PreviousSettings            AuditLogEventAutoscalingSettings `json:"previous_settings"`
-	PromotionCleanupStrategy    *string                          `json:"promotion_cleanup_strategy"`
-	RampUpDurationSeconds       *int                             `json:"ramp_up_duration_seconds"`
-	RampUpStepSize              *int                             `json:"ramp_up_step_size"`
-	RampUpWhilePromoting        *bool                            `json:"ramp_up_while_promoting"`
-	RedeployOnPromotion         *bool                            `json:"redeploy_on_promotion"`
-	ReplicaOverheadPercent      *int                             `json:"replica_overhead_percent"`
-	RollingDeploy               *bool                            `json:"rolling_deploy"`
-	RollingDeployStrategy       *string                          `json:"rolling_deploy_strategy"`
-	ScaleDownDelay              *int                             `json:"scale_down_delay"`
-	StabilizationTimeSeconds    *int                             `json:"stabilization_time_seconds"`
-	TargetInFlightTokens        *int                             `json:"target_in_flight_tokens"`
-	TargetUtilizationPercentage *int                             `json:"target_utilization_percentage"`
+	// PreviousSettings Full environment settings (autoscaling + rolling promotion + deprecated canary);
+	// shared base for the environment events and the type of their previous_settings
+	// snapshots. Not itself a payload in the discriminated union.
+	PreviousSettings            AuditLogEventEnvironmentSettings          `json:"previous_settings"`
+	PromotionCleanupStrategy    *string                                   `json:"promotion_cleanup_strategy"`
+	RampUpDurationSeconds       *int                                      `json:"ramp_up_duration_seconds"`
+	RampUpStepSize              *int                                      `json:"ramp_up_step_size"`
+	RampUpWhilePromoting        *bool                                     `json:"ramp_up_while_promoting"`
+	RedeployOnPromotion         *bool                                     `json:"redeploy_on_promotion"`
+	ReplicaOverheadPercent      *int                                      `json:"replica_overhead_percent"`
+	RollingDeploy               *bool                                     `json:"rolling_deploy"`
+	RollingDeployStrategy       *string                                   `json:"rolling_deploy_strategy"`
+	ScaleDownDelay              *int                                      `json:"scale_down_delay"`
+	Schedules                   *[]AuditLogEventAutoscalingScheduleChange `json:"schedules"`
+	StabilizationTimeSeconds    *int                                      `json:"stabilization_time_seconds"`
+	TargetInFlightTokens        *int                                      `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int                                      `json:"target_utilization_percentage"`
 }
 
 // AuditLogEventGatewayEndpointCreated A Frontier Gateway endpoint was created.
@@ -1431,10 +1612,21 @@ type AuditLogEventModelDeploymentAutoscalingSettingsChanged struct {
 	ModelName         string   `json:"model_name"`
 
 	// PreviousSettings Autoscaling settings for a deployment or environment.
-	PreviousSettings            AuditLogEventAutoscalingSettings `json:"previous_settings"`
-	ScaleDownDelay              *int                             `json:"scale_down_delay"`
-	TargetInFlightTokens        *int                             `json:"target_in_flight_tokens"`
-	TargetUtilizationPercentage *int                             `json:"target_utilization_percentage"`
+	PreviousSettings            AuditLogEventAutoscalingSettings          `json:"previous_settings"`
+	ScaleDownDelay              *int                                      `json:"scale_down_delay"`
+	Schedules                   *[]AuditLogEventAutoscalingScheduleChange `json:"schedules"`
+	TargetInFlightTokens        *int                                      `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int                                      `json:"target_utilization_percentage"`
+}
+
+// AuditLogEventModelDeploymentBackpressurePolicyChanged A model deployment's request backpressure policy was changed.
+type AuditLogEventModelDeploymentBackpressurePolicyChanged struct {
+	DeploymentId              string `json:"deployment_id"`
+	DeploymentName            string `json:"deployment_name"`
+	EventType                 string `json:"event_type"`
+	ModelId                   string `json:"model_id"`
+	ModelName                 string `json:"model_name"`
+	RequestBackpressurePolicy string `json:"request_backpressure_policy"`
 }
 
 // AuditLogEventModelDeploymentDeactivated A model deployment was deactivated.
@@ -1703,6 +1895,14 @@ type BasetenNamedCheckpointConfig struct {
 	Typ         *string `json:"typ,omitempty"`
 }
 
+// BenchmarkSnapshot defines model for BenchmarkSnapshot.
+type BenchmarkSnapshot struct {
+	Hardware   string             `json:"hardware"`
+	MeasuredAt string             `json:"measured_at"`
+	Metrics    map[string]float32 `json:"metrics"`
+	RunId      string             `json:"run_id"`
+}
+
 // BillableResource defines model for BillableResource.
 type BillableResource struct {
 	ChainMetadata *ChainMetadata `json:"chain_metadata,omitempty"`
@@ -1725,6 +1925,12 @@ type BillableResource struct {
 
 	// Name Name of the resource
 	Name *string `json:"name,omitempty"`
+
+	// TeamId Unique identifier of the team that owns the resource. Only present for organizations with multiple teams enabled.
+	TeamId *string `json:"team_id,omitempty"`
+
+	// TeamName Name of the team that owns the resource. Only present for organizations with multiple teams enabled.
+	TeamName *string `json:"team_name,omitempty"`
 }
 
 // CancelPromotionResponse The response to a request to cancel a promotion.
@@ -2192,7 +2398,10 @@ type CreateLoopsRunRequest struct {
 	// Replicas Number of data-parallel trainer replicas. Each replica is one full copy of the model's preset node group, so the trainer deployment runs (preset node_count * replicas) nodes (e.g. replicas=4 on a 4-node preset → 16 nodes, 4 DP workers). Must be a positive integer. Defaults to 1.
 	Replicas *int `json:"replicas,omitempty"`
 
-	// ReuseFromSessionId Optional Loops session ID whose trainer deployment should be reused for this run, sharing the infrastructure across sessions instead of provisioning fresh. The named session must belong to the same team. Reuse is best-effort: if the prior deployment is stopped, failed, its sampler is unhealthy, or this run requests replicas != 1, a new deployment is provisioned instead.
+	// ReuseFromRunId Optional ID of a prior Loops run whose trainer and/or sampler should be reused for this run instead of provisioning fresh. The prior run must use the same base model and belong to the same team.
+	ReuseFromRunId *string `json:"reuse_from_run_id,omitempty"`
+
+	// ReuseFromSessionId Optional ID of a prior Loops session whose trainer and/or sampler should be reused for this run. Deprecated in favor of reuse_from_run_id.
 	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
 
 	// ScaleDownDelaySeconds Seconds of inactivity before the run scales to zero. Must be between 1 and 3600 (1 hour). Defaults to 3600.
@@ -2212,17 +2421,20 @@ type CreateLoopsRunResponse struct {
 
 // CreateLoopsSamplerRequest defines model for CreateLoopsSamplerRequest.
 type CreateLoopsSamplerRequest struct {
-	// BaseModel Base model ID for standalone samplers (e.g., for baselines).
-	BaseModel string `json:"base_model"`
+	// BaseModel Base model ID for a standalone sampler (for example, a baseline).
+	BaseModel *string `json:"base_model,omitempty"`
 
-	// MaxSeqLength Maximum prompt length (in tokens) the sampler must handle. Set this to the longest prompt you plan to send. Omit to use the default for the base model.
+	// MaxSeqLength Maximum prompt length (in tokens) the sampler must handle. Set this to the longest prompt you plan to send.
 	MaxSeqLength *int `json:"max_seq_length,omitempty"`
 
-	// ModelPath Optional bt:// URI of an existing sampler-target checkpoint to load weights from on startup. Form: bt://loops:<run_id>/sampler_weights/<checkpoint_name>.
+	// ModelPath bt:// URI of an existing sampler checkpoint to serve. Form: bt://loops:<run_id>/sampler_weights/<checkpoint_name>.
 	ModelPath *string `json:"model_path,omitempty"`
 
-	// ReuseFromSessionId Optional Loops session ID whose deployment should be reused for this sampler. Same best-effort semantics as the run endpoint.
+	// ReuseFromSessionId Optional ID of a prior Loops session to reuse a trainer and/or sampler from. Deprecated.
 	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
+
+	// RunId ID of an existing run to attach this sampler to. When set, the sampler is paired to the run and weight-syncs from its trainer, and base_model is inherited from the run. Omit to create a standalone sampler.
+	RunId *string `json:"run_id,omitempty"`
 
 	// SessionId ID of the Loops session this sampler belongs to.
 	SessionId string `json:"session_id"`
@@ -2539,6 +2751,18 @@ type DeactivateLoopsDeploymentResponse struct {
 	BaseModel string `json:"base_model"`
 
 	// Id The deactivated Loops deployment ID.
+	Id string `json:"id"`
+
+	// User A user.
+	User User `json:"user"`
+}
+
+// DeactivateLoopsRunResponse Response for “POST /v1/loops/runs/<run_id>/deactivate“.
+type DeactivateLoopsRunResponse struct {
+	// BaseModel The base model whose Loops run was deactivated.
+	BaseModel string `json:"base_model"`
+
+	// Id The deactivated Loops run ID.
 	Id string `json:"id"`
 
 	// User A user.
@@ -3717,7 +3941,8 @@ type LibraryListing struct {
 	DisplayName string `json:"display_name"`
 
 	// IsPublic Whether the listing is publicly accessible
-	IsPublic bool `json:"is_public"`
+	IsPublic bool                    `json:"is_public"`
+	Metadata *LibraryListingMetadata `json:"metadata,omitempty"`
 
 	// ModifiedAt Time the listing was last modified
 	ModifiedAt time.Time `json:"modified_at"`
@@ -3725,6 +3950,22 @@ type LibraryListing struct {
 	// UserDefinedId User-defined identifier of the library listing
 	UserDefinedId string `json:"user_defined_id"`
 }
+
+// LibraryListingMetadata defines model for LibraryListingMetadata.
+type LibraryListingMetadata struct {
+	ContextLength    int                                       `json:"context_length"`
+	InputModalities  *[]LibraryListingMetadataInputModalities  `json:"input_modalities,omitempty"`
+	License          string                                    `json:"license"`
+	OutputModalities *[]LibraryListingMetadataOutputModalities `json:"output_modalities,omitempty"`
+	ParameterCount   int                                       `json:"parameter_count"`
+	Variant          *string                                   `json:"variant,omitempty"`
+}
+
+// LibraryListingMetadataInputModalities defines model for LibraryListingMetadata.InputModalities.
+type LibraryListingMetadataInputModalities string
+
+// LibraryListingMetadataOutputModalities defines model for LibraryListingMetadata.OutputModalities.
+type LibraryListingMetadataOutputModalities string
 
 // LibraryListingSource Create a model by forking a library listing accessible to the caller's organization.
 type LibraryListingSource struct {
@@ -3751,7 +3992,8 @@ type LibraryListingTombstone struct {
 // LibraryListingVersion A library listing version.
 type LibraryListingVersion struct {
 	// AllowTrussDownload Whether users deploying this model can download the Truss
-	AllowTrussDownload bool `json:"allow_truss_download"`
+	AllowTrussDownload bool               `json:"allow_truss_download"`
+	Benchmark          *BenchmarkSnapshot `json:"benchmark,omitempty"`
 
 	// CreatedAt Time the version was created in ISO 8601 format
 	CreatedAt time.Time `json:"created_at"`
@@ -3964,9 +4206,21 @@ type LoopsDeployment struct {
 	// BaseUrl The run's base URL.
 	BaseUrl string `json:"base_url"`
 
+	// CreatedAt Time the deployment was created in ISO 8601 format.
+	CreatedAt time.Time `json:"created_at"`
+
 	// Id The Loops deployment ID.
-	Id      string        `json:"id"`
-	Sampler *LoopsSampler `json:"sampler,omitempty"`
+	Id string `json:"id"`
+
+	// InstanceType An instance type.
+	InstanceType InstanceType `json:"instance_type"`
+
+	// LatestRunId The ID of the most recent run on this deployment, active or not, so idle deployments still expose a usable run handle. Null only if the deployment has no runs.
+	LatestRunId *string `json:"latest_run_id,omitempty"`
+
+	// NodeCount Number of nodes backing the trainer.
+	NodeCount *int          `json:"node_count,omitempty"`
+	Sampler   *LoopsSampler `json:"sampler,omitempty"`
 
 	// Status Latest deployment status for a Loops deployment.
 	Status LoopsDeploymentStatus `json:"status"`
@@ -4056,12 +4310,27 @@ type LoopsRun struct {
 	Id string `json:"id"`
 
 	// Name The run's display name.
-	Name    string       `json:"name"`
-	Sampler LoopsSampler `json:"sampler"`
+	Name    string        `json:"name"`
+	Sampler *LoopsSampler `json:"sampler,omitempty"`
 
 	// SessionId The session ID this run belongs to.
 	SessionId string `json:"session_id"`
+
+	// Status The current status of a Loops run.
+	Status LoopsRunStatus `json:"status"`
+
+	// User A user.
+	User User `json:"user"`
 }
+
+// LoopsRunStatus The current status of a Loops run.
+type LoopsRunStatus struct {
+	// Name A Loops run's lifecycle state: ACTIVE or INACTIVE.
+	Name LoopsRunStatusName `json:"name"`
+}
+
+// LoopsRunStatusName A Loops run's lifecycle state: ACTIVE or INACTIVE.
+type LoopsRunStatusName string
 
 // LoopsSampler defines model for LoopsSampler.
 type LoopsSampler struct {
@@ -4076,11 +4345,20 @@ type LoopsSampler struct {
 	DeploymentId string `json:"deployment_id"`
 	Id           string `json:"id"`
 
+	// InstanceType An instance type.
+	InstanceType *InstanceType `json:"instance_type,omitempty"`
+
 	// ModelId Hashid of the underlying Baseten model.
 	ModelId string `json:"model_id"`
 
+	// NodeCount Number of nodes serving the sampler.
+	NodeCount *int `json:"node_count,omitempty"`
+
 	// Status The current status of a Loops sampler.
 	Status LoopsSamplerStatus `json:"status"`
+
+	// User A user.
+	User User `json:"user"`
 }
 
 // LoopsSamplerStatus The current status of a Loops sampler.
@@ -4656,6 +4934,20 @@ type RecreateTrainingJobResponse struct {
 	TrainingJob TrainingJob `json:"training_job"`
 }
 
+// Region A region that deployments can be placed in.
+type Region struct {
+	// DisplayName Human-readable name of the region.
+	DisplayName string `json:"display_name"`
+
+	// Slug Stable identifier for the region, used when selecting a deployment region.
+	Slug string `json:"slug"`
+}
+
+// Regions A list of regions.
+type Regions struct {
+	Regions []Region `json:"regions"`
+}
+
 // RegisterAPIKeyRequest Request to register a caller-supplied API key against an existing FederatedGroup.
 type RegisterAPIKeyRequest struct {
 	// Key Value of the API key to register
@@ -4678,14 +4970,13 @@ type RegistrySecretDockerAuth struct {
 	SecretRef SecretReference `json:"secret_ref"`
 }
 
+// RequestBackpressurePolicy defines model for RequestBackpressurePolicy.
+type RequestBackpressurePolicy string
+
 // ResourceKind defines model for ResourceKind.
 type ResourceKind string
 
-// ResponseTimeDatapoint Latency quantile datapoint.
-//
-// Values are reported in **milliseconds** to match the oracle/inference
-// “response_time_stats“ convention. Source histogram is the queue-proxy's
-// “revision_request_latencies_bucket“ whose bucket boundaries are in ms.
+// ResponseTimeDatapoint Latency quantile datapoint. Values are reported in milliseconds.
 type ResponseTimeDatapoint struct {
 	// P50 50th percentile request latency (milliseconds).
 	P50 *float32 `json:"p50,omitempty"`
@@ -4843,6 +5134,9 @@ type SupportedModel struct {
 
 	// ModelName The name of the supported model.
 	ModelName string `json:"model_name"`
+
+	// SupportsVisionLanguage Whether the model accepts image inputs alongside text.
+	SupportsVisionLanguage bool `json:"supports_vision_language"`
 }
 
 // SyncDeploymentPatchesRequest Triggers a sync of any staged patches to the running deployment. Takes no
@@ -5323,13 +5617,15 @@ type UpdateLibraryListingRequest struct {
 	DisplayName *string `json:"display_name,omitempty"`
 
 	// IsPublic Whether the listing is publicly accessible
-	IsPublic *bool `json:"is_public,omitempty"`
+	IsPublic *bool                   `json:"is_public,omitempty"`
+	Metadata *LibraryListingMetadata `json:"metadata,omitempty"`
 }
 
 // UpdateLibraryListingVersionRequest Request to update a library listing version.
 type UpdateLibraryListingVersionRequest struct {
 	// AllowTrussDownload Whether users deploying this model can download the Truss
-	AllowTrussDownload *bool `json:"allow_truss_download,omitempty"`
+	AllowTrussDownload *bool              `json:"allow_truss_download,omitempty"`
+	Benchmark          *BenchmarkSnapshot `json:"benchmark,omitempty"`
 
 	// IsLive Whether this version should be the live version. Setting to true demotes the current live version.
 	IsLive *bool `json:"is_live,omitempty"`
@@ -5354,6 +5650,11 @@ type UpdatePromotionSettings struct {
 
 	// RollingDeployConfig Rolling deploy config for promoting chains and oracles
 	RollingDeployConfig *UpdateRollingDeployConfig `json:"rolling_deploy_config,omitempty"`
+}
+
+// UpdateRequestBackpressurePolicyRequest Request body for “PATCH /v1/models/.../deployments/.../request_backpressure_policy“.
+type UpdateRequestBackpressurePolicyRequest struct {
+	RequestBackpressurePolicy RequestBackpressurePolicy `json:"request_backpressure_policy"`
 }
 
 // UpdateRollingDeployConfig Rolling deploy config for promoting chains and oracles
@@ -5720,6 +6021,9 @@ type GetV1LoopsRunsParams struct {
 
 	// BaseModel Filter runs by base model name.
 	BaseModel *string `form:"base_model,omitempty" json:"base_model,omitempty"`
+
+	// Scope Defaults to the caller's own runs; pass 'org' to list every run in the caller's organization.
+	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
 }
 
 // GetV1ModelApisParams defines parameters for GetV1ModelApis.
@@ -5899,6 +6203,18 @@ type GetV1TeamsParams struct {
 	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
+// GetV1TeamsTeamIdLoopsRunsParams defines parameters for GetV1TeamsTeamIdLoopsRuns.
+type GetV1TeamsTeamIdLoopsRunsParams struct {
+	// RunId Filter by run ID.
+	RunId *string `form:"run_id,omitempty" json:"run_id,omitempty"`
+
+	// BaseModel Filter runs by base model name.
+	BaseModel *string `form:"base_model,omitempty" json:"base_model,omitempty"`
+
+	// Scope Defaults to the caller's own runs; pass 'org' to list every run in the caller's organization.
+	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
+}
+
 // GetV1TeamsTeamIdModelsParams defines parameters for GetV1TeamsTeamIdModels.
 type GetV1TeamsTeamIdModelsParams struct {
 	// Name When set, returns only models with this exact name, if any. On a team-scoped route this matches at most one model; on the org-wide route it may match models in multiple teams, since names are unique only within a team.
@@ -6025,6 +6341,9 @@ type PostV1LoopsRunsJSONRequestBody = CreateLoopsRunRequest
 // PostV1LoopsSamplersJSONRequestBody defines body for PostV1LoopsSamplers for application/json ContentType.
 type PostV1LoopsSamplersJSONRequestBody = CreateLoopsSamplerRequest
 
+// PostV1LoopsTrainersJSONRequestBody defines body for PostV1LoopsTrainers for application/json ContentType.
+type PostV1LoopsTrainersJSONRequestBody = CreateLoopsRunRequest
+
 // PatchV1LoopsUserConfigJSONRequestBody defines body for PatchV1LoopsUserConfig for application/json ContentType.
 type PatchV1LoopsUserConfigJSONRequestBody = PatchLoopsUserConfigRequest
 
@@ -6064,6 +6383,9 @@ type PostV1ModelsModelIdDeploymentsDeploymentIdPatchesSyncJSONRequestBody = Sync
 // PostV1ModelsModelIdDeploymentsDeploymentIdPromoteJSONRequestBody defines body for PostV1ModelsModelIdDeploymentsDeploymentIdPromote for application/json ContentType.
 type PostV1ModelsModelIdDeploymentsDeploymentIdPromoteJSONRequestBody = PromoteRequest
 
+// PatchV1ModelsModelIdDeploymentsDeploymentIdRequestBackpressurePolicyJSONRequestBody defines body for PatchV1ModelsModelIdDeploymentsDeploymentIdRequestBackpressurePolicy for application/json ContentType.
+type PatchV1ModelsModelIdDeploymentsDeploymentIdRequestBackpressurePolicyJSONRequestBody = UpdateRequestBackpressurePolicyRequest
+
 // PostV1ModelsModelIdDeploymentsDeploymentIdSshSignJSONRequestBody defines body for PostV1ModelsModelIdDeploymentsDeploymentIdSshSign for application/json ContentType.
 type PostV1ModelsModelIdDeploymentsDeploymentIdSshSignJSONRequestBody = SignSSHCertificateRequest
 
@@ -6090,6 +6412,15 @@ type PatchV1TeamsTeamIdEnvironmentGroupsEnvNameJSONRequestBody = UpdateEnvironme
 
 // PostV1TeamsTeamIdLlmModelsJSONRequestBody defines body for PostV1TeamsTeamIdLlmModels for application/json ContentType.
 type PostV1TeamsTeamIdLlmModelsJSONRequestBody = CreateLLMModelRequest
+
+// PostV1TeamsTeamIdLoopsRunsJSONRequestBody defines body for PostV1TeamsTeamIdLoopsRuns for application/json ContentType.
+type PostV1TeamsTeamIdLoopsRunsJSONRequestBody = CreateLoopsRunRequest
+
+// PostV1TeamsTeamIdLoopsSamplersJSONRequestBody defines body for PostV1TeamsTeamIdLoopsSamplers for application/json ContentType.
+type PostV1TeamsTeamIdLoopsSamplersJSONRequestBody = CreateLoopsSamplerRequest
+
+// PostV1TeamsTeamIdLoopsTrainersJSONRequestBody defines body for PostV1TeamsTeamIdLoopsTrainers for application/json ContentType.
+type PostV1TeamsTeamIdLoopsTrainersJSONRequestBody = CreateLoopsRunRequest
 
 // PostV1TeamsTeamIdModelsJSONRequestBody defines body for PostV1TeamsTeamIdModels for application/json ContentType.
 type PostV1TeamsTeamIdModelsJSONRequestBody = CreateModelRequest
@@ -6215,6 +6546,21 @@ func (t AuditLogEntry_EventData) AsAuditLogEventModelDeploymentAutoscalingSettin
 // FromAuditLogEventModelDeploymentAutoscalingSettingsChanged overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeploymentAutoscalingSettingsChanged
 func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeploymentAutoscalingSettingsChanged(v AuditLogEventModelDeploymentAutoscalingSettingsChanged) error {
 	v.EventType = "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventModelDeploymentBackpressurePolicyChanged returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeploymentBackpressurePolicyChanged
+func (t AuditLogEntry_EventData) AsAuditLogEventModelDeploymentBackpressurePolicyChanged() (AuditLogEventModelDeploymentBackpressurePolicyChanged, error) {
+	var body AuditLogEventModelDeploymentBackpressurePolicyChanged
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventModelDeploymentBackpressurePolicyChanged overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeploymentBackpressurePolicyChanged
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeploymentBackpressurePolicyChanged(v AuditLogEventModelDeploymentBackpressurePolicyChanged) error {
+	v.EventType = "MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -6820,6 +7166,8 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventModelDeploymentActivated()
 	case "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED":
 		return t.AsAuditLogEventModelDeploymentAutoscalingSettingsChanged()
+	case "MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED":
+		return t.AsAuditLogEventModelDeploymentBackpressurePolicyChanged()
 	case "MODEL_DEPLOYMENT_DEACTIVATED":
 		return t.AsAuditLogEventModelDeploymentDeactivated()
 	case "MODEL_DEPLOYMENT_DELETED":
