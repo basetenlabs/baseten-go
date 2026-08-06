@@ -229,7 +229,20 @@ func preprocessSchema(schema map[string]any, schemaRenames map[string]string, di
 			// Inline the single remaining schema and mark nullable
 			if remaining, ok := nonNull[0].(map[string]any); ok {
 				delete(schema, "anyOf")
-				maps.Copy(schema, remaining)
+				if _, isRef := remaining["$ref"]; isRef && len(remaining) == 1 {
+					// A bare $ref can't take the nullable flag as a sibling:
+					// OpenAPI 3.0 ignores every keyword next to a $ref, so
+					// kin-openapi resolves the target and drops "nullable",
+					// and oapi-codegen then emits a required field as a value
+					// rather than a pointer, which can't represent null. Wrap
+					// the ref in a single-element allOf so nullable lands on a
+					// schema object that survives parsing. This also keeps the
+					// property's own description instead of letting the
+					// referenced type's description overwrite it.
+					schema["allOf"] = []any{remaining}
+				} else {
+					maps.Copy(schema, remaining)
+				}
 				schema["nullable"] = true
 			}
 		} else if hasNull {

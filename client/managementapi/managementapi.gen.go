@@ -1118,7 +1118,7 @@ type APIKeyInfo struct {
 	// Name Optional name for the API key
 	Name *string `json:"name,omitempty"`
 
-	// Owner The user who owns a personal API key.
+	// Owner The user who owns the API key. Only present for personal API keys.
 	Owner *APIKeyOwner `json:"owner,omitempty"`
 
 	// Prefix The prefix of the API key
@@ -1245,7 +1245,7 @@ type AuditLogEntry struct {
 	// Id Unique identifier of the audit-log entry.
 	Id string `json:"id"`
 
-	// Source Surface that issued the audited action.
+	// Source Surface that issued the action, if known.
 	Source *AuditLogSource `json:"source,omitempty"`
 }
 
@@ -1282,16 +1282,10 @@ type AuditLogEventAutoscalingScheduleAction string
 // `current`. Not itself a payload in the discriminated union.
 type AuditLogEventAutoscalingScheduleChange struct {
 	// Action What an autoscaling change did to one schedule.
-	Action AuditLogEventAutoscalingScheduleAction `json:"action"`
-
-	// Current One autoscaling schedule: its recurrence window plus the autoscaling settings it applies while
-	// active. Not itself a payload in the discriminated union.
-	Current AuditLogEventAutoscalingScheduleSettings `json:"current"`
-
-	// Previous One autoscaling schedule: its recurrence window plus the autoscaling settings it applies while
-	// active. Not itself a payload in the discriminated union.
-	Previous   AuditLogEventAutoscalingScheduleSettings `json:"previous"`
-	ScheduleId string                                   `json:"schedule_id"`
+	Action     AuditLogEventAutoscalingScheduleAction    `json:"action"`
+	Current    *AuditLogEventAutoscalingScheduleSettings `json:"current"`
+	Previous   *AuditLogEventAutoscalingScheduleSettings `json:"previous"`
+	ScheduleId string                                    `json:"schedule_id"`
 }
 
 // AuditLogEventAutoscalingScheduleSettings One autoscaling schedule: its recurrence window plus the autoscaling settings it applies while
@@ -1409,24 +1403,22 @@ type AuditLogEventChainEnvironmentUpdated struct {
 
 // AuditLogEventChainletAutoscalingSettingsChanged A chainlet's autoscaling settings were changed.
 type AuditLogEventChainletAutoscalingSettingsChanged struct {
-	AutoscalingWindow   *int     `json:"autoscaling_window"`
-	ChainDeploymentId   string   `json:"chain_deployment_id"`
-	ChainDeploymentName *string  `json:"chain_deployment_name"`
-	ChainId             string   `json:"chain_id"`
-	ChainName           string   `json:"chain_name"`
-	ChainletId          string   `json:"chainlet_id"`
-	ChainletName        string   `json:"chainlet_name"`
-	ConcurrencyTarget   int      `json:"concurrency_target"`
-	EventType           string   `json:"event_type"`
-	MaxReplica          int      `json:"max_replica"`
-	MaxScaleDownRate    *float32 `json:"max_scale_down_rate"`
-	MinReplica          int      `json:"min_replica"`
-
-	// PreviousSettings Autoscaling settings for a deployment or environment.
-	PreviousSettings            AuditLogEventAutoscalingSettings `json:"previous_settings"`
-	ScaleDownDelay              *int                             `json:"scale_down_delay"`
-	TargetInFlightTokens        *int                             `json:"target_in_flight_tokens"`
-	TargetUtilizationPercentage *int                             `json:"target_utilization_percentage"`
+	AutoscalingWindow           *int                              `json:"autoscaling_window"`
+	ChainDeploymentId           string                            `json:"chain_deployment_id"`
+	ChainDeploymentName         *string                           `json:"chain_deployment_name"`
+	ChainId                     string                            `json:"chain_id"`
+	ChainName                   string                            `json:"chain_name"`
+	ChainletId                  string                            `json:"chainlet_id"`
+	ChainletName                string                            `json:"chainlet_name"`
+	ConcurrencyTarget           int                               `json:"concurrency_target"`
+	EventType                   string                            `json:"event_type"`
+	MaxReplica                  int                               `json:"max_replica"`
+	MaxScaleDownRate            *float32                          `json:"max_scale_down_rate"`
+	MinReplica                  int                               `json:"min_replica"`
+	PreviousSettings            *AuditLogEventAutoscalingSettings `json:"previous_settings"`
+	ScaleDownDelay              *int                              `json:"scale_down_delay"`
+	TargetInFlightTokens        *int                              `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int                              `json:"target_utilization_percentage"`
 }
 
 // AuditLogEventChainletInstanceTypeChanged A chainlet's instance type was changed.
@@ -1514,23 +1506,19 @@ type AuditLogEventEnvironmentSettings struct {
 
 // AuditLogEventEnvironmentUpdated A model environment's settings were updated.
 type AuditLogEventEnvironmentUpdated struct {
-	AutoscalingWindow     *int     `json:"autoscaling_window"`
-	ConcurrencyTarget     int      `json:"concurrency_target"`
-	DeploymentType        *string  `json:"deployment_type"`
-	EnvironmentName       string   `json:"environment_name"`
-	EventType             string   `json:"event_type"`
-	MaxReplica            int      `json:"max_replica"`
-	MaxScaleDownRate      *float32 `json:"max_scale_down_rate"`
-	MaxSurgePercent       *int     `json:"max_surge_percent"`
-	MaxUnavailablePercent *int     `json:"max_unavailable_percent"`
-	MinReplica            int      `json:"min_replica"`
-	ModelId               string   `json:"model_id"`
-	ModelName             string   `json:"model_name"`
-
-	// PreviousSettings Full environment settings (autoscaling + rolling promotion + deprecated canary);
-	// shared base for the environment events and the type of their previous_settings
-	// snapshots. Not itself a payload in the discriminated union.
-	PreviousSettings            AuditLogEventEnvironmentSettings          `json:"previous_settings"`
+	AutoscalingWindow           *int                                      `json:"autoscaling_window"`
+	ConcurrencyTarget           int                                       `json:"concurrency_target"`
+	DeploymentType              *string                                   `json:"deployment_type"`
+	EnvironmentName             string                                    `json:"environment_name"`
+	EventType                   string                                    `json:"event_type"`
+	MaxReplica                  int                                       `json:"max_replica"`
+	MaxScaleDownRate            *float32                                  `json:"max_scale_down_rate"`
+	MaxSurgePercent             *int                                      `json:"max_surge_percent"`
+	MaxUnavailablePercent       *int                                      `json:"max_unavailable_percent"`
+	MinReplica                  int                                       `json:"min_replica"`
+	ModelId                     string                                    `json:"model_id"`
+	ModelName                   string                                    `json:"model_name"`
+	PreviousSettings            *AuditLogEventEnvironmentSettings         `json:"previous_settings"`
 	PromotionCleanupStrategy    *string                                   `json:"promotion_cleanup_strategy"`
 	RampUpDurationSeconds       *int                                      `json:"ramp_up_duration_seconds"`
 	RampUpStepSize              *int                                      `json:"ramp_up_step_size"`
@@ -1599,20 +1587,18 @@ type AuditLogEventModelDeploymentActivated struct {
 
 // AuditLogEventModelDeploymentAutoscalingSettingsChanged A model deployment's autoscaling settings were changed.
 type AuditLogEventModelDeploymentAutoscalingSettingsChanged struct {
-	AutoscalingWindow *int     `json:"autoscaling_window"`
-	ConcurrencyTarget int      `json:"concurrency_target"`
-	DeploymentId      string   `json:"deployment_id"`
-	DeploymentName    string   `json:"deployment_name"`
-	DeploymentType    *string  `json:"deployment_type"`
-	EventType         string   `json:"event_type"`
-	MaxReplica        int      `json:"max_replica"`
-	MaxScaleDownRate  *float32 `json:"max_scale_down_rate"`
-	MinReplica        int      `json:"min_replica"`
-	ModelId           string   `json:"model_id"`
-	ModelName         string   `json:"model_name"`
-
-	// PreviousSettings Autoscaling settings for a deployment or environment.
-	PreviousSettings            AuditLogEventAutoscalingSettings          `json:"previous_settings"`
+	AutoscalingWindow           *int                                      `json:"autoscaling_window"`
+	ConcurrencyTarget           int                                       `json:"concurrency_target"`
+	DeploymentId                string                                    `json:"deployment_id"`
+	DeploymentName              string                                    `json:"deployment_name"`
+	DeploymentType              *string                                   `json:"deployment_type"`
+	EventType                   string                                    `json:"event_type"`
+	MaxReplica                  int                                       `json:"max_replica"`
+	MaxScaleDownRate            *float32                                  `json:"max_scale_down_rate"`
+	MinReplica                  int                                       `json:"min_replica"`
+	ModelId                     string                                    `json:"model_id"`
+	ModelName                   string                                    `json:"model_name"`
+	PreviousSettings            *AuditLogEventAutoscalingSettings         `json:"previous_settings"`
 	ScaleDownDelay              *int                                      `json:"scale_down_delay"`
 	Schedules                   *[]AuditLogEventAutoscalingScheduleChange `json:"schedules"`
 	TargetInFlightTokens        *int                                      `json:"target_in_flight_tokens"`
@@ -1905,6 +1891,7 @@ type BenchmarkSnapshot struct {
 
 // BillableResource defines model for BillableResource.
 type BillableResource struct {
+	// ChainMetadata Chain metadata if this is a chainlet deployment
 	ChainMetadata *ChainMetadata `json:"chain_metadata,omitempty"`
 
 	// EnvironmentName Environment name (e.g., 'production', 'staging')
@@ -2023,7 +2010,7 @@ type ChainDeployments struct {
 
 // ChainEnvironment Environment for oracles.
 type ChainEnvironment struct {
-	// CandidateDeployment A deployment of a chain.
+	// CandidateDeployment Candidate chain deployment being promoted to the environment, if a promotion is in progress
 	CandidateDeployment *ChainDeployment `json:"candidate_deployment,omitempty"`
 
 	// ChainId Unique identifier of the chain
@@ -2035,8 +2022,8 @@ type ChainEnvironment struct {
 	// CreatedAt Time the environment was created in ISO 8601 format
 	CreatedAt time.Time `json:"created_at"`
 
-	// CurrentDeployment A deployment of a chain.
-	CurrentDeployment ChainDeployment `json:"current_deployment"`
+	// CurrentDeployment Current chain deployment of the environment
+	CurrentDeployment *ChainDeployment `json:"current_deployment"`
 
 	// Name Name of the environment
 	Name string `json:"name"`
@@ -2071,8 +2058,8 @@ type Chainlet struct {
 	// ActiveReplicaCount Number of active replicas
 	ActiveReplicaCount int `json:"active_replica_count"`
 
-	// AutoscalingSettings Autoscaling settings for a deployment.
-	AutoscalingSettings AutoscalingSettings `json:"autoscaling_settings"`
+	// AutoscalingSettings Autoscaling settings for the chainlet. If null, it has not finished deploying
+	AutoscalingSettings *AutoscalingSettings `json:"autoscaling_settings"`
 
 	// Id Unique identifier of the chainlet
 	Id string `json:"id"`
@@ -2107,8 +2094,8 @@ type ChainletEnvironmentInstanceTypeUpdate struct {
 
 // ChainletEnvironmentSettings Environment settings for a chainlet.
 type ChainletEnvironmentSettings struct {
-	// AutoscalingSettings Autoscaling settings for a deployment.
-	AutoscalingSettings AutoscalingSettings `json:"autoscaling_settings"`
+	// AutoscalingSettings Autoscaling settings for the chainlet. If null, it has not finished deploying
+	AutoscalingSettings *AutoscalingSettings `json:"autoscaling_settings"`
 
 	// ChainletName Name of the chainlet
 	ChainletName string `json:"chainlet_name"`
@@ -2119,7 +2106,7 @@ type ChainletEnvironmentSettings struct {
 
 // ChainletEnvironmentSettingsRequest Request to create environment settings for a chainlet.
 type ChainletEnvironmentSettingsRequest struct {
-	// AutoscalingSettings A request to update autoscaling settings for a deployment. All fields are optional, and we only update ones passed in.
+	// AutoscalingSettings Autoscaling settings for the chainlet
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
 	// ChainletName Name of the chainlet
@@ -2184,7 +2171,7 @@ type CreateChainEnvironmentRequest struct {
 	// Name Name of the environment
 	Name string `json:"name"`
 
-	// PromotionSettings Promotion settings for model promotion
+	// PromotionSettings Promotion settings for the environment
 	PromotionSettings *UpdatePromotionSettings `json:"promotion_settings,omitempty"`
 }
 
@@ -2235,13 +2222,13 @@ type CreateEndpointRequest struct {
 
 // CreateEnvironmentRequest A request to create an environment.
 type CreateEnvironmentRequest struct {
-	// AutoscalingSettings A request to update autoscaling settings for a deployment. All fields are optional, and we only update ones passed in.
+	// AutoscalingSettings Autoscaling settings for the environment
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
 	// Name Name of the environment
 	Name string `json:"name"`
 
-	// PromotionSettings Promotion settings for model promotion
+	// PromotionSettings Promotion settings for the environment
 	PromotionSettings *UpdatePromotionSettings `json:"promotion_settings,omitempty"`
 }
 
@@ -2284,7 +2271,7 @@ type CreateLLMModelRequest struct {
 	// AdditionalAutoscalingConfig Additional autoscaling configuration (e.g. target in-flight tokens)
 	AdditionalAutoscalingConfig *map[string]interface{} `json:"additional_autoscaling_config,omitempty"`
 
-	// AutoscalingSettings A request to update autoscaling settings for a deployment. All fields are optional, and we only update ones passed in.
+	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
 	// EnvironmentVariables Environment variables for the model
@@ -2317,7 +2304,7 @@ type CreateLLMModelVersionRequest struct {
 	// AdditionalAutoscalingConfig Additional autoscaling configuration (e.g. target in-flight tokens)
 	AdditionalAutoscalingConfig *map[string]interface{} `json:"additional_autoscaling_config,omitempty"`
 
-	// AutoscalingSettings A request to update autoscaling settings for a deployment. All fields are optional, and we only update ones passed in.
+	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
 	// EnvironmentVariables Environment variables for the model
@@ -2493,7 +2480,7 @@ type CreateTrainingJob struct {
 	// Image Configuration to create a training job image.
 	Image CreateTrainingJobImage `json:"image"`
 
-	// InteractiveSession Configuration for interactive debugging sessions on training jobs.
+	// InteractiveSession Configuration for interactive debugging sessions.
 	InteractiveSession *InteractiveSessionConfig `json:"interactive_session,omitempty"`
 
 	// Name Name of the training job.
@@ -2505,11 +2492,7 @@ type CreateTrainingJob struct {
 	// Runtime Configuration to specify the runtime environment for a training job.
 	Runtime *CreateTrainingJobRuntime `json:"runtime,omitempty"`
 
-	// TrussUserEnv This data models is used to flexibly store info alongside oracle versions.
-	//
-	// There is a corresponding data model in the truss client.
-	// In contrast, here all fields are optional for backwards compatibility with old
-	// clients.
+	// TrussUserEnv Truss user environment information
 	TrussUserEnv *TrussUserEnv `json:"truss_user_env,omitempty"`
 
 	// Weights MDN weight sources to mount in the training container. Weights are mirrored and cached for fast startup.
@@ -2554,6 +2537,7 @@ type CreateTrainingJobCheckpointingConfig struct {
 
 // CreateTrainingJobCompute Configuration to specify the compute for a training job.
 type CreateTrainingJobCompute struct {
+	// Accelerator GPU specification for the training job
 	Accelerator *CreateTrainingJobAccelerator `json:"accelerator,omitempty"`
 
 	// AvailabilityModel Capacity guarantee under which a training job is scheduled.
@@ -2580,7 +2564,7 @@ type CreateTrainingJobImage struct {
 	// BaseImage Base image for the training job.
 	BaseImage string `json:"base_image"`
 
-	// DockerAuth Docker authentication credentials.
+	// DockerAuth Docker authentication credentials
 	DockerAuth *DockerAuth `json:"docker_auth,omitempty"`
 }
 
@@ -2598,7 +2582,9 @@ type CreateTrainingJobResponse struct {
 // CreateTrainingJobRuntime Configuration to specify the runtime environment for a training job.
 type CreateTrainingJobRuntime struct {
 	// Artifacts Runtime artifacts for the training job.
-	Artifacts           *[]CreateTrainingJobS3Artifact        `json:"artifacts,omitempty"`
+	Artifacts *[]CreateTrainingJobS3Artifact `json:"artifacts,omitempty"`
+
+	// CacheConfig Configuration for the read-write cache.
 	CacheConfig         *CreateTrainingJobCacheConfig         `json:"cache_config,omitempty"`
 	CheckpointingConfig *CreateTrainingJobCheckpointingConfig `json:"checkpointing_config,omitempty"`
 
@@ -2607,7 +2593,9 @@ type CreateTrainingJobRuntime struct {
 
 	// EnvironmentVariables Environment variables to set in the runtime.
 	EnvironmentVariables *map[string]CreateTrainingJobRuntime_EnvironmentVariables_AdditionalProperties `json:"environment_variables,omitempty"`
-	LoadCheckpointConfig *LoadCheckpointConfig                                                          `json:"load_checkpoint_config,omitempty"`
+
+	// LoadCheckpointConfig Configuration for loading checkpoints
+	LoadCheckpointConfig *LoadCheckpointConfig `json:"load_checkpoint_config,omitempty"`
 
 	// StartCommands Commands to execute when starting the runtime.
 	StartCommands *[]string `json:"start_commands,omitempty"`
@@ -2887,8 +2875,8 @@ type Deployment struct {
 	// ActiveReplicaCount Number of active replicas
 	ActiveReplicaCount int `json:"active_replica_count"`
 
-	// AutoscalingSettings Autoscaling settings for a deployment.
-	AutoscalingSettings AutoscalingSettings `json:"autoscaling_settings"`
+	// AutoscalingSettings Autoscaling settings for the deployment. If null, the model has not finished deploying
+	AutoscalingSettings *AutoscalingSettings `json:"autoscaling_settings"`
 
 	// CreatedAt Time the deployment was created in ISO 8601 format
 	CreatedAt time.Time `json:"created_at"`
@@ -3133,24 +3121,22 @@ type Deployments struct {
 type DockerAuth struct {
 	AuthMethod DockerAuthType `json:"auth_method"`
 
-	// AwsIamDockerAuth AWS details for the registry.
+	// AwsIamDockerAuth AWS details for the registry
 	AwsIamDockerAuth *AwsIamDockerAuth `json:"aws_iam_docker_auth,omitempty"`
 
-	// AwsOidcDockerAuth AWS OIDC details for the registry.
+	// AwsOidcDockerAuth AWS OIDC details for the registry
 	AwsOidcDockerAuth *AwsOidcDockerAuth `json:"aws_oidc_docker_auth,omitempty"`
 
-	// GcpOidcDockerAuth GCP OIDC details for the registry.
+	// GcpOidcDockerAuth GCP OIDC details for the registry
 	GcpOidcDockerAuth *GcpOidcDockerAuth `json:"gcp_oidc_docker_auth,omitempty"`
 
-	// GcpServiceAccountJsonDockerAuth GCP details for the registry.
+	// GcpServiceAccountJsonDockerAuth GCP service account details for the registry
 	GcpServiceAccountJsonDockerAuth *GcpServiceAccountJsonDockerAuth `json:"gcp_service_account_json_docker_auth,omitempty"`
 
 	// Registry Registry to authenticate with
 	Registry string `json:"registry"`
 
-	// RegistrySecretDockerAuth Authentication via a Baseten secret for any Docker registry (Docker Hub, GHCR, NGC, etc.).
-	// The referenced secret must contain credentials in the format 'username:password'.
-	// For Docker Hub, set registry to 'https://index.docker.io/v1/'. For GHCR, use 'ghcr.io'.
+	// RegistrySecretDockerAuth Required when auth_method is REGISTRY_SECRET. Supports any Docker registry (Docker Hub, GHCR, NGC, etc.) via username:password credentials stored as a Baseten secret.
 	RegistrySecretDockerAuth *RegistrySecretDockerAuth `json:"registry_secret_docker_auth,omitempty"`
 }
 
@@ -3239,7 +3225,9 @@ type EndpointTarget struct {
 	SecretId *string `json:"secret_id,omitempty"`
 
 	// TargetModel Upstream model name, if any.
-	TargetModel  *string             `json:"target_model,omitempty"`
+	TargetModel *string `json:"target_model,omitempty"`
+
+	// VertexConfig Google Vertex configuration, if any.
 	VertexConfig *VertexTargetConfig `json:"vertex_config,omitempty"`
 }
 
@@ -3265,7 +3253,9 @@ type EndpointTargetRequest struct {
 	SecretId *string `json:"secret_id,omitempty"`
 
 	// TargetModel Model name to send upstream. Required for external providers and optional for BASETEN targets.
-	TargetModel  *string             `json:"target_model,omitempty"`
+	TargetModel *string `json:"target_model,omitempty"`
+
+	// VertexConfig Google Vertex configuration. Required for and only valid with VERTEX.
 	VertexConfig *VertexTargetConfig `json:"vertex_config,omitempty"`
 }
 
@@ -3290,16 +3280,16 @@ type Environment struct {
 	// AutoscalingSettings Autoscaling settings for a deployment.
 	AutoscalingSettings AutoscalingSettings `json:"autoscaling_settings"`
 
-	// CandidateDeployment A deployment of a model.
+	// CandidateDeployment Candidate deployment being promoted to the environment, if a promotion is in progress
 	CandidateDeployment *Deployment `json:"candidate_deployment,omitempty"`
 
 	// CreatedAt Time the environment was created in ISO 8601 format
 	CreatedAt time.Time `json:"created_at"`
 
-	// CurrentDeployment A deployment of a model.
-	CurrentDeployment Deployment `json:"current_deployment"`
+	// CurrentDeployment Current deployment of the environment
+	CurrentDeployment *Deployment `json:"current_deployment"`
 
-	// InProgressPromotion Details of an in-progress promotion.
+	// InProgressPromotion Details of the in-progress promotion, if any
 	InProgressPromotion *InProgressPromotion `json:"in_progress_promotion,omitempty"`
 
 	// InstanceType An instance type.
@@ -3446,7 +3436,9 @@ type GetCacheSummaryResponse struct {
 // GetDeploymentLogsRequest A request to fetch deployment logs.
 type GetDeploymentLogsRequest struct {
 	// Component Only return logs from this component.
-	Component *string    `json:"component,omitempty"`
+	Component *string `json:"component,omitempty"`
+
+	// Direction Sort order for logs
 	Direction *SortOrder `json:"direction,omitempty"`
 
 	// EndEpochMillis Epoch milliseconds at which to stop fetching logs. Defaults to the current time.
@@ -3461,7 +3453,7 @@ type GetDeploymentLogsRequest struct {
 	// Limit Limit of logs to fetch in a single request
 	Limit *int `json:"limit,omitempty"`
 
-	// MinLevel A log severity level.
+	// MinLevel Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level.
 	MinLevel *LogLevel `json:"min_level,omitempty"`
 
 	// Replica Only return logs emitted by this replica (5-char short ID).
@@ -3482,11 +3474,7 @@ type GetDeploymentLogsRequest struct {
 // The watch client computes its next patch off `pending_patch_point` when present,
 // else `running_patch_point`.
 type GetDeploymentPatchesStateResponse struct {
-	// PendingPatchPoint A patch point plus its server-assigned content hash, returned in responses.
-	//
-	// Requests omit the hash (the server derives it from the source state); responses
-	// include it so the watch client can echo it back as the next patch's
-	// `prev_patch_hash` without having to recompute the fold itself.
+	// PendingPatchPoint The latest staged-but-unsynced patch point, or null when the deployment is recorded as caught up.
 	PendingPatchPoint *DeploymentPatchPointWithHash `json:"pending_patch_point,omitempty"`
 
 	// RunningPatchPoint A patch point plus its server-assigned content hash, returned in responses.
@@ -3620,6 +3608,7 @@ type GetTrainingJobCheckpointsResponse struct {
 
 // GetTrainingJobLogsRequest A request to fetch training logs.
 type GetTrainingJobLogsRequest struct {
+	// Direction Sort order for logs
 	Direction *SortOrder `json:"direction,omitempty"`
 
 	// EndEpochMillis Epoch milliseconds at which to stop fetching logs. Defaults to the current time.
@@ -3628,7 +3617,7 @@ type GetTrainingJobLogsRequest struct {
 	// Limit Limit of logs to fetch in a single request
 	Limit *int `json:"limit,omitempty"`
 
-	// MinLevel A log severity level.
+	// MinLevel Minimum log severity to include. Omit to return all log lines, including lines that have no level. Any explicit value returns lines at or above that severity and drops lines without a level.
 	MinLevel *LogLevel `json:"min_level,omitempty"`
 
 	// StartEpochMillis Epoch milliseconds at which to start fetching logs. Defaults to 30 minutes before the end. The window from start to end must not exceed 7 days.
@@ -3649,8 +3638,8 @@ type GetTrainingJobMetricsRequest struct {
 
 // GetTrainingJobMetricsResponse A response to fetch training job metrics. The outer list for each metric represents that metric across time.
 type GetTrainingJobMetricsResponse struct {
-	// Cache A metric for a training job.
-	Cache StorageMetrics `json:"cache"`
+	// Cache The storage usage for the read-write cache.
+	Cache *StorageMetrics `json:"cache"`
 
 	// CpuMemoryUsageBytes The CPU memory usage for the training job. For multinode jobs, this is the CPU memory usage of the leader unless specified otherwise.
 	CpuMemoryUsageBytes []TrainingJobMetric `json:"cpu_memory_usage_bytes"`
@@ -3691,11 +3680,7 @@ type GetTrainingJobQueueContextResponse struct {
 	// GpuType GPU type the target requested
 	GpuType string `json:"gpu_type"`
 
-	// OrgCapacity A GPU capacity row as it stands now, with ``last_modified`` so callers
-	// can judge whether the value matches what the dequeue gate saw at submit
-	// time. Capacity rows are not historicized: edits overwrite in place. Compare
-	// ``last_modified`` against the response's ``submitted_at`` — if it's later,
-	// the value may have changed.
+	// OrgCapacity Org-level cap for (org, gpu_type). None if no cap is configured.
 	OrgCapacity *CapacityAtSubmit `json:"org_capacity,omitempty"`
 
 	// PendingAheadAtSubmit PENDING jobs in the same (org, gpu_type) pool that were ahead of the target in dequeue FIFO order at submitted_at (priority DESC then created ASC). These also block the target's release.
@@ -3719,11 +3704,7 @@ type GetTrainingJobQueueContextResponse struct {
 	// TargetJobName Target job's name
 	TargetJobName *string `json:"target_job_name,omitempty"`
 
-	// TeamCapacity A GPU capacity row as it stands now, with ``last_modified`` so callers
-	// can judge whether the value matches what the dequeue gate saw at submit
-	// time. Capacity rows are not historicized: edits overwrite in place. Compare
-	// ``last_modified`` against the response's ``submitted_at`` — if it's later,
-	// the value may have changed.
+	// TeamCapacity Team-level cap for (team, gpu_type). None if no team cap is configured.
 	TeamCapacity *CapacityAtSubmit `json:"team_capacity,omitempty"`
 }
 
@@ -3941,7 +3922,9 @@ type LibraryListing struct {
 	DisplayName string `json:"display_name"`
 
 	// IsPublic Whether the listing is publicly accessible
-	IsPublic bool                    `json:"is_public"`
+	IsPublic bool `json:"is_public"`
+
+	// Metadata Model-level metadata for this listing, if it has been uploaded.
 	Metadata *LibraryListingMetadata `json:"metadata,omitempty"`
 
 	// ModifiedAt Time the listing was last modified
@@ -3992,8 +3975,10 @@ type LibraryListingTombstone struct {
 // LibraryListingVersion A library listing version.
 type LibraryListingVersion struct {
 	// AllowTrussDownload Whether users deploying this model can download the Truss
-	AllowTrussDownload bool               `json:"allow_truss_download"`
-	Benchmark          *BenchmarkSnapshot `json:"benchmark,omitempty"`
+	AllowTrussDownload bool `json:"allow_truss_download"`
+
+	// Benchmark Benchmark snapshot for this version, if one has been uploaded.
+	Benchmark *BenchmarkSnapshot `json:"benchmark,omitempty"`
 
 	// CreatedAt Time the version was created in ISO 8601 format
 	CreatedAt time.Time `json:"created_at"`
@@ -4106,7 +4091,7 @@ type LoadCheckpointConfig_Checkpoints_Item struct {
 
 // Log defines model for Log.
 type Log struct {
-	// Level A log severity level.
+	// Level Severity of the log line, if one was detected. null when unknown.
 	Level *LogLevel `json:"level,omitempty"`
 
 	// Message The contents of the log message.
@@ -4219,8 +4204,10 @@ type LoopsDeployment struct {
 	LatestRunId *string `json:"latest_run_id,omitempty"`
 
 	// NodeCount Number of nodes backing the trainer.
-	NodeCount *int          `json:"node_count,omitempty"`
-	Sampler   *LoopsSampler `json:"sampler,omitempty"`
+	NodeCount *int `json:"node_count,omitempty"`
+
+	// Sampler The sampler bound to this deployment.
+	Sampler *LoopsSampler `json:"sampler,omitempty"`
 
 	// Status Latest deployment status for a Loops deployment.
 	Status LoopsDeploymentStatus `json:"status"`
@@ -4310,7 +4297,9 @@ type LoopsRun struct {
 	Id string `json:"id"`
 
 	// Name The run's display name.
-	Name    string        `json:"name"`
+	Name string `json:"name"`
+
+	// Sampler The sampler bound to this run, or null for a trainer-only run that has not yet created a sampler.
 	Sampler *LoopsSampler `json:"sampler,omitempty"`
 
 	// SessionId The session ID this run belongs to.
@@ -4345,7 +4334,7 @@ type LoopsSampler struct {
 	DeploymentId string `json:"deployment_id"`
 	Id           string `json:"id"`
 
-	// InstanceType An instance type.
+	// InstanceType Instance type serving the sampler.
 	InstanceType *InstanceType `json:"instance_type,omitempty"`
 
 	// ModelId Hashid of the underlying Baseten model.
@@ -4434,7 +4423,7 @@ type ModelAPI struct {
 	// Name Identifier of the Model API. Stable, URL-safe slug used as the public identifier.
 	Name string `json:"name"`
 
-	// OrgDetails Workspace-specific state for a Model API.
+	// OrgDetails Workspace-specific state. Null when the workspace has not added this Model API.
 	OrgDetails *ModelAPIOrgDetails `json:"org_details,omitempty"`
 
 	// RateLimits Rate limits in effect for the workspace. Workspace-specific overrides are returned when the workspace has added this Model API and configured them; otherwise the catalog default rate limits are returned.
@@ -4716,8 +4705,10 @@ type PaginationResponse struct {
 // Only fields that are provided (non-None) will be applied.
 type PatchInteractiveSessionRequest struct {
 	// TimeoutMinutes For on_startup sessions, minutes to add to the expiration. For on_demand/on_failure sessions, minutes to add to the timeout. Use -1 for infinite timeout (bumps by 10 years).
-	TimeoutMinutes *int                         `json:"timeout_minutes,omitempty"`
-	Trigger        *V1InteractiveSessionTrigger `json:"trigger,omitempty"`
+	TimeoutMinutes *int `json:"timeout_minutes,omitempty"`
+
+	// Trigger Update when the interactive session is created. Cannot be changed if the session trigger is 'on_startup'.
+	Trigger *V1InteractiveSessionTrigger `json:"trigger,omitempty"`
 }
 
 // PatchInteractiveSessionResponse Response after patching an interactive session.
@@ -4830,7 +4821,7 @@ type PrepareModelUploadRequest struct {
 // that is not built from an uploaded archive (for example, BIS-LLM, which is
 // built from its config alone).
 type PrepareModelUploadResponse struct {
-	// Creds AWS credentials
+	// Creds STS credentials to upload the model archive. Null when no archive upload is required.
 	Creds *AWSCredentials `json:"creds,omitempty"`
 
 	// S3Bucket S3 bucket the credentials are scoped to. Null when no archive upload is required.
@@ -4878,7 +4869,7 @@ type PromotionCleanupStrategy string
 
 // PromotionSettings Promotion settings for promoting chains and oracles
 type PromotionSettings struct {
-	// PromotionCleanupStrategy The promotion cleanup strategy.
+	// PromotionCleanupStrategy The cleanup strategy to use after a promotion completes.
 	PromotionCleanupStrategy *PromotionCleanupStrategy `json:"promotion_cleanup_strategy,omitempty"`
 
 	// RampUpDurationSeconds Duration of the ramp up in seconds
@@ -4893,7 +4884,7 @@ type PromotionSettings struct {
 	// RollingDeploy Whether the environment should rely on rolling deploy orchestration.
 	RollingDeploy *bool `json:"rolling_deploy,omitempty"`
 
-	// RollingDeployConfig Rolling deploy config for promoting chains and oracles
+	// RollingDeployConfig Rolling deploy configuration for promotions
 	RollingDeployConfig *RollingDeployConfig `json:"rolling_deploy_config,omitempty"`
 }
 
@@ -5272,7 +5263,7 @@ type TrainingJob struct {
 	// future milestone.
 	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
 
-	// CheckpointSyncStatus Lifecycle state for the checkpoint uploader.
+	// CheckpointSyncStatus Checkpoint sync status of the training job.
 	CheckpointSyncStatus *CheckpointSyncStatus `json:"checkpoint_sync_status,omitempty"`
 
 	// CreatedAt Time the job was created in ISO 8601 format.
@@ -5305,7 +5296,7 @@ type TrainingJob struct {
 	// UpdatedAt Time the job was updated in ISO 8601 format.
 	UpdatedAt time.Time `json:"updated_at"`
 
-	// User A user.
+	// User The user who created the training job.
 	User *User `json:"user,omitempty"`
 }
 
@@ -5389,8 +5380,10 @@ type TrainingProject struct {
 	CreatedAt time.Time `json:"created_at"`
 
 	// Id Unique identifier of the training project
-	Id        string      `json:"id"`
-	LatestJob TrainingJob `json:"latest_job"`
+	Id string `json:"id"`
+
+	// LatestJob Most recently created training job for the training project.
+	LatestJob *TrainingJob `json:"latest_job"`
 
 	// Name Name of the training project.
 	Name string `json:"name"`
@@ -5527,7 +5520,7 @@ type UpdateAutoscalingSettingsStatus string
 
 // UpdateChainEnvironmentRequest A request to update a chain environment.
 type UpdateChainEnvironmentRequest struct {
-	// PromotionSettings Promotion settings for model promotion
+	// PromotionSettings Promotion settings for the environment
 	PromotionSettings *UpdatePromotionSettings `json:"promotion_settings,omitempty"`
 }
 
@@ -5556,8 +5549,8 @@ type UpdateChainletEnvironmentInstanceTypeRequest struct {
 // resulted in a re-deployment, `requires_redeployment` will be True and the resulting deployment
 // will be returned in the `chain_deployment` field.
 type UpdateChainletEnvironmentInstanceTypeResponse struct {
-	// ChainDeployment A deployment of a chain.
-	ChainDeployment ChainDeployment `json:"chain_deployment"`
+	// ChainDeployment The chain deployment resulting from the resource update, if any.
+	ChainDeployment *ChainDeployment `json:"chain_deployment"`
 
 	// ChainletEnvironmentSettings The updated chainlet environment settings
 	ChainletEnvironmentSettings []ChainletEnvironmentSettings `json:"chainlet_environment_settings"`
@@ -5584,16 +5577,16 @@ type UpdateEnvironmentGroupManageAccess struct {
 
 // UpdateEnvironmentGroupRequest A request to update an existing environment group.
 type UpdateEnvironmentGroupRequest struct {
-	// ManageAccess Manage-access settings to apply to an environment group.
+	// ManageAccess Manage-access settings to apply. Omit to leave manage access unchanged.
 	ManageAccess *UpdateEnvironmentGroupManageAccess `json:"manage_access,omitempty"`
 }
 
 // UpdateEnvironmentRequest A request to update an environment.
 type UpdateEnvironmentRequest struct {
-	// AutoscalingSettings A request to update autoscaling settings for a deployment. All fields are optional, and we only update ones passed in.
+	// AutoscalingSettings Autoscaling settings for the environment
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
-	// PromotionSettings Promotion settings for model promotion
+	// PromotionSettings Promotion settings for the environment
 	PromotionSettings *UpdatePromotionSettings `json:"promotion_settings,omitempty"`
 }
 
@@ -5605,6 +5598,7 @@ type UpdateGroupMetadata struct {
 
 // UpdateGroupRequest defines model for UpdateGroupRequest.
 type UpdateGroupRequest struct {
+	// Metadata Mutable group metadata.
 	Metadata *UpdateGroupMetadata `json:"metadata,omitempty"`
 
 	// Models Per-model rate and usage limit configuration.
@@ -5617,15 +5611,19 @@ type UpdateLibraryListingRequest struct {
 	DisplayName *string `json:"display_name,omitempty"`
 
 	// IsPublic Whether the listing is publicly accessible
-	IsPublic *bool                   `json:"is_public,omitempty"`
+	IsPublic *bool `json:"is_public,omitempty"`
+
+	// Metadata Model-level metadata for the listing. When provided, replaces the stored metadata. Unknown fields are rejected.
 	Metadata *LibraryListingMetadata `json:"metadata,omitempty"`
 }
 
 // UpdateLibraryListingVersionRequest Request to update a library listing version.
 type UpdateLibraryListingVersionRequest struct {
 	// AllowTrussDownload Whether users deploying this model can download the Truss
-	AllowTrussDownload *bool              `json:"allow_truss_download,omitempty"`
-	Benchmark          *BenchmarkSnapshot `json:"benchmark,omitempty"`
+	AllowTrussDownload *bool `json:"allow_truss_download,omitempty"`
+
+	// Benchmark Benchmark snapshot for this version. When provided, replaces the stored benchmark.
+	Benchmark *BenchmarkSnapshot `json:"benchmark,omitempty"`
 
 	// IsLive Whether this version should be the live version. Setting to true demotes the current live version.
 	IsLive *bool `json:"is_live,omitempty"`
@@ -5633,7 +5631,7 @@ type UpdateLibraryListingVersionRequest struct {
 
 // UpdatePromotionSettings Promotion settings for model promotion
 type UpdatePromotionSettings struct {
-	// PromotionCleanupStrategy The promotion cleanup strategy.
+	// PromotionCleanupStrategy The cleanup strategy to use after a promotion completes.
 	PromotionCleanupStrategy *PromotionCleanupStrategy `json:"promotion_cleanup_strategy,omitempty"`
 
 	// RampUpDurationSeconds Duration of the ramp up in seconds
@@ -5648,7 +5646,7 @@ type UpdatePromotionSettings struct {
 	// RollingDeploy Whether the environment should rely on rolling deploy orchestration.
 	RollingDeploy *bool `json:"rolling_deploy,omitempty"`
 
-	// RollingDeployConfig Rolling deploy config for promoting chains and oracles
+	// RollingDeployConfig Rolling deploy configuration for promotions
 	RollingDeployConfig *UpdateRollingDeployConfig `json:"rolling_deploy_config,omitempty"`
 }
 
@@ -5668,7 +5666,7 @@ type UpdateRollingDeployConfig struct {
 	// ReplicaOverheadPercent The replica overhead percentage for rolling deploys.
 	ReplicaOverheadPercent *int `json:"replica_overhead_percent,omitempty"`
 
-	// RollingDeployStrategy The rolling deploy strategy.
+	// RollingDeployStrategy The rolling deploy strategy to use for promotions.
 	RollingDeployStrategy *RollingDeployStrategy `json:"rolling_deploy_strategy,omitempty"`
 
 	// StabilizationTimeSeconds The stabilization time in seconds for rolling deploys.
@@ -5725,9 +5723,14 @@ type UsageLimitUnit string
 
 // UsageSummary Billing usage summary for the requested date range.
 type UsageSummary struct {
+	// DedicatedUsage Dedicated model serving usage
 	DedicatedUsage *DedicatedUsage `json:"dedicated_usage,omitempty"`
+
+	// ModelApisUsage Model APIs usage
 	ModelApisUsage *ModelApisUsage `json:"model_apis_usage,omitempty"`
-	TrainingUsage  *TrainingUsage  `json:"training_usage,omitempty"`
+
+	// TrainingUsage Training usage
+	TrainingUsage *TrainingUsage `json:"training_usage,omitempty"`
 }
 
 // User A user.
@@ -5996,6 +5999,21 @@ type GetV1LoopsCheckpointsParams struct {
 	CheckpointPath *string `form:"checkpoint_path,omitempty" json:"checkpoint_path,omitempty"`
 }
 
+// GetV1LoopsCheckpointsCheckpointIdFilesParams defines parameters for GetV1LoopsCheckpointsCheckpointIdFiles.
+type GetV1LoopsCheckpointsCheckpointIdFilesParams struct {
+	// PageSize Max files per page (default 1000).
+	PageSize *int `form:"page_size,omitempty" json:"page_size,omitempty"`
+
+	// PageToken Offset into the file list (default 0).
+	PageToken *int `form:"page_token,omitempty" json:"page_token,omitempty"`
+}
+
+// GetV1LoopsDeploymentsParams defines parameters for GetV1LoopsDeployments.
+type GetV1LoopsDeploymentsParams struct {
+	// Scope Defaults to the caller's own deployments; pass 'org' to list every deployment in the caller's organization.
+	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
+}
+
 // GetV1LoopsDeploymentsDeploymentIdLogsParams defines parameters for GetV1LoopsDeploymentsDeploymentIdLogs.
 type GetV1LoopsDeploymentsDeploymentIdLogsParams struct {
 	// StartEpochMillis Epoch milliseconds at which to start fetching logs. Defaults to 30 minutes before the end. The window from start to end must not exceed 7 days.
@@ -6023,6 +6041,12 @@ type GetV1LoopsRunsParams struct {
 	BaseModel *string `form:"base_model,omitempty" json:"base_model,omitempty"`
 
 	// Scope Defaults to the caller's own runs; pass 'org' to list every run in the caller's organization.
+	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
+}
+
+// GetV1LoopsSamplersParams defines parameters for GetV1LoopsSamplers.
+type GetV1LoopsSamplersParams struct {
+	// Scope Defaults to the caller's own samplers; pass 'org' to include samplers owned by other users in the caller's organization.
 	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
 }
 
@@ -6212,6 +6236,12 @@ type GetV1TeamsTeamIdLoopsRunsParams struct {
 	BaseModel *string `form:"base_model,omitempty" json:"base_model,omitempty"`
 
 	// Scope Defaults to the caller's own runs; pass 'org' to list every run in the caller's organization.
+	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
+}
+
+// GetV1TeamsTeamIdLoopsSamplersParams defines parameters for GetV1TeamsTeamIdLoopsSamplers.
+type GetV1TeamsTeamIdLoopsSamplersParams struct {
+	// Scope Defaults to the caller's own samplers; pass 'org' to include samplers owned by other users in the caller's organization.
 	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
 }
 

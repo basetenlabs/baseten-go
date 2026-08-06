@@ -5896,6 +5896,29 @@
                     }
                 ],
                 "description": "Lists Loops samplers (paired and standalone). Defaults to the caller's own; pass ?scope=org to list every sampler in the caller's organization.",
+                "parameters": [
+                    {
+                        "name": "scope",
+                        "in": "query",
+                        "required": false,
+                        "description": "Defaults to the caller's own samplers; pass 'org' to include samplers owned by other users in the caller's organization.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "org"
+                            ],
+                            "title": "Scope"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -6124,6 +6147,32 @@
                     }
                 ],
                 "description": "Gets presigned URLs for the files under a Loops checkpoint. Returns a paginated list.",
+                "parameters": [
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "required": false,
+                        "description": "Max files per page (default 1000).",
+                        "schema": {
+                            "default": 1000,
+                            "minimum": 1,
+                            "title": "Page Size",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_token",
+                        "in": "query",
+                        "required": false,
+                        "description": "Offset into the file list (default 0).",
+                        "schema": {
+                            "default": 0,
+                            "minimum": 0,
+                            "title": "Page Token",
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -6157,6 +6206,29 @@
                     }
                 ],
                 "description": "Lists Loops deployments. Defaults to the caller's own; pass ?scope=org to list every deployment in the caller's organization. Returns every deployment regardless of status; clients filter terminal states.",
+                "parameters": [
+                    {
+                        "name": "scope",
+                        "in": "query",
+                        "required": false,
+                        "description": "Defaults to the caller's own deployments; pass 'org' to list every deployment in the caller's organization.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "org"
+                            ],
+                            "title": "Scope"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -6628,7 +6700,30 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists Loops samplers (paired and standalone) in the given team, visible to the requesting user.",
+                "description": "Lists Loops samplers (paired and standalone) in the given team, visible to the requesting user. Defaults to the caller's own; pass ?scope=org to list every sampler in the team.",
+                "parameters": [
+                    {
+                        "name": "scope",
+                        "in": "query",
+                        "required": false,
+                        "description": "Defaults to the caller's own samplers; pass 'org' to include samplers owned by other users in the caller's organization.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "org"
+                            ],
+                            "title": "Scope"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -19380,6 +19475,29 @@
                 "title": "ListLoopsSamplersResponseV1",
                 "type": "object"
             },
+            "ListLoopsSamplersRequestV1": {
+                "description": "Query-string filters for the Loops sampler listing routes.",
+                "properties": {
+                    "scope": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Defaults to the caller's own samplers; pass 'org' to include samplers owned by other users in the caller's organization.",
+                        "examples": [
+                            "org"
+                        ],
+                        "title": "Scope"
+                    }
+                },
+                "title": "ListLoopsSamplersRequestV1",
+                "type": "object"
+            },
             "CreateLoopsSamplerRequestV1": {
                 "properties": {
                     "session_id": {
@@ -19722,6 +19840,27 @@
                 "title": "LoopsCheckpointFilesResponseV1",
                 "type": "object"
             },
+            "GetLoopsCheckpointFilesRequestV1": {
+                "description": "Pagination params for ``GET /v1/loops/checkpoints/<checkpoint_id>/files``.",
+                "properties": {
+                    "page_size": {
+                        "default": 1000,
+                        "description": "Max files per page (default 1000).",
+                        "minimum": 1,
+                        "title": "Page Size",
+                        "type": "integer"
+                    },
+                    "page_token": {
+                        "default": 0,
+                        "description": "Offset into the file list (default 0).",
+                        "minimum": 0,
+                        "title": "Page Token",
+                        "type": "integer"
+                    }
+                },
+                "title": "GetLoopsCheckpointFilesRequestV1",
+                "type": "object"
+            },
             "LoopsDeploymentStatusV1": {
                 "description": "Latest deployment status for a Loops deployment.",
                 "properties": {
@@ -19857,6 +19996,29 @@
                     "deployments"
                 ],
                 "title": "ListLoopsDeploymentsResponseV1",
+                "type": "object"
+            },
+            "ListLoopsDeploymentsRequestV1": {
+                "description": "Query-string filters for ``GET /v1/loops/deployments``.",
+                "properties": {
+                    "scope": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Defaults to the caller's own deployments; pass 'org' to list every deployment in the caller's organization.",
+                        "examples": [
+                            "org"
+                        ],
+                        "title": "Scope"
+                    }
+                },
+                "title": "ListLoopsDeploymentsRequestV1",
                 "type": "object"
             },
             "DeactivateLoopsDeploymentResponseV1": {

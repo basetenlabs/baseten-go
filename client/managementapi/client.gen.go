@@ -555,11 +555,12 @@ func (c *Client) GetLoopsCheckpoints(ctx context.Context, params GetV1LoopsCheck
 }
 
 // GetLoopsCheckpointsFiles: Gets Loops checkpoint files
-func (c *Client) GetLoopsCheckpointsFiles(ctx context.Context, checkpointId string) (*LoopsCheckpointFilesResponse, error) {
+func (c *Client) GetLoopsCheckpointsFiles(ctx context.Context, checkpointId string, params GetV1LoopsCheckpointsCheckpointIdFilesParams) (*LoopsCheckpointFilesResponse, error) {
 	return doJSON[LoopsCheckpointFilesResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/loops/checkpoints/%s/files",
 		pathArgs:    []any{checkpointId},
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -567,11 +568,12 @@ func (c *Client) GetLoopsCheckpointsFiles(ctx context.Context, checkpointId stri
 }
 
 // GetLoopsDeployments: Lists Loops deployments
-func (c *Client) GetLoopsDeployments(ctx context.Context) (*ListLoopsDeploymentsResponse, error) {
+func (c *Client) GetLoopsDeployments(ctx context.Context, params GetV1LoopsDeploymentsParams) (*ListLoopsDeploymentsResponse, error) {
 	return doJSON[ListLoopsDeploymentsResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/loops/deployments",
 		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -629,11 +631,12 @@ func (c *Client) GetLoopsRunsRunId(ctx context.Context, runId string) (*GetLoops
 }
 
 // GetLoopsSamplers: Lists Loops samplers
-func (c *Client) GetLoopsSamplers(ctx context.Context) (*ListLoopsSamplersResponse, error) {
+func (c *Client) GetLoopsSamplers(ctx context.Context, params GetV1LoopsSamplersParams) (*ListLoopsSamplersResponse, error) {
 	return doJSON[ListLoopsSamplersResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/loops/samplers",
 		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1000,11 +1003,12 @@ func (c *Client) GetTeamsLoopsRuns(ctx context.Context, teamId string, params Ge
 }
 
 // GetTeamsLoopsSamplers: Lists a team's Loops samplers
-func (c *Client) GetTeamsLoopsSamplers(ctx context.Context, teamId string) (*ListLoopsSamplersResponse, error) {
+func (c *Client) GetTeamsLoopsSamplers(ctx context.Context, teamId string, params GetV1TeamsTeamIdLoopsSamplersParams) (*ListLoopsSamplersResponse, error) {
 	return doJSON[ListLoopsSamplersResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/teams/%s/loops/samplers",
 		pathArgs:    []any{teamId},
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
