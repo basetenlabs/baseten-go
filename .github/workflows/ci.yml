@@ -19,16 +19,21 @@ jobs:
         with:
           go-version-file: go.mod
 
+      # One command per line: `set -e` ignores all but the last of an && chain.
       - name: Lint
         shell: bash
         run: |
           go mod tidy
-          cd internal/separate-module-tests && go mod tidy && cd ../..
-          go fmt ./... && (cd internal/separate-module-tests && go fmt ./...) && (cd internal/tools/apigen && go fmt ./...)
-          cd internal/tools/apigen && go run . && cd ../../..
+          (cd internal/separate-module-tests && go mod tidy)
+          go fmt ./...
+          (cd internal/separate-module-tests && go fmt ./...)
+          (cd internal/tools/apigen && go fmt ./...)
+          (cd internal/tools/apigen && go run .)
           git diff --exit-code
 
+      # shell: bash is required: Windows defaults to pwsh, which has no `set -e`.
       - name: Test
+        shell: bash
         env:
           # Forks won't have these secrets so e2e tests skip, but pushes
           # to main will run them.
@@ -37,4 +42,4 @@ jobs:
           BASETEN_E2E_TEST_MODEL_ID: ${{ secrets.BASETEN_E2E_TEST_MODEL_ID }}
         run: |
           go test ./...
-          cd internal/separate-module-tests && go test ./...
+          (cd internal/separate-module-tests && go test ./...)
