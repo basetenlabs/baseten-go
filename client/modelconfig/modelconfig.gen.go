@@ -755,20 +755,6 @@ type RemoteSSH struct {
 	AdditionalProperties interface{} `mapstructure:",remain"`
 }
 
-// Configuration for how the deployment handles requests when at capacity.
-type RequestBackpressure struct {
-	// queue_on_full (default) queues requests while reject_on_full returns HTTP 429
-	// if deployment is at capacity.
-	Policy *RequestBackpressurePolicy `json:"policy,omitempty,omitzero" yaml:"policy,omitempty"`
-
-	AdditionalProperties interface{} `mapstructure:",remain"`
-}
-
-type RequestBackpressurePolicy string
-
-const RequestBackpressurePolicyQueueOnFull RequestBackpressurePolicy = "queue_on_full"
-const RequestBackpressurePolicyRejectOnFull RequestBackpressurePolicy = "reject_on_full"
-
 // Compute resources that your model needs, including CPU, memory, and GPU
 // resources.
 type Resources struct {
@@ -826,10 +812,6 @@ type Runtime struct {
 
 	// RemoteSsh corresponds to the JSON schema field "remote_ssh".
 	RemoteSsh *RemoteSSH `json:"remote_ssh,omitempty,omitzero" yaml:"remote_ssh,omitempty"`
-
-	// RequestBackpressure corresponds to the JSON schema field
-	// "request_backpressure".
-	RequestBackpressure *RequestBackpressure `json:"request_backpressure,omitempty,omitzero" yaml:"request_backpressure,omitempty"`
 
 	// The timeout in seconds for streaming read operations.
 	StreamingReadTimeout int `json:"streaming_read_timeout,omitempty,omitzero" yaml:"streaming_read_timeout,omitempty"`

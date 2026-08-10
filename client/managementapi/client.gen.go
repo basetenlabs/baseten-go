@@ -153,6 +153,18 @@ func (c *Client) DeleteModelsDeploymentsReplicas(ctx context.Context, modelId st
 	})
 }
 
+// DeleteModelsEnvironments: Deletes an environment
+func (c *Client) DeleteModelsEnvironments(ctx context.Context, modelId string, envName string) (*EnvironmentTombstone, error) {
+	return doJSON[EnvironmentTombstone](c, ctx, apiRequest{
+		method:      "DELETE",
+		pathFmt:     "/v1/models/%s/environments/%s",
+		pathArgs:    []any{modelId, envName},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // DeleteSecrets: Deletes a secret by name
 func (c *Client) DeleteSecrets(ctx context.Context, secretName string) (*SecretTombstone, error) {
 	return doJSON[SecretTombstone](c, ctx, apiRequest{
@@ -722,6 +734,19 @@ func (c *Client) GetModelApisSnapshotsModelId(ctx context.Context, modelId strin
 		method:      "GET",
 		pathFmt:     "/v1/model_apis/snapshots/%s",
 		pathArgs:    []any{modelId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetModelApisUsage: Gets Model APIs token usage in time buckets
+func (c *Client) GetModelApisUsage(ctx context.Context, params GetV1ModelApisUsageParams) (*ModelApisUsageResponse, error) {
+	return doJSON[ModelApisUsageResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/model_apis/usage",
+		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,

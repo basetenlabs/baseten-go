@@ -402,6 +402,27 @@ func (e AuditLogSource) Valid() bool {
 	}
 }
 
+// Defines values for BucketWidth.
+const (
+	BucketWidth_1d BucketWidth = "1d"
+	BucketWidth_1h BucketWidth = "1h"
+	BucketWidth_1m BucketWidth = "1m"
+)
+
+// Valid indicates whether the value is a known member of the BucketWidth enum.
+func (e BucketWidth) Valid() bool {
+	switch e {
+	case BucketWidth_1d:
+		return true
+	case BucketWidth_1h:
+		return true
+	case BucketWidth_1m:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CancelPromotionStatus.
 const (
 	CancelPromotionStatus_CANCELED     CancelPromotionStatus = "CANCELED"
@@ -951,6 +972,24 @@ func (e RollingDeployStrategy) Valid() bool {
 	}
 }
 
+// Defines values for SharedEndpointRegion.
+const (
+	SharedEndpointRegion_EU           SharedEndpointRegion = "EU"
+	SharedEndpointRegion_UNRESTRICTED SharedEndpointRegion = "UNRESTRICTED"
+)
+
+// Valid indicates whether the value is a known member of the SharedEndpointRegion enum.
+func (e SharedEndpointRegion) Valid() bool {
+	switch e {
+	case SharedEndpointRegion_EU:
+		return true
+	case SharedEndpointRegion_UNRESTRICTED:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SortOrder.
 const (
 	SortOrder_asc  SortOrder = "asc"
@@ -1002,6 +1041,27 @@ func (e UpdateAutoscalingSettingsStatus) Valid() bool {
 	case UpdateAutoscalingSettingsStatus_QUEUED:
 		return true
 	case UpdateAutoscalingSettingsStatus_UNCHANGED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UsageDimension.
+const (
+	UsageDimension_api_key      UsageDimension = "api_key"
+	UsageDimension_model        UsageDimension = "model"
+	UsageDimension_service_tier UsageDimension = "service_tier"
+)
+
+// Valid indicates whether the value is a known member of the UsageDimension enum.
+func (e UsageDimension) Valid() bool {
+	switch e {
+	case UsageDimension_api_key:
+		return true
+	case UsageDimension_model:
+		return true
+	case UsageDimension_service_tier:
 		return true
 	default:
 		return false
@@ -1883,10 +1943,16 @@ type BasetenNamedCheckpointConfig struct {
 
 // BenchmarkSnapshot defines model for BenchmarkSnapshot.
 type BenchmarkSnapshot struct {
-	Hardware   string             `json:"hardware"`
-	MeasuredAt string             `json:"measured_at"`
-	Metrics    map[string]float32 `json:"metrics"`
-	RunId      string             `json:"run_id"`
+	CostPer1mTokensUsd           *float32 `json:"cost_per_1m_tokens_usd,omitempty"`
+	Hardware                     string   `json:"hardware"`
+	MaxConcurrentUsersAt50msTpot *int     `json:"max_concurrent_users_at_50ms_tpot,omitempty"`
+	MeasuredAt                   string   `json:"measured_at"`
+	OutputTokensPerSecPerUserP50 *float32 `json:"output_tokens_per_sec_per_user_p50,omitempty"`
+	Profile                      *string  `json:"profile,omitempty"`
+	Replicas                     *int     `json:"replicas,omitempty"`
+	RequestsPerSecP50            *float32 `json:"requests_per_sec_p50,omitempty"`
+	RunId                        string   `json:"run_id"`
+	TtftMsP50                    *float32 `json:"ttft_ms_p50,omitempty"`
 }
 
 // BillableResource defines model for BillableResource.
@@ -1919,6 +1985,9 @@ type BillableResource struct {
 	// TeamName Name of the team that owns the resource. Only present for organizations with multiple teams enabled.
 	TeamName *string `json:"team_name,omitempty"`
 }
+
+// BucketWidth defines model for BucketWidth.
+type BucketWidth string
 
 // CancelPromotionResponse The response to a request to cancel a promotion.
 type CancelPromotionResponse struct {
@@ -2213,6 +2282,8 @@ type CreateDeploymentPatchResponse struct {
 
 // CreateEndpointRequest defines model for CreateEndpointRequest.
 type CreateEndpointRequest struct {
+	Region *SharedEndpointRegion `json:"region,omitempty"`
+
 	// Slug Globally-unique slug of the form '{org_prefix}/{name}'.
 	Slug string `json:"slug"`
 
@@ -3192,7 +3263,8 @@ type Endpoint struct {
 	CreatedAt time.Time `json:"created_at"`
 
 	// Id Stable identifier for the endpoint.
-	Id string `json:"id"`
+	Id     string               `json:"id"`
+	Region SharedEndpointRegion `json:"region"`
 
 	// Slug Globally-unique routing slug.
 	Slug string `json:"slug"`
@@ -3349,6 +3421,18 @@ type EnvironmentGroups struct {
 	// Items Items in this page.
 	Items      []EnvironmentGroup `json:"items"`
 	Pagination PaginationResponse `json:"pagination"`
+}
+
+// EnvironmentTombstone An environment tombstone.
+type EnvironmentTombstone struct {
+	// Deleted Whether the environment was deleted
+	Deleted bool `json:"deleted"`
+
+	// ModelId Unique identifier of the model
+	ModelId string `json:"model_id"`
+
+	// Name Name of the environment
+	Name string `json:"name"`
 }
 
 // Environments list of environments
@@ -4554,6 +4638,52 @@ type ModelApisUsage_Total struct {
 	union json.RawMessage
 }
 
+// ModelApisUsageBucket One time bucket and the usage recorded in it.
+type ModelApisUsageBucket struct {
+	// EndTime End of the bucket (exclusive), UTC
+	EndTime time.Time `json:"end_time"`
+
+	// Results Usage totals for this bucket, ordered by total tokens descending
+	Results *[]ModelApisUsageResult `json:"results,omitempty"`
+
+	// StartTime Start of the bucket (inclusive), UTC
+	StartTime time.Time `json:"start_time"`
+}
+
+// ModelApisUsageResponse A page of Model APIs token usage: contiguous time buckets, ordered oldest first.
+type ModelApisUsageResponse struct {
+	// Items Items in this page.
+	Items      []ModelApisUsageBucket `json:"items"`
+	Pagination PaginationResponse     `json:"pagination"`
+}
+
+// ModelApisUsageResult Usage totals for one combination of the requested dimensions, within one bucket.
+type ModelApisUsageResult struct {
+	// ApiKeyPrefix Prefix of the API key the usage is attributed to. Null when not grouping by api_key.
+	ApiKeyPrefix *string `json:"api_key_prefix,omitempty"`
+
+	// CachedInputTokens Input tokens served from the prompt cache.
+	CachedInputTokens int `json:"cached_input_tokens"`
+
+	// InputTokens Total input tokens, cached and uncached combined.
+	InputTokens int `json:"input_tokens"`
+
+	// Model Model that served the usage. Null when not grouping by model.
+	Model *string `json:"model,omitempty"`
+
+	// OutputTokens Total output tokens.
+	OutputTokens int `json:"output_tokens"`
+
+	// RequestCount Total number of requests.
+	RequestCount int `json:"request_count"`
+
+	// ServiceTier Service tier the usage was served on. Null when not grouping by service_tier.
+	ServiceTier *string `json:"service_tier,omitempty"`
+
+	// UncachedInputTokens Input tokens not served from the prompt cache.
+	UncachedInputTokens int `json:"uncached_input_tokens"`
+}
+
 // ModelArchiveSource Create a model from an archive previously uploaded via the credentials
 // issued by `POST /v1/prepare_model_upload`.
 type ModelArchiveSource struct {
@@ -5068,6 +5198,9 @@ type Secrets struct {
 	Secrets []Secret `json:"secrets"`
 }
 
+// SharedEndpointRegion defines model for SharedEndpointRegion.
+type SharedEndpointRegion string
+
 // SignSSHCertificateRequest Request to sign an SSH certificate for accessing a workload pod.
 type SignSSHCertificateRequest struct {
 	// PublicKey The user's SSH public key (e.g., 'ssh-ed25519 AAAA... user@host').
@@ -5283,6 +5416,9 @@ type TrainingJob struct {
 
 	// Name Name of the training job.
 	Name *string `json:"name,omitempty"`
+
+	// NodeCount Number of nodes the job runs on. The instance type describes a single node, so the job's total GPU count is gpu_count multiplied by node_count.
+	NodeCount *int `json:"node_count,omitempty"`
 
 	// Priority Queue priority. Higher values are dequeued first. NULL is treated as 0.
 	Priority *int `json:"priority,omitempty"`
@@ -5710,6 +5846,9 @@ type UpsertTrainingProjectResponse struct {
 	TrainingProject TrainingProject `json:"training_project"`
 }
 
+// UsageDimension defines model for UsageDimension.
+type UsageDimension string
+
 // UsageLimit defines model for UsageLimit.
 type UsageLimit struct {
 	// Threshold The threshold for the usage limit
@@ -6060,6 +6199,36 @@ type GetV1ModelApisParams struct {
 
 	// AddedOnly When true, restrict the result to Model APIs the workspace has added. Defaults to the full visible catalog.
 	AddedOnly *bool `form:"added_only,omitempty" json:"added_only,omitempty"`
+}
+
+// GetV1ModelApisUsageParams defines parameters for GetV1ModelApisUsage.
+type GetV1ModelApisUsageParams struct {
+	// StartTime Start of the query range (ISO 8601, UTC), inclusive. Snapped down to the start of its bucket. Ignored when you pass a cursor.
+	StartTime time.Time `form:"start_time" json:"start_time"`
+
+	// EndTime End of the query range (ISO 8601, UTC), exclusive. Defaults to the current time.
+	EndTime *time.Time `form:"end_time,omitempty" json:"end_time,omitempty"`
+
+	// BucketWidth Width of each time bucket: 1m, 1h, or 1d. Defaults to 1d.
+	BucketWidth *BucketWidth `form:"bucket_width,omitempty" json:"bucket_width,omitempty"`
+
+	// GroupBy Dimensions to break usage down by, repeated once per dimension: api_key, model, service_tier. Defaults to api_key.
+	GroupBy *[]UsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
+
+	// ApiKeys Return only usage for these API key prefixes, repeated once per prefix.
+	ApiKeys *[]string `form:"api_keys,omitempty" json:"api_keys,omitempty"`
+
+	// Models Return only usage for these models, repeated once per model.
+	Models *[]string `form:"models,omitempty" json:"models,omitempty"`
+
+	// ServiceTiers Return only usage for these service tiers, repeated once per tier.
+	ServiceTiers *[]string `form:"service_tiers,omitempty" json:"service_tiers,omitempty"`
+
+	// Limit Number of time buckets to return. Defaults and maximums depend on bucket_width: 1d defaults to 7 and allows 31, 1h defaults to 24 and allows 168, 1m defaults to 60 and allows 1440.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor Opaque cursor from the pagination.cursor field of a previous response. Pass the same query parameters alongside it, apart from start_time, which the cursor supplies.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
 
 // GetV1ModelsParams defines parameters for GetV1Models.
