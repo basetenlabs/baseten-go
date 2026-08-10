@@ -243,6 +243,18 @@ type ExternalDataItem struct {
 	AdditionalProperties interface{} `mapstructure:",remain"`
 }
 
+// Network fabric requirements for a deployment.
+type FabricRequirement struct {
+	// Exhaustive list of acceptable network fabrics, in preference order. An empty
+	// list requires no fabric.
+	Preferences []string `json:"preferences,omitempty,omitzero" yaml:"preferences,omitempty"`
+
+	// Whether to use RDMA with any supported fabric.
+	UseRdma *bool `json:"use_rdma,omitempty,omitzero" yaml:"use_rdma,omitempty"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
 type GRPCOptions struct {
 	// Kind corresponds to the JSON schema field "kind".
 	Kind string `json:"kind,omitempty,omitzero" yaml:"kind,omitempty"`
@@ -753,6 +765,9 @@ type Resources struct {
 	// CPU resources needed, expressed as either a raw number or millicpus. For
 	// example, 500m is half of a CPU core.
 	Cpu string `json:"cpu,omitempty,omitzero" yaml:"cpu,omitempty"`
+
+	// Network fabric requirements for this deployment.
+	Fabric *FabricRequirement `json:"fabric,omitempty,omitzero" yaml:"fabric,omitempty"`
 
 	// The full SKU name for the instance type. When specified, cpu, memory, and
 	// accelerator fields are ignored.

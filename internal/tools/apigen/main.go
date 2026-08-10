@@ -84,7 +84,11 @@ func generateModelConfig(apigenDir, schemaFile, clientDir string) error {
 	if err != nil {
 		return fmt.Errorf("preprocessing config schema: %w", err)
 	}
-	tmp, err := os.CreateTemp("", "apigen-config-schema-*.json")
+	// The temp file goes in apigenDir, which is the command's working directory,
+	// so it can be passed as a bare filename. go-jsonschema parses the path it is
+	// given as a URL and rejects any scheme it doesn't know, and an absolute
+	// Windows path like C:\... parses as scheme "c".
+	tmp, err := os.CreateTemp(apigenDir, "apigen-config-schema-*.json")
 	if err != nil {
 		return fmt.Errorf("creating temp file: %w", err)
 	}
@@ -104,7 +108,7 @@ func generateModelConfig(apigenDir, schemaFile, clientDir string) error {
 		"--tags", "json,yaml",
 		"--package", pkgName,
 		"--output", outFile,
-		tmp.Name(),
+		filepath.Base(tmp.Name()),
 	)
 	cmd.Dir = apigenDir
 	cmd.Stdout = os.Stdout

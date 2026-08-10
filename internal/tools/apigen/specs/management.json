@@ -498,6 +498,69 @@
                 }
             ]
         },
+        "/v1/regions": {
+            "get": {
+                "summary": "Lists regions available to the organization",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/regions \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/regions\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists the regions available for new deployments in the caller's organization.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegionsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/teams/{team_id}/regions": {
+            "get": {
+                "summary": "Lists regions available to a team",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/teams/{team_id}/regions \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/regions\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists the regions the team specified in the path can place deployments in.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegionsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/team_id"
+                }
+            ]
+        },
         "/v1/instance_types": {
             "get": {
                 "summary": "Gets all available instance types",
@@ -1612,6 +1675,51 @@
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/UpdateAutoscalingSettingsV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UpdateAutoscalingSettingsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/deployment_id"
+                }
+            ]
+        },
+        "/v1/models/{model_id}/deployments/{deployment_id}/request_backpressure_policy": {
+            "patch": {
+                "summary": "Updates a deployment's request backpressure policy",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/request_backpressure_policy \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"request_backpressure_policy\": \"reject_on_full\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/request_backpressure_policy\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'request_backpressure_policy': 'reject_on_full'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateRequestBackpressurePolicyRequestV1"
                             }
                         }
                     },
@@ -2772,6 +2880,40 @@
             }
         },
         "/v1/models/{model_id}/environments/{env_name}": {
+            "delete": {
+                "summary": "Deletes an environment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Deletes an environment and returns its tombstone. Any in-progress promotion to the environment is canceled, and the deployment currently serving the environment is scaled down to zero replicas rather than deleted. The production environment cannot be deleted.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EnvironmentTombstoneV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/env_name"
+                }
+            ],
             "get": {
                 "summary": "Gets an environment's details",
                 "x-codeSamples": [
@@ -2798,14 +2940,6 @@
                     }
                 }
             },
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/model_id"
-                },
-                {
-                    "$ref": "#/components/parameters/env_name"
-                }
-            ],
             "patch": {
                 "summary": "Updates an environment's settings",
                 "x-codeSamples": [
@@ -5465,7 +5599,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/capabilities\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the list of models supported by the Loops server, including each model's maximum context length.",
+                "description": "Returns the list of models supported by the Loops server, including each model's maximum context length and whether it supports vision-language inputs.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -5554,7 +5688,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists Loops runs visible to the requesting user, optionally filtered by run id and/or base model.",
+                "description": "Lists Loops runs visible to the requesting user, optionally filtered by run id and/or base model. Defaults to the caller's own runs; pass ?scope=org to list every run in the caller's organization.",
                 "parameters": [
                     {
                         "name": "run_id",
@@ -5597,6 +5731,27 @@
                             ],
                             "title": "Base Model"
                         }
+                    },
+                    {
+                        "name": "scope",
+                        "in": "query",
+                        "required": false,
+                        "description": "Defaults to the caller's own runs; pass 'org' to list every run in the caller's organization.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "org"
+                            ],
+                            "title": "Scope"
+                        }
                     }
                 ],
                 "responses": {
@@ -5617,11 +5772,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_session_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a Loops run with an associated sampler in the given session.",
@@ -5648,6 +5803,39 @@
                     }
                 }
             }
+        },
+        "/v1/loops/runs/{run_id}/deactivate": {
+            "post": {
+                "summary": "Deactivates a Loops run",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/runs/{run_id}/deactivate \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs/{run_id}/deactivate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Shuts down a Loops run by ID, tearing down both the run and its paired sampler. Saved checkpoints remain accessible.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeactivateLoopsRunResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/run_id"
+                }
+            ]
         },
         "/v1/loops/runs/{run_id}": {
             "get": {
@@ -5682,6 +5870,44 @@
                 }
             ]
         },
+        "/v1/loops/trainers": {
+            "post": {
+                "summary": "Creates a Loops trainer",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Creates a trainer-only Loops run in the given session, without a sampler. To sample from it, create a sampler with POST /v1/loops/samplers and pass this run's ID as run_id to pair the two. List and read the trainer through the /v1/loops/runs endpoints.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateLoopsRunRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateLoopsRunResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/loops/samplers": {
             "get": {
                 "summary": "Lists Loops samplers",
@@ -5695,7 +5921,30 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists Loops samplers visible to the requesting user.",
+                "description": "Lists Loops samplers (paired and standalone). Defaults to the caller's own; pass ?scope=org to list every sampler in the caller's organization.",
+                "parameters": [
+                    {
+                        "name": "scope",
+                        "in": "query",
+                        "required": false,
+                        "description": "Defaults to the caller's own samplers; pass 'org' to include samplers owned by other users in the caller's organization.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "org"
+                            ],
+                            "title": "Scope"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -5714,11 +5963,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a standalone Loops sampler not linked to a run.",
@@ -5924,6 +6173,32 @@
                     }
                 ],
                 "description": "Gets presigned URLs for the files under a Loops checkpoint. Returns a paginated list.",
+                "parameters": [
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "required": false,
+                        "description": "Max files per page (default 1000).",
+                        "schema": {
+                            "default": 1000,
+                            "minimum": 1,
+                            "title": "Page Size",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_token",
+                        "in": "query",
+                        "required": false,
+                        "description": "Offset into the file list (default 0).",
+                        "schema": {
+                            "default": 0,
+                            "minimum": 0,
+                            "title": "Page Token",
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -5957,6 +6232,29 @@
                     }
                 ],
                 "description": "Lists Loops deployments. Defaults to the caller's own; pass ?scope=org to list every deployment in the caller's organization. Returns every deployment regardless of status; clients filter terminal states.",
+                "parameters": [
+                    {
+                        "name": "scope",
+                        "in": "query",
+                        "required": false,
+                        "description": "Defaults to the caller's own deployments; pass 'org' to list every deployment in the caller's organization.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "org"
+                            ],
+                            "title": "Scope"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -6204,6 +6502,308 @@
                     "$ref": "#/components/parameters/deployment_id"
                 }
             ]
+        },
+        "/v1/teams/{team_id}/loops/sessions": {
+            "post": {
+                "summary": "Creates a Loops session",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/sessions \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/sessions\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Creates a Loops session scoped to the calling org.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateLoopsSessionResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/team_id"
+                }
+            ]
+        },
+        "/v1/teams/{team_id}/loops/runs": {
+            "get": {
+                "summary": "Lists a team's Loops runs",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists Loops runs in the given team, visible to the requesting user, optionally filtered by run id and/or base model.",
+                "parameters": [
+                    {
+                        "name": "run_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Filter by run ID.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "k4q95w5"
+                            ],
+                            "title": "Run Id"
+                        }
+                    },
+                    {
+                        "name": "base_model",
+                        "in": "query",
+                        "required": false,
+                        "description": "Filter runs by base model name.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "Qwen/Qwen3-8B"
+                            ],
+                            "title": "Base Model"
+                        }
+                    },
+                    {
+                        "name": "scope",
+                        "in": "query",
+                        "required": false,
+                        "description": "Defaults to the caller's own runs; pass 'org' to list every run in the caller's organization.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "org"
+                            ],
+                            "title": "Scope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListLoopsRunsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/team_id"
+                }
+            ],
+            "post": {
+                "summary": "Creates a Loops run in a team",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Creates a Loops run with an associated sampler in the given session; the run's infrastructure belongs to the given team.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateLoopsRunRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateLoopsRunResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/teams/{team_id}/loops/trainers": {
+            "post": {
+                "summary": "Creates a Loops trainer",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Creates a trainer-only Loops run in the given session, without a sampler. To sample from it, create a sampler with POST /v1/loops/samplers and pass this run's ID as run_id to pair the two. List and read the trainer through the /v1/loops/runs endpoints.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateLoopsRunRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateLoopsRunResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/team_id"
+                }
+            ]
+        },
+        "/v1/teams/{team_id}/loops/samplers": {
+            "get": {
+                "summary": "Lists a team's Loops samplers",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists Loops samplers (paired and standalone) in the given team, visible to the requesting user. Defaults to the caller's own; pass ?scope=org to list every sampler in the team.",
+                "parameters": [
+                    {
+                        "name": "scope",
+                        "in": "query",
+                        "required": false,
+                        "description": "Defaults to the caller's own samplers; pass 'org' to include samplers owned by other users in the caller's organization.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "org"
+                            ],
+                            "title": "Scope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListLoopsSamplersResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/team_id"
+                }
+            ],
+            "post": {
+                "summary": "Creates a Loops sampler in a team",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Creates a standalone Loops sampler not linked to a run; the sampler belongs to the given team.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateLoopsSamplerRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateLoopsSamplerResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         },
         "/v1/training/capacity": {
             "get": {
@@ -6702,6 +7302,164 @@
                 }
             }
         },
+        "/v1/model_apis/usage": {
+            "get": {
+                "summary": "Gets Model APIs token usage in time buckets",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/model_apis/usage \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/model_apis/usage\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns your organization's Model APIs token usage as a series of contiguous time buckets, broken down by the dimensions you pass in group_by. Buckets with no usage are included, so the series has no gaps. Usage is retained for 92 days, so buckets older than that are returned with no results.",
+                "parameters": [
+                    {
+                        "name": "start_time",
+                        "in": "query",
+                        "required": true,
+                        "description": "Start of the query range (ISO 8601, UTC), inclusive. Snapped down to the start of its bucket. Ignored when you pass a cursor.",
+                        "schema": {
+                            "format": "date-time",
+                            "title": "Start Time",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "end_time",
+                        "in": "query",
+                        "required": false,
+                        "description": "End of the query range (ISO 8601, UTC), exclusive. Defaults to the current time.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "format": "date-time",
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Time"
+                        }
+                    },
+                    {
+                        "name": "bucket_width",
+                        "in": "query",
+                        "required": false,
+                        "description": "Width of each time bucket: 1m, 1h, or 1d. Defaults to 1d.",
+                        "schema": {
+                            "$ref": "#/components/schemas/BucketWidth",
+                            "default": "1d"
+                        }
+                    },
+                    {
+                        "name": "group_by",
+                        "in": "query",
+                        "required": false,
+                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, model, service_tier. Defaults to api_key.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/UsageDimension"
+                            },
+                            "title": "Group By",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "api_keys",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage for these API key prefixes, repeated once per prefix.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Api Keys",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "models",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage for these models, repeated once per model.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Models",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "service_tiers",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage for these service tiers, repeated once per tier.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Service Tiers",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Number of time buckets to return. Defaults and maximums depend on bucket_width: 1d defaults to 7 and allows 31, 1h defaults to 24 and allows 168, 1m defaults to 60 and allows 1440.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Limit"
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor from the pagination.cursor field of a previous response. Pass the same query parameters alongside it, apart from start_time, which the cursor supplies.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ModelApisUsageResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/model_apis/{model_api_name}": {
             "get": {
                 "summary": "Gets a Model API",
@@ -6983,14 +7741,14 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/library_listings/{user_defined_listing_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"display_name\": null,\n  \"is_public\": null\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/library_listings/{user_defined_listing_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"display_name\": null,\n  \"is_public\": null,\n  \"metadata\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/library_listings/{user_defined_listing_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'display_name': None, 'is_public': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/library_listings/{user_defined_listing_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'display_name': None, 'is_public': None, 'metadata': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Updates the display name of a library listing.",
+                "description": "Updates a library listing. Supported fields are the display name, public visibility, and the model-level metadata. When metadata is provided, it replaces the stored metadata.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -7150,14 +7908,14 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/library_listings/{user_defined_listing_id}/versions/{version_tag} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"is_live\": null,\n  \"allow_truss_download\": null\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/library_listings/{user_defined_listing_id}/versions/{version_tag} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"is_live\": null,\n  \"allow_truss_download\": null,\n  \"benchmark\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/library_listings/{user_defined_listing_id}/versions/{version_tag}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'is_live': None, 'allow_truss_download': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/library_listings/{user_defined_listing_id}/versions/{version_tag}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'is_live': None, 'allow_truss_download': None, 'benchmark': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Updates a library listing version. Setting is_live to true will demote the current live version.",
+                "description": "Updates a library listing version. Setting is_live to true will demote the current live version. When a benchmark is provided, it replaces the stored benchmark.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -7408,11 +8166,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/gateway/endpoints \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"slug\": \"baseten/mymodel-4\",\n  \"targets\": [\n    {\n      \"environment_name\": \"staging\",\n      \"model_id\": \"3kZ9xqd\",\n      \"provider\": \"BASETEN\",\n      \"target_model\": \"custom/model-name\"\n    }\n  ]\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/gateway/endpoints \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"slug\": \"baseten/mymodel-4\",\n  \"region\": \"UNRESTRICTED\",\n  \"targets\": [\n    {\n      \"environment_name\": \"staging\",\n      \"model_id\": \"3kZ9xqd\",\n      \"provider\": \"BASETEN\",\n      \"target_model\": \"custom/model-name\"\n    }\n  ]\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/endpoints\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'slug': 'baseten/mymodel-4', 'targets': [{'environment_name': 'staging', 'model_id': '3kZ9xqd', 'provider': 'BASETEN', 'target_model': 'custom/model-name'}]}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/gateway/endpoints\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'slug': 'baseten/mymodel-4', 'region': 'UNRESTRICTED', 'targets': [{'environment_name': 'staging', 'model_id': '3kZ9xqd', 'provider': 'BASETEN', 'target_model': 'custom/model-name'}]}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Provisions an endpoint for the given slug and its upstream target. Exactly one target is supported at this time. The slug's prefix must be one your organization owns.",
@@ -8173,6 +8931,50 @@
                 "title": "TeamsRequestV1",
                 "type": "object"
             },
+            "RegionV1": {
+                "description": "A region that deployments can be placed in.",
+                "properties": {
+                    "slug": {
+                        "description": "Stable identifier for the region, used when selecting a deployment region.",
+                        "examples": [
+                            "us"
+                        ],
+                        "title": "Slug",
+                        "type": "string"
+                    },
+                    "display_name": {
+                        "description": "Human-readable name of the region.",
+                        "examples": [
+                            "United States"
+                        ],
+                        "title": "Display Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "slug",
+                    "display_name"
+                ],
+                "title": "RegionV1",
+                "type": "object"
+            },
+            "RegionsV1": {
+                "description": "A list of regions.",
+                "properties": {
+                    "regions": {
+                        "items": {
+                            "$ref": "#/components/schemas/RegionV1"
+                        },
+                        "title": "Regions",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "regions"
+                ],
+                "title": "RegionsV1",
+                "type": "object"
+            },
             "InstanceTypeV1": {
                 "description": "An instance type.",
                 "properties": {
@@ -8719,6 +9521,19 @@
                         "default": null,
                         "description": "Prefix of the acting API key, when the actor is an API key.",
                         "title": "Api Key Prefix"
+                    },
+                    "api_key_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Display name of the acting API key, when the actor is an API key.",
+                        "title": "Api Key Name"
                     }
                 },
                 "required": [
@@ -8732,6 +9547,7 @@
                 "enum": [
                     "PERSONAL",
                     "CREATOR_SERVICE_ACCOUNT",
+                    "MANAGE_API_KEYS_SERVICE_ACCOUNT",
                     "INVOKE_ALL_MODELS_SERVICE_ACCOUNT",
                     "INVOKE_ALLOWED_MODELS_SERVICE_ACCOUNT",
                     "INVOKE_SCOPED_ENVS_AND_MODELS_SERVICE_ACCOUNT",
@@ -8788,6 +9604,7 @@
                                 "MODEL_DEPLOYED": "#/components/schemas/AuditLogEventModelDeployedV1",
                                 "MODEL_DEPLOYMENT_ACTIVATED": "#/components/schemas/AuditLogEventModelDeploymentActivatedV1",
                                 "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED": "#/components/schemas/AuditLogEventModelDeploymentAutoscalingSettingsChangedV1",
+                                "MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED": "#/components/schemas/AuditLogEventModelDeploymentBackpressurePolicyChangedV1",
                                 "MODEL_DEPLOYMENT_DEACTIVATED": "#/components/schemas/AuditLogEventModelDeploymentDeactivatedV1",
                                 "MODEL_DEPLOYMENT_DELETED": "#/components/schemas/AuditLogEventModelDeploymentDeletedV1",
                                 "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED": "#/components/schemas/AuditLogEventModelDeploymentInstanceTypeChangedV1",
@@ -8828,6 +9645,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventModelDeploymentAutoscalingSettingsChangedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventModelDeploymentBackpressurePolicyChangedV1"
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventModelDeploymentInstanceTypeChangedV1"
@@ -9064,6 +9884,205 @@
                     "prefix"
                 ],
                 "title": "AuditLogEventApiKeyDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventAutoscalingScheduleActionV1": {
+                "description": "What an autoscaling change did to one schedule.",
+                "enum": [
+                    "CREATED",
+                    "UPDATED",
+                    "DELETED",
+                    "UNCHANGED"
+                ],
+                "title": "AuditLogEventAutoscalingScheduleActionV1",
+                "type": "string"
+            },
+            "AuditLogEventAutoscalingScheduleChangeV1": {
+                "additionalProperties": false,
+                "description": "What an autoscaling change did to one schedule, and the schedule on either side of it.\n`previous` is null on a create, `current` on a delete, and an unchanged schedule carries only\n`current`. Not itself a payload in the discriminated union.",
+                "properties": {
+                    "action": {
+                        "$ref": "#/components/schemas/AuditLogEventAutoscalingScheduleActionV1"
+                    },
+                    "schedule_id": {
+                        "title": "Schedule Id",
+                        "type": "string"
+                    },
+                    "previous": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventAutoscalingScheduleSettingsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "current": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventAutoscalingScheduleSettingsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "action",
+                    "schedule_id",
+                    "previous",
+                    "current"
+                ],
+                "title": "AuditLogEventAutoscalingScheduleChangeV1",
+                "type": "object"
+            },
+            "AuditLogEventAutoscalingScheduleSettingsV1": {
+                "additionalProperties": false,
+                "description": "One autoscaling schedule: its recurrence window plus the autoscaling settings it applies while\nactive. Not itself a payload in the discriminated union.",
+                "properties": {
+                    "min_replica": {
+                        "title": "Min Replica",
+                        "type": "integer"
+                    },
+                    "max_replica": {
+                        "title": "Max Replica",
+                        "type": "integer"
+                    },
+                    "concurrency_target": {
+                        "title": "Concurrency Target",
+                        "type": "integer"
+                    },
+                    "autoscaling_window": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Autoscaling Window"
+                    },
+                    "scale_down_delay": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scale Down Delay"
+                    },
+                    "target_utilization_percentage": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target Utilization Percentage"
+                    },
+                    "target_in_flight_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target In Flight Tokens"
+                    },
+                    "max_scale_down_rate": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Scale Down Rate"
+                    },
+                    "schedule_name": {
+                        "title": "Schedule Name",
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "title": "Enabled",
+                        "type": "boolean"
+                    },
+                    "cadence": {
+                        "title": "Cadence",
+                        "type": "string"
+                    },
+                    "timezone": {
+                        "title": "Timezone",
+                        "type": "string"
+                    },
+                    "weekdays": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Weekdays",
+                        "type": "array"
+                    },
+                    "start_hour": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Start Hour"
+                    },
+                    "start_minute": {
+                        "title": "Start Minute",
+                        "type": "integer"
+                    },
+                    "end_hour": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "End Hour"
+                    },
+                    "end_minute": {
+                        "title": "End Minute",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "min_replica",
+                    "max_replica",
+                    "concurrency_target",
+                    "autoscaling_window",
+                    "scale_down_delay",
+                    "target_utilization_percentage",
+                    "target_in_flight_tokens",
+                    "max_scale_down_rate",
+                    "schedule_name",
+                    "enabled",
+                    "cadence",
+                    "timezone",
+                    "weekdays",
+                    "start_hour",
+                    "start_minute",
+                    "end_hour",
+                    "end_minute"
+                ],
+                "title": "AuditLogEventAutoscalingScheduleSettingsV1",
                 "type": "object"
             },
             "AuditLogEventAutoscalingSettingsV1": {
@@ -9895,29 +10914,6 @@
                         ],
                         "title": "Max Scale Down Rate"
                     },
-                    "model_id": {
-                        "title": "Model Id",
-                        "type": "string"
-                    },
-                    "model_name": {
-                        "title": "Model Name",
-                        "type": "string"
-                    },
-                    "environment_name": {
-                        "title": "Environment Name",
-                        "type": "string"
-                    },
-                    "deployment_type": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Deployment Type"
-                    },
                     "redeploy_on_promotion": {
                         "anyOf": [
                             {
@@ -9928,39 +10924,6 @@
                             }
                         ],
                         "title": "Redeploy On Promotion"
-                    },
-                    "ramp_up_while_promoting": {
-                        "anyOf": [
-                            {
-                                "type": "boolean"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Ramp Up While Promoting"
-                    },
-                    "ramp_up_duration_seconds": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Ramp Up Duration Seconds"
-                    },
-                    "ramp_up_step_size": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Ramp Up Step Size"
                     },
                     "rolling_deploy": {
                         "anyOf": [
@@ -10039,6 +11002,62 @@
                         ],
                         "title": "Promotion Cleanup Strategy"
                     },
+                    "ramp_up_while_promoting": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up While Promoting"
+                    },
+                    "ramp_up_duration_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up Duration Seconds"
+                    },
+                    "ramp_up_step_size": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up Step Size"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "environment_name": {
+                        "title": "Environment Name",
+                        "type": "string"
+                    },
+                    "deployment_type": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Deployment Type"
+                    },
                     "event_type": {
                         "const": "ENVIRONMENT_CREATED",
                         "title": "Event Type",
@@ -10054,14 +11073,7 @@
                     "target_utilization_percentage",
                     "target_in_flight_tokens",
                     "max_scale_down_rate",
-                    "model_id",
-                    "model_name",
-                    "environment_name",
-                    "deployment_type",
                     "redeploy_on_promotion",
-                    "ramp_up_while_promoting",
-                    "ramp_up_duration_seconds",
-                    "ramp_up_step_size",
                     "rolling_deploy",
                     "rolling_deploy_strategy",
                     "max_unavailable_percent",
@@ -10069,6 +11081,13 @@
                     "stabilization_time_seconds",
                     "replica_overhead_percent",
                     "promotion_cleanup_strategy",
+                    "ramp_up_while_promoting",
+                    "ramp_up_duration_seconds",
+                    "ramp_up_step_size",
+                    "model_id",
+                    "model_name",
+                    "environment_name",
+                    "deployment_type",
                     "event_type"
                 ],
                 "title": "AuditLogEventEnvironmentCreatedV1",
@@ -10105,9 +11124,9 @@
                 "title": "AuditLogEventEnvironmentDeletedV1",
                 "type": "object"
             },
-            "AuditLogEventEnvironmentUpdatedV1": {
+            "AuditLogEventEnvironmentSettingsV1": {
                 "additionalProperties": false,
-                "description": "A model environment's settings were updated.",
+                "description": "Full environment settings (autoscaling + rolling promotion + deprecated canary);\nshared base for the environment events and the type of their previous_settings\nsnapshots. Not itself a payload in the discriminated union.",
                 "properties": {
                     "min_replica": {
                         "title": "Min Replica",
@@ -10176,29 +11195,6 @@
                         ],
                         "title": "Max Scale Down Rate"
                     },
-                    "model_id": {
-                        "title": "Model Id",
-                        "type": "string"
-                    },
-                    "model_name": {
-                        "title": "Model Name",
-                        "type": "string"
-                    },
-                    "environment_name": {
-                        "title": "Environment Name",
-                        "type": "string"
-                    },
-                    "deployment_type": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Deployment Type"
-                    },
                     "redeploy_on_promotion": {
                         "anyOf": [
                             {
@@ -10209,39 +11205,6 @@
                             }
                         ],
                         "title": "Redeploy On Promotion"
-                    },
-                    "ramp_up_while_promoting": {
-                        "anyOf": [
-                            {
-                                "type": "boolean"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Ramp Up While Promoting"
-                    },
-                    "ramp_up_duration_seconds": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Ramp Up Duration Seconds"
-                    },
-                    "ramp_up_step_size": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Ramp Up Step Size"
                     },
                     "rolling_deploy": {
                         "anyOf": [
@@ -10320,20 +11283,38 @@
                         ],
                         "title": "Promotion Cleanup Strategy"
                     },
-                    "event_type": {
-                        "const": "ENVIRONMENT_UPDATED",
-                        "title": "Event Type",
-                        "type": "string"
-                    },
-                    "previous_settings": {
+                    "ramp_up_while_promoting": {
                         "anyOf": [
                             {
-                                "$ref": "#/components/schemas/AuditLogEventAutoscalingSettingsV1"
+                                "type": "boolean"
                             },
                             {
                                 "type": "null"
                             }
-                        ]
+                        ],
+                        "title": "Ramp Up While Promoting"
+                    },
+                    "ramp_up_duration_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up Duration Seconds"
+                    },
+                    "ramp_up_step_size": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up Step Size"
                     }
                 },
                 "required": [
@@ -10345,14 +11326,7 @@
                     "target_utilization_percentage",
                     "target_in_flight_tokens",
                     "max_scale_down_rate",
-                    "model_id",
-                    "model_name",
-                    "environment_name",
-                    "deployment_type",
                     "redeploy_on_promotion",
-                    "ramp_up_while_promoting",
-                    "ramp_up_duration_seconds",
-                    "ramp_up_step_size",
                     "rolling_deploy",
                     "rolling_deploy_strategy",
                     "max_unavailable_percent",
@@ -10360,6 +11334,283 @@
                     "stabilization_time_seconds",
                     "replica_overhead_percent",
                     "promotion_cleanup_strategy",
+                    "ramp_up_while_promoting",
+                    "ramp_up_duration_seconds",
+                    "ramp_up_step_size"
+                ],
+                "title": "AuditLogEventEnvironmentSettingsV1",
+                "type": "object"
+            },
+            "AuditLogEventEnvironmentUpdatedV1": {
+                "additionalProperties": false,
+                "description": "A model environment's settings were updated.",
+                "properties": {
+                    "schedules": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/AuditLogEventAutoscalingScheduleChangeV1"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Schedules"
+                    },
+                    "min_replica": {
+                        "title": "Min Replica",
+                        "type": "integer"
+                    },
+                    "max_replica": {
+                        "title": "Max Replica",
+                        "type": "integer"
+                    },
+                    "concurrency_target": {
+                        "title": "Concurrency Target",
+                        "type": "integer"
+                    },
+                    "autoscaling_window": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Autoscaling Window"
+                    },
+                    "scale_down_delay": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scale Down Delay"
+                    },
+                    "target_utilization_percentage": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target Utilization Percentage"
+                    },
+                    "target_in_flight_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target In Flight Tokens"
+                    },
+                    "max_scale_down_rate": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Scale Down Rate"
+                    },
+                    "redeploy_on_promotion": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Redeploy On Promotion"
+                    },
+                    "rolling_deploy": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Rolling Deploy"
+                    },
+                    "rolling_deploy_strategy": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Rolling Deploy Strategy"
+                    },
+                    "max_unavailable_percent": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Unavailable Percent"
+                    },
+                    "max_surge_percent": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Surge Percent"
+                    },
+                    "stabilization_time_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stabilization Time Seconds"
+                    },
+                    "replica_overhead_percent": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Replica Overhead Percent"
+                    },
+                    "promotion_cleanup_strategy": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Promotion Cleanup Strategy"
+                    },
+                    "ramp_up_while_promoting": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up While Promoting"
+                    },
+                    "ramp_up_duration_seconds": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up Duration Seconds"
+                    },
+                    "ramp_up_step_size": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ramp Up Step Size"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "environment_name": {
+                        "title": "Environment Name",
+                        "type": "string"
+                    },
+                    "deployment_type": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Deployment Type"
+                    },
+                    "event_type": {
+                        "const": "ENVIRONMENT_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "previous_settings": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventEnvironmentSettingsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "schedules",
+                    "min_replica",
+                    "max_replica",
+                    "concurrency_target",
+                    "autoscaling_window",
+                    "scale_down_delay",
+                    "target_utilization_percentage",
+                    "target_in_flight_tokens",
+                    "max_scale_down_rate",
+                    "redeploy_on_promotion",
+                    "rolling_deploy",
+                    "rolling_deploy_strategy",
+                    "max_unavailable_percent",
+                    "max_surge_percent",
+                    "stabilization_time_seconds",
+                    "replica_overhead_percent",
+                    "promotion_cleanup_strategy",
+                    "ramp_up_while_promoting",
+                    "ramp_up_duration_seconds",
+                    "ramp_up_step_size",
+                    "model_id",
+                    "model_name",
+                    "environment_name",
+                    "deployment_type",
                     "event_type",
                     "previous_settings"
                 ],
@@ -10585,6 +11836,20 @@
                 "additionalProperties": false,
                 "description": "A model deployment's autoscaling settings were changed.",
                 "properties": {
+                    "schedules": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/AuditLogEventAutoscalingScheduleChangeV1"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Schedules"
+                    },
                     "min_replica": {
                         "title": "Min Replica",
                         "type": "integer"
@@ -10696,6 +11961,7 @@
                     }
                 },
                 "required": [
+                    "schedules",
                     "min_replica",
                     "max_replica",
                     "concurrency_target",
@@ -10713,6 +11979,47 @@
                     "previous_settings"
                 ],
                 "title": "AuditLogEventModelDeploymentAutoscalingSettingsChangedV1",
+                "type": "object"
+            },
+            "AuditLogEventModelDeploymentBackpressurePolicyChangedV1": {
+                "additionalProperties": false,
+                "description": "A model deployment's request backpressure policy was changed.",
+                "properties": {
+                    "event_type": {
+                        "const": "MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "title": "Deployment Name",
+                        "type": "string"
+                    },
+                    "request_backpressure_policy": {
+                        "title": "Request Backpressure Policy",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "deployment_id",
+                    "deployment_name",
+                    "request_backpressure_policy"
+                ],
+                "title": "AuditLogEventModelDeploymentBackpressurePolicyChangedV1",
                 "type": "object"
             },
             "AuditLogEventModelDeploymentDeactivatedV1": {
@@ -11155,6 +12462,7 @@
                     "MODEL_DEPLOYMENT_RETRIED",
                     "MODEL_DEPLOYMENT_PROMOTED",
                     "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED",
+                    "MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED",
                     "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED",
                     "MODEL_DEPLOYMENT_DELETED",
                     "MODEL_DELETED",
@@ -11456,6 +12764,7 @@
                     "PROMOTED",
                     "ACTIVATED_DEACTIVATED",
                     "AUTOSCALING_SETTINGS",
+                    "BACKPRESSURE_POLICY",
                     "INSTANCE_TYPE_CHANGED",
                     "ENVIRONMENT_SETTINGS",
                     "REPLICA_TERMINATED",
@@ -12374,6 +13683,32 @@
                     "message"
                 ],
                 "title": "UpdateAutoscalingSettingsResponseV1",
+                "type": "object"
+            },
+            "RequestBackpressurePolicyV1": {
+                "enum": [
+                    "queue_on_full",
+                    "reject_on_full"
+                ],
+                "title": "RequestBackpressurePolicyV1",
+                "type": "string"
+            },
+            "UpdateRequestBackpressurePolicyRequestV1": {
+                "additionalProperties": false,
+                "description": "Request body for ``PATCH /v1/models/.../deployments/.../request_backpressure_policy``.",
+                "properties": {
+                    "request_backpressure_policy": {
+                        "$ref": "#/components/schemas/RequestBackpressurePolicyV1",
+                        "description": "Controls how the deployment handles requests when at capacity. queue_on_full (default) queues requests while reject_on_full returns HTTP 429.",
+                        "examples": [
+                            "reject_on_full"
+                        ]
+                    }
+                },
+                "required": [
+                    "request_backpressure_policy"
+                ],
+                "title": "UpdateRequestBackpressurePolicyRequestV1",
                 "type": "object"
             },
             "PromoteRequestV1": {
@@ -14075,6 +15410,33 @@
                 "title": "CreateEnvironmentRequestV1",
                 "type": "object"
             },
+            "EnvironmentTombstoneV1": {
+                "description": "An environment tombstone.",
+                "properties": {
+                    "name": {
+                        "description": "Name of the environment",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "description": "Unique identifier of the model",
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "deleted": {
+                        "description": "Whether the environment was deleted",
+                        "title": "Deleted",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "name",
+                    "model_id",
+                    "deleted"
+                ],
+                "title": "EnvironmentTombstoneV1",
+                "type": "object"
+            },
             "UpdateEnvironmentRequestV1": {
                 "additionalProperties": false,
                 "description": "A request to update an environment.",
@@ -15203,6 +16565,16 @@
                         "$ref": "#/components/schemas/InstanceTypeV1",
                         "description": "Instance type of the training job."
                     },
+                    "node_count": {
+                        "default": 1,
+                        "description": "Number of nodes the job runs on. The instance type describes a single node, so the job's total GPU count is gpu_count multiplied by node_count.",
+                        "examples": [
+                            2
+                        ],
+                        "minimum": 1,
+                        "title": "Node Count",
+                        "type": "integer"
+                    },
                     "updated_at": {
                         "description": "Time the job was updated in ISO 8601 format.",
                         "format": "date-time",
@@ -15580,6 +16952,7 @@
                             "s3://my-bucket/models/llama",
                             "gs://my-bucket/models/llama",
                             "r2://account_id.bucket/models/llama",
+                            "r2://account_id.eu.bucket/models/llama",
                             "cw://my-bucket/models/llama"
                         ],
                         "title": "Source",
@@ -17802,11 +19175,17 @@
                         "description": "The maximum context length (in tokens) supported by this model.",
                         "title": "Max Context Length",
                         "type": "integer"
+                    },
+                    "supports_vision_language": {
+                        "description": "Whether the model accepts image inputs alongside text.",
+                        "title": "Supports Vision Language",
+                        "type": "boolean"
                     }
                 },
                 "required": [
                     "model_name",
-                    "max_context_length"
+                    "max_context_length",
+                    "supports_vision_language"
                 ],
                 "title": "SupportedModelV1",
                 "type": "object"
@@ -17868,6 +19247,29 @@
                 "title": "GetLoopsSessionResponseV1",
                 "type": "object"
             },
+            "LoopsRunStatusNameV1": {
+                "description": "A Loops run's lifecycle state: ACTIVE or INACTIVE.",
+                "enum": [
+                    "ACTIVE",
+                    "INACTIVE"
+                ],
+                "title": "LoopsRunStatusNameV1",
+                "type": "string"
+            },
+            "LoopsRunStatusV1": {
+                "description": "The current status of a Loops run.",
+                "properties": {
+                    "name": {
+                        "$ref": "#/components/schemas/LoopsRunStatusNameV1",
+                        "description": "ACTIVE while the run is live; INACTIVE once replaced by a newer run or shut down."
+                    }
+                },
+                "required": [
+                    "name"
+                ],
+                "title": "LoopsRunStatusV1",
+                "type": "object"
+            },
             "LoopsRunV1": {
                 "properties": {
                     "id": {
@@ -17906,9 +19308,25 @@
                         "title": "Created At",
                         "type": "string"
                     },
+                    "status": {
+                        "$ref": "#/components/schemas/LoopsRunStatusV1",
+                        "description": "The run's current status."
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/UserV1",
+                        "description": "The user who owns the run."
+                    },
                     "sampler": {
-                        "$ref": "#/components/schemas/LoopsSamplerV1",
-                        "description": "The sampler bound to this run."
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LoopsSamplerV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The sampler bound to this run, or null for a trainer-only run that has not yet created a sampler."
                     }
                 },
                 "required": [
@@ -17919,7 +19337,8 @@
                     "base_model",
                     "base_url",
                     "created_at",
-                    "sampler"
+                    "status",
+                    "user"
                 ],
                 "title": "LoopsRunV1",
                 "type": "object"
@@ -17972,6 +19391,28 @@
                     "status": {
                         "$ref": "#/components/schemas/LoopsSamplerStatusV1",
                         "description": "The sampler's current status."
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/UserV1",
+                        "description": "The user who owns the sampler."
+                    },
+                    "instance_type": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/InstanceTypeV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Instance type serving the sampler."
+                    },
+                    "node_count": {
+                        "default": 1,
+                        "description": "Number of nodes serving the sampler.",
+                        "title": "Node Count",
+                        "type": "integer"
                     }
                 },
                 "required": [
@@ -17981,7 +19422,8 @@
                     "created_at",
                     "model_id",
                     "deployment_id",
-                    "status"
+                    "status",
+                    "user"
                 ],
                 "title": "LoopsSamplerV1",
                 "type": "object"
@@ -18005,7 +19447,7 @@
                 "type": "object"
             },
             "ListLoopsRunsQueryParamsV1": {
-                "description": "Query-string filters for ``GET /v1/loops/runs``.\n\nBoth filters are optional and can be combined; omit both to list all\nruns visible to the caller.",
+                "description": "Query-string filters for ``GET /v1/loops/runs``.\n\nAll filters are optional and can be combined; omit them to list the caller's\nown runs. Pass ``scope=org`` to list every run in the caller's organization\ninstead.",
                 "properties": {
                     "run_id": {
                         "anyOf": [
@@ -18038,6 +19480,22 @@
                             "Qwen/Qwen3-8B"
                         ],
                         "title": "Base Model"
+                    },
+                    "scope": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Defaults to the caller's own runs; pass 'org' to list every run in the caller's organization.",
+                        "examples": [
+                            "org"
+                        ],
+                        "title": "Scope"
                     }
                 },
                 "title": "ListLoopsRunsQueryParamsV1",
@@ -18086,6 +19544,7 @@
                     "lora_rank": {
                         "default": 64,
                         "description": "LoRA rank.",
+                        "minimum": 1,
                         "title": "Lora Rank",
                         "type": "integer"
                     },
@@ -18133,6 +19592,19 @@
                         ],
                         "title": "Path"
                     },
+                    "reuse_from_run_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional ID of a prior Loops run whose trainer and/or sampler should be reused for this run instead of provisioning fresh. The prior run must use the same base model and belong to the same team.",
+                        "title": "Reuse From Run Id"
+                    },
                     "reuse_from_session_id": {
                         "anyOf": [
                             {
@@ -18143,7 +19615,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Optional Loops session ID whose trainer deployment should be reused for this run, sharing the infrastructure across sessions instead of provisioning fresh. The named session must belong to the same team. Reuse is best-effort: if the prior deployment is stopped, failed, its sampler is unhealthy, or this run requests replicas != 1, a new deployment is provisioned instead.",
+                        "description": "Optional ID of a prior Loops session whose trainer and/or sampler should be reused for this run. Deprecated in favor of reuse_from_run_id.",
                         "title": "Reuse From Session Id"
                     }
                 },
@@ -18164,6 +19636,32 @@
                     "run"
                 ],
                 "title": "CreateLoopsRunResponseV1",
+                "type": "object"
+            },
+            "DeactivateLoopsRunResponseV1": {
+                "description": "Response for ``POST /v1/loops/runs/<run_id>/deactivate``.",
+                "properties": {
+                    "id": {
+                        "description": "The deactivated Loops run ID.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "base_model": {
+                        "description": "The base model whose Loops run was deactivated.",
+                        "title": "Base Model",
+                        "type": "string"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/UserV1",
+                        "description": "The user who owns the Loops run."
+                    }
+                },
+                "required": [
+                    "id",
+                    "base_model",
+                    "user"
+                ],
+                "title": "DeactivateLoopsRunResponseV1",
                 "type": "object"
             },
             "GetLoopsRunResponseV1": {
@@ -18198,6 +19696,29 @@
                 "title": "ListLoopsSamplersResponseV1",
                 "type": "object"
             },
+            "ListLoopsSamplersRequestV1": {
+                "description": "Query-string filters for the Loops sampler listing routes.",
+                "properties": {
+                    "scope": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Defaults to the caller's own samplers; pass 'org' to include samplers owned by other users in the caller's organization.",
+                        "examples": [
+                            "org"
+                        ],
+                        "title": "Scope"
+                    }
+                },
+                "title": "ListLoopsSamplersRequestV1",
+                "type": "object"
+            },
             "CreateLoopsSamplerRequestV1": {
                 "properties": {
                     "session_id": {
@@ -18206,9 +19727,30 @@
                         "type": "string"
                     },
                     "base_model": {
-                        "description": "Base model ID for standalone samplers (e.g., for baselines).",
-                        "title": "Base Model",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Base model ID for a standalone sampler (for example, a baseline).",
+                        "title": "Base Model"
+                    },
+                    "run_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of an existing run to attach this sampler to. When set, the sampler is paired to the run and weight-syncs from its trainer, and base_model is inherited from the run. Omit to create a standalone sampler.",
+                        "title": "Run Id"
                     },
                     "max_seq_length": {
                         "anyOf": [
@@ -18220,7 +19762,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Maximum prompt length (in tokens) the sampler must handle. Set this to the longest prompt you plan to send. Omit to use the default for the base model.",
+                        "description": "Maximum prompt length (in tokens) the sampler must handle. Set this to the longest prompt you plan to send.",
                         "title": "Max Seq Length"
                     },
                     "model_path": {
@@ -18233,7 +19775,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Optional bt:// URI of an existing sampler-target checkpoint to load weights from on startup. Form: bt://loops:<run_id>/sampler_weights/<checkpoint_name>.",
+                        "description": "bt:// URI of an existing sampler checkpoint to serve. Form: bt://loops:<run_id>/sampler_weights/<checkpoint_name>.",
                         "examples": [
                             "bt://loops:k4q95w5/sampler_weights/step-100"
                         ],
@@ -18249,13 +19791,12 @@
                             }
                         ],
                         "default": null,
-                        "description": "Optional Loops session ID whose deployment should be reused for this sampler. Same best-effort semantics as the run endpoint.",
+                        "description": "Optional ID of a prior Loops session to reuse a trainer and/or sampler from. Deprecated.",
                         "title": "Reuse From Session Id"
                     }
                 },
                 "required": [
-                    "session_id",
-                    "base_model"
+                    "session_id"
                 ],
                 "title": "CreateLoopsSamplerRequestV1",
                 "type": "object"
@@ -18520,6 +20061,27 @@
                 "title": "LoopsCheckpointFilesResponseV1",
                 "type": "object"
             },
+            "GetLoopsCheckpointFilesRequestV1": {
+                "description": "Pagination params for ``GET /v1/loops/checkpoints/<checkpoint_id>/files``.",
+                "properties": {
+                    "page_size": {
+                        "default": 1000,
+                        "description": "Max files per page (default 1000).",
+                        "minimum": 1,
+                        "title": "Page Size",
+                        "type": "integer"
+                    },
+                    "page_token": {
+                        "default": 0,
+                        "description": "Offset into the file list (default 0).",
+                        "minimum": 0,
+                        "title": "Page Token",
+                        "type": "integer"
+                    }
+                },
+                "title": "GetLoopsCheckpointFilesRequestV1",
+                "type": "object"
+            },
             "LoopsDeploymentStatusV1": {
                 "description": "Latest deployment status for a Loops deployment.",
                 "properties": {
@@ -18555,6 +20117,19 @@
                         "description": "The ID of the run currently active on this deployment, if any. Null when the deployment's runs have been marked inactive (e.g. scale-to-zero) without a successor.",
                         "title": "Active Run Id"
                     },
+                    "latest_run_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The ID of the most recent run on this deployment, active or not, so idle deployments still expose a usable run handle. Null only if the deployment has no runs.",
+                        "title": "Latest Run Id"
+                    },
                     "base_model": {
                         "description": "The HuggingFace base model the deployment is fine-tuning.",
                         "title": "Base Model",
@@ -18572,6 +20147,22 @@
                     "user": {
                         "$ref": "#/components/schemas/UserV1",
                         "description": "The user who owns the Loops deployment."
+                    },
+                    "created_at": {
+                        "description": "Time the deployment was created in ISO 8601 format.",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    },
+                    "instance_type": {
+                        "$ref": "#/components/schemas/InstanceTypeV1",
+                        "description": "Instance type backing the trainer."
+                    },
+                    "node_count": {
+                        "default": 1,
+                        "description": "Number of nodes backing the trainer.",
+                        "title": "Node Count",
+                        "type": "integer"
                     },
                     "sampler": {
                         "anyOf": [
@@ -18591,7 +20182,9 @@
                     "base_model",
                     "base_url",
                     "status",
-                    "user"
+                    "user",
+                    "created_at",
+                    "instance_type"
                 ],
                 "title": "LoopsDeploymentV1",
                 "type": "object"
@@ -18624,6 +20217,29 @@
                     "deployments"
                 ],
                 "title": "ListLoopsDeploymentsResponseV1",
+                "type": "object"
+            },
+            "ListLoopsDeploymentsRequestV1": {
+                "description": "Query-string filters for ``GET /v1/loops/deployments``.",
+                "properties": {
+                    "scope": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Defaults to the caller's own deployments; pass 'org' to list every deployment in the caller's organization.",
+                        "examples": [
+                            "org"
+                        ],
+                        "title": "Scope"
+                    }
+                },
+                "title": "ListLoopsDeploymentsRequestV1",
                 "type": "object"
             },
             "DeactivateLoopsDeploymentResponseV1": {
@@ -18923,7 +20539,7 @@
                 "type": "object"
             },
             "ResponseTimeDatapointV1": {
-                "description": "Latency quantile datapoint.\n\nValues are reported in **milliseconds** to match the oracle/inference\n``response_time_stats`` convention. Source histogram is the queue-proxy's\n``revision_request_latencies_bucket`` whose bucket boundaries are in ms.",
+                "description": "Latency quantile datapoint. Values are reported in milliseconds.",
                 "properties": {
                     "timestamp": {
                         "description": "ISO 8601 timestamp.",
@@ -19627,7 +21243,8 @@
                     "PERSONAL",
                     "WORKSPACE_MANAGE_ALL",
                     "WORKSPACE_EXPORT_METRICS",
-                    "WORKSPACE_INVOKE"
+                    "WORKSPACE_INVOKE",
+                    "WORKSPACE_MANAGE_API_KEYS"
                 ],
                 "title": "APIKeyCategory",
                 "type": "string"
@@ -19656,6 +21273,7 @@
                         "description": "Type of the API key.",
                         "examples": [
                             "PERSONAL",
+                            "WORKSPACE_MANAGE_API_KEYS",
                             "WORKSPACE_EXPORT_METRICS",
                             "WORKSPACE_INVOKE",
                             "WORKSPACE_MANAGE_ALL"
@@ -19733,6 +21351,7 @@
                         "description": "Type of the API key.",
                         "examples": [
                             "PERSONAL",
+                            "WORKSPACE_MANAGE_API_KEYS",
                             "WORKSPACE_EXPORT_METRICS",
                             "WORKSPACE_INVOKE",
                             "WORKSPACE_MANAGE_ALL"
@@ -20186,6 +21805,248 @@
                 "title": "ModelAPIsRequestV1",
                 "type": "object"
             },
+            "ModelApisUsageBucketV1": {
+                "description": "One time bucket and the usage recorded in it.",
+                "properties": {
+                    "start_time": {
+                        "description": "Start of the bucket (inclusive), UTC",
+                        "format": "date-time",
+                        "title": "Start Time",
+                        "type": "string"
+                    },
+                    "end_time": {
+                        "description": "End of the bucket (exclusive), UTC",
+                        "format": "date-time",
+                        "title": "End Time",
+                        "type": "string"
+                    },
+                    "results": {
+                        "description": "Usage totals for this bucket, ordered by total tokens descending",
+                        "items": {
+                            "$ref": "#/components/schemas/ModelApisUsageResultV1"
+                        },
+                        "title": "Results",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "start_time",
+                    "end_time"
+                ],
+                "title": "ModelApisUsageBucketV1",
+                "type": "object"
+            },
+            "ModelApisUsageResultV1": {
+                "description": "Usage totals for one combination of the requested dimensions, within one bucket.",
+                "properties": {
+                    "api_key_prefix": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Prefix of the API key the usage is attributed to. Null when not grouping by api_key.",
+                        "title": "Api Key Prefix"
+                    },
+                    "model": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Model that served the usage. Null when not grouping by model.",
+                        "title": "Model"
+                    },
+                    "service_tier": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Service tier the usage was served on. Null when not grouping by service_tier.",
+                        "title": "Service Tier"
+                    },
+                    "input_tokens": {
+                        "description": "Total input tokens, cached and uncached combined.",
+                        "title": "Input Tokens",
+                        "type": "integer"
+                    },
+                    "cached_input_tokens": {
+                        "description": "Input tokens served from the prompt cache.",
+                        "title": "Cached Input Tokens",
+                        "type": "integer"
+                    },
+                    "uncached_input_tokens": {
+                        "description": "Input tokens not served from the prompt cache.",
+                        "title": "Uncached Input Tokens",
+                        "type": "integer"
+                    },
+                    "output_tokens": {
+                        "description": "Total output tokens.",
+                        "title": "Output Tokens",
+                        "type": "integer"
+                    },
+                    "request_count": {
+                        "description": "Total number of requests.",
+                        "title": "Request Count",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "input_tokens",
+                    "cached_input_tokens",
+                    "uncached_input_tokens",
+                    "output_tokens",
+                    "request_count"
+                ],
+                "title": "ModelApisUsageResultV1",
+                "type": "object"
+            },
+            "ModelApisUsageResponseV1": {
+                "description": "A page of Model APIs token usage: contiguous time buckets, ordered oldest first.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/ModelApisUsageBucketV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "ModelApisUsageResponseV1",
+                "type": "object"
+            },
+            "BucketWidth": {
+                "enum": [
+                    "1m",
+                    "1h",
+                    "1d"
+                ],
+                "title": "BucketWidth",
+                "type": "string"
+            },
+            "UsageDimension": {
+                "enum": [
+                    "api_key",
+                    "model",
+                    "service_tier"
+                ],
+                "title": "UsageDimension",
+                "type": "string"
+            },
+            "ModelApisUsageRequestV1": {
+                "properties": {
+                    "start_time": {
+                        "description": "Start of the query range (ISO 8601, UTC), inclusive. Snapped down to the start of its bucket. Ignored when you pass a cursor.",
+                        "format": "date-time",
+                        "title": "Start Time",
+                        "type": "string"
+                    },
+                    "end_time": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "End of the query range (ISO 8601, UTC), exclusive. Defaults to the current time.",
+                        "title": "End Time"
+                    },
+                    "bucket_width": {
+                        "$ref": "#/components/schemas/BucketWidth",
+                        "default": "1d",
+                        "description": "Width of each time bucket: 1m, 1h, or 1d. Defaults to 1d."
+                    },
+                    "group_by": {
+                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, model, service_tier. Defaults to api_key.",
+                        "items": {
+                            "$ref": "#/components/schemas/UsageDimension"
+                        },
+                        "title": "Group By",
+                        "type": "array"
+                    },
+                    "api_keys": {
+                        "description": "Return only usage for these API key prefixes, repeated once per prefix.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Api Keys",
+                        "type": "array"
+                    },
+                    "models": {
+                        "description": "Return only usage for these models, repeated once per model.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Models",
+                        "type": "array"
+                    },
+                    "service_tiers": {
+                        "description": "Return only usage for these service tiers, repeated once per tier.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Service Tiers",
+                        "type": "array"
+                    },
+                    "limit": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Number of time buckets to return. Defaults and maximums depend on bucket_width: 1d defaults to 7 and allows 31, 1h defaults to 24 and allows 168, 1m defaults to 60 and allows 1440.",
+                        "title": "Limit"
+                    },
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor from the pagination.cursor field of a previous response. Pass the same query parameters alongside it, apart from start_time, which the cursor supplies.",
+                        "title": "Cursor"
+                    }
+                },
+                "required": [
+                    "start_time"
+                ],
+                "title": "ModelApisUsageRequestV1",
+                "type": "object"
+            },
             "CreateLLMModelRequestV1": {
                 "description": "A request to create a BIS-LLM model",
                 "properties": {
@@ -20528,6 +22389,70 @@
                 "title": "CreateLLMModelVersionRequestV1",
                 "type": "object"
             },
+            "LibraryListingMetadataV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "parameter_count": {
+                        "title": "Parameter Count",
+                        "type": "integer"
+                    },
+                    "context_length": {
+                        "title": "Context Length",
+                        "type": "integer"
+                    },
+                    "input_modalities": {
+                        "default": [
+                            "text"
+                        ],
+                        "items": {
+                            "enum": [
+                                "text",
+                                "image"
+                            ],
+                            "type": "string"
+                        },
+                        "title": "Input Modalities",
+                        "type": "array"
+                    },
+                    "output_modalities": {
+                        "default": [
+                            "text"
+                        ],
+                        "items": {
+                            "enum": [
+                                "text",
+                                "image"
+                            ],
+                            "type": "string"
+                        },
+                        "title": "Output Modalities",
+                        "type": "array"
+                    },
+                    "license": {
+                        "title": "License",
+                        "type": "string"
+                    },
+                    "variant": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Variant"
+                    }
+                },
+                "required": [
+                    "parameter_count",
+                    "context_length",
+                    "license"
+                ],
+                "title": "LibraryListingMetadataV1",
+                "type": "object"
+            },
             "LibraryListingV1": {
                 "description": "A library listing.",
                 "properties": {
@@ -20562,6 +22487,18 @@
                         "format": "date-time",
                         "title": "Modified At",
                         "type": "string"
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LibraryListingMetadataV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Model-level metadata for this listing, if it has been uploaded."
                     }
                 },
                 "required": [
@@ -20674,9 +22611,129 @@
                         "default": null,
                         "description": "Whether the listing is publicly accessible",
                         "title": "Is Public"
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LibraryListingMetadataV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Model-level metadata for the listing. When provided, replaces the stored metadata. Unknown fields are rejected."
                     }
                 },
                 "title": "UpdateLibraryListingRequestV1",
+                "type": "object"
+            },
+            "BenchmarkSnapshotV1": {
+                "properties": {
+                    "run_id": {
+                        "title": "Run Id",
+                        "type": "string"
+                    },
+                    "hardware": {
+                        "title": "Hardware",
+                        "type": "string"
+                    },
+                    "measured_at": {
+                        "format": "date",
+                        "title": "Measured At",
+                        "type": "string"
+                    },
+                    "ttft_ms_p50": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Ttft Ms P50"
+                    },
+                    "output_tokens_per_sec_per_user_p50": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Output Tokens Per Sec Per User P50"
+                    },
+                    "max_concurrent_users_at_50ms_tpot": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Max Concurrent Users At 50Ms Tpot"
+                    },
+                    "requests_per_sec_p50": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Requests Per Sec P50"
+                    },
+                    "cost_per_1m_tokens_usd": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Cost Per 1M Tokens Usd"
+                    },
+                    "replicas": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": 2,
+                        "title": "Replicas"
+                    },
+                    "profile": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": "512x256",
+                        "title": "Profile"
+                    }
+                },
+                "required": [
+                    "run_id",
+                    "hardware",
+                    "measured_at"
+                ],
+                "title": "BenchmarkSnapshotV1",
                 "type": "object"
             },
             "LibraryListingVersionV1": {
@@ -20713,6 +22770,18 @@
                         "format": "date-time",
                         "title": "Modified At",
                         "type": "string"
+                    },
+                    "benchmark": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/BenchmarkSnapshotV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Benchmark snapshot for this version, if one has been uploaded."
                     }
                 },
                 "required": [
@@ -20844,6 +22913,18 @@
                         "default": null,
                         "description": "Whether users deploying this model can download the Truss",
                         "title": "Allow Truss Download"
+                    },
+                    "benchmark": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/BenchmarkSnapshotV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Benchmark snapshot for this version. When provided, replaces the stored benchmark."
                     }
                 },
                 "title": "UpdateLibraryListingVersionRequestV1",
@@ -20928,6 +23009,32 @@
                         ],
                         "default": null,
                         "description": "Chain metadata if this is a chainlet deployment"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Unique identifier of the team that owns the resource. Only present for organizations with multiple teams enabled.",
+                        "title": "Team Id"
+                    },
+                    "team_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name of the team that owns the resource. Only present for organizations with multiple teams enabled.",
+                        "title": "Team Name"
                     }
                 },
                 "required": [
@@ -21790,6 +23897,10 @@
                         "title": "Slug",
                         "type": "string"
                     },
+                    "region": {
+                        "$ref": "#/components/schemas/SharedEndpointRegionV1",
+                        "description": "Region this endpoint's routing serves."
+                    },
                     "created_at": {
                         "description": "Creation time, ISO 8601.",
                         "format": "date-time",
@@ -21814,6 +23925,7 @@
                 "required": [
                     "id",
                     "slug",
+                    "region",
                     "created_at",
                     "updated_at",
                     "targets"
@@ -21832,6 +23944,14 @@
                     "OPENAI_COMPATIBLE"
                 ],
                 "title": "GatewayProvider",
+                "type": "string"
+            },
+            "SharedEndpointRegionV1": {
+                "enum": [
+                    "UNRESTRICTED",
+                    "EU"
+                ],
+                "title": "SharedEndpointRegionV1",
                 "type": "string"
             },
             "VertexTargetConfigV1": {
@@ -22004,6 +24124,11 @@
                         ],
                         "title": "Slug",
                         "type": "string"
+                    },
+                    "region": {
+                        "$ref": "#/components/schemas/SharedEndpointRegionV1",
+                        "default": "UNRESTRICTED",
+                        "description": "Region the new routing serves."
                     },
                     "targets": {
                         "description": "The endpoint's upstream targets. Exactly one target is supported at this time.",

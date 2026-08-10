@@ -153,6 +153,18 @@ func (c *Client) DeleteModelsDeploymentsReplicas(ctx context.Context, modelId st
 	})
 }
 
+// DeleteModelsEnvironments: Deletes an environment
+func (c *Client) DeleteModelsEnvironments(ctx context.Context, modelId string, envName string) (*EnvironmentTombstone, error) {
+	return doJSON[EnvironmentTombstone](c, ctx, apiRequest{
+		method:      "DELETE",
+		pathFmt:     "/v1/models/%s/environments/%s",
+		pathArgs:    []any{modelId, envName},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // DeleteSecrets: Deletes a secret by name
 func (c *Client) DeleteSecrets(ctx context.Context, secretName string) (*SecretTombstone, error) {
 	return doJSON[SecretTombstone](c, ctx, apiRequest{
@@ -555,11 +567,12 @@ func (c *Client) GetLoopsCheckpoints(ctx context.Context, params GetV1LoopsCheck
 }
 
 // GetLoopsCheckpointsFiles: Gets Loops checkpoint files
-func (c *Client) GetLoopsCheckpointsFiles(ctx context.Context, checkpointId string) (*LoopsCheckpointFilesResponse, error) {
+func (c *Client) GetLoopsCheckpointsFiles(ctx context.Context, checkpointId string, params GetV1LoopsCheckpointsCheckpointIdFilesParams) (*LoopsCheckpointFilesResponse, error) {
 	return doJSON[LoopsCheckpointFilesResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/loops/checkpoints/%s/files",
 		pathArgs:    []any{checkpointId},
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -567,11 +580,12 @@ func (c *Client) GetLoopsCheckpointsFiles(ctx context.Context, checkpointId stri
 }
 
 // GetLoopsDeployments: Lists Loops deployments
-func (c *Client) GetLoopsDeployments(ctx context.Context) (*ListLoopsDeploymentsResponse, error) {
+func (c *Client) GetLoopsDeployments(ctx context.Context, params GetV1LoopsDeploymentsParams) (*ListLoopsDeploymentsResponse, error) {
 	return doJSON[ListLoopsDeploymentsResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/loops/deployments",
 		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -629,11 +643,12 @@ func (c *Client) GetLoopsRunsRunId(ctx context.Context, runId string) (*GetLoops
 }
 
 // GetLoopsSamplers: Lists Loops samplers
-func (c *Client) GetLoopsSamplers(ctx context.Context) (*ListLoopsSamplersResponse, error) {
+func (c *Client) GetLoopsSamplers(ctx context.Context, params GetV1LoopsSamplersParams) (*ListLoopsSamplersResponse, error) {
 	return doJSON[ListLoopsSamplersResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/loops/samplers",
 		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -719,6 +734,19 @@ func (c *Client) GetModelApisSnapshotsModelId(ctx context.Context, modelId strin
 		method:      "GET",
 		pathFmt:     "/v1/model_apis/snapshots/%s",
 		pathArgs:    []any{modelId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetModelApisUsage: Gets Model APIs token usage in time buckets
+func (c *Client) GetModelApisUsage(ctx context.Context, params GetV1ModelApisUsageParams) (*ModelApisUsageResponse, error) {
+	return doJSON[ModelApisUsageResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/model_apis/usage",
+		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -925,6 +953,18 @@ func (c *Client) GetModelsModelId(ctx context.Context, modelId string) (*Model, 
 	})
 }
 
+// GetRegions: Lists regions available to the organization
+func (c *Client) GetRegions(ctx context.Context) (*Regions, error) {
+	return doJSON[Regions](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/regions",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetSecrets: Gets all secrets (metadata only, no plain text keys)
 func (c *Client) GetSecrets(ctx context.Context) (*Secrets, error) {
 	return doJSON[Secrets](c, ctx, apiRequest{
@@ -974,6 +1014,32 @@ func (c *Client) GetTeamsEnvironmentGroupsEnvName(ctx context.Context, teamId st
 	})
 }
 
+// GetTeamsLoopsRuns: Lists a team's Loops runs
+func (c *Client) GetTeamsLoopsRuns(ctx context.Context, teamId string, params GetV1TeamsTeamIdLoopsRunsParams) (*ListLoopsRunsResponse, error) {
+	return doJSON[ListLoopsRunsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/teams/%s/loops/runs",
+		pathArgs:    []any{teamId},
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetTeamsLoopsSamplers: Lists a team's Loops samplers
+func (c *Client) GetTeamsLoopsSamplers(ctx context.Context, teamId string, params GetV1TeamsTeamIdLoopsSamplersParams) (*ListLoopsSamplersResponse, error) {
+	return doJSON[ListLoopsSamplersResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/teams/%s/loops/samplers",
+		pathArgs:    []any{teamId},
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetTeamsModels: Gets all models
 func (c *Client) GetTeamsModels(ctx context.Context, teamId string, params GetV1TeamsTeamIdModelsParams) (*Models, error) {
 	return doJSON[Models](c, ctx, apiRequest{
@@ -981,6 +1047,18 @@ func (c *Client) GetTeamsModels(ctx context.Context, teamId string, params GetV1
 		pathFmt:     "/v1/teams/%s/models",
 		pathArgs:    []any{teamId},
 		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetTeamsRegions: Lists regions available to a team
+func (c *Client) GetTeamsRegions(ctx context.Context, teamId string) (*Regions, error) {
+	return doJSON[Regions](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/teams/%s/regions",
+		pathArgs:    []any{teamId},
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1339,6 +1417,18 @@ func (c *Client) PatchModelsDeploymentsProductionAutoscalingSettings(ctx context
 	})
 }
 
+// PatchModelsDeploymentsRequestBackpressurePolicy: Updates a deployment's request backpressure policy
+func (c *Client) PatchModelsDeploymentsRequestBackpressurePolicy(ctx context.Context, modelId string, deploymentId string, body UpdateRequestBackpressurePolicyRequest) (*UpdateAutoscalingSettingsResponse, error) {
+	return doJSON[UpdateAutoscalingSettingsResponse](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/models/%s/deployments/%s/request_backpressure_policy",
+		pathArgs:    []any{modelId, deploymentId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PatchModelsEnvironments: Updates an environment's settings
 func (c *Client) PatchModelsEnvironments(ctx context.Context, modelId string, envName string, body UpdateEnvironmentRequest) (*UpdateAutoscalingSettingsResponse, error) {
 	return doJSON[UpdateAutoscalingSettingsResponse](c, ctx, apiRequest{
@@ -1603,6 +1693,18 @@ func (c *Client) PostLoopsRuns(ctx context.Context, body CreateLoopsRunRequest) 
 	})
 }
 
+// PostLoopsRunsDeactivate: Deactivates a Loops run
+func (c *Client) PostLoopsRunsDeactivate(ctx context.Context, runId string) (*DeactivateLoopsRunResponse, error) {
+	return doJSON[DeactivateLoopsRunResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/loops/runs/%s/deactivate",
+		pathArgs:    []any{runId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PostLoopsSamplers: Creates a Loops sampler
 func (c *Client) PostLoopsSamplers(ctx context.Context, body CreateLoopsSamplerRequest) (*CreateLoopsSamplerResponse, error) {
 	return doJSON[CreateLoopsSamplerResponse](c, ctx, apiRequest{
@@ -1622,6 +1724,18 @@ func (c *Client) PostLoopsSessions(ctx context.Context) (*CreateLoopsSessionResp
 		pathFmt:     "/v1/loops/sessions",
 		pathArgs:    nil,
 		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostLoopsTrainers: Creates a Loops trainer
+func (c *Client) PostLoopsTrainers(ctx context.Context, body CreateLoopsRunRequest) (*CreateLoopsRunResponse, error) {
+	return doJSON[CreateLoopsRunResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/loops/trainers",
+		pathArgs:    nil,
+		body:        body,
 		successCode: 200,
 		errorCodes:  nil,
 	})
@@ -2004,6 +2118,54 @@ func (c *Client) PostTeamsLlmModels(ctx context.Context, teamId string, body Cre
 	return doJSON[LLMModelHandle](c, ctx, apiRequest{
 		method:      "POST",
 		pathFmt:     "/v1/teams/%s/llm_models",
+		pathArgs:    []any{teamId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostTeamsLoopsRuns: Creates a Loops run in a team
+func (c *Client) PostTeamsLoopsRuns(ctx context.Context, teamId string, body CreateLoopsRunRequest) (*CreateLoopsRunResponse, error) {
+	return doJSON[CreateLoopsRunResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/teams/%s/loops/runs",
+		pathArgs:    []any{teamId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostTeamsLoopsSamplers: Creates a Loops sampler in a team
+func (c *Client) PostTeamsLoopsSamplers(ctx context.Context, teamId string, body CreateLoopsSamplerRequest) (*CreateLoopsSamplerResponse, error) {
+	return doJSON[CreateLoopsSamplerResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/teams/%s/loops/samplers",
+		pathArgs:    []any{teamId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostTeamsLoopsSessions: Creates a Loops session
+func (c *Client) PostTeamsLoopsSessions(ctx context.Context, teamId string) (*CreateLoopsSessionResponse, error) {
+	return doJSON[CreateLoopsSessionResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/teams/%s/loops/sessions",
+		pathArgs:    []any{teamId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostTeamsLoopsTrainers: Creates a Loops trainer
+func (c *Client) PostTeamsLoopsTrainers(ctx context.Context, teamId string, body CreateLoopsRunRequest) (*CreateLoopsRunResponse, error) {
+	return doJSON[CreateLoopsRunResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/teams/%s/loops/trainers",
 		pathArgs:    []any{teamId},
 		body:        body,
 		successCode: 200,
