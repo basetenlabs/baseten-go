@@ -134,49 +134,49 @@ func (e AuditLogEventAutoscalingScheduleAction) Valid() bool {
 
 // Defines values for AuditLogEventType.
 const (
-	AuditLogEventType_API_KEY_CREATED                               AuditLogEventType = "API_KEY_CREATED"
-	AuditLogEventType_API_KEY_DELETED                               AuditLogEventType = "API_KEY_DELETED"
-	AuditLogEventType_CHAIN_DELETED                                 AuditLogEventType = "CHAIN_DELETED"
-	AuditLogEventType_CHAIN_DEPLOYED                                AuditLogEventType = "CHAIN_DEPLOYED"
-	AuditLogEventType_CHAIN_DEPLOYMENT_ACTIVATED                    AuditLogEventType = "CHAIN_DEPLOYMENT_ACTIVATED"
-	AuditLogEventType_CHAIN_DEPLOYMENT_DEACTIVATED                  AuditLogEventType = "CHAIN_DEPLOYMENT_DEACTIVATED"
-	AuditLogEventType_CHAIN_DEPLOYMENT_DELETED                      AuditLogEventType = "CHAIN_DEPLOYMENT_DELETED"
-	AuditLogEventType_CHAIN_DEPLOYMENT_PROMOTED                     AuditLogEventType = "CHAIN_DEPLOYMENT_PROMOTED"
-	AuditLogEventType_CHAIN_ENVIRONMENT_CREATED                     AuditLogEventType = "CHAIN_ENVIRONMENT_CREATED"
-	AuditLogEventType_CHAIN_ENVIRONMENT_UPDATED                     AuditLogEventType = "CHAIN_ENVIRONMENT_UPDATED"
-	AuditLogEventType_CHAINLET_AUTOSCALING_SETTINGS_CHANGED         AuditLogEventType = "CHAINLET_AUTOSCALING_SETTINGS_CHANGED"
-	AuditLogEventType_CHAINLET_INSTANCE_TYPE_CHANGED                AuditLogEventType = "CHAINLET_INSTANCE_TYPE_CHANGED"
-	AuditLogEventType_DIRECTORY_GROUP_ROLE_UPDATED                  AuditLogEventType = "DIRECTORY_GROUP_ROLE_UPDATED"
-	AuditLogEventType_ENVIRONMENT_CREATED                           AuditLogEventType = "ENVIRONMENT_CREATED"
-	AuditLogEventType_ENVIRONMENT_DELETED                           AuditLogEventType = "ENVIRONMENT_DELETED"
-	AuditLogEventType_ENVIRONMENT_UPDATED                           AuditLogEventType = "ENVIRONMENT_UPDATED"
-	AuditLogEventType_GATEWAY_ENDPOINT_CREATED                      AuditLogEventType = "GATEWAY_ENDPOINT_CREATED"
-	AuditLogEventType_GATEWAY_ENDPOINT_DELETED                      AuditLogEventType = "GATEWAY_ENDPOINT_DELETED"
-	AuditLogEventType_GATEWAY_ENDPOINT_UPDATED                      AuditLogEventType = "GATEWAY_ENDPOINT_UPDATED"
-	AuditLogEventType_MODEL_DELETED                                 AuditLogEventType = "MODEL_DELETED"
-	AuditLogEventType_MODEL_DEPLOYED                                AuditLogEventType = "MODEL_DEPLOYED"
-	AuditLogEventType_MODEL_DEPLOYMENT_ACTIVATED                    AuditLogEventType = "MODEL_DEPLOYMENT_ACTIVATED"
-	AuditLogEventType_MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED AuditLogEventType = "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED"
-	AuditLogEventType_MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED  AuditLogEventType = "MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED"
-	AuditLogEventType_MODEL_DEPLOYMENT_DEACTIVATED                  AuditLogEventType = "MODEL_DEPLOYMENT_DEACTIVATED"
-	AuditLogEventType_MODEL_DEPLOYMENT_DELETED                      AuditLogEventType = "MODEL_DEPLOYMENT_DELETED"
-	AuditLogEventType_MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED        AuditLogEventType = "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED"
-	AuditLogEventType_MODEL_DEPLOYMENT_PROMOTED                     AuditLogEventType = "MODEL_DEPLOYMENT_PROMOTED"
-	AuditLogEventType_MODEL_DEPLOYMENT_RETRIED                      AuditLogEventType = "MODEL_DEPLOYMENT_RETRIED"
-	AuditLogEventType_MODEL_PROMOTION_CONTROL_ACTION                AuditLogEventType = "MODEL_PROMOTION_CONTROL_ACTION"
-	AuditLogEventType_REPLICA_TERMINATED                            AuditLogEventType = "REPLICA_TERMINATED"
-	AuditLogEventType_REQUIRE_GROUP_BASED_ADMINS_ENABLED            AuditLogEventType = "REQUIRE_GROUP_BASED_ADMINS_ENABLED"
-	AuditLogEventType_SECRET_DELETED                                AuditLogEventType = "SECRET_DELETED"
-	AuditLogEventType_SECRET_UPDATED                                AuditLogEventType = "SECRET_UPDATED"
-	AuditLogEventType_SSH_CERTIFICATE_SIGNED                        AuditLogEventType = "SSH_CERTIFICATE_SIGNED"
-	AuditLogEventType_USER_INVITED                                  AuditLogEventType = "USER_INVITED"
-	AuditLogEventType_USER_JOINED_ORGANIZATION                      AuditLogEventType = "USER_JOINED_ORGANIZATION"
-	AuditLogEventType_USER_REMOVED                                  AuditLogEventType = "USER_REMOVED"
-	AuditLogEventType_USER_ROLE_UPDATED                             AuditLogEventType = "USER_ROLE_UPDATED"
-	AuditLogEventType_USER_TEAM_ROLE_UPDATED                        AuditLogEventType = "USER_TEAM_ROLE_UPDATED"
-	AuditLogEventType_WEBHOOK_SIGNING_SECRET_CREATED                AuditLogEventType = "WEBHOOK_SIGNING_SECRET_CREATED"
-	AuditLogEventType_WEBHOOK_SIGNING_SECRET_DELETED                AuditLogEventType = "WEBHOOK_SIGNING_SECRET_DELETED"
-	AuditLogEventType_WEBHOOK_SIGNING_SECRET_ROTATED                AuditLogEventType = "WEBHOOK_SIGNING_SECRET_ROTATED"
+	AuditLogEventType_API_KEY_CREATED                                        AuditLogEventType = "API_KEY_CREATED"
+	AuditLogEventType_API_KEY_DELETED                                        AuditLogEventType = "API_KEY_DELETED"
+	AuditLogEventType_CHAIN_DELETED                                          AuditLogEventType = "CHAIN_DELETED"
+	AuditLogEventType_CHAIN_DEPLOYED                                         AuditLogEventType = "CHAIN_DEPLOYED"
+	AuditLogEventType_CHAIN_DEPLOYMENT_ACTIVATED                             AuditLogEventType = "CHAIN_DEPLOYMENT_ACTIVATED"
+	AuditLogEventType_CHAIN_DEPLOYMENT_DEACTIVATED                           AuditLogEventType = "CHAIN_DEPLOYMENT_DEACTIVATED"
+	AuditLogEventType_CHAIN_DEPLOYMENT_DELETED                               AuditLogEventType = "CHAIN_DEPLOYMENT_DELETED"
+	AuditLogEventType_CHAIN_DEPLOYMENT_PROMOTED                              AuditLogEventType = "CHAIN_DEPLOYMENT_PROMOTED"
+	AuditLogEventType_CHAIN_ENVIRONMENT_CREATED                              AuditLogEventType = "CHAIN_ENVIRONMENT_CREATED"
+	AuditLogEventType_CHAIN_ENVIRONMENT_UPDATED                              AuditLogEventType = "CHAIN_ENVIRONMENT_UPDATED"
+	AuditLogEventType_CHAINLET_AUTOSCALING_SETTINGS_CHANGED                  AuditLogEventType = "CHAINLET_AUTOSCALING_SETTINGS_CHANGED"
+	AuditLogEventType_CHAINLET_INSTANCE_TYPE_CHANGED                         AuditLogEventType = "CHAINLET_INSTANCE_TYPE_CHANGED"
+	AuditLogEventType_DIRECTORY_GROUP_ROLE_UPDATED                           AuditLogEventType = "DIRECTORY_GROUP_ROLE_UPDATED"
+	AuditLogEventType_ENVIRONMENT_CREATED                                    AuditLogEventType = "ENVIRONMENT_CREATED"
+	AuditLogEventType_ENVIRONMENT_DELETED                                    AuditLogEventType = "ENVIRONMENT_DELETED"
+	AuditLogEventType_ENVIRONMENT_UPDATED                                    AuditLogEventType = "ENVIRONMENT_UPDATED"
+	AuditLogEventType_GATEWAY_ENDPOINT_CREATED                               AuditLogEventType = "GATEWAY_ENDPOINT_CREATED"
+	AuditLogEventType_GATEWAY_ENDPOINT_DELETED                               AuditLogEventType = "GATEWAY_ENDPOINT_DELETED"
+	AuditLogEventType_GATEWAY_ENDPOINT_UPDATED                               AuditLogEventType = "GATEWAY_ENDPOINT_UPDATED"
+	AuditLogEventType_MODEL_DELETED                                          AuditLogEventType = "MODEL_DELETED"
+	AuditLogEventType_MODEL_DEPLOYED                                         AuditLogEventType = "MODEL_DEPLOYED"
+	AuditLogEventType_MODEL_DEPLOYMENT_ACTIVATED                             AuditLogEventType = "MODEL_DEPLOYMENT_ACTIVATED"
+	AuditLogEventType_MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED          AuditLogEventType = "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED"
+	AuditLogEventType_MODEL_DEPLOYMENT_DEACTIVATED                           AuditLogEventType = "MODEL_DEPLOYMENT_DEACTIVATED"
+	AuditLogEventType_MODEL_DEPLOYMENT_DELETED                               AuditLogEventType = "MODEL_DEPLOYMENT_DELETED"
+	AuditLogEventType_MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED                 AuditLogEventType = "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED"
+	AuditLogEventType_MODEL_DEPLOYMENT_PROMOTED                              AuditLogEventType = "MODEL_DEPLOYMENT_PROMOTED"
+	AuditLogEventType_MODEL_DEPLOYMENT_REQUEST_BACKPRESSURE_SETTINGS_CHANGED AuditLogEventType = "MODEL_DEPLOYMENT_REQUEST_BACKPRESSURE_SETTINGS_CHANGED"
+	AuditLogEventType_MODEL_DEPLOYMENT_RETRIED                               AuditLogEventType = "MODEL_DEPLOYMENT_RETRIED"
+	AuditLogEventType_MODEL_PROMOTION_CONTROL_ACTION                         AuditLogEventType = "MODEL_PROMOTION_CONTROL_ACTION"
+	AuditLogEventType_REPLICA_TERMINATED                                     AuditLogEventType = "REPLICA_TERMINATED"
+	AuditLogEventType_REQUIRE_GROUP_BASED_ADMINS_ENABLED                     AuditLogEventType = "REQUIRE_GROUP_BASED_ADMINS_ENABLED"
+	AuditLogEventType_SECRET_DELETED                                         AuditLogEventType = "SECRET_DELETED"
+	AuditLogEventType_SECRET_UPDATED                                         AuditLogEventType = "SECRET_UPDATED"
+	AuditLogEventType_SSH_CERTIFICATE_SIGNED                                 AuditLogEventType = "SSH_CERTIFICATE_SIGNED"
+	AuditLogEventType_USER_INVITED                                           AuditLogEventType = "USER_INVITED"
+	AuditLogEventType_USER_JOINED_ORGANIZATION                               AuditLogEventType = "USER_JOINED_ORGANIZATION"
+	AuditLogEventType_USER_REMOVED                                           AuditLogEventType = "USER_REMOVED"
+	AuditLogEventType_USER_ROLE_UPDATED                                      AuditLogEventType = "USER_ROLE_UPDATED"
+	AuditLogEventType_USER_TEAM_ROLE_UPDATED                                 AuditLogEventType = "USER_TEAM_ROLE_UPDATED"
+	AuditLogEventType_WEBHOOK_SIGNING_SECRET_CREATED                         AuditLogEventType = "WEBHOOK_SIGNING_SECRET_CREATED"
+	AuditLogEventType_WEBHOOK_SIGNING_SECRET_DELETED                         AuditLogEventType = "WEBHOOK_SIGNING_SECRET_DELETED"
+	AuditLogEventType_WEBHOOK_SIGNING_SECRET_ROTATED                         AuditLogEventType = "WEBHOOK_SIGNING_SECRET_ROTATED"
 )
 
 // Valid indicates whether the value is a known member of the AuditLogEventType enum.
@@ -228,8 +228,6 @@ func (e AuditLogEventType) Valid() bool {
 		return true
 	case AuditLogEventType_MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED:
 		return true
-	case AuditLogEventType_MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED:
-		return true
 	case AuditLogEventType_MODEL_DEPLOYMENT_DEACTIVATED:
 		return true
 	case AuditLogEventType_MODEL_DEPLOYMENT_DELETED:
@@ -237,6 +235,8 @@ func (e AuditLogEventType) Valid() bool {
 	case AuditLogEventType_MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED:
 		return true
 	case AuditLogEventType_MODEL_DEPLOYMENT_PROMOTED:
+		return true
+	case AuditLogEventType_MODEL_DEPLOYMENT_REQUEST_BACKPRESSURE_SETTINGS_CHANGED:
 		return true
 	case AuditLogEventType_MODEL_DEPLOYMENT_RETRIED:
 		return true
@@ -275,22 +275,22 @@ func (e AuditLogEventType) Valid() bool {
 
 // Defines values for AuditLogEventTypeGroup.
 const (
-	AuditLogEventTypeGroup_ACTIVATED_DEACTIVATED      AuditLogEventTypeGroup = "ACTIVATED_DEACTIVATED"
-	AuditLogEventTypeGroup_API_KEYS                   AuditLogEventTypeGroup = "API_KEYS"
-	AuditLogEventTypeGroup_AUTOSCALING_SETTINGS       AuditLogEventTypeGroup = "AUTOSCALING_SETTINGS"
-	AuditLogEventTypeGroup_BACKPRESSURE_POLICY        AuditLogEventTypeGroup = "BACKPRESSURE_POLICY"
-	AuditLogEventTypeGroup_DELETED                    AuditLogEventTypeGroup = "DELETED"
-	AuditLogEventTypeGroup_DEPLOYED                   AuditLogEventTypeGroup = "DEPLOYED"
-	AuditLogEventTypeGroup_DIRECTORY_GROUP_MANAGEMENT AuditLogEventTypeGroup = "DIRECTORY_GROUP_MANAGEMENT"
-	AuditLogEventTypeGroup_ENVIRONMENT_SETTINGS       AuditLogEventTypeGroup = "ENVIRONMENT_SETTINGS"
-	AuditLogEventTypeGroup_GATEWAY                    AuditLogEventTypeGroup = "GATEWAY"
-	AuditLogEventTypeGroup_INSTANCE_TYPE_CHANGED      AuditLogEventTypeGroup = "INSTANCE_TYPE_CHANGED"
-	AuditLogEventTypeGroup_PROMOTED                   AuditLogEventTypeGroup = "PROMOTED"
-	AuditLogEventTypeGroup_REPLICA_TERMINATED         AuditLogEventTypeGroup = "REPLICA_TERMINATED"
-	AuditLogEventTypeGroup_SECRETS                    AuditLogEventTypeGroup = "SECRETS"
-	AuditLogEventTypeGroup_SSH                        AuditLogEventTypeGroup = "SSH"
-	AuditLogEventTypeGroup_USER_MANAGEMENT            AuditLogEventTypeGroup = "USER_MANAGEMENT"
-	AuditLogEventTypeGroup_WEBHOOK_SIGNING_SECRETS    AuditLogEventTypeGroup = "WEBHOOK_SIGNING_SECRETS"
+	AuditLogEventTypeGroup_ACTIVATED_DEACTIVATED         AuditLogEventTypeGroup = "ACTIVATED_DEACTIVATED"
+	AuditLogEventTypeGroup_API_KEYS                      AuditLogEventTypeGroup = "API_KEYS"
+	AuditLogEventTypeGroup_AUTOSCALING_SETTINGS          AuditLogEventTypeGroup = "AUTOSCALING_SETTINGS"
+	AuditLogEventTypeGroup_DELETED                       AuditLogEventTypeGroup = "DELETED"
+	AuditLogEventTypeGroup_DEPLOYED                      AuditLogEventTypeGroup = "DEPLOYED"
+	AuditLogEventTypeGroup_DIRECTORY_GROUP_MANAGEMENT    AuditLogEventTypeGroup = "DIRECTORY_GROUP_MANAGEMENT"
+	AuditLogEventTypeGroup_ENVIRONMENT_SETTINGS          AuditLogEventTypeGroup = "ENVIRONMENT_SETTINGS"
+	AuditLogEventTypeGroup_GATEWAY                       AuditLogEventTypeGroup = "GATEWAY"
+	AuditLogEventTypeGroup_INSTANCE_TYPE_CHANGED         AuditLogEventTypeGroup = "INSTANCE_TYPE_CHANGED"
+	AuditLogEventTypeGroup_PROMOTED                      AuditLogEventTypeGroup = "PROMOTED"
+	AuditLogEventTypeGroup_REPLICA_TERMINATED            AuditLogEventTypeGroup = "REPLICA_TERMINATED"
+	AuditLogEventTypeGroup_REQUEST_BACKPRESSURE_SETTINGS AuditLogEventTypeGroup = "REQUEST_BACKPRESSURE_SETTINGS"
+	AuditLogEventTypeGroup_SECRETS                       AuditLogEventTypeGroup = "SECRETS"
+	AuditLogEventTypeGroup_SSH                           AuditLogEventTypeGroup = "SSH"
+	AuditLogEventTypeGroup_USER_MANAGEMENT               AuditLogEventTypeGroup = "USER_MANAGEMENT"
+	AuditLogEventTypeGroup_WEBHOOK_SIGNING_SECRETS       AuditLogEventTypeGroup = "WEBHOOK_SIGNING_SECRETS"
 )
 
 // Valid indicates whether the value is a known member of the AuditLogEventTypeGroup enum.
@@ -301,8 +301,6 @@ func (e AuditLogEventTypeGroup) Valid() bool {
 	case AuditLogEventTypeGroup_API_KEYS:
 		return true
 	case AuditLogEventTypeGroup_AUTOSCALING_SETTINGS:
-		return true
-	case AuditLogEventTypeGroup_BACKPRESSURE_POLICY:
 		return true
 	case AuditLogEventTypeGroup_DELETED:
 		return true
@@ -319,6 +317,8 @@ func (e AuditLogEventTypeGroup) Valid() bool {
 	case AuditLogEventTypeGroup_PROMOTED:
 		return true
 	case AuditLogEventTypeGroup_REPLICA_TERMINATED:
+		return true
+	case AuditLogEventTypeGroup_REQUEST_BACKPRESSURE_SETTINGS:
 		return true
 	case AuditLogEventTypeGroup_SECRETS:
 		return true
@@ -1665,16 +1665,6 @@ type AuditLogEventModelDeploymentAutoscalingSettingsChanged struct {
 	TargetUtilizationPercentage *int                                      `json:"target_utilization_percentage"`
 }
 
-// AuditLogEventModelDeploymentBackpressurePolicyChanged A model deployment's request backpressure policy was changed.
-type AuditLogEventModelDeploymentBackpressurePolicyChanged struct {
-	DeploymentId              string `json:"deployment_id"`
-	DeploymentName            string `json:"deployment_name"`
-	EventType                 string `json:"event_type"`
-	ModelId                   string `json:"model_id"`
-	ModelName                 string `json:"model_name"`
-	RequestBackpressurePolicy string `json:"request_backpressure_policy"`
-}
-
 // AuditLogEventModelDeploymentDeactivated A model deployment was deactivated.
 type AuditLogEventModelDeploymentDeactivated struct {
 	DeploymentId   string `json:"deployment_id"`
@@ -1712,6 +1702,16 @@ type AuditLogEventModelDeploymentPromoted struct {
 	EventType       string  `json:"event_type"`
 	ModelId         string  `json:"model_id"`
 	ModelName       string  `json:"model_name"`
+}
+
+// AuditLogEventModelDeploymentRequestBackpressureSettingsChanged A model deployment's request backpressure settings were changed.
+type AuditLogEventModelDeploymentRequestBackpressureSettingsChanged struct {
+	DeploymentId   string `json:"deployment_id"`
+	DeploymentName string `json:"deployment_name"`
+	EventType      string `json:"event_type"`
+	ModelId        string `json:"model_id"`
+	ModelName      string `json:"model_name"`
+	Policy         string `json:"policy"`
 }
 
 // AuditLogEventModelDeploymentRetried A model deployment build was retried.
@@ -5695,6 +5695,12 @@ type UpdateChainletEnvironmentInstanceTypeResponse struct {
 	RequiresRedeployment bool `json:"requires_redeployment"`
 }
 
+// UpdateDeploymentRequest A request to update a deployment.
+type UpdateDeploymentRequest struct {
+	// Name New name for the deployment, unique among the model's deployments. Only alphanumeric characters, hyphens, underscores, and periods are allowed.
+	Name *string `json:"name,omitempty"`
+}
+
 // UpdateEndpointRequest PATCH body. Replaces the endpoint's full target list. The slug is immutable
 // after creation; to change it, create a new endpoint and delete this one.
 type UpdateEndpointRequest struct {
@@ -5786,9 +5792,10 @@ type UpdatePromotionSettings struct {
 	RollingDeployConfig *UpdateRollingDeployConfig `json:"rolling_deploy_config,omitempty"`
 }
 
-// UpdateRequestBackpressurePolicyRequest Request body for “PATCH /v1/models/.../deployments/.../request_backpressure_policy“.
-type UpdateRequestBackpressurePolicyRequest struct {
-	RequestBackpressurePolicy RequestBackpressurePolicy `json:"request_backpressure_policy"`
+// UpdateRequestBackpressureSettingsRequest Request body for “PATCH /v1/models/.../deployments/.../request_backpressure_settings“.
+type UpdateRequestBackpressureSettingsRequest struct {
+	// Policy Controls how the deployment handles requests when at capacity. queue_on_full (default) queues requests while reject_on_full returns HTTP 429.
+	Policy *RequestBackpressurePolicy `json:"policy,omitempty"`
 }
 
 // UpdateRollingDeployConfig Rolling deploy config for promoting chains and oracles
@@ -6203,8 +6210,8 @@ type GetV1ModelApisParams struct {
 
 // GetV1ModelApisUsageParams defines parameters for GetV1ModelApisUsage.
 type GetV1ModelApisUsageParams struct {
-	// StartTime Start of the query range (ISO 8601, UTC), inclusive. Snapped down to the start of its bucket. Ignored when you pass a cursor.
-	StartTime time.Time `form:"start_time" json:"start_time"`
+	// StartTime Start of the query range (ISO 8601, UTC), inclusive. Snapped down to the start of its bucket. Required on the first page, and ignored when you pass a cursor.
+	StartTime *time.Time `form:"start_time,omitempty" json:"start_time,omitempty"`
 
 	// EndTime End of the query range (ISO 8601, UTC), exclusive. Defaults to the current time.
 	EndTime *time.Time `form:"end_time,omitempty" json:"end_time,omitempty"`
@@ -6212,7 +6219,7 @@ type GetV1ModelApisUsageParams struct {
 	// BucketWidth Width of each time bucket: 1m, 1h, or 1d. Defaults to 1d.
 	BucketWidth *BucketWidth `form:"bucket_width,omitempty" json:"bucket_width,omitempty"`
 
-	// GroupBy Dimensions to break usage down by, repeated once per dimension: api_key, model, service_tier. Defaults to api_key.
+	// GroupBy Dimensions to break usage down by, repeated once per dimension: api_key, model, service_tier. Defaults to model.
 	GroupBy *[]UsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
 
 	// ApiKeys Return only usage for these API key prefixes, repeated once per prefix.
@@ -6227,7 +6234,7 @@ type GetV1ModelApisUsageParams struct {
 	// Limit Number of time buckets to return. Defaults and maximums depend on bucket_width: 1d defaults to 7 and allows 31, 1h defaults to 24 and allows 168, 1m defaults to 60 and allows 1440.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// Cursor Opaque cursor from the pagination.cursor field of a previous response. Pass the same query parameters alongside it, apart from start_time, which the cursor supplies.
+	// Cursor Opaque cursor from the pagination.cursor field of a previous response
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
 
@@ -6567,6 +6574,9 @@ type PostV1ModelsModelIdDeploymentsDevelopmentPromoteJSONRequestBody = PromoteRe
 // PatchV1ModelsModelIdDeploymentsProductionAutoscalingSettingsJSONRequestBody defines body for PatchV1ModelsModelIdDeploymentsProductionAutoscalingSettings for application/json ContentType.
 type PatchV1ModelsModelIdDeploymentsProductionAutoscalingSettingsJSONRequestBody = UpdateAutoscalingSettings
 
+// PatchV1ModelsModelIdDeploymentsDeploymentIdJSONRequestBody defines body for PatchV1ModelsModelIdDeploymentsDeploymentId for application/json ContentType.
+type PatchV1ModelsModelIdDeploymentsDeploymentIdJSONRequestBody = UpdateDeploymentRequest
+
 // PatchV1ModelsModelIdDeploymentsDeploymentIdAutoscalingSettingsJSONRequestBody defines body for PatchV1ModelsModelIdDeploymentsDeploymentIdAutoscalingSettings for application/json ContentType.
 type PatchV1ModelsModelIdDeploymentsDeploymentIdAutoscalingSettingsJSONRequestBody = UpdateAutoscalingSettings
 
@@ -6582,8 +6592,8 @@ type PostV1ModelsModelIdDeploymentsDeploymentIdPatchesSyncJSONRequestBody = Sync
 // PostV1ModelsModelIdDeploymentsDeploymentIdPromoteJSONRequestBody defines body for PostV1ModelsModelIdDeploymentsDeploymentIdPromote for application/json ContentType.
 type PostV1ModelsModelIdDeploymentsDeploymentIdPromoteJSONRequestBody = PromoteRequest
 
-// PatchV1ModelsModelIdDeploymentsDeploymentIdRequestBackpressurePolicyJSONRequestBody defines body for PatchV1ModelsModelIdDeploymentsDeploymentIdRequestBackpressurePolicy for application/json ContentType.
-type PatchV1ModelsModelIdDeploymentsDeploymentIdRequestBackpressurePolicyJSONRequestBody = UpdateRequestBackpressurePolicyRequest
+// PatchV1ModelsModelIdDeploymentsDeploymentIdRequestBackpressureSettingsJSONRequestBody defines body for PatchV1ModelsModelIdDeploymentsDeploymentIdRequestBackpressureSettings for application/json ContentType.
+type PatchV1ModelsModelIdDeploymentsDeploymentIdRequestBackpressureSettingsJSONRequestBody = UpdateRequestBackpressureSettingsRequest
 
 // PostV1ModelsModelIdDeploymentsDeploymentIdSshSignJSONRequestBody defines body for PostV1ModelsModelIdDeploymentsDeploymentIdSshSign for application/json ContentType.
 type PostV1ModelsModelIdDeploymentsDeploymentIdSshSignJSONRequestBody = SignSSHCertificateRequest
@@ -6750,16 +6760,16 @@ func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeploymentAutoscalingSet
 	return err
 }
 
-// AsAuditLogEventModelDeploymentBackpressurePolicyChanged returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeploymentBackpressurePolicyChanged
-func (t AuditLogEntry_EventData) AsAuditLogEventModelDeploymentBackpressurePolicyChanged() (AuditLogEventModelDeploymentBackpressurePolicyChanged, error) {
-	var body AuditLogEventModelDeploymentBackpressurePolicyChanged
+// AsAuditLogEventModelDeploymentRequestBackpressureSettingsChanged returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeploymentRequestBackpressureSettingsChanged
+func (t AuditLogEntry_EventData) AsAuditLogEventModelDeploymentRequestBackpressureSettingsChanged() (AuditLogEventModelDeploymentRequestBackpressureSettingsChanged, error) {
+	var body AuditLogEventModelDeploymentRequestBackpressureSettingsChanged
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromAuditLogEventModelDeploymentBackpressurePolicyChanged overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeploymentBackpressurePolicyChanged
-func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeploymentBackpressurePolicyChanged(v AuditLogEventModelDeploymentBackpressurePolicyChanged) error {
-	v.EventType = "MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED"
+// FromAuditLogEventModelDeploymentRequestBackpressureSettingsChanged overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeploymentRequestBackpressureSettingsChanged
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeploymentRequestBackpressureSettingsChanged(v AuditLogEventModelDeploymentRequestBackpressureSettingsChanged) error {
+	v.EventType = "MODEL_DEPLOYMENT_REQUEST_BACKPRESSURE_SETTINGS_CHANGED"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -7365,8 +7375,6 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventModelDeploymentActivated()
 	case "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED":
 		return t.AsAuditLogEventModelDeploymentAutoscalingSettingsChanged()
-	case "MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED":
-		return t.AsAuditLogEventModelDeploymentBackpressurePolicyChanged()
 	case "MODEL_DEPLOYMENT_DEACTIVATED":
 		return t.AsAuditLogEventModelDeploymentDeactivated()
 	case "MODEL_DEPLOYMENT_DELETED":
@@ -7375,6 +7383,8 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventModelDeploymentInstanceTypeChanged()
 	case "MODEL_DEPLOYMENT_PROMOTED":
 		return t.AsAuditLogEventModelDeploymentPromoted()
+	case "MODEL_DEPLOYMENT_REQUEST_BACKPRESSURE_SETTINGS_CHANGED":
+		return t.AsAuditLogEventModelDeploymentRequestBackpressureSettingsChanged()
 	case "MODEL_DEPLOYMENT_RETRIED":
 		return t.AsAuditLogEventModelDeploymentRetried()
 	case "MODEL_PROMOTION_CONTROL_ACTION":

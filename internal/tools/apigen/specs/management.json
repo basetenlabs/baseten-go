@@ -1568,6 +1568,42 @@
                         }
                     }
                 }
+            },
+            "patch": {
+                "summary": "Updates a model's deployment by ID",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"my-deployment\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'name': 'my-deployment'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Updates the mutable fields of a deployment and returns the updated deployment.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateDeploymentRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeploymentV1"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/v1/models/{model_id}/deployments/development/autoscaling_settings": {
@@ -1702,24 +1738,24 @@
                 }
             ]
         },
-        "/v1/models/{model_id}/deployments/{deployment_id}/request_backpressure_policy": {
+        "/v1/models/{model_id}/deployments/{deployment_id}/request_backpressure_settings": {
             "patch": {
-                "summary": "Updates a deployment's request backpressure policy",
+                "summary": "Updates a deployment's request backpressure settings",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/request_backpressure_policy \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"request_backpressure_policy\": \"reject_on_full\"\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/request_backpressure_settings \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"policy\": \"reject_on_full\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/request_backpressure_policy\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'request_backpressure_policy': 'reject_on_full'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/request_backpressure_settings\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'policy': 'reject_on_full'}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/UpdateRequestBackpressurePolicyRequestV1"
+                                "$ref": "#/components/schemas/UpdateRequestBackpressureSettingsRequestV1"
                             }
                         }
                     },
@@ -7320,12 +7356,20 @@
                     {
                         "name": "start_time",
                         "in": "query",
-                        "required": true,
-                        "description": "Start of the query range (ISO 8601, UTC), inclusive. Snapped down to the start of its bucket. Ignored when you pass a cursor.",
+                        "required": false,
+                        "description": "Start of the query range (ISO 8601, UTC), inclusive. Snapped down to the start of its bucket. Required on the first page, and ignored when you pass a cursor.",
                         "schema": {
-                            "format": "date-time",
-                            "title": "Start Time",
-                            "type": "string"
+                            "anyOf": [
+                                {
+                                    "format": "date-time",
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Time"
                         }
                     },
                     {
@@ -7361,7 +7405,7 @@
                         "name": "group_by",
                         "in": "query",
                         "required": false,
-                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, model, service_tier. Defaults to api_key.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, model, service_tier. Defaults to model.",
                         "schema": {
                             "items": {
                                 "$ref": "#/components/schemas/UsageDimension"
@@ -7431,7 +7475,7 @@
                         "name": "cursor",
                         "in": "query",
                         "required": false,
-                        "description": "Opaque cursor from the pagination.cursor field of a previous response. Pass the same query parameters alongside it, apart from start_time, which the cursor supplies.",
+                        "description": "Opaque cursor from the pagination.cursor field of a previous response",
                         "schema": {
                             "anyOf": [
                                 {
@@ -9604,11 +9648,11 @@
                                 "MODEL_DEPLOYED": "#/components/schemas/AuditLogEventModelDeployedV1",
                                 "MODEL_DEPLOYMENT_ACTIVATED": "#/components/schemas/AuditLogEventModelDeploymentActivatedV1",
                                 "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED": "#/components/schemas/AuditLogEventModelDeploymentAutoscalingSettingsChangedV1",
-                                "MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED": "#/components/schemas/AuditLogEventModelDeploymentBackpressurePolicyChangedV1",
                                 "MODEL_DEPLOYMENT_DEACTIVATED": "#/components/schemas/AuditLogEventModelDeploymentDeactivatedV1",
                                 "MODEL_DEPLOYMENT_DELETED": "#/components/schemas/AuditLogEventModelDeploymentDeletedV1",
                                 "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED": "#/components/schemas/AuditLogEventModelDeploymentInstanceTypeChangedV1",
                                 "MODEL_DEPLOYMENT_PROMOTED": "#/components/schemas/AuditLogEventModelDeploymentPromotedV1",
+                                "MODEL_DEPLOYMENT_REQUEST_BACKPRESSURE_SETTINGS_CHANGED": "#/components/schemas/AuditLogEventModelDeploymentRequestBackpressureSettingsChangedV1",
                                 "MODEL_DEPLOYMENT_RETRIED": "#/components/schemas/AuditLogEventModelDeploymentRetriedV1",
                                 "MODEL_PROMOTION_CONTROL_ACTION": "#/components/schemas/AuditLogEventModelPromotionControlActionV1",
                                 "REPLICA_TERMINATED": "#/components/schemas/AuditLogEventReplicaTerminatedV1",
@@ -9647,7 +9691,7 @@
                                 "$ref": "#/components/schemas/AuditLogEventModelDeploymentAutoscalingSettingsChangedV1"
                             },
                             {
-                                "$ref": "#/components/schemas/AuditLogEventModelDeploymentBackpressurePolicyChangedV1"
+                                "$ref": "#/components/schemas/AuditLogEventModelDeploymentRequestBackpressureSettingsChangedV1"
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventModelDeploymentInstanceTypeChangedV1"
@@ -11981,47 +12025,6 @@
                 "title": "AuditLogEventModelDeploymentAutoscalingSettingsChangedV1",
                 "type": "object"
             },
-            "AuditLogEventModelDeploymentBackpressurePolicyChangedV1": {
-                "additionalProperties": false,
-                "description": "A model deployment's request backpressure policy was changed.",
-                "properties": {
-                    "event_type": {
-                        "const": "MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED",
-                        "title": "Event Type",
-                        "type": "string"
-                    },
-                    "model_id": {
-                        "title": "Model Id",
-                        "type": "string"
-                    },
-                    "model_name": {
-                        "title": "Model Name",
-                        "type": "string"
-                    },
-                    "deployment_id": {
-                        "title": "Deployment Id",
-                        "type": "string"
-                    },
-                    "deployment_name": {
-                        "title": "Deployment Name",
-                        "type": "string"
-                    },
-                    "request_backpressure_policy": {
-                        "title": "Request Backpressure Policy",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "event_type",
-                    "model_id",
-                    "model_name",
-                    "deployment_id",
-                    "deployment_name",
-                    "request_backpressure_policy"
-                ],
-                "title": "AuditLogEventModelDeploymentBackpressurePolicyChangedV1",
-                "type": "object"
-            },
             "AuditLogEventModelDeploymentDeactivatedV1": {
                 "additionalProperties": false,
                 "description": "A model deployment was deactivated.",
@@ -12193,6 +12196,47 @@
                     "environment_id"
                 ],
                 "title": "AuditLogEventModelDeploymentPromotedV1",
+                "type": "object"
+            },
+            "AuditLogEventModelDeploymentRequestBackpressureSettingsChangedV1": {
+                "additionalProperties": false,
+                "description": "A model deployment's request backpressure settings were changed.",
+                "properties": {
+                    "event_type": {
+                        "const": "MODEL_DEPLOYMENT_REQUEST_BACKPRESSURE_SETTINGS_CHANGED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "title": "Deployment Name",
+                        "type": "string"
+                    },
+                    "policy": {
+                        "title": "Policy",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "deployment_id",
+                    "deployment_name",
+                    "policy"
+                ],
+                "title": "AuditLogEventModelDeploymentRequestBackpressureSettingsChangedV1",
                 "type": "object"
             },
             "AuditLogEventModelDeploymentRetriedV1": {
@@ -12462,7 +12506,7 @@
                     "MODEL_DEPLOYMENT_RETRIED",
                     "MODEL_DEPLOYMENT_PROMOTED",
                     "MODEL_DEPLOYMENT_AUTOSCALING_SETTINGS_CHANGED",
-                    "MODEL_DEPLOYMENT_BACKPRESSURE_POLICY_CHANGED",
+                    "MODEL_DEPLOYMENT_REQUEST_BACKPRESSURE_SETTINGS_CHANGED",
                     "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED",
                     "MODEL_DEPLOYMENT_DELETED",
                     "MODEL_DELETED",
@@ -12764,7 +12808,7 @@
                     "PROMOTED",
                     "ACTIVATED_DEACTIVATED",
                     "AUTOSCALING_SETTINGS",
-                    "BACKPRESSURE_POLICY",
+                    "REQUEST_BACKPRESSURE_SETTINGS",
                     "INSTANCE_TYPE_CHANGED",
                     "ENVIRONMENT_SETTINGS",
                     "REPLICA_TERMINATED",
@@ -13517,6 +13561,32 @@
                 "title": "DeploymentTombstoneV1",
                 "type": "object"
             },
+            "UpdateDeploymentRequestV1": {
+                "additionalProperties": false,
+                "description": "A request to update a deployment.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "maxLength": 255,
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "New name for the deployment, unique among the model's deployments. Only alphanumeric characters, hyphens, underscores, and periods are allowed.",
+                        "examples": [
+                            "my-deployment"
+                        ],
+                        "title": "Name"
+                    }
+                },
+                "title": "UpdateDeploymentRequestV1",
+                "type": "object"
+            },
             "UpdateAutoscalingSettingsV1": {
                 "additionalProperties": false,
                 "description": "A request to update autoscaling settings for a deployment. All fields are optional, and we only update ones passed in.",
@@ -13693,22 +13763,27 @@
                 "title": "RequestBackpressurePolicyV1",
                 "type": "string"
             },
-            "UpdateRequestBackpressurePolicyRequestV1": {
+            "UpdateRequestBackpressureSettingsRequestV1": {
                 "additionalProperties": false,
-                "description": "Request body for ``PATCH /v1/models/.../deployments/.../request_backpressure_policy``.",
+                "description": "Request body for ``PATCH /v1/models/.../deployments/.../request_backpressure_settings``.",
                 "properties": {
-                    "request_backpressure_policy": {
-                        "$ref": "#/components/schemas/RequestBackpressurePolicyV1",
+                    "policy": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RequestBackpressurePolicyV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
                         "description": "Controls how the deployment handles requests when at capacity. queue_on_full (default) queues requests while reject_on_full returns HTTP 429.",
                         "examples": [
                             "reject_on_full"
                         ]
                     }
                 },
-                "required": [
-                    "request_backpressure_policy"
-                ],
-                "title": "UpdateRequestBackpressurePolicyRequestV1",
+                "title": "UpdateRequestBackpressureSettingsRequestV1",
                 "type": "object"
             },
             "PromoteRequestV1": {
@@ -21958,10 +22033,18 @@
             "ModelApisUsageRequestV1": {
                 "properties": {
                     "start_time": {
-                        "description": "Start of the query range (ISO 8601, UTC), inclusive. Snapped down to the start of its bucket. Ignored when you pass a cursor.",
-                        "format": "date-time",
-                        "title": "Start Time",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Start of the query range (ISO 8601, UTC), inclusive. Snapped down to the start of its bucket. Required on the first page, and ignored when you pass a cursor.",
+                        "title": "Start Time"
                     },
                     "end_time": {
                         "anyOf": [
@@ -21983,7 +22066,7 @@
                         "description": "Width of each time bucket: 1m, 1h, or 1d. Defaults to 1d."
                     },
                     "group_by": {
-                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, model, service_tier. Defaults to api_key.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, model, service_tier. Defaults to model.",
                         "items": {
                             "$ref": "#/components/schemas/UsageDimension"
                         },
@@ -22037,13 +22120,10 @@
                             }
                         ],
                         "default": null,
-                        "description": "Opaque cursor from the pagination.cursor field of a previous response. Pass the same query parameters alongside it, apart from start_time, which the cursor supplies.",
+                        "description": "Opaque cursor from the pagination.cursor field of a previous response",
                         "title": "Cursor"
                     }
                 },
-                "required": [
-                    "start_time"
-                ],
                 "title": "ModelApisUsageRequestV1",
                 "type": "object"
             },

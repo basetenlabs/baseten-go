@@ -1381,6 +1381,18 @@ func (c *Client) PatchLoopsUserConfig(ctx context.Context, body PatchLoopsUserCo
 	})
 }
 
+// PatchModelsDeployments: Updates a model's deployment by ID
+func (c *Client) PatchModelsDeployments(ctx context.Context, modelId string, deploymentId string, body UpdateDeploymentRequest) (*Deployment, error) {
+	return doJSON[Deployment](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/models/%s/deployments/%s",
+		pathArgs:    []any{modelId, deploymentId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PatchModelsDeploymentsAutoscalingSettings: Updates a deployment's autoscaling settings
 func (c *Client) PatchModelsDeploymentsAutoscalingSettings(ctx context.Context, modelId string, deploymentId string, body UpdateAutoscalingSettings) (*UpdateAutoscalingSettingsResponse, error) {
 	return doJSON[UpdateAutoscalingSettingsResponse](c, ctx, apiRequest{
@@ -1417,11 +1429,11 @@ func (c *Client) PatchModelsDeploymentsProductionAutoscalingSettings(ctx context
 	})
 }
 
-// PatchModelsDeploymentsRequestBackpressurePolicy: Updates a deployment's request backpressure policy
-func (c *Client) PatchModelsDeploymentsRequestBackpressurePolicy(ctx context.Context, modelId string, deploymentId string, body UpdateRequestBackpressurePolicyRequest) (*UpdateAutoscalingSettingsResponse, error) {
+// PatchModelsDeploymentsRequestBackpressureSettings: Updates a deployment's request backpressure settings
+func (c *Client) PatchModelsDeploymentsRequestBackpressureSettings(ctx context.Context, modelId string, deploymentId string, body UpdateRequestBackpressureSettingsRequest) (*UpdateAutoscalingSettingsResponse, error) {
 	return doJSON[UpdateAutoscalingSettingsResponse](c, ctx, apiRequest{
 		method:      "PATCH",
-		pathFmt:     "/v1/models/%s/deployments/%s/request_backpressure_policy",
+		pathFmt:     "/v1/models/%s/deployments/%s/request_backpressure_settings",
 		pathArgs:    []any{modelId, deploymentId},
 		body:        body,
 		successCode: 200,
