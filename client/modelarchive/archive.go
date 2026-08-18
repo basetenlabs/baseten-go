@@ -5,6 +5,11 @@
 // the input directory, symlinks are not followed, and only regular files are
 // included.
 //
+// [BuildModelArchive] produces the tar stream. [WalkModelArchive] exposes the
+// same enumeration without the tar framing, so callers that need to summarize
+// an archive's contents (for example, hashing them to detect changes) see
+// exactly the entries the upload would carry.
+//
 // Ignore handling is driven by a caller-supplied [IgnoreFileFunc]. If a
 // .truss_ignore file is present at the root of the input directory, callers
 // must supply an IgnoreFileProcessor to parse it; otherwise [DefaultIgnoreFile]
@@ -32,7 +37,10 @@ import (
 	"time"
 )
 
-const ignoreFileName = ".truss_ignore"
+const (
+	ignoreFileName = ".truss_ignore"
+	configFileName = "config.yaml"
+)
 
 // IgnoreFileOptions is passed to an [IgnoreFileFunc] for each candidate path
 // encountered during the walk.
@@ -109,26 +117,9 @@ type BuildModelArchiveOptions struct {
 // Errors encountered during the walk surface from the next Read call.
 // Cancelling ctx also aborts the build.
 func BuildModelArchive(ctx context.Context, opts BuildModelArchiveOptions) (io.ReadCloser, error) {
-	if opts.Dir == "" {
-		return nil, errors.New("modelarchive: Dir is required")
+	if err := opts.Validate(); err != nil {
+		return nil, err
 	}
-	info, err := os.Stat(opts.Dir)
-	if err != nil {
-		return nil, fmt.Errorf("modelarchive: stat %s: %w", opts.Dir, err)
-	}
-	if !info.IsDir() {
-		return nil, fmt.Errorf("modelarchive: %s is not a directory", opts.Dir)
-	}
-	if len(opts.ExternalPackageDirs) > 0 && opts.BundledPackagesDir == "" {
-		return nil, errors.New("modelarchive: BundledPackagesDir is required when ExternalPackageDirs is non-empty")
-	}
-	if opts.BundledPackagesDir != "" {
-		clean := path.Clean(filepath.ToSlash(opts.BundledPackagesDir))
-		if path.IsAbs(clean) || clean == ".." || strings.HasPrefix(clean, "../") {
-			return nil, fmt.Errorf("modelarchive: BundledPackagesDir must be a relative path within the archive, got %q", opts.BundledPackagesDir)
-		}
-	}
-
 	ignoreFn, err := resolveIgnoreFunc(ctx, opts)
 	if err != nil {
 		return nil, err
@@ -140,6 +131,106 @@ func BuildModelArchive(ctx context.Context, opts BuildModelArchiveOptions) (io.R
 		_ = pw.CloseWithError(err)
 	}()
 	return pr, nil
+}
+
+// File is a single entry in a model archive, as reported by
+// [WalkModelArchive].
+type File struct {
+	// ArchivePath is the entry's path inside the archive, relative to the
+	// archive root and using forward slashes on all platforms.
+	ArchivePath string
+
+	// SourcePath is the path of the file on disk. It is empty for synthesized
+	// entries, which is currently only the config.yaml written from
+	// [BuildModelArchiveOptions.ConfigYAMLOverride].
+	SourcePath string
+
+	// Info is the on-disk file info for SourcePath. It is nil for synthesized
+	// entries.
+	Info fs.FileInfo
+
+	// Size is the entry's content length in bytes.
+	Size int64
+
+	// Open opens the entry's contents. The caller must Close the result.
+	Open func() (io.ReadCloser, error)
+}
+
+// WalkModelArchive calls fn once for each entry that [BuildModelArchive] would
+// place in the archive described by opts, in the order the archive would store
+// them: the config.yaml override (if any), then the contents of Dir, then each
+// of ExternalPackageDirs. Within a directory, entries are visited in lexical
+// order, so a given directory tree always produces the same sequence.
+//
+// This is the enumeration [BuildModelArchive] itself runs on, so the two never
+// disagree about which paths an archive contains. Callers hashing an archive's
+// contents should ignore [File.Info] and the walk order, since neither the
+// modification times nor the tar framing are part of the model's source.
+//
+// Returning an error from fn aborts the walk and propagates the error.
+func WalkModelArchive(ctx context.Context, opts BuildModelArchiveOptions, fn func(File) error) error {
+	if err := opts.Validate(); err != nil {
+		return err
+	}
+	ignoreFn, err := resolveIgnoreFunc(ctx, opts)
+	if err != nil {
+		return err
+	}
+	return walkFiles(ctx, opts, ignoreFn, fn)
+}
+
+// Validate reports whether the options describe a buildable archive, checking
+// every precondition that does not require walking the directories: the source
+// directories exist, and the bundled packages dir is a usable archive path.
+//
+// [BuildModelArchive] and [WalkModelArchive] call this themselves. Callers can
+// call it earlier to reject an unbuildable archive before doing other work.
+// Errors in the contents, such as two files colliding on one archive path,
+// still surface only from the build.
+func (o BuildModelArchiveOptions) Validate() error {
+	if o.Dir == "" {
+		return errors.New("modelarchive: Dir is required")
+	}
+	if err := statDir(o.Dir, "model dir"); err != nil {
+		return err
+	}
+	if len(o.ExternalPackageDirs) > 0 && o.BundledPackagesDir == "" {
+		return errors.New("modelarchive: BundledPackagesDir is required when ExternalPackageDirs is non-empty")
+	}
+	if o.BundledPackagesDir != "" {
+		clean := path.Clean(filepath.ToSlash(o.BundledPackagesDir))
+		if path.IsAbs(clean) || clean == ".." || strings.HasPrefix(clean, "../") {
+			return fmt.Errorf("modelarchive: BundledPackagesDir must be a relative path within the archive, got %q", o.BundledPackagesDir)
+		}
+	}
+	for _, extDir := range o.ExternalPackageDirs {
+		if err := statDir(o.resolveExternalDir(extDir), "external package dir"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// resolveExternalDir resolves an external package dir, which may be absolute
+// or relative to Dir.
+func (o BuildModelArchiveOptions) resolveExternalDir(extDir string) string {
+	if filepath.IsAbs(extDir) {
+		return extDir
+	}
+	return filepath.Join(o.Dir, extDir)
+}
+
+// statDir confirms dir exists and is a directory, naming it as what in any
+// error so a failure says which of the archive's directories is at fault.
+func statDir(dir, what string) error {
+	info, err := os.Stat(dir)
+	if err != nil {
+		return fmt.Errorf("modelarchive: stat %s %s: %w", what, dir, err)
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("modelarchive: %s %s is not a directory", what, dir)
+	}
+	return nil
 }
 
 // resolveIgnoreFunc determines the IgnoreFileFunc to use for the walk: if a
@@ -175,10 +266,7 @@ func resolveIgnoreFunc(ctx context.Context, opts BuildModelArchiveOptions) (Igno
 	return fn, nil
 }
 
-// writeArchive walks opts.Dir and writes a tar stream to w. The ignoreFn (which
-// may be nil) is consulted for every entry except the root. After Dir is
-// walked, each entry in opts.ExternalPackageDirs is walked and emitted under
-// opts.BundledPackagesDir, mirroring the Python gather() step.
+// writeArchive walks the archive's entries and writes a tar stream to w.
 func writeArchive(
 	ctx context.Context,
 	w io.Writer,
@@ -188,101 +276,94 @@ func writeArchive(
 	tw := tar.NewWriter(w)
 	defer tw.Close()
 
+	return walkFiles(ctx, opts, ignoreFn, func(f File) error {
+		r, err := f.Open()
+		if err != nil {
+			return err
+		}
+		err = writeTarEntry(tw, f.ArchivePath, f.Info, r, f.Size)
+		_ = r.Close()
+		return err
+	})
+}
+
+// walkFiles enumerates the archive's entries and calls fn for each. The
+// ignoreFn (which may be nil) is consulted for every entry except the roots.
+// After Dir is walked, each entry in opts.ExternalPackageDirs is walked and
+// reported under opts.BundledPackagesDir, mirroring the Python gather() step.
+func walkFiles(
+	ctx context.Context,
+	opts BuildModelArchiveOptions,
+	ignoreFn IgnoreFileFunc,
+	fn func(File) error,
+) error {
+	// Tracks archive path -> source path so two source files that resolve to
+	// the same archive path are reported rather than silently shadowing.
 	emitted := map[string]string{}
+	emit := func(f File) error {
+		if prev, dup := emitted[f.ArchivePath]; dup {
+			return fmt.Errorf("modelarchive: duplicate archive entry %q: both %s and %s map to it. "+
+				"Two source files resolve to the same archive path, commonly because multiple external_package_dirs "+
+				"(or an external_package_dir and the model directory) contain a file with the same relative path. "+
+				"Rename or remove one so each archive path is unique", f.ArchivePath, prev, f.SourcePath)
+		}
+		if err := fn(f); err != nil {
+			return err
+		}
+		emitted[f.ArchivePath] = f.SourcePath
+		return nil
+	}
 
 	if opts.ConfigYAMLOverride != nil {
-		if err := emitBytes(tw, "config.yaml", opts.ConfigYAMLOverride, emitted); err != nil {
+		data := opts.ConfigYAMLOverride
+		if err := emit(File{
+			ArchivePath: configFileName,
+			Size:        int64(len(data)),
+			Open:        func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewReader(data)), nil },
+		}); err != nil {
 			return err
 		}
 	}
 
-	walkErr := filepath.WalkDir(opts.Dir, func(p string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		} else if err := ctx.Err(); err != nil {
-			return err
-		} else if p == opts.Dir {
+	walkErr := walkDir(ctx, opts.Dir, "", ignoreFn, func(f File) error {
+		if f.ArchivePath == configFileName && opts.ConfigYAMLOverride != nil {
 			return nil
 		}
-
-		rel, err := filepath.Rel(opts.Dir, p)
-		if err != nil {
-			return err
-		}
-		relSlash := filepath.ToSlash(rel)
-
-		if ignoreFn != nil {
-			ignore, ierr := ignoreFn(ctx, IgnoreFileOptions{RelPath: relSlash, Entry: d})
-			if ierr != nil {
-				return ierr
-			}
-			if ignore {
-				if d.IsDir() {
-					return filepath.SkipDir
-				}
-				return nil
-			}
-		}
-
-		if d.IsDir() {
-			return nil
-		}
-		if !d.Type().IsRegular() {
-			return nil
-		}
-
-		if relSlash == "config.yaml" && opts.ConfigYAMLOverride != nil {
-			return nil
-		}
-
-		info, err := d.Info()
-		if err != nil {
-			return fmt.Errorf("modelarchive: stat %s: %w", p, err)
-		}
-		return emitFile(tw, relSlash, p, info, emitted)
+		return emit(f)
 	})
 	if walkErr != nil {
 		return walkErr
 	}
 
 	for _, extDir := range opts.ExternalPackageDirs {
-		absExt := extDir
-		if !filepath.IsAbs(absExt) {
-			absExt = filepath.Join(opts.Dir, absExt)
-		}
-		info, err := os.Stat(absExt)
-		if err != nil {
-			return fmt.Errorf("modelarchive: stat external package dir %s: %w", absExt, err)
-		}
-		if !info.IsDir() {
-			return fmt.Errorf("modelarchive: external package dir %s is not a directory", absExt)
-		}
-		if err := walkExternalDir(ctx, tw, absExt, opts.BundledPackagesDir, ignoreFn, emitted); err != nil {
+		if err := walkDir(ctx, opts.resolveExternalDir(extDir), opts.BundledPackagesDir, ignoreFn, emit); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// walkExternalDir walks an external package directory and emits its contents
-// into the archive under bundledPackagesDir (matching Python's gather:
-// children of the external dir land directly under bundled_packages_dir, the
-// external dir's own basename is not preserved).
-func walkExternalDir(ctx context.Context, tw *tar.Writer, extDir, bundledPackagesDir string, ignoreFn IgnoreFileFunc, emitted map[string]string) error {
-	return filepath.WalkDir(extDir, func(p string, d fs.DirEntry, err error) error {
+// walkDir walks root and calls fn for each regular file, reporting archive
+// paths under prefix. An external package dir's own basename is not preserved:
+// its children land directly under prefix, matching Python's gather.
+func walkDir(ctx context.Context, root, prefix string, ignoreFn IgnoreFileFunc, fn func(File) error) error {
+	return filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		} else if err := ctx.Err(); err != nil {
 			return err
-		} else if p == extDir {
+		} else if p == root {
 			return nil
 		}
 
-		rel, err := filepath.Rel(extDir, p)
+		rel, err := filepath.Rel(root, p)
 		if err != nil {
 			return err
 		}
-		archivePath := path.Join(bundledPackagesDir, filepath.ToSlash(rel))
+		archivePath := filepath.ToSlash(rel)
+		if prefix != "" {
+			archivePath = path.Join(prefix, archivePath)
+		}
 
 		if ignoreFn != nil {
 			ignore, ierr := ignoreFn(ctx, IgnoreFileOptions{RelPath: archivePath, Entry: d})
@@ -297,10 +378,7 @@ func walkExternalDir(ctx context.Context, tw *tar.Writer, extDir, bundledPackage
 			}
 		}
 
-		if d.IsDir() {
-			return nil
-		}
-		if !d.Type().IsRegular() {
+		if d.IsDir() || !d.Type().IsRegular() {
 			return nil
 		}
 
@@ -308,39 +386,20 @@ func walkExternalDir(ctx context.Context, tw *tar.Writer, extDir, bundledPackage
 		if err != nil {
 			return fmt.Errorf("modelarchive: stat %s: %w", p, err)
 		}
-		return emitFile(tw, archivePath, p, info, emitted)
+		return fn(File{
+			ArchivePath: archivePath,
+			SourcePath:  p,
+			Info:        info,
+			Size:        info.Size(),
+			Open: func() (io.ReadCloser, error) {
+				f, err := os.Open(p)
+				if err != nil {
+					return nil, fmt.Errorf("modelarchive: open %s: %w", p, err)
+				}
+				return f, nil
+			},
+		})
 	})
-}
-
-func emitFile(tw *tar.Writer, archivePath, srcPath string, info fs.FileInfo, emitted map[string]string) error {
-	if prev, dup := emitted[archivePath]; dup {
-		return fmt.Errorf("modelarchive: duplicate archive entry %q: both %s and %s map to it. "+
-			"Two source files resolve to the same archive path, commonly because multiple external_package_dirs "+
-			"(or an external_package_dir and the model directory) contain a file with the same relative path. "+
-			"Rename or remove one so each archive path is unique", archivePath, prev, srcPath)
-	}
-	f, err := os.Open(srcPath)
-	if err != nil {
-		return fmt.Errorf("modelarchive: open %s: %w", srcPath, err)
-	}
-	err = writeTarEntry(tw, archivePath, info, f, info.Size())
-	_ = f.Close()
-	if err != nil {
-		return err
-	}
-	emitted[archivePath] = srcPath
-	return nil
-}
-
-func emitBytes(tw *tar.Writer, archivePath string, data []byte, emitted map[string]string) error {
-	if _, dup := emitted[archivePath]; dup {
-		return fmt.Errorf("modelarchive: duplicate archive entry %s", archivePath)
-	}
-	if err := writeTarEntry(tw, archivePath, nil, bytes.NewReader(data), int64(len(data))); err != nil {
-		return err
-	}
-	emitted[archivePath] = archivePath
-	return nil
 }
 
 // writeTarEntry writes a single regular file entry to tw. If info is non-nil,
