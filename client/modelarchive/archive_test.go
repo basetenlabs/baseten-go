@@ -174,14 +174,13 @@ func TestBuildModelArchiveMissingExternalPackageDirErrors(t *testing.T) {
 	dir := t.TempDir()
 	writeFile(t, filepath.Join(dir, "config.yaml"), "model_name: ext\n")
 
-	rc, err := modelarchive.BuildModelArchive(context.Background(), modelarchive.BuildModelArchiveOptions{
+	// A missing external package dir is a precondition, so it fails before any
+	// of the archive is produced.
+	_, err := modelarchive.BuildModelArchive(context.Background(), modelarchive.BuildModelArchiveOptions{
 		Dir:                 dir,
 		ExternalPackageDirs: []string{"../does_not_exist"},
 		BundledPackagesDir:  "packages",
 	})
-	require.NoError(t, err)
-	_, err = io.ReadAll(rc)
-	rc.Close()
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "external package dir")
 }
@@ -312,4 +311,115 @@ func TestBuildModelArchiveContextCanceled(t *testing.T) {
 	_, err = io.ReadAll(rc)
 	rc.Close()
 	require.True(t, errors.Is(err, context.Canceled), "expected context.Canceled, got %v", err)
+}
+
+// walkFile is a File flattened for comparison: the contents are read through
+// Open so a walk can be checked against what a build would archive.
+type walkFile struct {
+	archivePath string
+	sourcePath  string
+	size        int64
+	data        string
+}
+
+func walkFiles(t *testing.T, opts modelarchive.BuildModelArchiveOptions) []walkFile {
+	t.Helper()
+	var files []walkFile
+	require.NoError(t, modelarchive.WalkModelArchive(context.Background(), opts, func(f modelarchive.File) error {
+		rc, err := f.Open()
+		require.NoError(t, err)
+		defer rc.Close()
+		data, err := io.ReadAll(rc)
+		require.NoError(t, err)
+		files = append(files, walkFile{
+			archivePath: f.ArchivePath,
+			sourcePath:  f.SourcePath,
+			size:        f.Size,
+			data:        string(data),
+		})
+		return nil
+	}))
+	return files
+}
+
+func TestWalkModelArchiveMatchesBuild(t *testing.T) {
+	trussDir := filepath.Join(t.TempDir(), "truss")
+	extDir := filepath.Join(t.TempDir(), "shared_pkg")
+	writeFile(t, filepath.Join(trussDir, "config.yaml"), "model_name: walk\n")
+	writeFile(t, filepath.Join(trussDir, "model", "model.py"), "M\n")
+	writeFile(t, filepath.Join(trussDir, "__pycache__", "junk.pyc"), "IGNORED")
+	writeFile(t, filepath.Join(extDir, "shared.py"), "S\n")
+	opts := modelarchive.BuildModelArchiveOptions{
+		Dir:                 trussDir,
+		ConfigYAMLOverride:  []byte("model_name: override\n"),
+		ExternalPackageDirs: []string{extDir},
+		BundledPackagesDir:  "packages",
+	}
+
+	// The walk is what the build runs on, so the two must agree on every path
+	// and every byte, including the synthesized config and the ignore rules.
+	files := walkFiles(t, opts)
+	var walked []tarEntry
+	for _, f := range files {
+		walked = append(walked, tarEntry{name: f.archivePath, data: f.data})
+	}
+	sort.Slice(walked, func(i, j int) bool { return walked[i].name < walked[j].name })
+
+	rc, err := modelarchive.BuildModelArchive(context.Background(), opts)
+	require.NoError(t, err)
+	built := readArchive(t, rc)
+
+	require.Equal(t, strings.Join(entryNames(built), ","), strings.Join(entryNames(walked), ","))
+	require.Equal(t, "config.yaml,model/model.py,packages/shared.py", strings.Join(entryNames(walked), ","))
+	require.Len(t, built, len(walked))
+	for i := range built {
+		require.Equal(t, built[i].data, walked[i].data)
+	}
+}
+
+func TestWalkModelArchiveFileFields(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "config.yaml"), "model_name: fields\n")
+	writeFile(t, filepath.Join(dir, "model.py"), "M\n")
+
+	override := "model_name: override\n"
+	files := walkFiles(t, modelarchive.BuildModelArchiveOptions{
+		Dir:                dir,
+		ConfigYAMLOverride: []byte(override),
+	})
+	require.Len(t, files, 2)
+
+	// The override is synthesized, so it has no source path and no file info,
+	// but still reports a size and opens like any other entry.
+	require.Equal(t, "config.yaml", files[0].archivePath)
+	require.Equal(t, "", files[0].sourcePath)
+	require.Equal(t, int64(len(override)), files[0].size)
+	require.Equal(t, override, files[0].data)
+
+	require.Equal(t, "model.py", files[1].archivePath)
+	require.Equal(t, filepath.Join(dir, "model.py"), files[1].sourcePath)
+	require.Equal(t, int64(2), files[1].size)
+}
+
+func TestWalkModelArchiveErrorPropagates(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "config.yaml"), "model_name: x\n")
+	writeFile(t, filepath.Join(dir, "a.txt"), "a")
+
+	sentinel := errors.New("stop walking")
+	seen := 0
+	err := modelarchive.WalkModelArchive(context.Background(), modelarchive.BuildModelArchiveOptions{Dir: dir},
+		func(modelarchive.File) error {
+			seen++
+			return sentinel
+		})
+	require.True(t, errors.Is(err, sentinel), "expected the sentinel, got %v", err)
+	require.Equal(t, 1, seen)
+}
+
+func TestWalkModelArchiveValidates(t *testing.T) {
+	err := modelarchive.WalkModelArchive(context.Background(),
+		modelarchive.BuildModelArchiveOptions{Dir: filepath.Join(t.TempDir(), "nope")},
+		func(modelarchive.File) error { return nil })
+	require.Error(t, err)
 }
