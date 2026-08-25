@@ -421,6 +421,19 @@ func (c *Client) GetGatewayEndpointsEndpointId(ctx context.Context, endpointId s
 	})
 }
 
+// GetGatewayEvents: Lists gateway events
+func (c *Client) GetGatewayEvents(ctx context.Context, params GetV1GatewayEventsParams) (*GatewayEventsResponse, error) {
+	return doJSON[GatewayEventsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/gateway/events",
+		pathArgs:    nil,
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetGatewayGroups: Lists groups
 func (c *Client) GetGatewayGroups(ctx context.Context) (*GroupsResponse, error) {
 	return doJSON[GroupsResponse](c, ctx, apiRequest{
@@ -592,6 +605,19 @@ func (c *Client) GetLoopsDeployments(ctx context.Context, params GetV1LoopsDeplo
 	})
 }
 
+// GetLoopsDeploymentsDebugArchiveFiles: Gets Loops debug archive files
+func (c *Client) GetLoopsDeploymentsDebugArchiveFiles(ctx context.Context, deploymentId string, params GetV1LoopsDeploymentsDeploymentIdDebugArchiveFilesParams) (*LoopsDebugArchiveFilesResponse, error) {
+	return doJSON[LoopsDebugArchiveFilesResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/deployments/%s/debug_archive/files",
+		pathArgs:    []any{deploymentId},
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetLoopsDeploymentsDeploymentId: Gets a Loops deployment
 func (c *Client) GetLoopsDeploymentsDeploymentId(ctx context.Context, deploymentId string) (*GetLoopsDeploymentResponse, error) {
 	return doJSON[GetLoopsDeploymentResponse](c, ctx, apiRequest{
@@ -710,30 +736,6 @@ func (c *Client) GetModelApisModelApiName(ctx context.Context, modelApiName stri
 		method:      "GET",
 		pathFmt:     "/v1/model_apis/%s",
 		pathArgs:    []any{modelApiName},
-		body:        nil,
-		successCode: 200,
-		errorCodes:  nil,
-	})
-}
-
-// GetModelApisSnapshots: Gets the latest model weight snapshot
-func (c *Client) GetModelApisSnapshots(ctx context.Context) (*ModelWeightSnapshot, error) {
-	return doJSON[ModelWeightSnapshot](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/v1/model_apis/snapshots",
-		pathArgs:    nil,
-		body:        nil,
-		successCode: 200,
-		errorCodes:  nil,
-	})
-}
-
-// GetModelApisSnapshotsModelId: Gets the latest model weight snapshot
-func (c *Client) GetModelApisSnapshotsModelId(ctx context.Context, modelId string) (*ModelWeightSnapshot, error) {
-	return doJSON[ModelWeightSnapshot](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/v1/model_apis/snapshots/%s",
-		pathArgs:    []any{modelId},
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1381,6 +1383,18 @@ func (c *Client) PatchLoopsUserConfig(ctx context.Context, body PatchLoopsUserCo
 	})
 }
 
+// PatchModelsDeployments: Updates a model's deployment by ID
+func (c *Client) PatchModelsDeployments(ctx context.Context, modelId string, deploymentId string, body UpdateDeploymentRequest) (*Deployment, error) {
+	return doJSON[Deployment](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/models/%s/deployments/%s",
+		pathArgs:    []any{modelId, deploymentId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PatchModelsDeploymentsAutoscalingSettings: Updates a deployment's autoscaling settings
 func (c *Client) PatchModelsDeploymentsAutoscalingSettings(ctx context.Context, modelId string, deploymentId string, body UpdateAutoscalingSettings) (*UpdateAutoscalingSettingsResponse, error) {
 	return doJSON[UpdateAutoscalingSettingsResponse](c, ctx, apiRequest{
@@ -1417,11 +1431,11 @@ func (c *Client) PatchModelsDeploymentsProductionAutoscalingSettings(ctx context
 	})
 }
 
-// PatchModelsDeploymentsRequestBackpressurePolicy: Updates a deployment's request backpressure policy
-func (c *Client) PatchModelsDeploymentsRequestBackpressurePolicy(ctx context.Context, modelId string, deploymentId string, body UpdateRequestBackpressurePolicyRequest) (*UpdateAutoscalingSettingsResponse, error) {
-	return doJSON[UpdateAutoscalingSettingsResponse](c, ctx, apiRequest{
+// PatchModelsDeploymentsRequestBackpressureSettings: Updates a deployment's request backpressure settings
+func (c *Client) PatchModelsDeploymentsRequestBackpressureSettings(ctx context.Context, modelId string, deploymentId string, body UpdateRequestBackpressureSettings) (*RequestBackpressureSettings, error) {
+	return doJSON[RequestBackpressureSettings](c, ctx, apiRequest{
 		method:      "PATCH",
-		pathFmt:     "/v1/models/%s/deployments/%s/request_backpressure_policy",
+		pathFmt:     "/v1/models/%s/deployments/%s/request_backpressure_settings",
 		pathArgs:    []any{modelId, deploymentId},
 		body:        body,
 		successCode: 200,
@@ -1430,8 +1444,8 @@ func (c *Client) PatchModelsDeploymentsRequestBackpressurePolicy(ctx context.Con
 }
 
 // PatchModelsEnvironments: Updates an environment's settings
-func (c *Client) PatchModelsEnvironments(ctx context.Context, modelId string, envName string, body UpdateEnvironmentRequest) (*UpdateAutoscalingSettingsResponse, error) {
-	return doJSON[UpdateAutoscalingSettingsResponse](c, ctx, apiRequest{
+func (c *Client) PatchModelsEnvironments(ctx context.Context, modelId string, envName string, body UpdateEnvironmentRequest) (*UpdateEnvironmentResponse, error) {
+	return doJSON[UpdateEnvironmentResponse](c, ctx, apiRequest{
 		method:      "PATCH",
 		pathFmt:     "/v1/models/%s/environments/%s",
 		pathArgs:    []any{modelId, envName},
@@ -1735,30 +1749,6 @@ func (c *Client) PostLoopsTrainers(ctx context.Context, body CreateLoopsRunReque
 		method:      "POST",
 		pathFmt:     "/v1/loops/trainers",
 		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  nil,
-	})
-}
-
-// PostModelApisSnapshots: Creates a model weight snapshot
-func (c *Client) PostModelApisSnapshots(ctx context.Context, body CreateModelWeightSnapshotRequest) (*ModelWeightSnapshot, error) {
-	return doJSON[ModelWeightSnapshot](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/v1/model_apis/snapshots",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  nil,
-	})
-}
-
-// PostModelApisSnapshotsModelId: Creates a model weight snapshot
-func (c *Client) PostModelApisSnapshotsModelId(ctx context.Context, modelId string, body CreateModelWeightSnapshotRequest) (*ModelWeightSnapshot, error) {
-	return doJSON[ModelWeightSnapshot](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/v1/model_apis/snapshots/%s",
-		pathArgs:    []any{modelId},
 		body:        body,
 		successCode: 200,
 		errorCodes:  nil,
