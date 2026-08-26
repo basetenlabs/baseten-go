@@ -685,11 +685,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/prepare_model_upload \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"deployment\": {\n    \"config\": null,\n    \"raw_config\": null,\n    \"user_env\": null,\n    \"environment_name\": null,\n    \"deploy_timeout_minutes\": null,\n    \"deployment_name\": null,\n    \"labels\": null\n  },\n  \"name\": null,\n  \"team_id\": null,\n  \"model_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/prepare_model_upload \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"deployment\": {\n    \"config\": null,\n    \"raw_config\": null,\n    \"user_env\": null,\n    \"environment_name\": null,\n    \"region\": null,\n    \"deploy_timeout_minutes\": null,\n    \"deployment_name\": null,\n    \"labels\": null\n  },\n  \"name\": null,\n  \"team_id\": null,\n  \"model_id\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/prepare_model_upload\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'deployment': {'config': None, 'raw_config': None, 'user_env': None, 'environment_name': None, 'deploy_timeout_minutes': None, 'deployment_name': None, 'labels': None}, 'name': None, 'team_id': None, 'model_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/prepare_model_upload\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'deployment': {'config': None, 'raw_config': None, 'user_env': None, 'environment_name': None, 'region': None, 'deploy_timeout_minutes': None, 'deployment_name': None, 'labels': None}, 'name': None, 'team_id': None, 'model_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -9382,6 +9382,19 @@
                         "description": "Stable environment to push to (e.g. `production`). If unset, the deployment is created without environment selection. Caller must have push permission for the named environment.",
                         "title": "Environment Name"
                     },
+                    "region": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Region in which to deploy the model",
+                        "title": "Region"
+                    },
                     "preserve_env_instance_type": {
                         "default": true,
                         "description": "Retain the target environment's current instance type rather than the one in `config`. Only meaningful when `environment_name` is set and that environment already exists.",
@@ -17870,6 +17883,27 @@
                 "title": "ListTrainingJobsResponseV1",
                 "type": "object"
             },
+            "AwsAssumeRoleDockerAuthV1": {
+                "description": "AWS assume-role details for the registry.",
+                "properties": {
+                    "role_arn": {
+                        "description": "AWS IAM role ARN that Baseten assumes to pull from the registry. The role's trust policy must allow Baseten's AWS principal with your Baseten-provided external ID.",
+                        "title": "Role Arn",
+                        "type": "string"
+                    },
+                    "region": {
+                        "description": "AWS region of the registry",
+                        "title": "Region",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "role_arn",
+                    "region"
+                ],
+                "title": "AwsAssumeRoleDockerAuthV1",
+                "type": "object"
+            },
             "AwsIamDockerAuthV1": {
                 "description": "AWS details for the registry.",
                 "properties": {
@@ -18601,7 +18635,8 @@
                     "AWS_IAM",
                     "AWS_OIDC",
                     "GCP_OIDC",
-                    "REGISTRY_SECRET"
+                    "REGISTRY_SECRET",
+                    "AWS_ASSUME_ROLE"
                 ],
                 "title": "DockerAuthType",
                 "type": "string"
@@ -18622,7 +18657,8 @@
                             "AWS_IAM",
                             "AWS_OIDC",
                             "GCP_OIDC",
-                            "REGISTRY_SECRET"
+                            "REGISTRY_SECRET",
+                            "AWS_ASSUME_ROLE"
                         ]
                     },
                     "gcp_service_account_json_docker_auth": {
@@ -18684,6 +18720,18 @@
                         ],
                         "default": null,
                         "description": "Required when auth_method is REGISTRY_SECRET. Supports any Docker registry (Docker Hub, GHCR, NGC, etc.) via username:password credentials stored as a Baseten secret."
+                    },
+                    "aws_assume_role_docker_auth": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AwsAssumeRoleDockerAuthV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Required when auth_method is AWS_ASSUME_ROLE. Baseten assumes the given IAM role with its own AWS principal and your organization's external ID, with no OIDC provider registration in your account."
                     }
                 },
                 "required": [

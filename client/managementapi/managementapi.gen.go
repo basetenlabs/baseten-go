@@ -629,6 +629,7 @@ func (e DeploymentStatus) Valid() bool {
 
 // Defines values for DockerAuthType.
 const (
+	DockerAuthType_AWS_ASSUME_ROLE          DockerAuthType = "AWS_ASSUME_ROLE"
 	DockerAuthType_AWS_IAM                  DockerAuthType = "AWS_IAM"
 	DockerAuthType_AWS_OIDC                 DockerAuthType = "AWS_OIDC"
 	DockerAuthType_GCP_OIDC                 DockerAuthType = "GCP_OIDC"
@@ -639,6 +640,8 @@ const (
 // Valid indicates whether the value is a known member of the DockerAuthType enum.
 func (e DockerAuthType) Valid() bool {
 	switch e {
+	case DockerAuthType_AWS_ASSUME_ROLE:
+		return true
 	case DockerAuthType_AWS_IAM:
 		return true
 	case DockerAuthType_AWS_OIDC:
@@ -2138,6 +2141,15 @@ type AutoscalingSettings struct {
 	TargetUtilizationPercentage *int `json:"target_utilization_percentage"`
 }
 
+// AwsAssumeRoleDockerAuth AWS assume-role details for the registry.
+type AwsAssumeRoleDockerAuth struct {
+	// Region AWS region of the registry
+	Region string `json:"region"`
+
+	// RoleArn AWS IAM role ARN that Baseten assumes to pull from the registry. The role's trust policy must allow Baseten's AWS principal with your Baseten-provided external ID.
+	RoleArn string `json:"role_arn"`
+}
+
 // AwsIamDockerAuth AWS details for the registry.
 type AwsIamDockerAuth struct {
 	AccessKeySecretRef       SecretReference `json:"access_key_secret_ref"`
@@ -3266,6 +3278,9 @@ type DeploymentArchivePayload struct {
 	// RawConfig Original config.yaml text, persisted as-is on the deployment. Best-effort: invalid raw configs are logged and dropped without failing the request.
 	RawConfig *string `json:"raw_config,omitempty"`
 
+	// Region Region in which to deploy the model
+	Region *string `json:"region,omitempty"`
+
 	// UserEnv Client environment metadata (e.g. client version, Python version). Validated server-side.
 	UserEnv *map[string]interface{} `json:"user_env,omitempty"`
 }
@@ -3447,6 +3462,9 @@ type Deployments struct {
 // DockerAuth Docker authentication credentials.
 type DockerAuth struct {
 	AuthMethod DockerAuthType `json:"auth_method"`
+
+	// AwsAssumeRoleDockerAuth Required when auth_method is AWS_ASSUME_ROLE. Baseten assumes the given IAM role with its own AWS principal and your organization's external ID, with no OIDC provider registration in your account.
+	AwsAssumeRoleDockerAuth *AwsAssumeRoleDockerAuth `json:"aws_assume_role_docker_auth,omitempty"`
 
 	// AwsIamDockerAuth AWS details for the registry
 	AwsIamDockerAuth *AwsIamDockerAuth `json:"aws_iam_docker_auth,omitempty"`
