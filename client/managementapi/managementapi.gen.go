@@ -665,6 +665,7 @@ const (
 	GatewayProvider_OPENAI            GatewayProvider = "OPENAI"
 	GatewayProvider_OPENAI_COMPATIBLE GatewayProvider = "OPENAI_COMPATIBLE"
 	GatewayProvider_VERTEX            GatewayProvider = "VERTEX"
+	GatewayProvider_XAI               GatewayProvider = "XAI"
 )
 
 // Valid indicates whether the value is a known member of the GatewayProvider enum.
@@ -681,6 +682,8 @@ func (e GatewayProvider) Valid() bool {
 	case GatewayProvider_OPENAI_COMPATIBLE:
 		return true
 	case GatewayProvider_VERTEX:
+		return true
+	case GatewayProvider_XAI:
 		return true
 	default:
 		return false
@@ -5021,7 +5024,7 @@ type ModelApisUsageResponse struct {
 
 // ModelApisUsageResult Usage totals for one combination of the requested dimensions, within one bucket.
 type ModelApisUsageResult struct {
-	// ApiKeyPrefix Prefix of the API key the usage is attributed to. Null when not grouping by api_key.
+	// ApiKeyPrefix Prefix of the API key the usage is attributed to. Null when not grouping by api_key or when the request was not authenticated with an API key.
 	ApiKeyPrefix *string `json:"api_key_prefix,omitempty"`
 
 	// CachedInputTokens Input tokens served from the prompt cache.
@@ -5256,10 +5259,10 @@ type PatchInteractiveSessionResponse struct {
 // accepting both would create two ways to spell the same intent.
 type PatchLoopsUserConfigRequest struct {
 	// SamplerAcceleratorPriority Ordered list of GPU types for sampler deployments, highest priority first. Send a list to set; send null to clear (inherit org allowlist); omit to leave unchanged. Empty list is rejected.
-	SamplerAcceleratorPriority *[]string `json:"sampler_accelerator_priority,omitempty"`
+	SamplerAcceleratorPriority Optional[[]string] `json:"sampler_accelerator_priority,omitzero"`
 
 	// TrainerAcceleratorPriority Ordered list of GPU types for trainer deployments, highest priority first. Send a list to set; send null to clear (inherit org allowlist); omit to leave unchanged. Empty list is rejected.
-	TrainerAcceleratorPriority *[]string `json:"trainer_accelerator_priority,omitempty"`
+	TrainerAcceleratorPriority Optional[[]string] `json:"trainer_accelerator_priority,omitzero"`
 }
 
 // PatchLoopsUserConfigResponse Response for “PATCH /v1/loops/user_config“.
@@ -6027,7 +6030,7 @@ type UpdateAutoscalingScheduleSettings struct {
 	Schedules *[]UpdateAutoscalingScheduleSettings_Schedules_Item `json:"schedules,omitempty"`
 
 	// Timezone IANA timezone shared by the resulting collection. Omission preserves the current timezone; null is allowed only when deleting every schedule.
-	Timezone *string `json:"timezone,omitempty"`
+	Timezone Optional[string] `json:"timezone,omitzero"`
 }
 
 // UpdateAutoscalingScheduleSettings_Schedules_Item defines model for UpdateAutoscalingScheduleSettings.schedules.Item.
@@ -6237,7 +6240,7 @@ type UpdatePromotionSettings struct {
 // UpdateRequestBackpressureSettings A request to update request backpressure settings.
 type UpdateRequestBackpressureSettings struct {
 	// Policy Backpressure policy to apply. Null indicates no policy (on update, clears an existing one).
-	Policy *RequestBackpressurePolicy `json:"policy,omitempty"`
+	Policy Optional[RequestBackpressurePolicy] `json:"policy,omitzero"`
 }
 
 // UpdateRollingDeployConfig Rolling deploy config for promoting chains and oracles
@@ -9186,4 +9189,50 @@ func (t UpdateAutoscalingScheduleSettings_Schedules_Item) MarshalJSON() ([]byte,
 func (t *UpdateAutoscalingScheduleSettings_Schedules_Item) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
+}
+
+// Optional is a field whose explicit null differs from its omission. The zero
+// value is unset, which the omitzero tag omits from the request body entirely.
+// The API reads an omitted field as "leave unchanged" and a null as "clear".
+type Optional[T any] struct {
+	set   bool
+	value *T
+}
+
+// NewOptional returns an Optional holding value. A nil value encodes as JSON
+// null, clearing the field server-side.
+func NewOptional[T any](value *T) Optional[T] {
+	return Optional[T]{set: true, value: value}
+}
+
+// IsSet reports whether the field was set, to either a value or null.
+func (o Optional[T]) IsSet() bool { return o.set }
+
+// IsNull reports whether the field was set to null.
+func (o Optional[T]) IsNull() bool { return o.set && o.value == nil }
+
+// Get returns the value, or nil when the field is unset or null. Use IsSet to
+// tell those apart.
+func (o Optional[T]) Get() *T { return o.value }
+
+// IsZero reports whether the field is unset, which is how the omitzero tag
+// decides to omit it.
+func (o Optional[T]) IsZero() bool { return !o.set }
+
+func (o Optional[T]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(o.value)
+}
+
+func (o *Optional[T]) UnmarshalJSON(data []byte) error {
+	o.set = true
+	if string(data) == "null" {
+		o.value = nil
+		return nil
+	}
+	var value T
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	o.value = &value
+	return nil
 }

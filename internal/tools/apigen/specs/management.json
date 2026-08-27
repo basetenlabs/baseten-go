@@ -9255,7 +9255,8 @@
                                 "H200"
                             ]
                         ],
-                        "title": "Trainer Accelerator Priority"
+                        "title": "Trainer Accelerator Priority",
+                        "x-null-distinct": true
                     },
                     "sampler_accelerator_priority": {
                         "anyOf": [
@@ -9277,7 +9278,8 @@
                                 "H200"
                             ]
                         ],
-                        "title": "Sampler Accelerator Priority"
+                        "title": "Sampler Accelerator Priority",
+                        "x-null-distinct": true
                     }
                 },
                 "title": "PatchLoopsUserConfigRequestV1",
@@ -14001,7 +14003,8 @@
                         "description": "Backpressure policy to apply. Null indicates no policy (on update, clears an existing one).",
                         "examples": [
                             "REJECT_ON_FULL"
-                        ]
+                        ],
+                        "x-null-distinct": true
                     }
                 },
                 "title": "UpdateRequestBackpressureSettingsV1",
@@ -16371,7 +16374,8 @@
                         ],
                         "default": null,
                         "description": "IANA timezone shared by the resulting collection. Omission preserves the current timezone; null is allowed only when deleting every schedule.",
-                        "title": "Timezone"
+                        "title": "Timezone",
+                        "x-null-distinct": true
                     },
                     "schedules": {
                         "description": "Complete schedules to create or replace. Existing schedules omitted from this list are unchanged.",
@@ -22984,7 +22988,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Prefix of the API key the usage is attributed to. Null when not grouping by api_key.",
+                        "description": "Prefix of the API key the usage is attributed to. Null when not grouping by api_key or when the request was not authenticated with an API key.",
                         "title": "Api Key Prefix"
                     },
                     "user_id": {
@@ -25362,6 +25366,7 @@
                 "enum": [
                     "ANTHROPIC",
                     "OPENAI",
+                    "XAI",
                     "BASETEN",
                     "BASETEN_MODEL_API",
                     "VERTEX",

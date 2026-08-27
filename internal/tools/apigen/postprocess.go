@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"go/format"
+	"maps"
 	"regexp"
+	"slices"
 	"strings"
 )
 
@@ -13,7 +15,7 @@ import (
 // (see fixDiscriminatorValueLiteral). discriminatorRequired maps a Go schema
 // name to whether its discriminator field is required, hence non-pointer
 // (see fixDiscriminatorPointerAssign).
-func postProcess(src []byte, discriminatorValues map[string][]string, discriminatorRequired map[string]bool) ([]byte, error) {
+func postProcess(src []byte, discriminatorValues map[string][]string, discriminatorRequired map[string]bool, nullDistinct map[string][]string) ([]byte, error) {
 	s := string(src)
 
 	s = fixPackageComment(s)
@@ -22,6 +24,10 @@ func postProcess(src []byte, discriminatorValues map[string][]string, discrimina
 	s = fixDiscriminatorValueLiteral(s, discriminatorValues)
 	s = fixDiscriminatorPointerAssign(s, discriminatorRequired)
 	s = underscoreEnumConstants(s)
+	s, err := applyNullDistinct(s, nullDistinct)
+	if err != nil {
+		return nil, err
+	}
 
 	out, err := format.Source([]byte(s))
 	if err != nil {
@@ -202,3 +208,117 @@ func postProcessModelConfig(src []byte) ([]byte, error) {
 	}
 	return out, nil
 }
+
+// applyNullDistinct retypes the fields the spec marks x-null-distinct from
+// `*T` with omitempty to `Optional[T]` with omitzero, and appends the Optional
+// definition when at least one field was rewritten. oapi-codegen renders every
+// optional property as a pointer with omitempty, which collapses an explicit
+// null into an omitted field; these are the fields where the API tells the two
+// apart.
+//
+// A field named here that is missing, already non-pointer, or not tagged
+// omitempty is a mismatch between the spec and the generated source, and fails
+// the build rather than silently leaving null unreachable.
+func applyNullDistinct(s string, nullDistinct map[string][]string) (string, error) {
+	rewrote := false
+	for _, schema := range slices.Sorted(maps.Keys(nullDistinct)) {
+		for _, field := range nullDistinct[schema] {
+			replaced, err := retypeFieldAsOptional(s, schema, field)
+			if err != nil {
+				return "", err
+			}
+			s = replaced
+			rewrote = true
+		}
+	}
+	if !rewrote {
+		return s, nil
+	}
+	if !strings.Contains(s, `"encoding/json"`) {
+		return "", fmt.Errorf("Optional needs encoding/json, which the generated source does not import")
+	}
+	return s + optionalTypeSource, nil
+}
+
+// structBodyRe captures a named struct's body so a field rewrite stays scoped
+// to the type that declares it. Field names repeat across schemas: Timezone is
+// null-distinct on UpdateAutoscalingScheduleSettings but a plain read-only
+// field on EnvironmentAutoscalingSchedules.
+func structBodyRe(schema string) *regexp.Regexp {
+	return regexp.MustCompile(`(?ms)^type ` + regexp.QuoteMeta(schema) + ` struct \{\n(.*?)^\}`)
+}
+
+func retypeFieldAsOptional(s, schema, field string) (string, error) {
+	body := structBodyRe(schema).FindStringSubmatchIndex(s)
+	if body == nil {
+		return "", fmt.Errorf("%s: no generated struct for a schema marked %s", schema, nullDistinctExtension)
+	}
+	start, end := body[2], body[3]
+	fieldRe := regexp.MustCompile(`(?m)^\t` + regexp.QuoteMeta(field) + ` \*(\S+) ` + "`" + `json:"([^"]+)"` + "`" + `$`)
+	match := fieldRe.FindStringSubmatchIndex(s[start:end])
+	if match == nil {
+		return "", fmt.Errorf("%s.%s: no pointer field to retype; %s must mark an optional property",
+			schema, field, nullDistinctExtension)
+	}
+	goType := s[start+match[2] : start+match[3]]
+	tag := s[start+match[4] : start+match[5]]
+	name, ok := strings.CutSuffix(tag, ",omitempty")
+	if !ok {
+		return "", fmt.Errorf("%s.%s: json tag %q is not omitempty, so the property is required and cannot be null-distinct",
+			schema, field, tag)
+	}
+	replacement := fmt.Sprintf("\t%s Optional[%s] `json:%q`", field, goType, name+",omitzero")
+	return s[:start+match[0]] + replacement + s[start+match[1]:], nil
+}
+
+// optionalTypeSource is appended to a generated package that has at least one
+// null-distinct field. It is emitted per package rather than shared, so the
+// generated clients keep no runtime dependency of their own.
+const optionalTypeSource = `
+
+// Optional is a field whose explicit null differs from its omission. The zero
+// value is unset, which the omitzero tag omits from the request body entirely.
+// The API reads an omitted field as "leave unchanged" and a null as "clear".
+type Optional[T any] struct {
+	set   bool
+	value *T
+}
+
+// NewOptional returns an Optional holding value. A nil value encodes as JSON
+// null, clearing the field server-side.
+func NewOptional[T any](value *T) Optional[T] {
+	return Optional[T]{set: true, value: value}
+}
+
+// IsSet reports whether the field was set, to either a value or null.
+func (o Optional[T]) IsSet() bool { return o.set }
+
+// IsNull reports whether the field was set to null.
+func (o Optional[T]) IsNull() bool { return o.set && o.value == nil }
+
+// Get returns the value, or nil when the field is unset or null. Use IsSet to
+// tell those apart.
+func (o Optional[T]) Get() *T { return o.value }
+
+// IsZero reports whether the field is unset, which is how the omitzero tag
+// decides to omit it.
+func (o Optional[T]) IsZero() bool { return !o.set }
+
+func (o Optional[T]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(o.value)
+}
+
+func (o *Optional[T]) UnmarshalJSON(data []byte) error {
+	o.set = true
+	if string(data) == "null" {
+		o.value = nil
+		return nil
+	}
+	var value T
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	o.value = &value
+	return nil
+}
+`
