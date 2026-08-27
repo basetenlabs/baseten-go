@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -17,8 +18,10 @@ import (
 )
 
 type tarEntry struct {
-	name string
-	data string
+	name     string
+	data     string
+	typeflag byte
+	linkname string
 }
 
 func readArchive(t *testing.T, rc io.ReadCloser) []tarEntry {
@@ -34,7 +37,12 @@ func readArchive(t *testing.T, rc io.ReadCloser) []tarEntry {
 		require.NoError(t, err)
 		buf, err := io.ReadAll(tr)
 		require.NoError(t, err)
-		entries = append(entries, tarEntry{name: hdr.Name, data: string(buf)})
+		entries = append(entries, tarEntry{
+			name:     hdr.Name,
+			data:     string(buf),
+			typeflag: hdr.Typeflag,
+			linkname: hdr.Linkname,
+		})
 	}
 	sort.Slice(entries, func(i, j int) bool { return entries[i].name < entries[j].name })
 	return entries
@@ -46,6 +54,17 @@ func entryNames(entries []tarEntry) []string {
 		names[i] = e.name
 	}
 	return names
+}
+
+func entryByName(t *testing.T, entries []tarEntry, name string) tarEntry {
+	t.Helper()
+	for _, e := range entries {
+		if e.name == name {
+			return e
+		}
+	}
+	t.Fatalf("no entry named %q in %v", name, entryNames(entries))
+	return tarEntry{}
 }
 
 func writeFile(t *testing.T, path, contents string) {
@@ -196,14 +215,13 @@ func TestBuildModelArchiveDuplicateArchivePathErrors(t *testing.T) {
 	writeFile(t, filepath.Join(trussDir, "packages", "conflict.py"), "T\n")
 	writeFile(t, filepath.Join(extDir, "conflict.py"), "E\n")
 
-	rc, err := modelarchive.BuildModelArchive(context.Background(), modelarchive.BuildModelArchiveOptions{
+	// The collision is found while enumerating, so it fails the build outright
+	// rather than surfacing partway through a read.
+	_, err := modelarchive.BuildModelArchive(context.Background(), modelarchive.BuildModelArchiveOptions{
 		Dir:                 trussDir,
 		ExternalPackageDirs: []string{"../shared_pkg"},
 		BundledPackagesDir:  "packages",
 	})
-	require.NoError(t, err)
-	_, err = io.ReadAll(rc)
-	rc.Close()
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "duplicate archive entry")
 	// The message names both colliding source files and the remediation.
@@ -276,19 +294,116 @@ func TestBuildModelArchiveMissingProcessorErrors(t *testing.T) {
 	require.Contains(t, err.Error(), "IgnoreFileProcessor is nil")
 }
 
-func TestBuildModelArchiveSymlinkNotFollowed(t *testing.T) {
+func skipWithoutSymlinks(t *testing.T) {
+	t.Helper()
 	if runtime.GOOS == "windows" {
 		t.Skip("symlinks require admin on windows")
 	}
+}
+
+func TestBuildModelArchiveSymlinkStoredNotFollowed(t *testing.T) {
+	skipWithoutSymlinks(t)
 	dir := t.TempDir()
 	writeFile(t, filepath.Join(dir, "config.yaml"), "model_name: x\n")
 	writeFile(t, filepath.Join(dir, "real.txt"), "real")
+	writeFile(t, filepath.Join(dir, "model", "model.py"), "print('hi')\n")
 	require.NoError(t, os.Symlink("real.txt", filepath.Join(dir, "link.txt")))
+	// A target reached through ".." is fine as long as it lands back inside.
+	require.NoError(t, os.Symlink(filepath.Join("..", "real.txt"), filepath.Join(dir, "model", "up.txt")))
+	// A directory symlink is stored as a link, so its contents are not walked
+	// and appear once, under their real path.
+	require.NoError(t, os.Symlink("model", filepath.Join(dir, "model_link")))
 
 	rc, err := modelarchive.BuildModelArchive(context.Background(), modelarchive.BuildModelArchiveOptions{Dir: dir})
 	require.NoError(t, err)
-	names := entryNames(readArchive(t, rc))
-	require.Equal(t, "config.yaml,real.txt", strings.Join(names, ","))
+	entries := readArchive(t, rc)
+
+	require.Equal(t, "config.yaml,link.txt,model/model.py,model/up.txt,model_link,real.txt",
+		strings.Join(entryNames(entries), ","))
+	for _, tc := range []struct{ name, linkname string }{
+		{"link.txt", "real.txt"},
+		{"model/up.txt", filepath.Join("..", "real.txt")},
+		{"model_link", "model"},
+	} {
+		entry := entryByName(t, entries, tc.name)
+		require.Equal(t, byte(tar.TypeSymlink), entry.typeflag)
+		require.Equal(t, tc.linkname, entry.linkname)
+		require.Equal(t, "", entry.data)
+	}
+}
+
+func TestBuildModelArchiveSymlinkOutsideArchiveRejected(t *testing.T) {
+	skipWithoutSymlinks(t)
+	root := t.TempDir()
+	outside := filepath.Join(root, "outside.txt")
+	writeFile(t, outside, "secret")
+
+	for _, tc := range []struct {
+		name   string
+		at     string
+		target string
+	}{
+		{"absolute", "link.txt", outside},
+		{"escaping", "link.txt", filepath.Join("..", "outside.txt")},
+		{"escaping from a subdirectory", "model/link.txt", filepath.Join("..", "..", "outside.txt")},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := filepath.Join(t.TempDir(), "truss")
+			writeFile(t, filepath.Join(dir, "config.yaml"), "model_name: x\n")
+			linkPath := filepath.Join(dir, filepath.FromSlash(tc.at))
+			require.NoError(t, os.MkdirAll(filepath.Dir(linkPath), 0o755))
+			require.NoError(t, os.Symlink(tc.target, linkPath))
+
+			// Enumeration happens up front, so this fails before a caller can
+			// start uploading rather than partway through the stream.
+			_, err := modelarchive.BuildModelArchive(context.Background(),
+				modelarchive.BuildModelArchiveOptions{Dir: dir})
+			require.Error(t, err)
+
+			var invalid *modelarchive.InvalidSymlinkError
+			require.True(t, errors.As(err, &invalid), "expected InvalidSymlinkError, got %v", err)
+			require.Equal(t, tc.at, invalid.ArchivePath)
+			require.Equal(t, tc.target, invalid.Target)
+			require.Contains(t, err.Error(), ".truss_ignore")
+		})
+	}
+}
+
+func TestBuildModelArchiveIgnoredSymlinkNotRejected(t *testing.T) {
+	skipWithoutSymlinks(t)
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "config.yaml"), "model_name: x\n")
+	writeFile(t, filepath.Join(dir, ".truss_ignore"), ".devenv/\n")
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, ".devenv", "gc"), 0o755))
+	require.NoError(t, os.Symlink("/nix/store/whatever", filepath.Join(dir, ".devenv", "gc", "shell")))
+
+	// The ignore rules are applied before the entry is classified, so ignoring
+	// an unarchivable symlink is a way out of the error.
+	rc, err := modelarchive.BuildModelArchive(context.Background(), modelarchive.BuildModelArchiveOptions{
+		Dir: dir,
+		IgnoreFileProcessor: func(_ context.Context, opts modelarchive.IgnoreFileProcessorOptions) (modelarchive.IgnoreFileFunc, error) {
+			return func(_ context.Context, e modelarchive.IgnoreFileOptions) (bool, error) {
+				return strings.HasPrefix(e.RelPath, ".devenv"), nil
+			}, nil
+		},
+	})
+	require.NoError(t, err)
+	require.Equal(t, ".truss_ignore,config.yaml", strings.Join(entryNames(readArchive(t, rc)), ","))
+}
+
+func TestBuildModelArchiveIrregularFileSkipped(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("unix sockets are not an ordinary filesystem entry on windows")
+	}
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "config.yaml"), "model_name: x\n")
+	socket, err := net.Listen("unix", filepath.Join(dir, "sock"))
+	require.NoError(t, err)
+	defer socket.Close()
+
+	rc, err := modelarchive.BuildModelArchive(context.Background(), modelarchive.BuildModelArchiveOptions{Dir: dir})
+	require.NoError(t, err)
+	require.Equal(t, "config.yaml", strings.Join(entryNames(readArchive(t, rc)), ","))
 }
 
 func TestBuildModelArchiveMissingDirErrors(t *testing.T) {
@@ -306,10 +421,7 @@ func TestBuildModelArchiveContextCanceled(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	rc, err := modelarchive.BuildModelArchive(ctx, modelarchive.BuildModelArchiveOptions{Dir: dir})
-	require.NoError(t, err)
-	_, err = io.ReadAll(rc)
-	rc.Close()
+	_, err := modelarchive.BuildModelArchive(ctx, modelarchive.BuildModelArchiveOptions{Dir: dir})
 	require.True(t, errors.Is(err, context.Canceled), "expected context.Canceled, got %v", err)
 }
 
@@ -320,6 +432,8 @@ type walkFile struct {
 	sourcePath  string
 	size        int64
 	data        string
+	linkTarget  string
+	isDir       bool
 }
 
 func walkFiles(t *testing.T, opts modelarchive.BuildModelArchiveOptions) []walkFile {
@@ -336,10 +450,20 @@ func walkFiles(t *testing.T, opts modelarchive.BuildModelArchiveOptions) []walkF
 			sourcePath:  f.SourcePath,
 			size:        f.Size,
 			data:        string(data),
+			linkTarget:  f.LinkTarget,
+			isDir:       f.Info != nil && f.Info.IsDir(),
 		})
 		return nil
 	}))
 	return files
+}
+
+func walkPaths(files []walkFile) []string {
+	paths := make([]string, len(files))
+	for i, f := range files {
+		paths[i] = f.archivePath
+	}
+	return paths
 }
 
 func TestWalkModelArchiveMatchesBuild(t *testing.T) {
@@ -422,4 +546,69 @@ func TestWalkModelArchiveValidates(t *testing.T) {
 		modelarchive.BuildModelArchiveOptions{Dir: filepath.Join(t.TempDir(), "nope")},
 		func(modelarchive.File) error { return nil })
 	require.Error(t, err)
+}
+
+func TestWalkModelArchiveRejectsSymlinkOutsideArchive(t *testing.T) {
+	skipWithoutSymlinks(t)
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "config.yaml"), "model_name: x\n")
+	require.NoError(t, os.Symlink("/etc/hosts", filepath.Join(dir, "link.txt")))
+
+	// A walker gets the same rejection a build does, so walking a tree is also
+	// a check that it can be pushed.
+	seen := 0
+	err := modelarchive.WalkModelArchive(context.Background(),
+		modelarchive.BuildModelArchiveOptions{Dir: dir},
+		func(modelarchive.File) error {
+			seen++
+			return nil
+		})
+	var invalid *modelarchive.InvalidSymlinkError
+	require.True(t, errors.As(err, &invalid), "expected InvalidSymlinkError, got %v", err)
+	require.Equal(t, "link.txt", invalid.ArchivePath)
+	// The offending entry is never reported, only the config that preceded it.
+	require.Equal(t, 1, seen)
+}
+
+func TestWalkModelArchiveSymlinkFields(t *testing.T) {
+	skipWithoutSymlinks(t)
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "config.yaml"), "model_name: x\n")
+	writeFile(t, filepath.Join(dir, "real.txt"), "real")
+	require.NoError(t, os.Symlink("real.txt", filepath.Join(dir, "link.txt")))
+
+	files := walkFiles(t, modelarchive.BuildModelArchiveOptions{Dir: dir})
+	require.Equal(t, "config.yaml,link.txt,real.txt", strings.Join(walkPaths(files), ","))
+
+	// A symlink carries its validated target rather than the target's bytes,
+	// so a consumer never has to re-read the link to learn where it points.
+	link := files[1]
+	require.Equal(t, "real.txt", link.linkTarget)
+	require.Equal(t, int64(0), link.size)
+	require.Equal(t, "", link.data)
+	require.Equal(t, "", files[2].linkTarget)
+}
+
+func TestWalkModelArchiveIncludeDirsInWalk(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "config.yaml"), "model_name: x\n")
+	writeFile(t, filepath.Join(dir, "model", "model.py"), "M\n")
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "empty"), 0o755))
+
+	// Without the option the walk is exactly the archive's members, which is
+	// why an empty directory is invisible.
+	files := walkFiles(t, modelarchive.BuildModelArchiveOptions{Dir: dir})
+	require.Equal(t, "config.yaml,model/model.py", strings.Join(walkPaths(files), ","))
+
+	files = walkFiles(t, modelarchive.BuildModelArchiveOptions{Dir: dir, IncludeDirsInWalk: true})
+	require.Equal(t, "config.yaml,empty,model,model/model.py", strings.Join(walkPaths(files), ","))
+	for _, f := range files {
+		require.Equal(t, f.archivePath == "empty" || f.archivePath == "model", f.isDir)
+	}
+
+	// Directory entries never reach the archive itself.
+	rc, err := modelarchive.BuildModelArchive(context.Background(),
+		modelarchive.BuildModelArchiveOptions{Dir: dir, IncludeDirsInWalk: true})
+	require.NoError(t, err)
+	require.Equal(t, "config.yaml,model/model.py", strings.Join(entryNames(readArchive(t, rc)), ","))
 }
