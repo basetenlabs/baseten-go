@@ -9,11 +9,11 @@ import (
 
 // postProcess removes the oapi-codegen runtime dependency from generated code
 // and fixes known codegen bugs. discriminatorValues maps a Go schema name to
-// the OpenAPI discriminator mapping key that should appear on the wire
+// the OpenAPI discriminator mapping keys that select it on the wire
 // (see fixDiscriminatorValueLiteral). discriminatorRequired maps a Go schema
 // name to whether its discriminator field is required, hence non-pointer
 // (see fixDiscriminatorPointerAssign).
-func postProcess(src []byte, discriminatorValues map[string]string, discriminatorRequired map[string]bool) ([]byte, error) {
+func postProcess(src []byte, discriminatorValues map[string][]string, discriminatorRequired map[string]bool) ([]byte, error) {
 	s := string(src)
 
 	s = fixPackageComment(s)
@@ -81,12 +81,12 @@ func fixDiscriminatorPointerAssign(s string, discriminatorRequired map[string]bo
 	})
 }
 
-// fromMethodLiteralRe matches the literal assigned to the discriminator field
-// inside a generated From{Schema} method. The function name's suffix is the
-// schema name; we replace the literal with the OpenAPI discriminator mapping
-// key when one is known. Untracked by oapi-codegen (separate from #2297).
-var fromMethodLiteralRe = regexp.MustCompile(
-	`(func \([^)]+\) From(\w+)\([^)]*\) error \{\n\t\w+\.\w+ = )"[^"]*"`,
+// fromMethodAssignRe matches the whole discriminator assignment line inside a
+// generated From{Schema} method. The function name's suffix is the schema name;
+// we replace the literal with the OpenAPI discriminator mapping key when one is
+// known. Untracked by oapi-codegen (separate from #2297).
+var fromMethodAssignRe = regexp.MustCompile(
+	`(func \([^)]+\) From(\w+)\([^)]*\) error \{\n)\t(\w+\.\w+) = "[^"]*"\n`,
 )
 
 // valueByDiscriminatorCaseRe matches the `case "Schema":` lines emitted in the
@@ -96,17 +96,24 @@ var valueByDiscriminatorCaseRe = regexp.MustCompile(
 	`(\tcase )"(\w+)"(:\n\t\treturn t\.As\w+\(\))`,
 )
 
-func fixDiscriminatorValueLiteral(s string, mapping map[string]string) string {
+func fixDiscriminatorValueLiteral(s string, mapping map[string][]string) string {
 	if len(mapping) == 0 {
 		return s
 	}
-	s = fromMethodLiteralRe.ReplaceAllStringFunc(s, func(match string) string {
-		sub := fromMethodLiteralRe.FindStringSubmatch(match)
+	// A member selected by several mapping keys has no single correct literal,
+	// and its discriminator property is a multi-value enum the caller sets
+	// itself. Drop the assignment so the caller's value survives, rather than
+	// overwriting it with one arbitrary key.
+	s = fromMethodAssignRe.ReplaceAllStringFunc(s, func(match string) string {
+		sub := fromMethodAssignRe.FindStringSubmatch(match)
 		mapped, ok := mapping[sub[2]]
 		if !ok {
 			return match
 		}
-		return sub[1] + `"` + mapped + `"`
+		if len(mapped) > 1 {
+			return sub[1]
+		}
+		return sub[1] + "\t" + sub[3] + ` = "` + mapped[0] + `"` + "\n"
 	})
 	s = valueByDiscriminatorCaseRe.ReplaceAllStringFunc(s, func(match string) string {
 		sub := valueByDiscriminatorCaseRe.FindStringSubmatch(match)
@@ -114,7 +121,11 @@ func fixDiscriminatorValueLiteral(s string, mapping map[string]string) string {
 		if !ok {
 			return match
 		}
-		return sub[1] + `"` + mapped + `"` + sub[3]
+		labels := make([]string, len(mapped))
+		for i, v := range mapped {
+			labels[i] = `"` + v + `"`
+		}
+		return sub[1] + strings.Join(labels, ", ") + sub[3]
 	})
 	return s
 }

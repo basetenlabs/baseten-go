@@ -267,6 +267,7 @@ func TestPushModelExisting(t *testing.T) {
 		Config:         map[string]any{"model_name": "my-model"},
 		Archive:        modelarchive.BuildModelArchiveOptions{Dir: newPushModelDir(t)},
 		DeploymentName: "v2",
+		Region:         "us-west-2",
 		Labels:         map[string]any{"team": "core"},
 		ModelUploader:  func(_ context.Context, u client.ModelUpload) error { _, _ = collectUpload(t, u); return nil },
 	})
@@ -286,6 +287,7 @@ func TestPushModelExisting(t *testing.T) {
 	deployment, ok := source["deployment"].(map[string]any)
 	require.True(t, ok, "expected a deployment payload, got %T", source["deployment"])
 	require.Equal(t, "v2", deployment["deployment_name"])
+	require.Equal(t, "us-west-2", deployment["region"])
 	labels, ok := deployment["labels"].(map[string]any)
 	require.True(t, ok, "expected labels, got %T", deployment["labels"])
 	require.MapEqual(t, labels, "team", any("core"))
