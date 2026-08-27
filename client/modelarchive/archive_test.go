@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/basetenlabs/baseten-go/client/modelarchive"
@@ -294,10 +295,22 @@ func TestBuildModelArchiveMissingProcessorErrors(t *testing.T) {
 	require.Contains(t, err.Error(), "IgnoreFileProcessor is nil")
 }
 
+// symlinksSupported reports whether this process can create a symlink at all.
+// On Windows that depends on the account's privileges and on developer mode
+// rather than on the OS alone, so it is probed once rather than assumed.
+var symlinksSupported = sync.OnceValue(func() bool {
+	dir, err := os.MkdirTemp("", "symlink-probe")
+	if err != nil {
+		return false
+	}
+	defer os.RemoveAll(dir)
+	return os.Symlink("target", filepath.Join(dir, "probe")) == nil
+})
+
 func skipWithoutSymlinks(t *testing.T) {
 	t.Helper()
-	if runtime.GOOS == "windows" {
-		t.Skip("symlinks require admin on windows")
+	if !symlinksSupported() {
+		t.Skip("this process cannot create symlinks")
 	}
 }
 
@@ -395,7 +408,12 @@ func TestBuildModelArchiveIrregularFileSkipped(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("unix sockets are not an ordinary filesystem entry on windows")
 	}
-	dir := t.TempDir()
+	// Not t.TempDir: a socket path has to fit in sun_path, roughly 100 bytes,
+	// and the per-test temp dir alone is longer than that on macOS.
+	dir, err := os.MkdirTemp("/tmp", "ma")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
 	writeFile(t, filepath.Join(dir, "config.yaml"), "model_name: x\n")
 	socket, err := net.Listen("unix", filepath.Join(dir, "sock"))
 	require.NoError(t, err)
@@ -587,6 +605,36 @@ func TestWalkModelArchiveSymlinkFields(t *testing.T) {
 	require.Equal(t, int64(0), link.size)
 	require.Equal(t, "", link.data)
 	require.Equal(t, "", files[2].linkTarget)
+}
+
+func TestWalkModelArchiveSharedExternalDirs(t *testing.T) {
+	root := t.TempDir()
+	trussDir := filepath.Join(root, "truss")
+	writeFile(t, filepath.Join(trussDir, "config.yaml"), "model_name: x\n")
+	writeFile(t, filepath.Join(root, "a", "sub", "a.py"), "A\n")
+	writeFile(t, filepath.Join(root, "b", "sub", "b.py"), "B\n")
+
+	// Two external dirs contributing the same directory is normal, so it is
+	// reported once rather than colliding.
+	files := walkFiles(t, modelarchive.BuildModelArchiveOptions{
+		Dir:                 trussDir,
+		ExternalPackageDirs: []string{"../a", "../b"},
+		BundledPackagesDir:  "packages",
+		IncludeDirsInWalk:   true,
+	})
+	require.Equal(t, "config.yaml,packages/sub,packages/sub/a.py,packages/sub/b.py",
+		strings.Join(walkPaths(files), ","))
+
+	// A file and a directory landing on one path is still a collision.
+	writeFile(t, filepath.Join(root, "c", "sub"), "not a dir\n")
+	err := modelarchive.WalkModelArchive(context.Background(), modelarchive.BuildModelArchiveOptions{
+		Dir:                 trussDir,
+		ExternalPackageDirs: []string{"../a", "../c"},
+		BundledPackagesDir:  "packages",
+		IncludeDirsInWalk:   true,
+	}, func(modelarchive.File) error { return nil })
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "duplicate archive entry")
 }
 
 func TestWalkModelArchiveIncludeDirsInWalk(t *testing.T) {

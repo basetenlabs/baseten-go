@@ -376,25 +376,31 @@ func walkFiles(
 	ignoreFn IgnoreFileFunc,
 	fn func(File) error,
 ) error {
-	// Tracks archive path -> source path so two source files that resolve to
-	// the same archive path are reported rather than silently shadowing.
-	emitted := map[string]string{}
+	// Tracks what has been reported for an archive path so two sources that
+	// resolve to the same one are reported rather than silently shadowing.
+	type emittedEntry struct {
+		sourcePath string
+		isDir      bool
+	}
+	emitted := map[string]emittedEntry{}
 	emit := func(f File) error {
-		// Two external package dirs legitimately contribute the same directory
-		// to one archive path, so only their contents have to be unique.
-		if f.Info != nil && f.Info.IsDir() {
-			return fn(f)
-		}
+		isDir := f.Info != nil && f.Info.IsDir()
 		if prev, dup := emitted[f.ArchivePath]; dup {
+			// Two external package dirs legitimately contribute the same
+			// directory to one archive path. Only their contents have to be
+			// unique, and the directory is still reported just once.
+			if isDir && prev.isDir {
+				return nil
+			}
 			return fmt.Errorf("modelarchive: duplicate archive entry %q: both %s and %s map to it. "+
 				"Two source files resolve to the same archive path, commonly because multiple external_package_dirs "+
 				"(or an external_package_dir and the model directory) contain a file with the same relative path. "+
-				"Rename or remove one so each archive path is unique", f.ArchivePath, prev, f.SourcePath)
+				"Rename or remove one so each archive path is unique", f.ArchivePath, prev.sourcePath, f.SourcePath)
 		}
 		if err := fn(f); err != nil {
 			return err
 		}
-		emitted[f.ArchivePath] = f.SourcePath
+		emitted[f.ArchivePath] = emittedEntry{sourcePath: f.SourcePath, isDir: isDir}
 		return nil
 	}
 
