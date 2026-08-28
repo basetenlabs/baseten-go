@@ -23,6 +23,12 @@ type Client struct {
 	maxFiles                int
 	portablePathLimits      portablePathLimits
 	availableSpace          func(string) (uint64, error)
+	filesystemHooks         *filesystemTestHooks
+}
+
+type filesystemTestHooks struct {
+	afterPushLstat func(string)
+	beforePushRead func(string)
 }
 
 // New constructs a transfer engine.
