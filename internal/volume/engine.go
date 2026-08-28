@@ -27,8 +27,14 @@ type Client struct {
 }
 
 type filesystemTestHooks struct {
-	afterPushLstat func(string)
-	beforePushRead func(string)
+	afterPushLstat          func(string)
+	beforePushRead          func(string)
+	afterPullPrepared       func(*pullResume)
+	beforePullFinalVerify   func(*pullResume)
+	beforePullPublish       func(*pullResume, destinationPreflight)
+	afterPullPublishVerify  func(*pullResume) error
+	duringResumeInitialize  func(string) error
+	duringJournalCompaction func(string) error
 }
 
 // New constructs a transfer engine.
