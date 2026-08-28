@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/basetenlabs/baseten-go/client"
@@ -387,6 +388,32 @@ func TestPushModelDryRunArchiveError(t *testing.T) {
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "duplicate archive entry")
+}
+
+func TestPushModelUnarchivableSymlinkFailsBeforePrepare(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlinks require admin on windows")
+	}
+	srv := &pushTestServer{responses: map[string]any{
+		"/v1/prepare_model_upload": pushPrepareResponse,
+		"/v1/models":               pushCommitResponse,
+	}}
+	cl := newPushTestServer(t, srv)
+
+	dir := newPushModelDir(t)
+	require.NoError(t, os.Symlink("/etc/hosts", filepath.Join(dir, "hosts")))
+
+	_, err := cl.PushModel(context.Background(), client.PushModelOptions{
+		Config:        map[string]any{"model_name": "my-model"},
+		Archive:       modelarchive.BuildModelArchiveOptions{Dir: dir},
+		ModelUploader: func(context.Context, client.ModelUpload) error { return nil },
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "outside the model directory")
+
+	// The archive is enumerated first, so nothing was created server-side for
+	// a push that could never have completed.
+	require.Len(t, srv.requests, 0)
 }
 
 func TestPushModelWithoutArchive(t *testing.T) {

@@ -2,8 +2,10 @@
 // directories for upload to Baseten.
 //
 // Archive layout: files are stored at the archive root with paths relative to
-// the input directory, symlinks are not followed, and only regular files are
-// included.
+// the input directory. Symlinks are stored as symlinks rather than followed,
+// and only if they resolve within the archive; one that does not is rejected
+// (see [InvalidSymlinkError]). Other irregular files, such as sockets and
+// devices, are skipped.
 //
 // [BuildModelArchive] produces the tar stream. [WalkModelArchive] exposes the
 // same enumeration without the tar framing, so callers that need to summarize
@@ -107,15 +109,25 @@ type BuildModelArchiveOptions struct {
 	// Dir. If nil, the package-level [DefaultIgnoreFile] function is used.
 	// Pass a no-op function to disable default ignoring entirely.
 	DefaultIgnoreFile IgnoreFileFunc
+
+	// IncludeDirsInWalk makes [WalkModelArchive] report directory entries in
+	// addition to the archive's members. An archive never contains directory
+	// entries, so this affects walking only and [BuildModelArchive] ignores
+	// it. Callers that mirror a source tree rather than an archive, and so
+	// need to see empty directories, set this.
+	IncludeDirsInWalk bool
 }
 
 // BuildModelArchive returns a [io.ReadCloser] that streams an uncompressed
-// tar archive of the model directory described by opts. The archive is
-// produced lazily as the reader is consumed; callers must Close it to
-// release the underlying walk goroutine.
+// tar archive of the model directory described by opts. File contents are read
+// lazily as the reader is consumed; callers must Close it to release the
+// underlying goroutine.
 //
-// Errors encountered during the walk surface from the next Read call.
-// Cancelling ctx also aborts the build.
+// The entries themselves are enumerated before this returns, so everything
+// that enumeration can reject (a symlink the archive cannot carry, two sources
+// colliding on one archive path) is reported here rather than from a Read once
+// an upload is already underway. Errors reading file contents still surface
+// from Read. Cancelling ctx aborts either stage.
 func BuildModelArchive(ctx context.Context, opts BuildModelArchiveOptions) (io.ReadCloser, error) {
 	if err := opts.Validate(); err != nil {
 		return nil, err
@@ -125,10 +137,21 @@ func BuildModelArchive(ctx context.Context, opts BuildModelArchiveOptions) (io.R
 		return nil, err
 	}
 
+	// An archive has no directory entries, so the walk-only knob never applies
+	// here. opts is a value copy, so this does not affect the caller.
+	opts.IncludeDirsInWalk = false
+
+	var files []File
+	if err := walkFiles(ctx, opts, ignoreFn, func(f File) error {
+		files = append(files, f)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
 	pr, pw := io.Pipe()
 	go func() {
-		err := writeArchive(ctx, pw, opts, ignoreFn)
-		_ = pw.CloseWithError(err)
+		_ = pw.CloseWithError(writeArchive(ctx, pw, files))
 	}()
 	return pr, nil
 }
@@ -145,22 +168,83 @@ type File struct {
 	// [BuildModelArchiveOptions.ConfigYAMLOverride].
 	SourcePath string
 
-	// Info is the on-disk file info for SourcePath. It is nil for synthesized
-	// entries.
+	// Info is the on-disk file info for SourcePath, not following symlinks. It
+	// is nil for synthesized entries, which are always regular files.
+	// Directory entries, reported only when
+	// [BuildModelArchiveOptions.IncludeDirsInWalk] is set, are the ones for
+	// which Info.IsDir reports true.
 	Info fs.FileInfo
 
-	// Size is the entry's content length in bytes.
+	// LinkTarget is the symlink's target, exactly as stored on disk, and is
+	// non-empty for symlink entries and only those. It has been validated to
+	// resolve within the archive, so consumers can use it without re-reading
+	// the link and getting an answer the archive did not accept.
+	LinkTarget string
+
+	// Size is the entry's content length in bytes. Symlink and directory
+	// entries carry no content, so theirs is zero.
 	Size int64
 
-	// Open opens the entry's contents. The caller must Close the result.
+	// Open opens the entry's contents. The caller must Close the result. It is
+	// never nil: for entries that carry no content it yields no bytes.
 	Open func() (io.ReadCloser, error)
+}
+
+// openNothing is the [File.Open] of an entry with no contents.
+func openNothing() (io.ReadCloser, error) {
+	return io.NopCloser(bytes.NewReader(nil)), nil
+}
+
+// InvalidSymlinkError reports a symlink a model archive cannot carry, because
+// its target is absolute or reaches outside the archive.
+type InvalidSymlinkError struct {
+	// ArchivePath is the symlink's path inside the archive.
+	ArchivePath string
+	// Target is the link target exactly as stored on disk.
+	Target string
+}
+
+func (e *InvalidSymlinkError) Error() string {
+	return fmt.Sprintf("modelarchive: %s is a symlink to %s, which is outside the model "+
+		"directory. Only symlinks resolving within the pushed directory can be uploaded; "+
+		"remove it or add it to %s", e.ArchivePath, e.Target, ignoreFileName)
+}
+
+// validateSymlink reads the symlink at sourcePath and returns its target
+// unchanged, given archivePath as where the symlink lands in the archive. A
+// target that is absolute, or that reaches outside the archive root from
+// there, is rejected with an [InvalidSymlinkError].
+//
+// The check is lexical rather than resolved against the local filesystem,
+// matching the one applied when the archive is extracted, so a symlink
+// accepted here is a symlink that extracts.
+func validateSymlink(archivePath, sourcePath string) (string, error) {
+	target, err := os.Readlink(sourcePath)
+	if err != nil {
+		return "", fmt.Errorf("modelarchive: read symlink %s: %w", sourcePath, err)
+	}
+	// A rooted Windows target without a drive letter ("\foo") is one filepath
+	// calls relative, hence the second test.
+	slashed := filepath.ToSlash(target)
+	if filepath.IsAbs(target) || strings.HasPrefix(slashed, "/") {
+		return "", &InvalidSymlinkError{ArchivePath: archivePath, Target: target}
+	}
+	if dest := path.Join(path.Dir(archivePath), slashed); dest == ".." || strings.HasPrefix(dest, "../") {
+		return "", &InvalidSymlinkError{ArchivePath: archivePath, Target: target}
+	}
+	return target, nil
 }
 
 // WalkModelArchive calls fn once for each entry that [BuildModelArchive] would
 // place in the archive described by opts, in the order the archive would store
 // them: the config.yaml override (if any), then the contents of Dir, then each
 // of ExternalPackageDirs. Within a directory, entries are visited in lexical
-// order, so a given directory tree always produces the same sequence.
+// order, so a given directory tree always produces the same sequence. Setting
+// [BuildModelArchiveOptions.IncludeDirsInWalk] adds the directory entries the
+// archive itself omits.
+//
+// An entry the archive cannot carry aborts the walk with an error rather than
+// being reported to fn, so a walk is also a validation of the source tree.
 //
 // This is the enumeration [BuildModelArchive] itself runs on, so the two never
 // disagree about which paths an archive contains. Callers hashing an archive's
@@ -266,25 +350,20 @@ func resolveIgnoreFunc(ctx context.Context, opts BuildModelArchiveOptions) (Igno
 	return fn, nil
 }
 
-// writeArchive walks the archive's entries and writes a tar stream to w.
-func writeArchive(
-	ctx context.Context,
-	w io.Writer,
-	opts BuildModelArchiveOptions,
-	ignoreFn IgnoreFileFunc,
-) error {
+// writeArchive writes a tar stream of the already-enumerated files to w.
+func writeArchive(ctx context.Context, w io.Writer, files []File) error {
 	tw := tar.NewWriter(w)
 	defer tw.Close()
 
-	return walkFiles(ctx, opts, ignoreFn, func(f File) error {
-		r, err := f.Open()
-		if err != nil {
+	for _, f := range files {
+		if err := ctx.Err(); err != nil {
 			return err
 		}
-		err = writeTarEntry(tw, f.ArchivePath, f.Info, r, f.Size)
-		_ = r.Close()
-		return err
-	})
+		if err := writeTarEntry(tw, f); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // walkFiles enumerates the archive's entries and calls fn for each. The
@@ -297,20 +376,31 @@ func walkFiles(
 	ignoreFn IgnoreFileFunc,
 	fn func(File) error,
 ) error {
-	// Tracks archive path -> source path so two source files that resolve to
-	// the same archive path are reported rather than silently shadowing.
-	emitted := map[string]string{}
+	// Tracks what has been reported for an archive path so two sources that
+	// resolve to the same one are reported rather than silently shadowing.
+	type emittedEntry struct {
+		sourcePath string
+		isDir      bool
+	}
+	emitted := map[string]emittedEntry{}
 	emit := func(f File) error {
+		isDir := f.Info != nil && f.Info.IsDir()
 		if prev, dup := emitted[f.ArchivePath]; dup {
+			// Two external package dirs legitimately contribute the same
+			// directory to one archive path. Only their contents have to be
+			// unique, and the directory is still reported just once.
+			if isDir && prev.isDir {
+				return nil
+			}
 			return fmt.Errorf("modelarchive: duplicate archive entry %q: both %s and %s map to it. "+
 				"Two source files resolve to the same archive path, commonly because multiple external_package_dirs "+
 				"(or an external_package_dir and the model directory) contain a file with the same relative path. "+
-				"Rename or remove one so each archive path is unique", f.ArchivePath, prev, f.SourcePath)
+				"Rename or remove one so each archive path is unique", f.ArchivePath, prev.sourcePath, f.SourcePath)
 		}
 		if err := fn(f); err != nil {
 			return err
 		}
-		emitted[f.ArchivePath] = f.SourcePath
+		emitted[f.ArchivePath] = emittedEntry{sourcePath: f.SourcePath, isDir: isDir}
 		return nil
 	}
 
@@ -325,7 +415,7 @@ func walkFiles(
 		}
 	}
 
-	walkErr := walkDir(ctx, opts.Dir, "", ignoreFn, func(f File) error {
+	walkErr := walkDir(ctx, opts.Dir, "", ignoreFn, opts.IncludeDirsInWalk, func(f File) error {
 		if f.ArchivePath == configFileName && opts.ConfigYAMLOverride != nil {
 			return nil
 		}
@@ -336,17 +426,24 @@ func walkFiles(
 	}
 
 	for _, extDir := range opts.ExternalPackageDirs {
-		if err := walkDir(ctx, opts.resolveExternalDir(extDir), opts.BundledPackagesDir, ignoreFn, emit); err != nil {
+		if err := walkDir(ctx, opts.resolveExternalDir(extDir), opts.BundledPackagesDir, ignoreFn, opts.IncludeDirsInWalk, emit); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// walkDir walks root and calls fn for each regular file, reporting archive
-// paths under prefix. An external package dir's own basename is not preserved:
-// its children land directly under prefix, matching Python's gather.
-func walkDir(ctx context.Context, root, prefix string, ignoreFn IgnoreFileFunc, fn func(File) error) error {
+// walkDir walks root and calls fn for each entry the archive carries, plus the
+// directories themselves when includeDirs is set, reporting archive paths under
+// prefix. An external package dir's own basename is not preserved: its children
+// land directly under prefix, matching Python's gather.
+func walkDir(
+	ctx context.Context,
+	root, prefix string,
+	ignoreFn IgnoreFileFunc,
+	includeDirs bool,
+	fn func(File) error,
+) error {
 	return filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -378,7 +475,12 @@ func walkDir(ctx context.Context, root, prefix string, ignoreFn IgnoreFileFunc, 
 			}
 		}
 
-		if d.IsDir() || !d.Type().IsRegular() {
+		if d.IsDir() && !includeDirs {
+			return nil
+		}
+		// Sockets, devices and the like cannot be represented in a tar the
+		// extractor will accept, and carry no contents, so they are dropped.
+		if !d.IsDir() && d.Type()&fs.ModeSymlink == 0 && !d.Type().IsRegular() {
 			return nil
 		}
 
@@ -386,49 +488,83 @@ func walkDir(ctx context.Context, root, prefix string, ignoreFn IgnoreFileFunc, 
 		if err != nil {
 			return fmt.Errorf("modelarchive: stat %s: %w", p, err)
 		}
-		return fn(File{
-			ArchivePath: archivePath,
-			SourcePath:  p,
-			Info:        info,
-			Size:        info.Size(),
-			Open: func() (io.ReadCloser, error) {
-				f, err := os.Open(p)
-				if err != nil {
-					return nil, fmt.Errorf("modelarchive: open %s: %w", p, err)
-				}
-				return f, nil
-			},
-		})
+
+		switch {
+		case d.Type()&fs.ModeSymlink != 0:
+			target, err := validateSymlink(archivePath, p)
+			if err != nil {
+				return err
+			}
+			return fn(File{
+				ArchivePath: archivePath,
+				SourcePath:  p,
+				Info:        info,
+				LinkTarget:  target,
+				Open:        openNothing,
+			})
+		case d.IsDir():
+			return fn(File{
+				ArchivePath: archivePath,
+				SourcePath:  p,
+				Info:        info,
+				Open:        openNothing,
+			})
+		default:
+			return fn(File{
+				ArchivePath: archivePath,
+				SourcePath:  p,
+				Info:        info,
+				Size:        info.Size(),
+				Open: func() (io.ReadCloser, error) {
+					f, err := os.Open(p)
+					if err != nil {
+						return nil, fmt.Errorf("modelarchive: open %s: %w", p, err)
+					}
+					return f, nil
+				},
+			})
+		}
 	})
 }
 
-// writeTarEntry writes a single regular file entry to tw. If info is non-nil,
-// the tar header is derived from it (preserving mode/mtime); otherwise a
-// synthesized header is used. size is the byte count to read from r.
-func writeTarEntry(tw *tar.Writer, archivePath string, info fs.FileInfo, r io.Reader, size int64) error {
+// writeTarEntry writes a single entry to tw. If f.Info is non-nil, the tar
+// header is derived from it (preserving mode/mtime); otherwise a synthesized
+// header is used.
+func writeTarEntry(tw *tar.Writer, f File) error {
 	var hdr *tar.Header
-	if info != nil {
+	if f.Info != nil {
 		var err error
-		hdr, err = tar.FileInfoHeader(info, "")
+		hdr, err = tar.FileInfoHeader(f.Info, f.LinkTarget)
 		if err != nil {
-			return fmt.Errorf("modelarchive: header for %s: %w", archivePath, err)
+			return fmt.Errorf("modelarchive: header for %s: %w", f.ArchivePath, err)
 		}
-		hdr.Name = archivePath
-		hdr.Size = size
+		hdr.Name = f.ArchivePath
+		hdr.Size = f.Size
 	} else {
 		hdr = &tar.Header{
-			Name:     archivePath,
+			Name:     f.ArchivePath,
 			Mode:     0o644,
-			Size:     size,
+			Size:     f.Size,
 			ModTime:  time.Now(),
 			Typeflag: tar.TypeReg,
 		}
 	}
 	if err := tw.WriteHeader(hdr); err != nil {
-		return fmt.Errorf("modelarchive: write header %s: %w", archivePath, err)
+		return fmt.Errorf("modelarchive: write header %s: %w", f.ArchivePath, err)
 	}
-	if _, err := io.CopyN(tw, r, size); err != nil {
-		return fmt.Errorf("modelarchive: copy %s: %w", archivePath, err)
+
+	// A symlink is a header alone: its target is in the header and it has no
+	// body to copy.
+	if f.LinkTarget != "" {
+		return nil
+	}
+	r, err := f.Open()
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+	if _, err := io.CopyN(tw, r, f.Size); err != nil {
+		return fmt.Errorf("modelarchive: copy %s: %w", f.ArchivePath, err)
 	}
 	return nil
 }
