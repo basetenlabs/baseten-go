@@ -187,6 +187,16 @@ func (c *ManagementClient) PushModel(ctx context.Context, opts PushModelOptions)
 		return nil, err
 	}
 
+	// The archive is enumerated before the push is prepared, so a source tree
+	// the archive cannot carry fails before the server has created anything.
+	// Its contents are still read lazily, so building it up front costs a
+	// directory walk and no more.
+	archive, err := modelarchive.BuildModelArchive(ctx, opts.Archive)
+	if err != nil {
+		return nil, fmt.Errorf("build model archive: %w", err)
+	}
+	defer archive.Close()
+
 	prepare, err := c.prepareModelUpload(ctx, opts)
 	if err != nil {
 		return nil, err
@@ -195,15 +205,9 @@ func (c *ManagementClient) PushModel(ctx context.Context, opts PushModelOptions)
 	if opts.DryRun {
 		// A dry-run prepare nulls the upload target unconditionally, so there
 		// is no way to tell an archive-less format from a normal one here and
-		// the archive is built either way. Reading it to nowhere is the point:
-		// it walks the model directory, applies the ignore rules, and resolves
-		// the external package dirs, so a dry run catches the archive errors a
-		// server-side config check cannot see.
-		archive, err := modelarchive.BuildModelArchive(ctx, opts.Archive)
-		if err != nil {
-			return nil, fmt.Errorf("build model archive: %w", err)
-		}
-		defer archive.Close()
+		// the archive is read either way. Reading it to nowhere is the point:
+		// it opens every file the push would upload, so a dry run catches the
+		// archive errors a server-side config check cannot see.
 		if result.ArchiveBytes, err = io.Copy(io.Discard, archive); err != nil {
 			return nil, fmt.Errorf("build model archive: %w", err)
 		}
@@ -215,7 +219,7 @@ func (c *ManagementClient) PushModel(ctx context.Context, opts PushModelOptions)
 	// the config alone. Everything else uploads before committing, since the
 	// commit references the key.
 	if prepare.S3Key != nil {
-		uploaded, err := c.uploadModelArchive(ctx, opts, prepare)
+		uploaded, err := c.uploadModelArchive(ctx, opts, prepare, archive)
 		if err != nil {
 			return nil, err
 		}
@@ -294,25 +298,20 @@ func pushModelPayload(opts PushModelOptions) managementapi.DeploymentArchivePayl
 	return payload
 }
 
-// uploadModelArchive builds the archive and hands it to the caller's uploader,
-// returning the number of bytes the uploader read.
+// uploadModelArchive hands the archive to the caller's uploader, returning the
+// number of bytes the uploader read.
 func (c *ManagementClient) uploadModelArchive(
 	ctx context.Context,
 	opts PushModelOptions,
 	prepare *managementapi.PrepareModelUploadResponse,
+	archive io.Reader,
 ) (int64, error) {
 	if prepare.Creds == nil || prepare.S3Bucket == nil || prepare.S3Region == nil {
 		return 0, errors.New("prepare model upload: server issued an upload key without credentials")
 	}
 
-	archive, err := modelarchive.BuildModelArchive(ctx, opts.Archive)
-	if err != nil {
-		return 0, fmt.Errorf("build model archive: %w", err)
-	}
-	defer archive.Close()
-
 	// Counting on the way through reports the archive size without buffering
-	// the stream, which is built lazily as the uploader reads it.
+	// the stream, whose contents are read lazily as the uploader consumes it.
 	counted := &countingReader{r: archive}
 	if err := opts.ModelUploader(ctx, ModelUpload{
 		Bucket:          *prepare.S3Bucket,
