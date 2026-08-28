@@ -309,16 +309,9 @@ func (o Optional[T]) MarshalJSON() ([]byte, error) {
 }
 
 func (o *Optional[T]) UnmarshalJSON(data []byte) error {
+	// Unmarshaling into the *T leaves it nil for null and allocates otherwise.
 	o.set = true
-	if string(data) == "null" {
-		o.value = nil
-		return nil
-	}
-	var value T
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	o.value = &value
-	return nil
+	o.value = nil
+	return json.Unmarshal(data, &o.value)
 }
 `
