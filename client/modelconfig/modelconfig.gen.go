@@ -126,6 +126,13 @@ type DockerAuthSettings struct {
 	// "aws_access_key_id_secret_name".
 	AwsAccessKeyIdSecretName string `json:"aws_access_key_id_secret_name,omitempty,omitzero" yaml:"aws_access_key_id_secret_name,omitempty"`
 
+	// AWS IAM role ARN that Baseten assumes with its own AWS principal, scoped by the
+	// sts:ExternalId Baseten assigns to your organization.
+	AwsAssumeRoleArn *string `json:"aws_assume_role_arn,omitempty,omitzero" yaml:"aws_assume_role_arn,omitempty"`
+
+	// AWS region for AWS AssumeRole authentication.
+	AwsAssumeRoleRegion *string `json:"aws_assume_role_region,omitempty,omitzero" yaml:"aws_assume_role_region,omitempty"`
+
 	// AWS region for OIDC authentication.
 	AwsOidcRegion *string `json:"aws_oidc_region,omitempty,omitzero" yaml:"aws_oidc_region,omitempty"`
 
@@ -153,6 +160,7 @@ type DockerAuthSettings struct {
 
 type DockerAuthType string
 
+const DockerAuthTypeAWSASSUMEROLE DockerAuthType = "AWS_ASSUME_ROLE"
 const DockerAuthTypeAWSIAM DockerAuthType = "AWS_IAM"
 const DockerAuthTypeAWSOIDC DockerAuthType = "AWS_OIDC"
 const DockerAuthTypeGCPOIDC DockerAuthType = "GCP_OIDC"
@@ -951,6 +959,13 @@ type WeightsAuth struct {
 	// Baseten secret name containing credentials for accessing the source.
 	AuthSecretName *string `json:"auth_secret_name,omitempty,omitzero" yaml:"auth_secret_name,omitempty"`
 
+	// AWS IAM role ARN that Baseten assumes with its own AWS principal, scoped by the
+	// sts:ExternalId Baseten assigns to your organization.
+	AwsAssumeRoleArn *string `json:"aws_assume_role_arn,omitempty,omitzero" yaml:"aws_assume_role_arn,omitempty"`
+
+	// AWS region for AWS AssumeRole authentication.
+	AwsAssumeRoleRegion *string `json:"aws_assume_role_region,omitempty,omitzero" yaml:"aws_assume_role_region,omitempty"`
+
 	// AWS region for OIDC authentication.
 	AwsOidcRegion *string `json:"aws_oidc_region,omitempty,omitzero" yaml:"aws_oidc_region,omitempty"`
 
@@ -968,6 +983,7 @@ type WeightsAuth struct {
 
 type WeightsAuthMethod string
 
+const WeightsAuthMethodAWSASSUMEROLE WeightsAuthMethod = "AWS_ASSUME_ROLE"
 const WeightsAuthMethodAWSOIDC WeightsAuthMethod = "AWS_OIDC"
 const WeightsAuthMethodCUSTOMSECRET WeightsAuthMethod = "CUSTOM_SECRET"
 const WeightsAuthMethodGCPOIDC WeightsAuthMethod = "GCP_OIDC"
@@ -988,11 +1004,16 @@ const WeightsAuthMethodGCPOIDC WeightsAuthMethod = "GCP_OIDC"
 // using the @{rev} suffix: "hf://owner/repo@revision"
 //
 // Authentication can be specified either:
-//   - Using the `auth` section (required for OIDC):
+//   - Using the `auth` section (required for OIDC and AWS AssumeRole):
 //     auth:
 //     auth_method: AWS_OIDC
 //     aws_oidc_role_arn: <role_arn>
 //     aws_oidc_region: <region>
+//     or, for native AWS AssumeRole:
+//     auth:
+//     auth_method: AWS_ASSUME_ROLE
+//     aws_assume_role_arn: <role_arn>
+//     aws_assume_role_region: <region>
 //   - Using `auth_secret_name` at the top level (or in the `auth` section)
 type WeightsSource struct {
 	// File patterns to include (e.g., ['*.safetensors']).

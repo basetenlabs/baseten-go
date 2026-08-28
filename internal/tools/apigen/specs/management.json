@@ -24202,6 +24202,19 @@
                         "description": "Name of the resource",
                         "title": "Name"
                     },
+                    "model_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Unique identifier of the parent model for model deployments and chainlets",
+                        "title": "Model Id"
+                    },
                     "model_name": {
                         "anyOf": [
                             {

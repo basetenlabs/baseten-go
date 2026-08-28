@@ -2222,6 +2222,9 @@ type BillableResource struct {
 	IsDeleted bool         `json:"is_deleted"`
 	Kind      ResourceKind `json:"kind"`
 
+	// ModelId Unique identifier of the parent model for model deployments and chainlets
+	ModelId *string `json:"model_id,omitempty"`
+
 	// ModelName Name of the parent resource (e.g., model name for model deployments, training project name for training jobs)
 	ModelName *string `json:"model_name,omitempty"`
 
