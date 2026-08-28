@@ -4,16 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"slices"
 	"strings"
 )
 
 // preprocessedSpec is the result of preprocessSpec: the transformed JSON
 // bytes plus a sidecar `discriminator.mapping` table keyed by Go schema name
 // (post V1 stripping). oapi-codegen ignores discriminator mappings, so
-// postProcess restores wire values from this table.
+// postProcess restores wire values from this table. A schema maps to more than
+// one value when the mapping selects it for several payload values.
 type preprocessedSpec struct {
 	data                []byte
-	discriminatorValues map[string]string
+	discriminatorValues map[string][]string
 	// discriminatorRequired is keyed by Go schema name (post V1 rename) and
 	// is true when the union member requires its discriminator property.
 	// oapi-codegen then emits that field as a non-pointer string, so
@@ -37,9 +39,13 @@ func preprocessSpec(data []byte) (*preprocessedSpec, error) {
 	// Build V1-suffix rename map from schema names before walking.
 	schemaRenames := buildSchemaRenames(doc)
 
-	discriminatorValues := map[string]string{}
+	discriminatorValues := map[string][]string{}
 	if err := preprocessNode(doc, schemaRenames, discriminatorValues); err != nil {
 		return nil, err
+	}
+	// Mapping keys arrive in Go map order, so sort for stable generated output.
+	for _, values := range discriminatorValues {
+		slices.Sort(values)
 	}
 
 	// Harvest discriminator required-ness before the schema keys are renamed,
@@ -162,7 +168,7 @@ func buildSchemaRenames(doc map[string]any) map[string]string {
 	return renames
 }
 
-func preprocessNode(node any, schemaRenames map[string]string, discriminatorValues map[string]string) error {
+func preprocessNode(node any, schemaRenames map[string]string, discriminatorValues map[string][]string) error {
 	switch v := node.(type) {
 	case map[string]any:
 		if err := preprocessSchema(v, schemaRenames, discriminatorValues); err != nil {
@@ -185,7 +191,7 @@ func preprocessNode(node any, schemaRenames map[string]string, discriminatorValu
 
 // preprocessSchema handles nullable patterns and $ref renames in a single
 // schema object, and harvests `discriminator.mapping` entries.
-func preprocessSchema(schema map[string]any, schemaRenames map[string]string, discriminatorValues map[string]string) error {
+func preprocessSchema(schema map[string]any, schemaRenames map[string]string, discriminatorValues map[string][]string) error {
 	// Convert type arrays: {"type": ["string", "null"]} -> {"type": "string", "nullable": true}
 	if t, ok := schema["type"]; ok {
 		if arr, ok := t.([]any); ok {
@@ -273,7 +279,9 @@ func preprocessSchema(schema map[string]any, schemaRenames map[string]string, di
 
 	// Harvest `discriminator.mapping` keyed by Go schema name (post V1
 	// stripping), so postProcess can put wire values back where
-	// oapi-codegen dropped them.
+	// oapi-codegen dropped them. A mapping need not be injective: several
+	// payload values may select the same member schema, which is how a member
+	// whose discriminator property is a multi-value enum is encoded.
 	if d, ok := schema["discriminator"].(map[string]any); ok {
 		if m, ok := d["mapping"].(map[string]any); ok {
 			const prefix = "#/components/schemas/"
@@ -286,10 +294,9 @@ func preprocessSchema(schema map[string]any, schemaRenames map[string]string, di
 				if renamed, ok := schemaRenames[name]; ok {
 					name = renamed
 				}
-				if existing, ok := discriminatorValues[name]; ok && existing != key {
-					return fmt.Errorf("schema %q has conflicting discriminator keys %q and %q", name, existing, key)
+				if !slices.Contains(discriminatorValues[name], key) {
+					discriminatorValues[name] = append(discriminatorValues[name], key)
 				}
-				discriminatorValues[name] = key
 			}
 		}
 	}

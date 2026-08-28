@@ -69,6 +69,11 @@ type PushModelOptions struct {
 	// empty, the deployment is created without environment selection.
 	EnvironmentName string
 
+	// Region is the region in which to deploy the model. When empty, the
+	// server chooses. Unrelated to [ModelUpload.Region], which is the AWS
+	// region of the archive's upload bucket.
+	Region string
+
 	// Labels are user-provided key-value labels for the deployment. They can
 	// only be set at creation.
 	Labels map[string]any
@@ -274,6 +279,9 @@ func pushModelPayload(opts PushModelOptions) managementapi.DeploymentArchivePayl
 		// to true, so it is only sent to opt out.
 		preserve := !opts.OverrideEnvInstanceType
 		payload.PreserveEnvInstanceType = &preserve
+	}
+	if opts.Region != "" {
+		payload.Region = &opts.Region
 	}
 	if opts.Labels != nil {
 		payload.Labels = &opts.Labels

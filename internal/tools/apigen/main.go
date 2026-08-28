@@ -175,7 +175,7 @@ func generateAPI(apigenDir, specSource, clientDir, pkgName string) error {
 type resolvedSpec struct {
 	preprocessed          []byte // JSON bytes after preprocessing
 	tmpFile               string // temp file path for oapi-codegen
-	discriminatorValues   map[string]string
+	discriminatorValues   map[string][]string
 	discriminatorRequired map[string]bool
 }
 
