@@ -1,0 +1,4 @@
+{"_type":"chunkmap_header","chunk_count":3,"file_size":16778240}
+{"_type":"chunk","digest":"b3:582a3cd8f195de8b7ddf0774f05f07385f15c5a35df1f3486b6413d65109d1b9","length":8388608,"offset":0,"target":{"relative_key":"objects/b3/58/2a/582a3cd8f195de8b7ddf0774f05f07385f15c5a35df1f3486b6413d65109d1b9"}}
+{"_type":"chunk","digest":"b3:cb5ea37476208f340316fbf700f37b059c879600f3c31c5a475555fb68855394","length":8388608,"offset":8388608,"target":{"relative_key":"objects/b3/cb/5e/cb5ea37476208f340316fbf700f37b059c879600f3c31c5a475555fb68855394"}}
+{"_type":"chunk","digest":"b3:fb47000f8b79663ff5397f151e14f849a7ca61c67d58c2e84d7934c4da290b42","length":1024,"offset":16777216,"target":{"relative_key":"objects/b3/fb/47/fb47000f8b79663ff5397f151e14f849a7ca61c67d58c2e84d7934c4da290b42"}}

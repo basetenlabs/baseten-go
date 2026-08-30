@@ -1,0 +1,58 @@
+{
+  "source_uri": "file:///tmp/bdn-volume-fixture/tree",
+  "manifest_digest": "b3:92a135191fbca07afbc820682b34123aaade4bdbb61809a022e73800864b4447",
+  "chunkmap_path": "nested/deep/data.bin",
+  "chunkmap_digest": "b3:aa44ddcf5377d7a595a3ba0b439a4fc9a3b1a5898adb68b483ca5396010b76e4",
+  "entries": [
+    {
+      "kind": "dir",
+      "path": "assets",
+      "mode": "0555"
+    },
+    {
+      "kind": "dir",
+      "path": "nested",
+      "mode": "0755"
+    },
+    {
+      "kind": "dir",
+      "path": "nested/deep",
+      "mode": "0755"
+    },
+    {
+      "kind": "file",
+      "path": "assets/frozen.txt",
+      "mode": "0444",
+      "content": "text:frozen\n"
+    },
+    {
+      "kind": "file",
+      "path": "empty.txt",
+      "mode": "0644",
+      "content": "text:"
+    },
+    {
+      "kind": "file",
+      "path": "nested/deep/data.bin",
+      "mode": "0644",
+      "content": "pattern:16778240"
+    },
+    {
+      "kind": "file",
+      "path": "nested/dup.txt",
+      "mode": "0644",
+      "content": "text:hello volume\n"
+    },
+    {
+      "kind": "file",
+      "path": "small.txt",
+      "mode": "0600",
+      "content": "text:hello volume\n"
+    },
+    {
+      "kind": "symlink",
+      "path": "nested/link",
+      "target": "../small.txt"
+    }
+  ]
+}
