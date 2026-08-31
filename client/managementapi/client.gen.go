@@ -2295,6 +2295,18 @@ func (c *Client) PostTrainingProjectsJobsStop(ctx context.Context, trainingProje
 	})
 }
 
+// PostVolumesToken: Creates a volume access token
+func (c *Client) PostVolumesToken(ctx context.Context, body CreateVolumeTokenRequest) (*CreateVolumeTokenResponse, error) {
+	return doJSON[CreateVolumeTokenResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/volumes/token",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // errorType identifies a typed error schema for status-code-based dispatch.
 type errorType int
 

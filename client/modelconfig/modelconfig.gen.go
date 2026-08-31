@@ -26,6 +26,46 @@ type AutoscalingMetric struct {
 	Target float64 `json:"target" yaml:"target"`
 }
 
+// Configuration for mounting BDN volumes.
+type BDNConfig struct {
+	// Existing BDN volumes to mount when the model starts.
+	Mounts []BDNVolumeMount `json:"mounts,omitempty,omitzero" yaml:"mounts,omitempty"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
+// An existing BDN volume mounted into a model container.
+//
+// BDN vocabulary, read off a reference like `bdn://weights/llama-8b:prod`:
+//
+//   - A *namespace* (`weights`) groups volumes within your organization, and is
+//     the unit that access grants and storage are scoped to. Names are
+//     lowercase alphanumeric plus hyphens, at least two characters, and may not
+//     begin with a digit; `namespaces` and `resolve` are reserved.
+//   - A *volume* (`llama-8b`) is one versioned collection of files. Every
+//     published version is immutable and identified by its content digest.
+//   - A *tag* (`prod`) is a mutable, case-sensitive name pointing at one
+//     version, repointed as newer versions are published. A reference carrying
+//     neither tag nor digest resolves to the volume's head, its latest version.
+//
+// ```
+// bdn:
+//
+//	mounts:
+//	  - source: bdn://weights/llama-8b:prod
+//	    path: /models/llama
+//
+// ```
+type BDNVolumeMount struct {
+	// Absolute path where the volume will be mounted at runtime.
+	Path string `json:"path" yaml:"path"`
+
+	// BDN volume reference to mount (for example, bdn://weights/llama-8b:prod).
+	Source string `json:"source" yaml:"source"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
 // Configuration options for BIS LLM deployments.
 type BISLLM struct {
 	// Additional autoscaling configuration
@@ -126,6 +166,13 @@ type DockerAuthSettings struct {
 	// "aws_access_key_id_secret_name".
 	AwsAccessKeyIdSecretName string `json:"aws_access_key_id_secret_name,omitempty,omitzero" yaml:"aws_access_key_id_secret_name,omitempty"`
 
+	// AWS IAM role ARN that Baseten assumes with its own AWS principal, scoped by the
+	// sts:ExternalId Baseten assigns to your organization.
+	AwsAssumeRoleArn *string `json:"aws_assume_role_arn,omitempty,omitzero" yaml:"aws_assume_role_arn,omitempty"`
+
+	// AWS region for AWS AssumeRole authentication.
+	AwsAssumeRoleRegion *string `json:"aws_assume_role_region,omitempty,omitzero" yaml:"aws_assume_role_region,omitempty"`
+
 	// AWS region for OIDC authentication.
 	AwsOidcRegion *string `json:"aws_oidc_region,omitempty,omitzero" yaml:"aws_oidc_region,omitempty"`
 
@@ -153,6 +200,7 @@ type DockerAuthSettings struct {
 
 type DockerAuthType string
 
+const DockerAuthTypeAWSASSUMEROLE DockerAuthType = "AWS_ASSUME_ROLE"
 const DockerAuthTypeAWSIAM DockerAuthType = "AWS_IAM"
 const DockerAuthTypeAWSOIDC DockerAuthType = "AWS_OIDC"
 const DockerAuthTypeGCPOIDC DockerAuthType = "GCP_OIDC"
@@ -297,6 +345,9 @@ type ModelConfig struct {
 
 	// Use a custom Docker base image instead of the default Truss image.
 	BaseImage *BaseImage `json:"base_image,omitempty,omitzero" yaml:"base_image,omitempty"`
+
+	// Configure BDN volume mounts.
+	Bdn *BDNConfig `json:"bdn,omitempty,omitzero" yaml:"bdn,omitempty"`
 
 	// Configuration options for BIS LLM deployments. This field may change in the
 	// future.
@@ -951,6 +1002,13 @@ type WeightsAuth struct {
 	// Baseten secret name containing credentials for accessing the source.
 	AuthSecretName *string `json:"auth_secret_name,omitempty,omitzero" yaml:"auth_secret_name,omitempty"`
 
+	// AWS IAM role ARN that Baseten assumes with its own AWS principal, scoped by the
+	// sts:ExternalId Baseten assigns to your organization.
+	AwsAssumeRoleArn *string `json:"aws_assume_role_arn,omitempty,omitzero" yaml:"aws_assume_role_arn,omitempty"`
+
+	// AWS region for AWS AssumeRole authentication.
+	AwsAssumeRoleRegion *string `json:"aws_assume_role_region,omitempty,omitzero" yaml:"aws_assume_role_region,omitempty"`
+
 	// AWS region for OIDC authentication.
 	AwsOidcRegion *string `json:"aws_oidc_region,omitempty,omitzero" yaml:"aws_oidc_region,omitempty"`
 
@@ -968,6 +1026,7 @@ type WeightsAuth struct {
 
 type WeightsAuthMethod string
 
+const WeightsAuthMethodAWSASSUMEROLE WeightsAuthMethod = "AWS_ASSUME_ROLE"
 const WeightsAuthMethodAWSOIDC WeightsAuthMethod = "AWS_OIDC"
 const WeightsAuthMethodCUSTOMSECRET WeightsAuthMethod = "CUSTOM_SECRET"
 const WeightsAuthMethodGCPOIDC WeightsAuthMethod = "GCP_OIDC"
@@ -988,11 +1047,16 @@ const WeightsAuthMethodGCPOIDC WeightsAuthMethod = "GCP_OIDC"
 // using the @{rev} suffix: "hf://owner/repo@revision"
 //
 // Authentication can be specified either:
-//   - Using the `auth` section (required for OIDC):
+//   - Using the `auth` section (required for OIDC and AWS AssumeRole):
 //     auth:
 //     auth_method: AWS_OIDC
 //     aws_oidc_role_arn: <role_arn>
 //     aws_oidc_region: <region>
+//     or, for native AWS AssumeRole:
+//     auth:
+//     auth_method: AWS_ASSUME_ROLE
+//     aws_assume_role_arn: <role_arn>
+//     aws_assume_role_region: <region>
 //   - Using `auth_secret_name` at the top level (or in the `auth` section)
 type WeightsSource struct {
 	// File patterns to include (e.g., ['*.safetensors']).

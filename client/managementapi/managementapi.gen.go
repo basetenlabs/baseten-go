@@ -665,6 +665,7 @@ const (
 	GatewayProvider_OPENAI            GatewayProvider = "OPENAI"
 	GatewayProvider_OPENAI_COMPATIBLE GatewayProvider = "OPENAI_COMPATIBLE"
 	GatewayProvider_VERTEX            GatewayProvider = "VERTEX"
+	GatewayProvider_XAI               GatewayProvider = "XAI"
 )
 
 // Valid indicates whether the value is a known member of the GatewayProvider enum.
@@ -681,6 +682,8 @@ func (e GatewayProvider) Valid() bool {
 	case GatewayProvider_OPENAI_COMPATIBLE:
 		return true
 	case GatewayProvider_VERTEX:
+		return true
+	case GatewayProvider_XAI:
 		return true
 	default:
 		return false
@@ -1251,6 +1254,30 @@ func (e V1InteractiveSessionTrigger) Valid() bool {
 	case V1InteractiveSessionTrigger_on_failure:
 		return true
 	case V1InteractiveSessionTrigger_on_startup:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for VolumeTokenScope.
+const (
+	VolumeTokenScope_INSPECT VolumeTokenScope = "INSPECT"
+	VolumeTokenScope_PULL    VolumeTokenScope = "PULL"
+	VolumeTokenScope_PUSH    VolumeTokenScope = "PUSH"
+	VolumeTokenScope_TAG     VolumeTokenScope = "TAG"
+)
+
+// Valid indicates whether the value is a known member of the VolumeTokenScope enum.
+func (e VolumeTokenScope) Valid() bool {
+	switch e {
+	case VolumeTokenScope_INSPECT:
+		return true
+	case VolumeTokenScope_PULL:
+		return true
+	case VolumeTokenScope_PUSH:
+		return true
+	case VolumeTokenScope_TAG:
 		return true
 	default:
 		return false
@@ -2219,6 +2246,9 @@ type BillableResource struct {
 	IsDeleted bool         `json:"is_deleted"`
 	Kind      ResourceKind `json:"kind"`
 
+	// ModelId Unique identifier of the parent model for model deployments and chainlets
+	ModelId *string `json:"model_id,omitempty"`
+
 	// ModelName Name of the parent resource (e.g., model name for model deployments, training project name for training jobs)
 	ModelName *string `json:"model_name,omitempty"`
 
@@ -2949,6 +2979,36 @@ type CreateTrainingJobS3Artifact struct {
 
 	// S3Key S3 key for the uploaded runtime artifact.
 	S3Key string `json:"s3_key"`
+}
+
+// CreateVolumeTokenRequest defines model for CreateVolumeTokenRequest.
+type CreateVolumeTokenRequest struct {
+	// CorrelationId Optional client-chosen identifier, at most 128 printable ASCII characters. Echoed into server logs to link the issued token to a client operation.
+	CorrelationId *string `json:"correlation_id,omitempty"`
+
+	// Namespaces Volume namespaces the token is limited to, lowercase ASCII, at least one. Pass only the namespaces the operation needs.
+	Namespaces []string `json:"namespaces"`
+
+	// Scopes Capabilities the token grants, at least one. Requesting PUSH or TAG requires organization-level model management permission.
+	Scopes []VolumeTokenScope `json:"scopes"`
+}
+
+// CreateVolumeTokenResponse defines model for CreateVolumeTokenResponse.
+type CreateVolumeTokenResponse struct {
+	// BdnEndpoint Base URL of the volume API this token authenticates against. Null when the environment does not expose a public volume API yet.
+	BdnEndpoint *string `json:"bdn_endpoint"`
+
+	// ExpiresAt Token expiry in ISO 8601 format. Tokens cannot be renewed; exchange again for a fresh token.
+	ExpiresAt time.Time `json:"expires_at"`
+
+	// Namespaces Effective namespaces granted, in canonical lowercase form.
+	Namespaces []string `json:"namespaces"`
+
+	// Scopes Effective capabilities granted.
+	Scopes []VolumeTokenScope `json:"scopes"`
+
+	// Token Volume access token. Pass as a bearer token to the volume APIs.
+	Token string `json:"token"`
 }
 
 // CreatedModelDeployment A newly created deployment and its model.
@@ -5021,7 +5081,7 @@ type ModelApisUsageResponse struct {
 
 // ModelApisUsageResult Usage totals for one combination of the requested dimensions, within one bucket.
 type ModelApisUsageResult struct {
-	// ApiKeyPrefix Prefix of the API key the usage is attributed to. Null when not grouping by api_key.
+	// ApiKeyPrefix Prefix of the API key the usage is attributed to. Null when not grouping by api_key or when the request was not authenticated with an API key.
 	ApiKeyPrefix *string `json:"api_key_prefix,omitempty"`
 
 	// CachedInputTokens Input tokens served from the prompt cache.
@@ -6259,9 +6319,15 @@ type UpdateRollingDeployConfig struct {
 }
 
 // UpdateTrainingJobRequest A request to update mutable fields on a training job.
+//
+// Every field is optional so a caller can patch one without the other, but at least
+// one must be provided: an empty body has nothing to apply.
 type UpdateTrainingJobRequest struct {
+	// AvailabilityModel New capacity guarantee for a PENDING training job. 'dedicated' runs on on-demand capacity that is not preempted. 'spot' runs on interruptible capacity that may be preempted; the user is responsible for checkpointing their own progress. Only jobs in the PENDING state can have their availability model changed.
+	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+
 	// Priority New queue priority for a PENDING training job. Higher values are dequeued first. Only jobs in the PENDING state can have their priority changed.
-	Priority int `json:"priority"`
+	Priority *int `json:"priority,omitempty"`
 }
 
 // UpdateTrainingJobResponse A response to updating a training job.
@@ -6385,6 +6451,14 @@ type VertexTargetConfig struct {
 	// ProjectId Google Cloud project ID or project number.
 	ProjectId string `json:"project_id"`
 }
+
+// VolumeTokenScope Capability a volume token grants.
+//
+// - “PULL“: read volume data.
+// - “INSPECT“: read volume metadata without data access.
+// - “PUSH“: upload and commit volume versions.
+// - “TAG“: move or remove tags.
+type VolumeTokenScope string
 
 // ApiKeyPrefix defines model for api_key_prefix.
 type ApiKeyPrefix = string
@@ -7135,6 +7209,9 @@ type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdSshSignJSONRequestB
 
 // PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody defines body for PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStop for application/json ContentType.
 type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody = StopTrainingJobRequest
+
+// PostV1VolumesTokenJSONRequestBody defines body for PostV1VolumesToken for application/json ContentType.
+type PostV1VolumesTokenJSONRequestBody = CreateVolumeTokenRequest
 
 // AsAuditLogEventModelDeployed returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeployed
 func (t AuditLogEntry_EventData) AsAuditLogEventModelDeployed() (AuditLogEventModelDeployed, error) {
