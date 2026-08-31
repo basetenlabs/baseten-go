@@ -60,7 +60,7 @@ type Error struct {
 
 	// RetryDelay is the delay the server suggested, when it sent one. It is
 	// reported for visibility; the retry policy follows the Retry-After header
-	// instead, matching the reference client.
+	// instead.
 	RetryDelay time.Duration
 }
 

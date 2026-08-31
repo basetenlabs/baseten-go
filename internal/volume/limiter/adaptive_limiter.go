@@ -2,13 +2,13 @@
 // limiter with a latency-gradient soft-stall detector, for governing how many
 // object operations a transfer runs against one origin at a time.
 //
-// It is vendored from an internal, simulation-validated implementation rather
-// than written here, and is kept as close to that source as the excisions
-// below allow, because its value is that it has been driven against a queue
-// model of an origin across a wide range of link classes and is known to
-// settle near the throughput knee. There is no upstream module to depend on,
-// so it is synchronised by hand: a change made here does not reach the
-// original, and a fix made there does not reach this copy.
+// It is vendored from a simulation-validated implementation maintained
+// elsewhere rather than written here, and is kept as close to that source as
+// the excisions below allow, because its value is that it has been driven
+// against a queue model of an origin across a wide range of link classes and
+// is known to settle near the throughput knee. There is no upstream module
+// to depend on, so it is synchronised by hand: a change made here does not
+// reach the original, and a fix made there does not reach this copy.
 //
 // Three deliberate divergences from that source, all recorded so a reader does
 // not mistake them for sloppiness, and so that anyone re-synchronising can tell
@@ -23,9 +23,10 @@
 //     functions is a smaller risk than editing nine call sites by hand.
 //   - The config field that labelled those metrics is gone, rather than left
 //     as a knob that does nothing.
-//   - Identifiers and strings that named private services, packages or paths
-//     are renamed in the two test files. They are hygiene only: no behaviour,
-//     no thresholds, no assertions change. Each test file says so at its top.
+//   - Identifiers and strings that named the source's own services, packages
+//     or paths are renamed in the two test files. They are hygiene only: no
+//     behaviour, no thresholds, no assertions change. Each test file says so
+//     at its top.
 package limiter
 
 import (

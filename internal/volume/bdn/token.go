@@ -85,8 +85,8 @@ func DecodeGrants(token string) Grants {
 	}
 	// The org is the one every grant shares, taken from the first. A token
 	// whose grants disagree about it is one the server itself refuses to
-	// derive an org from, and the reference client treats that refusal as
-	// "attempt it and let the server decide" rather than as a denial.
+	// derive an org from, and that refusal is treated here as "attempt it and
+	// let the server decide" rather than as a denial.
 	org := c.Grants[0].Org
 	for _, grant := range c.Grants {
 		if grant.Org != org {
