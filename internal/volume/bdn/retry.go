@@ -24,7 +24,7 @@ type RetryConfig struct {
 	Cap time.Duration
 }
 
-// DefaultRetryConfig is the reference client's policy.
+// DefaultRetryConfig is the established retry policy for the volume service.
 func DefaultRetryConfig() RetryConfig {
 	return RetryConfig{MaxAttempts: 5, Base: 50 * time.Millisecond, Cap: time.Second}
 }

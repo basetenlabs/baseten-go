@@ -27,8 +27,8 @@ type Ref struct {
 	//
 	// Its shape is not checked here: anything after the "@" is passed on, and
 	// a digest that is too short or not hex comes back as a 400 naming the
-	// problem. The reference CLI rejects those locally instead, so the same
-	// mistake costs a round trip here.
+	// problem. A client that checked locally would catch the mistake before
+	// the request; here it costs a round trip.
 	Digest string
 }
 

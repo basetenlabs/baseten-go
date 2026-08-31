@@ -24,9 +24,8 @@ const SymlinkMode uint16 = 0o777
 // A backslash is rejected rather than translated. On Windows the walk has
 // already turned the separator into a slash, so a backslash that survives to
 // here is a literal character in a file's name — and a tree carrying one
-// cannot be reproduced on Windows at all. Failing is the honest answer; the
-// reference client rewrites it to a slash and silently pushes a different
-// tree.
+// cannot be reproduced on Windows at all. Failing is the honest answer; rewriting
+// it to a slash would silently push a different tree.
 func ValidatePath(path string) error {
 	switch {
 	case path == "":

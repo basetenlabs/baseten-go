@@ -51,7 +51,7 @@ func TestTargetForDigest(t *testing.T) {
 }
 
 // TestEncodeChunkmapGolden pins the chunkmap wire bytes. The golden string is
-// the reference client's encoding of the same records.
+// the canonical encoding of the same records.
 func TestEncodeChunkmapGolden(t *testing.T) {
 	first, second := testDigest(0x11), testDigest(0x22)
 	got := EncodeChunkmap(&Chunkmap{
@@ -175,7 +175,7 @@ func TestJSONStringEscaping(t *testing.T) {
 		{"backspace", "a\bb", `"a\bb"`},
 		{"form feed", "a\fb", `"a\fb"`},
 		{"other control", "a\x01b", `"a\u0001b"`},
-		// The reference encoder leaves these alone; encoding/json escapes the
+		// The canonical encoding leaves these alone; encoding/json escapes the
 		// HTML set by default and the line separators unconditionally.
 		{"html", "<&>", `"<&>"`},
 		{"line separator", "a\u2028b", "\"a\u2028b\""},
@@ -274,8 +274,8 @@ func TestDecodeIgnoresUnknownFields(t *testing.T) {
 		`{"_type":"directory","mode":"0755","path":"d","future_field":"hello","another":42}` + "\n" +
 		// A record type this client has never heard of.
 		`{"_type":"prefix_provenance","prefix":"d/","source_uri":"u"}` + "\n" +
-		// The reference decoder accepts _kind ahead of _type on the way in,
-		// even though it only ever writes the other order.
+		// The wire format accepts _kind ahead of _type on the way in, even
+		// though writers only ever emit the other order.
 		`{"_kind":"chunkmap","_type":"file","digest":"` + d.String() + `","mode":"0644","new_field":"v2",` +
 		`"path":"d/f","size":100,"target":{"relative_key":"objects/b3/aa/aa/x"}}` + "\n"
 
