@@ -5,11 +5,11 @@ package separatemoduletests_test
 // Every other wire test in this repo checks the encoder against expectations
 // derived from the same reading of the format that produced the encoder, so a
 // misreading would agree with itself. These bytes did not come from here: they
-// were captured from the reference client pushing a synthetic tree into a
-// running volume service, and read back through that service's own manifest
-// and object endpoints.
+// were captured from a live volume service: a synthetic tree was pushed into
+// it, and what the service stored was read back through its own manifest and
+// object endpoints.
 //
-// testdata/rustcli holds the captured manifest and chunkmap, the source URI
+// testdata/capture holds the captured manifest and chunkmap, the source URI
 // that push recorded, and a description of the tree. The tree is described
 // rather than checked in because one of its files is 16 MiB; the description
 // carries everything the manifest depends on, which is each entry's path,
@@ -17,7 +17,7 @@ package separatemoduletests_test
 //
 // To regenerate, if the format changes: bring up a volume service and its
 // object store, build the tree described by fixture.json at the path its
-// source_uri names, push it with the reference client, then save the manifest
+// source_uri names, push it, then save the manifest
 // from the service's manifest endpoint and the chunkmap from its object
 // endpoint, decompressing the latter.
 //
@@ -41,7 +41,7 @@ import (
 	"github.com/zeebo/blake3"
 )
 
-type rustFixture struct {
+type captureFixture struct {
 	SourceURI      string         `json:"source_uri"`
 	ManifestDigest string         `json:"manifest_digest"`
 	ChunkmapPath   string         `json:"chunkmap_path"`
@@ -60,13 +60,13 @@ type fixtureEntry struct {
 	Target  string `json:"target"`
 }
 
-func loadRustFixture(t *testing.T) rustFixture {
+func loadCaptureFixture(t *testing.T) captureFixture {
 	t.Helper()
-	body, err := os.ReadFile(filepath.Join("testdata", "rustcli", "fixture.json"))
+	body, err := os.ReadFile(filepath.Join("testdata", "capture", "fixture.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	var fixture rustFixture
+	var fixture captureFixture
 	if err := json.Unmarshal(body, &fixture); err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +75,7 @@ func loadRustFixture(t *testing.T) rustFixture {
 
 func fixtureBytes(t *testing.T, name string) []byte {
 	t.Helper()
-	body, err := os.ReadFile(filepath.Join("testdata", "rustcli", name))
+	body, err := os.ReadFile(filepath.Join("testdata", "capture", name))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +83,7 @@ func fixtureBytes(t *testing.T, name string) []byte {
 }
 
 // buildFixtureTree recreates the pushed tree in a temporary directory.
-func buildFixtureTree(t *testing.T, fixture rustFixture) string {
+func buildFixtureTree(t *testing.T, fixture captureFixture) string {
 	t.Helper()
 	root := t.TempDir()
 
@@ -170,15 +170,15 @@ func fixtureMode(t *testing.T, mode string) os.FileMode {
 	return os.FileMode(parsed)
 }
 
-// TestManifestMatchesTheReferenceClient rebuilds the manifest for the pushed
-// tree and asserts it is byte-for-byte what the Rust client produced.
+// TestManifestMatchesServiceCapture rebuilds the manifest for the pushed tree
+// and asserts it is byte-for-byte what the service stored.
 //
 // Byte equality is the assertion that matters. Divergence would not corrupt
 // anything — content addressing sees to that — but it would give the same tree
 // two different digests depending on which client pushed it, so neither could
 // reuse the other's objects.
-func TestManifestMatchesTheReferenceClient(t *testing.T) {
-	fixture := loadRustFixture(t)
+func TestManifestMatchesServiceCapture(t *testing.T) {
+	fixture := loadCaptureFixture(t)
 	root := buildFixtureTree(t, fixture)
 
 	source, err := volume.ScanSource(root)
@@ -195,22 +195,22 @@ func TestManifestMatchesTheReferenceClient(t *testing.T) {
 
 	want := fixtureBytes(t, "manifest.jsonl")
 	if string(encoded) != string(want) {
-		t.Fatalf("manifest bytes differ from the reference client\n got:\n%s\nwant:\n%s", encoded, want)
+		t.Fatalf("manifest bytes differ from the capture\n got:\n%s\nwant:\n%s", encoded, want)
 	}
 
 	digest := volume.Digest(blake3.Sum256(encoded))
 	if digest.String() != fixture.ManifestDigest {
-		t.Errorf("manifest digest is %s, the reference client published %s", digest, fixture.ManifestDigest)
+		t.Errorf("manifest digest is %s, the capture records %s", digest, fixture.ManifestDigest)
 	}
 }
 
-// TestChunkmapMatchesTheReferenceClient does the same for the one file large
+// TestChunkmapMatchesServiceCapture does the same for the one file large
 // enough to need a chunkmap. It is also what pins the chunk boundaries: the
 // file is two full chunks and a 1 KiB remainder, and the remainder stays its
 // own chunk rather than being folded into the one before it. A client that
 // coalesced it would share no chunks with this one for any large file.
-func TestChunkmapMatchesTheReferenceClient(t *testing.T) {
-	fixture := loadRustFixture(t)
+func TestChunkmapMatchesServiceCapture(t *testing.T) {
+	fixture := loadCaptureFixture(t)
 	root := buildFixtureTree(t, fixture)
 
 	source, err := volume.ScanSource(root)
@@ -235,12 +235,12 @@ func TestChunkmapMatchesTheReferenceClient(t *testing.T) {
 
 	want := fixtureBytes(t, "chunkmap.jsonl")
 	if string(encoded) != string(want) {
-		t.Fatalf("chunkmap bytes differ from the reference client\n got:\n%s\nwant:\n%s", encoded, want)
+		t.Fatalf("chunkmap bytes differ from the capture\n got:\n%s\nwant:\n%s", encoded, want)
 	}
 
 	digest := volume.Digest(blake3.Sum256(encoded))
 	if digest.String() != fixture.ChunkmapDigest {
-		t.Errorf("chunkmap digest is %s, the reference client uploaded %s", digest, fixture.ChunkmapDigest)
+		t.Errorf("chunkmap digest is %s, the capture records %s", digest, fixture.ChunkmapDigest)
 	}
 
 	if len(chunkmap.Chunks) != 3 || chunkmap.Chunks[2].Length != 1024 {
@@ -248,12 +248,12 @@ func TestChunkmapMatchesTheReferenceClient(t *testing.T) {
 	}
 }
 
-// TestReferenceTargetsAreDerivable checks that every target the reference
-// server chose is the one TargetForDigest builds. The push path uses the
+// TestCapturedTargetsAreDerivable checks that every target the server chose
+// is the one TargetForDigest builds. The push path uses the
 // target the server echoes rather than deriving it, so this is not something
 // the client depends on — but it does mean a reader holding only a digest can
 // find the object, which the resume and verification paths rely on.
-func TestReferenceTargetsAreDerivable(t *testing.T) {
+func TestCapturedTargetsAreDerivable(t *testing.T) {
 	manifest, err := volume.DecodeManifest(fixtureBytes(t, "manifest.jsonl"))
 	if err != nil {
 		t.Fatal(err)
@@ -278,19 +278,19 @@ func TestReferenceTargetsAreDerivable(t *testing.T) {
 	}
 }
 
-// TestReferenceManifestDecodes checks the other direction: the decoder reads
-// what the reference client wrote, and re-encoding it reproduces the input.
-func TestReferenceManifestDecodes(t *testing.T) {
+// TestCapturedManifestDecodes checks the other direction: the decoder reads
+// the captured manifest, and re-encoding it reproduces the input.
+func TestCapturedManifestDecodes(t *testing.T) {
 	want := fixtureBytes(t, "manifest.jsonl")
 	manifest, err := volume.DecodeManifest(want)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if got := string(volume.EncodeManifest(manifest)); got != string(want) {
-		t.Errorf("re-encoding the reference manifest changed it\n got:\n%s\nwant:\n%s", got, want)
+		t.Errorf("re-encoding the captured manifest changed it\n got:\n%s\nwant:\n%s", got, want)
 	}
 
-	fixture := loadRustFixture(t)
+	fixture := loadCaptureFixture(t)
 	if manifest.Provenance.SourceURI != fixture.SourceURI {
 		t.Errorf("provenance uri is %q, want %q", manifest.Provenance.SourceURI, fixture.SourceURI)
 	}
@@ -349,7 +349,7 @@ func TestStoredObjectDecodesByContentType(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fixture := loadRustFixture(t)
+	fixture := loadCaptureFixture(t)
 	if digest := volume.Digest(blake3.Sum256(decoded)); digest.String() != fixture.ChunkmapDigest {
 		// The digest covers the uncompressed bytes, never what was stored.
 		t.Errorf("digest of the decompressed bytes is %s, want %s", digest, fixture.ChunkmapDigest)
@@ -361,7 +361,7 @@ func TestStoredObjectDecodesByContentType(t *testing.T) {
 
 // buildFileEntry chunks and hashes one file the way a push would, without a
 // network. The targets a real push records come from the server; this uses the
-// derived form, which TestReferenceTargetsAreDerivable shows is the same.
+// derived form, which TestCapturedTargetsAreDerivable shows is the same.
 func buildFileEntry(t *testing.T, root string, file volume.SourceFile) volume.FileEntry {
 	t.Helper()
 	entry := volume.FileEntry{Path: file.Path, Mode: file.Mode, Size: file.Size}
