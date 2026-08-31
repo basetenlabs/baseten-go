@@ -1,7 +1,7 @@
 package limiter
 
 // Vendored verbatim alongside the limiter, apart from this note, the package
-// name, and one comment whose citation named a private source tree. No
+// name, and one comment whose citation named the original source tree. No
 // assertion, threshold or helper differs from the original — see the package
 // doc for the full list of deliberate divergences.
 
@@ -555,10 +555,10 @@ func TestAdaptiveLimiter_StaleCohortStallsDoNotCascade(t *testing.T) {
 	}
 }
 
-// --- gradient detector (ported from the reference implementation's tests) ---
+// --- gradient detector (ported tests) ---------------------------------------
 
 // feed drives n timed successes at latency lat, advancing the virtual clock by
-// dt between completions (mirrors the Rust `feed` helper).
+// dt between completions.
 func feed(t *testing.T, l *AdaptiveLimiter, clk *fakeClock, n int, lat, dt time.Duration) {
 	t.Helper()
 	for i := 0; i < n; i++ {

@@ -1,17 +1,17 @@
 package limiter
 
 // Vendored verbatim alongside the limiter, apart from this note, the package
-// name, and a set of hygiene renames: identifiers and strings that named a
-// private service, package or path (a config helper and its two tests, the
-// report environment variable, and the example command) carry neutral names
+// name, and a set of hygiene renames: identifiers and strings that named the
+// source's own service, package or path (a config helper and its two tests,
+// the report environment variable, and the example command) carry neutral names
 // here. Nothing else differs — no scenario, threshold, seed or assertion is
 // changed. See the package doc for the full list of deliberate divergences.
 
 // Simulation harness for AdaptiveLimiter: drives the *real* limiter against a
 // processor-sharing queue model of an origin, under the injected fake clock
-// (deterministic, runs in milliseconds of wall time). Ported from the
-// reference implementation's simulation harness so results can be examined
-// side by side (see TestSimReport, which prints the same format).
+// (deterministic, runs in milliseconds of wall time). A port of the
+// validation harness that proved the vendored limiter, so results can be
+// examined side by side (see TestSimReport, which prints the same format).
 //
 // # Origin model
 //
@@ -21,7 +21,7 @@ package limiter
 // *emergent* (completion − issue): a request issued into a queue that then
 // grows experiences the congestion honestly, which matters because issue-time
 // latency snapshots systematically feed the detector stale-low samples during
-// climbs (a bug the original Rust harness had).
+// climbs (a bug the original validation harness had).
 //
 // Two regimes fall out naturally:
 //   - below the knee N* = C·baseLat/CHUNK: the per-stream cap binds, latency
@@ -35,7 +35,7 @@ package limiter
 // knee) or a socket boundary: S3 throttles per-prefix request *rate* (~3500/s,
 // far above these transfers), and timeouts need real queue blowup.
 //
-// # Go additions beyond the Rust grid
+// # Go additions beyond the original grid
 //
 //   - simBrownout: an outage window in which issued requests hang and fail on
 //     transport-timeout tails (10/30/90s) — the stale-cohort drain
@@ -56,9 +56,9 @@ import (
 const (
 	simChunk = 8.0 * 1_048_576.0
 	// 2 GiB memory cap in 8 MiB chunks (the second call-site gate in the
-	// Rust consumer; kept for scoring fidelity).
+	// consuming engine; kept for scoring fidelity).
 	simMemCapChunks = 256
-	// Matches the Rust sim's `for_data_path` on a 10-core client host.
+	// Matches the data-path config on a 10-core client host.
 	simCores = 10
 )
 
@@ -75,9 +75,9 @@ func (l *AdaptiveLimiter) tryAcquire() *Permit {
 	return nil
 }
 
-// rustDataPathCfg mirrors AdaptiveConcurrencyConfig::for_data_path on a
-// 10-core host — the config every Rust grid scenario ran under.
-func rustDataPathCfg() AdaptiveLimiterConfig {
+// dataPathCfg is the data-path transfer config on a 10-core host — the config
+// every grid scenario ran under.
+func dataPathCfg() AdaptiveLimiterConfig {
 	return AdaptiveLimiterConfig{
 		Min:                    simCores,
 		Max:                    512,
@@ -155,7 +155,7 @@ func (o simOrigin) peak() float64 {
 }
 
 // simRng is xorshift64 + Box-Muller: deterministic per-seed noise, no
-// dependency. Bit-identical to the Rust harness RNG.
+// dependency. Bit-identical to the harness RNG it reproduces.
 type simRng struct{ s uint64 }
 
 func newSimRng(seed uint64) *simRng {
@@ -387,9 +387,8 @@ func runSeeds(
 	return minFrac, limitSum / 3.0, minLimit
 }
 
-// TestSimReport is the port-fidelity report: the full 12-scenario grid from
-// the Rust harness (`cargo test --lib sim_report -- --ignored --nocapture`),
-// 5 seeds each, printed in the same format for side-by-side comparison.
+// TestSimReport is the port-fidelity report: the full 12-scenario grid, 5
+// seeds each, printed in the original format for side-by-side comparison.
 // Skipped by default (it is a report, not an assertion); run with
 //
 //	VOLUME_SIM_REPORT=1 go test ./internal/volume/limiter -run TestSimReport -v
@@ -424,7 +423,7 @@ func TestSimReport(t *testing.T) {
 		var fracs []float64
 		limitSum := 0.0
 		for seed := uint64(1); seed <= 5; seed++ {
-			r := simulate(rustDataPathCfg(), sc.origin, dur, seed, sc.shift, nil)
+			r := simulate(dataPathCfg(), sc.origin, dur, seed, sc.shift, nil)
 			fracs = append(fracs, r.tputFrac)
 			limitSum += r.meanLimit
 		}
@@ -439,14 +438,14 @@ func TestSimReport(t *testing.T) {
 	}
 }
 
-// --- Ported grid assertion scenarios (same thresholds as the reference) -----
+// --- Ported grid assertion scenarios (thresholds unchanged) ----------------
 
 // Localhost / cluster-internal push (the measured curve: 1061 MB/s peak at ~8
 // chunks, degrading to ~762 at 256). No discrete stalls below the socket
 // boundary — the case that motivated the gradient detector.
 func TestSim_ClusterInternalHoldsNearPeak(t *testing.T) {
 	o := simOrigin{1061e6, 0.063, 0.0126, 0.10, 0.0, 400}
-	minFrac, meanLimit, _ := runSeeds(rustDataPathCfg(), o, 60*time.Second, nil, nil)
+	minFrac, meanLimit, _ := runSeeds(dataPathCfg(), o, 60*time.Second, nil, nil)
 	if minFrac <= 0.90 {
 		t.Errorf("cluster-internal: %.0f%%, want > 90%%", minFrac*100)
 	}
@@ -460,7 +459,7 @@ func TestSim_ClusterInternalHoldsNearPeak(t *testing.T) {
 // staged-growth gate must self-limit the climb.
 func TestSim_100GFabricHoldsNearPeak(t *testing.T) {
 	o := simOrigin{8000e6, 0.010, 0.0126, 0.10, 0.0, 4000}
-	minFrac, meanLimit, _ := runSeeds(rustDataPathCfg(), o, 60*time.Second, nil, nil)
+	minFrac, meanLimit, _ := runSeeds(dataPathCfg(), o, 60*time.Second, nil, nil)
 	if minFrac <= 0.90 {
 		t.Errorf("100G fabric: %.0f%%, want > 90%%", minFrac*100)
 	}
@@ -474,7 +473,7 @@ func TestSim_100GFabricHoldsNearPeak(t *testing.T) {
 // the noise-scaled gates and latency-scaled cooldown carry this case.
 func TestSim_WanEuUswestFillsPipe(t *testing.T) {
 	o := simOrigin{630e6, 0.700, 0.002, 0.50, 0.03, 2000}
-	minFrac, _, _ := runSeeds(rustDataPathCfg(), o, 180*time.Second, nil, nil)
+	minFrac, _, _ := runSeeds(dataPathCfg(), o, 180*time.Second, nil, nil)
 	if minFrac <= 0.70 {
 		t.Errorf("wan eu->usw: %.0f%%, want > 70%%", minFrac*100)
 	}
@@ -495,7 +494,7 @@ func TestSim_LargeNodeBoundedStartupFillsWan(t *testing.T) {
 // false-positive test — noise alone must not collapse the limit.
 func TestSim_WanHighVarianceNoFalseCollapse(t *testing.T) {
 	o := simOrigin{630e6, 0.600, 0.002, 0.70, 0.0, 1000}
-	minFrac, _, _ := runSeeds(rustDataPathCfg(), o, 180*time.Second, nil, nil)
+	minFrac, _, _ := runSeeds(dataPathCfg(), o, 180*time.Second, nil, nil)
 	if minFrac <= 0.80 {
 		t.Errorf("wan high-variance: %.0f%%, want > 80%%", minFrac*100)
 	}
@@ -506,7 +505,7 @@ func TestSim_WanHighVarianceNoFalseCollapse(t *testing.T) {
 // gradient must never cut, and the limiter must reach the cap.
 func TestSim_40GWanMemcapBoundReachesCap(t *testing.T) {
 	o := simOrigin{5000e6, 0.700, 0.002, 0.50, 0.02, 2000}
-	minFrac, meanLimit, _ := runSeeds(rustDataPathCfg(), o, 180*time.Second, nil, nil)
+	minFrac, meanLimit, _ := runSeeds(dataPathCfg(), o, 180*time.Second, nil, nil)
 	if minFrac <= 0.95 {
 		t.Errorf("40G via S3: %.0f%%, want > 95%%", minFrac*100)
 	}
@@ -521,7 +520,7 @@ func TestSim_40GWanMemcapBoundReachesCap(t *testing.T) {
 func TestSim_RegimeShiftReanchors(t *testing.T) {
 	o := simOrigin{1061e6, 0.063, 0.0126, 0.10, 0.0, 400}
 	shift := &simShift{at: 30 * time.Second, capacity: 400e6, baseLat: 0.063}
-	minFrac, _, _ := runSeeds(rustDataPathCfg(), o, 90*time.Second, shift, nil)
+	minFrac, _, _ := runSeeds(dataPathCfg(), o, 90*time.Second, shift, nil)
 	if minFrac <= 0.85 {
 		t.Errorf("regime shift: %.0f%%, want > 85%%", minFrac*100)
 	}
