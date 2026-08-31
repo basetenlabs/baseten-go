@@ -17,8 +17,9 @@ type ChunkRange struct {
 //
 // The format also describes a profile that folds a small tail into the
 // previous chunk. Not doing that is deliberate: chunk boundaries decide which
-// objects two clients can share, so matching the reference client's plain
-// split is what makes dedup work across them.
+// objects two clients can share, and the plain split is the one the service.s
+// existing objects were built with — a client that folded the tail would
+// share no large-file chunks with any of them.
 //
 // An empty file gets one zero-length chunk rather than none, because a file
 // entry always names a chunk and the digest of no bytes is a real object.

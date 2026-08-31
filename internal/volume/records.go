@@ -140,11 +140,11 @@ type Chunkmap struct {
 // group by path in place, so the bytes depend only on the manifest's content
 // and never on the order a walk happened to produce.
 //
-// The record order is the one the reference client emits: header, provenance,
-// then the directory, file, and symlink groups, each sorted by path. The
-// specification also permits one interleaved path-sorted entry group, but
-// matching the reference byte for byte is what lets the two clients share
-// manifest objects.
+// The record order is the canonical one: header, provenance, then the
+// directory, file, and symlink groups, each sorted by path. The specification
+// also permits one interleaved path-sorted entry group, but only clients that
+// produce identical bytes can share manifest objects, and the grouped order is
+// the one the captured fixture pins.
 func EncodeManifest(m *Manifest) []byte {
 	slices.SortFunc(m.Directories, func(a, b DirectoryEntry) int { return strings.Compare(a.Path, b.Path) })
 	slices.SortFunc(m.Files, func(a, b FileEntry) int { return strings.Compare(a.Path, b.Path) })
@@ -344,9 +344,8 @@ func appendComma(out []byte, key string) []byte {
 	return append(out, ':')
 }
 
-// appendJSONString writes s as a JSON string literal, escaping exactly what
-// the reference encoder escapes: the quote, the backslash, and the C0 control
-// characters. Everything else, "<" and "&" and U+2028 included, passes
+// appendJSONString writes s as a JSON string literal, escaping exactly the
+// canonical set: the quote, the backslash, and the C0 control characters. Everything else, "<" and "&" and U+2028 included, passes
 // through as its own UTF-8 bytes. The caller is responsible for s being valid
 // UTF-8; path validation rejects the rest before a manifest is built.
 func appendJSONString(out []byte, s string) []byte {
