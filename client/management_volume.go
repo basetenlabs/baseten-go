@@ -676,6 +676,10 @@ type volumeTokenResponse struct {
 // because this endpoint is not in the generated surface yet. It borrows that
 // client's base URL, transport, and headers so authentication and user agent
 // behave the same as every other call.
+//
+// TODO: switch to the generated client once the endpoint lands in the
+// management API's OpenAPI spec, and re-verify the request and response
+// shapes against what shipped.
 func (c *ManagementClient) exchangeVolumeToken(
 	ctx context.Context,
 	namespace string,
