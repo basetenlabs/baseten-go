@@ -183,8 +183,8 @@ func TestScanSourceRejectsNonDirectoryRoot(t *testing.T) {
 }
 
 // TestScanSourceRejectsBackslashName covers a filename a Windows puller could
-// not reproduce. The reference client rewrites the backslash to a slash and
-// publishes a tree that does not match the source; this one refuses.
+// not reproduce. Rewriting the backslash to a slash would publish a tree that
+// does not match the source, so the scan refuses instead.
 func TestScanSourceRejectsBackslashName(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("a backslash is a separator, not a filename character")

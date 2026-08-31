@@ -41,9 +41,7 @@ type Source struct {
 // them, and a push that silently dropped them would publish a tree that does
 // not match the source.
 //
-// This diverges from the reference client deliberately: its walk has no branch
-// for these, so it drops them and publishes the tree without them. Refusing is
-// the same choice made for a path that cannot round-trip — say what cannot be
+// Refusing is the same choice made for a path that cannot round-trip — say what cannot be
 // done rather than quietly do something else.
 func ScanSource(root string) (*Source, error) {
 	walkRoot, err := scanRoot(root)

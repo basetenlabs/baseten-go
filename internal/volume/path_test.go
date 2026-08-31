@@ -77,7 +77,7 @@ func TestValidateSourceURI(t *testing.T) {
 
 func TestNormalizeSymlinkTarget(t *testing.T) {
 	// Targets are stored verbatim, absolute ones included: the format allows
-	// them and the reference client writes whatever readlink returned.
+	// them, and a target is whatever readlink returned.
 	for _, target := range []string{"sibling", "../up/two", "/absolute/target", "./here"} {
 		t.Run("kept/"+target, func(t *testing.T) {
 			got, err := NormalizeSymlinkTarget(target)
