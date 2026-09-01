@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
-	"strings"
 )
 
 // Wire constants. The vendor media types and the schema string are matched
@@ -136,21 +135,64 @@ type Chunkmap struct {
 	Chunks   []ChunkRef
 }
 
-// EncodeManifest renders the manifest as canonical JSONL. It sorts each entry
-// group by path in place, so the bytes depend only on the manifest's content
-// and never on the order a walk happened to produce.
+// pathComponentCompare orders manifest entry paths canonically: each byte
+// maps to a key — '/' to 0, any other byte c to c+1 — and the two key
+// sequences compare lexicographically, a shorter prefix first. Mapping the
+// separator below every byte puts a directory immediately before its children
+// and keeps every subtree contiguous; plain bytewise order does not (it puts
+// "a.txt" between "a" and "a/b", splitting the subtree).
 //
-// The record order is the canonical one: header, provenance, then the
-// directory, file, and symlink groups, each sorted by path. The specification
-// also permits one interleaved path-sorted entry group, but only clients that
-// produce identical bytes can share manifest objects, and the grouped order is
-// the one the captured fixture pins.
-func EncodeManifest(m *Manifest) []byte {
-	slices.SortFunc(m.Directories, func(a, b DirectoryEntry) int { return strings.Compare(a.Path, b.Path) })
-	slices.SortFunc(m.Files, func(a, b FileEntry) int { return strings.Compare(a.Path, b.Path) })
-	slices.SortFunc(m.Symlinks, func(a, b SymlinkEntry) int { return strings.Compare(a.Path, b.Path) })
+// The +1 keeps a NUL byte distinct from the separator. ValidatePath refuses
+// NUL on push, but DecodeManifest is deliberately lenient, so a
+// decoded-then-re-encoded manifest can carry one, and without the offset it
+// would sort as if it were '/'.
+func pathComponentCompare(a, b string) int {
+	key := func(c byte) int {
+		if c == '/' {
+			return 0
+		}
+		return int(c) + 1
+	}
+	for i := 0; i < len(a) && i < len(b); i++ {
+		if d := cmp.Compare(key(a[i]), key(b[i])); d != 0 {
+			return d
+		}
+	}
+	return cmp.Compare(len(a), len(b))
+}
 
-	out := make([]byte, 0, 256*(len(m.Directories)+len(m.Files)+len(m.Symlinks))+256)
+// EncodeManifest renders the manifest as canonical JSONL: the header, the
+// provenance, then every entry — directories, files and symlinks together —
+// as one run in canonical path order (see pathComponentCompare). The bytes
+// depend only on the manifest's content and never on the order a walk or a
+// caller produced them in, and EncodeManifest does not mutate the manifest.
+//
+// The scanner's walk already yields entries in this order, but manifests are
+// also built from decoded priors, from subsets, and by arbitrary callers, so
+// the order is imposed here rather than inherited from the walk. Duplicate
+// paths are rejected upstream — the format forbids them outright — and for a
+// hand-built manifest carrying them anyway the stable sort keeps their
+// relative order, so the bytes are deterministic either way. DecodeManifest
+// stays lenient about the order it accepts.
+func EncodeManifest(m *Manifest) []byte {
+	type entryRef struct {
+		path  string
+		kind  uint8 // 0 directory, 1 file, 2 symlink
+		index int
+	}
+	refs := make([]entryRef, 0, len(m.Directories)+len(m.Files)+len(m.Symlinks))
+	for i, d := range m.Directories {
+		refs = append(refs, entryRef{path: d.Path, kind: 0, index: i})
+	}
+	for i, f := range m.Files {
+		refs = append(refs, entryRef{path: f.Path, kind: 1, index: i})
+	}
+	for i, s := range m.Symlinks {
+		refs = append(refs, entryRef{path: s.Path, kind: 2, index: i})
+	}
+	slices.SortStableFunc(refs, func(a, b entryRef) int { return pathComponentCompare(a.path, b.path) })
+
+	out := make([]byte, 0, 256*len(refs)+256)
 
 	out = appendType(out, "manifest_header")
 	out = appendUint(out, "entry_count", m.EntryCount())
@@ -164,21 +206,24 @@ func EncodeManifest(m *Manifest) []byte {
 	out = appendString(out, "source_uri", m.Provenance.SourceURI)
 	out = endRecord(out)
 
-	for _, d := range m.Directories {
-		out = appendType(out, "directory")
-		out = appendMode(out, d.Mode)
-		out = appendString(out, "path", d.Path)
-		out = endRecord(out)
-	}
-	for _, f := range m.Files {
-		out = appendFileRecord(out, f)
-	}
-	for _, s := range m.Symlinks {
-		out = appendType(out, "symlink")
-		out = appendMode(out, s.Mode)
-		out = appendString(out, "path", s.Path)
-		out = appendString(out, "target", s.Target)
-		out = endRecord(out)
+	for _, ref := range refs {
+		switch ref.kind {
+		case 0:
+			d := m.Directories[ref.index]
+			out = appendType(out, "directory")
+			out = appendMode(out, d.Mode)
+			out = appendString(out, "path", d.Path)
+			out = endRecord(out)
+		case 1:
+			out = appendFileRecord(out, m.Files[ref.index])
+		default:
+			s := m.Symlinks[ref.index]
+			out = appendType(out, "symlink")
+			out = appendMode(out, s.Mode)
+			out = appendString(out, "path", s.Path)
+			out = appendString(out, "target", s.Target)
+			out = endRecord(out)
+		}
 	}
 	return out
 }

@@ -21,6 +21,13 @@ package separatemoduletests_test
 // from the service's manifest endpoint and the chunkmap from its object
 // endpoint, decompressing the latter.
 //
+// The tree includes entries chosen to make the capture discriminating: a
+// directory with a child alongside a similarly named file (a, a/b, a.txt),
+// on which canonical path order and plain bytewise order visibly disagree,
+// and entry kinds that interleave rather than group. A regenerated tree must
+// keep such a pair — a capture that both orderings reproduce pins neither
+// the comparator nor the interleaving.
+//
 // The source path matters and is part of the fixture: it goes into the
 // provenance record, which is inside the bytes the digest covers. Pushing the
 // same tree from anywhere else produces a different version.
