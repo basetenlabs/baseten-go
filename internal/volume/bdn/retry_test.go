@@ -133,11 +133,45 @@ func TestRetryAfterParsing(t *testing.T) {
 func TestBackoffStaysWithinItsCeiling(t *testing.T) {
 	cfg := RetryConfig{MaxAttempts: 5, Base: 50 * time.Millisecond, Cap: time.Second}
 	for attempt := 1; attempt <= 6; attempt++ {
-		ceiling := min(cfg.Base<<attempt, cfg.Cap)
+		// The first attempt to be waited on is attempt 1, and it waits within
+		// one base interval rather than two: the shift counts the waits
+		// already spent, not the attempt's own number.
+		ceiling := min(cfg.Base<<(attempt-1), cfg.Cap)
 		for range 50 {
 			got := cfg.backoff(attempt)
 			require.True(t, got >= 0 && got <= ceiling,
 				"attempt %d backoff %v outside [0, %v]", attempt, got, ceiling)
+		}
+	}
+}
+
+// TestBackoffCeilingIsTheDoublingSequence pins the formula itself rather than
+// only the bound, so a shift that is off by one cannot pass by staying under
+// a ceiling that moved with it.
+func TestBackoffCeilingIsTheDoublingSequence(t *testing.T) {
+	cfg := RetryConfig{MaxAttempts: 99, Base: 10 * time.Millisecond, Cap: time.Hour}
+	// The first wait is bounded by one base interval, and each wait after it
+	// by twice the one before.
+	for attempt, want := 1, cfg.Base; attempt <= 8; attempt, want = attempt+1, want*2 {
+		var high time.Duration
+		for range 500 {
+			if got := cfg.backoff(attempt); got > high {
+				high = got
+			}
+		}
+		require.True(t, high <= want, "attempt %d exceeded %v with %v", attempt, want, high)
+		require.True(t, high > want/2, "attempt %d never approached %v (max %v)", attempt, want, high)
+	}
+
+	// The clamp survives: past the shift limit the ceiling is the cap, not an
+	// overflowed shift. attempt-1 is what gets clamped, so this covers the
+	// boundary the subtraction moved.
+	wide := RetryConfig{MaxAttempts: 99, Base: time.Millisecond, Cap: 2 * time.Second}
+	for _, attempt := range []int{33, 34, 64, 200} {
+		for range 50 {
+			got := wide.backoff(attempt)
+			require.True(t, got >= 0 && got <= wide.Cap,
+				"attempt %d backoff %v outside [0, %v]", attempt, got, wide.Cap)
 		}
 	}
 }

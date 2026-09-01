@@ -17,7 +17,7 @@ type ChunkRange struct {
 //
 // The format also describes a profile that folds a small tail into the
 // previous chunk. Not doing that is deliberate: chunk boundaries decide which
-// objects two clients can share, and the plain split is the one the service.s
+// objects two clients can share, and the plain split is the one the service's
 // existing objects were built with — a client that folded the tail would
 // share no large-file chunks with any of them.
 //

@@ -234,8 +234,11 @@ func NewManifest(src *Source, sourceURI string, files []FileEntry) *Manifest {
 			SourceFingerprintType: ProvenanceFingerprintType,
 			SourceURI:             sourceURI,
 		},
+		// The manifest owns its slices: every one is copied, so nothing the
+		// caller does to its own afterwards can change what gets encoded, and
+		// nothing done here reaches back into the caller's.
 		Directories: slices.Clone(src.Directories),
-		Files:       files,
+		Files:       slices.Clone(files),
 		Symlinks:    slices.Clone(src.Symlinks),
 	}
 }
@@ -248,5 +251,22 @@ func SourceURIForDir(dir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "file://" + filepath.ToSlash(abs), nil
+	return fileURI(filepath.ToSlash(abs)), nil
+}
+
+// fileURI builds the file URI for an absolute path that has already been
+// converted to forward slashes.
+//
+// The leading slash is what separates the empty authority from the path. A
+// unix absolute path already starts with one, so this is a no-op there and
+// the bytes are unchanged — which matters because the URI is inside the
+// digest, and changing it for existing sources would invalidate every
+// manifest they produced. A windows path starts with its drive letter
+// instead, and without the added slash the drive would be read as the
+// authority: file://C:/data names a host, file:///C:/data names a path.
+func fileURI(slashed string) string {
+	if !strings.HasPrefix(slashed, "/") {
+		slashed = "/" + slashed
+	}
+	return "file://" + slashed
 }
