@@ -452,7 +452,12 @@ func (p *pusher) pushChunks(ctx context.Context, file volume.SourceFile, prior [
 	defer handle.Close()
 
 	ranges := volume.ChunkRanges(file.Size)
-	chunks := make([]pushedChunk, len(ranges))
+	// Sized from the file rather than from the range value, so that the range
+	// value can become an iterator without this line changing with it. The
+	// count is the one the split defines — one chunk for an empty file,
+	// otherwise the size divided by the chunk size and rounded up — and is
+	// replaced by volume.ChunkCount once that exists.
+	chunks := make([]pushedChunk, max(1, (file.Size+volume.ChunkSize-1)/volume.ChunkSize))
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
