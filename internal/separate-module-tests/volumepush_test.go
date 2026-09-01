@@ -2,6 +2,7 @@ package separatemoduletests_test
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -254,6 +255,45 @@ func TestPushReusesUnchangedFiles(t *testing.T) {
 	}
 	if second.Existing != 1 {
 		t.Errorf("%d objects reported as already stored, want 1", second.Existing)
+	}
+}
+
+// TestPushRefusesAnUncontainedTree covers the client half of the containment
+// rule: a tree whose links leave the volume or dangle fails before the first
+// byte uploads, with the entry named — not at the commit gate with the whole
+// upload already spent. The absolute case pins the reinterpretation too: an
+// absolute target means the volume's own path, so without such an entry it
+// dangles rather than pointing at the pushing machine's file.
+func TestPushRefusesAnUncontainedTree(t *testing.T) {
+	cases := []struct{ name, target, want string }{
+		{"escaping link", "../../etc/passwd", "steps outside the volume root"},
+		{"dangling link", "no-such-file", "dangles"},
+		{"absolute link with no matching entry", "/etc/passwd", "dangles"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			root := t.TempDir()
+			writeFile(t, root, "kept.txt", []byte("x"), 0o644)
+			if err := os.Symlink(c.target, filepath.Join(root, "esc")); err != nil {
+				t.Skipf("symlinks unavailable: %v", err)
+			}
+			fake := newFakeService(t)
+
+			_, err := transfer.Push(context.Background(), fake.client(t), pushOptions(root, fake))
+			if err == nil {
+				t.Fatal("an uncontained tree was pushed")
+			}
+			if !errors.Is(err, volume.ErrNotContained) ||
+				!strings.Contains(err.Error(), "esc") || !strings.Contains(err.Error(), c.want) {
+				t.Errorf("want ErrNotContained naming esc and %q, got: %v", c.want, err)
+			}
+			if got := len(fake.uploads); got != 0 {
+				t.Errorf("%d uploads were attempted for a tree that must fail before the first", got)
+			}
+			if got := len(fake.commits); got != 0 {
+				t.Errorf("%d commits recorded for a refused push", got)
+			}
+		})
 	}
 }
 
