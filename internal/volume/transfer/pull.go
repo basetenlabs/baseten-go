@@ -558,9 +558,10 @@ func (p *puller) writeChunk(
 	resumable bool,
 	permit *volume.Permit,
 ) error {
-	buffer := make([]byte, chunk.Length)
-
 	if resumable {
+		// The check's own buffer: filled from what is already on disk, dead
+		// after the rehash. A fresh download allocates nothing here.
+		buffer := make([]byte, chunk.Length)
 		if _, err := handle.ReadAt(buffer, int64(chunk.Offset)); err == nil {
 			digest, err := volume.HashBytes(p.opts.NewHasher, buffer)
 			if err == nil && digest == chunk.Digest {
