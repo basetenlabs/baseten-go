@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -31,8 +32,6 @@ func newManagementAPI(t *testing.T, fake *fakeService, exchanges *atomic.Int64) 
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		exchanges.Add(1)
-
 		// The real endpoint is namespace-scoped with an explicit scope list
 		// and forbids unknown fields, so the fake reads the request rather
 		// than ignoring it: a client sending the old volume-scoped shape
@@ -42,11 +41,17 @@ func newManagementAPI(t *testing.T, fake *fakeService, exchanges *atomic.Int64) 
 			Namespaces    []string `json:"namespaces"`
 			CorrelationID string   `json:"correlation_id"`
 		}
-		if err := json.NewDecoder(r.Body).Decode(&request); err != nil ||
+		decoder := json.NewDecoder(r.Body)
+		decoder.DisallowUnknownFields()
+		if err := decoder.Decode(&request); err != nil ||
 			len(request.Scopes) == 0 || len(request.Namespaces) == 0 {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		// Counted only once the request is accepted: a refused request is not
+		// an exchange, and tests that count exchanges mean the ones that
+		// minted a token.
+		exchanges.Add(1)
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"token": fake.token(), "bdn_endpoint": fake.server.URL,
@@ -209,4 +214,34 @@ func proxyTo(w http.ResponseWriter, r *http.Request, target string) {
 	}
 	w.WriteHeader(resp.StatusCode)
 	_, _ = io.Copy(w, resp.Body)
+}
+
+// TestTokenFakeRefusesUnknownFields is the test the strict decode cannot
+// exist without: the fake's comment has claimed unknown-field refusal since
+// it was written, and for a while the code did not do it — a claim nothing
+// asserted. Post a request with a field the real endpoint would refuse and
+// watch the fake refuse it too; with a plain decode this test goes red.
+func TestTokenFakeRefusesUnknownFields(t *testing.T) {
+	fake := newFakeService(t)
+	var exchanges atomic.Int64
+	api := newManagementAPI(t, fake, &exchanges)
+
+	body := `{"scopes":["PUSH"],"namespaces":["ns"],"volume":"the-old-volume-scoped-shape"}`
+	req, err := http.NewRequest(http.MethodPost, api+"/v1/volumes/token", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Authorization", "Bearer api-key")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("a request with an unknown field got %d, want %d — the fake is looser than the endpoint it stands in for",
+			resp.StatusCode, http.StatusBadRequest)
+	}
+	if exchanges.Load() != 0 {
+		t.Errorf("the refused request was counted as an exchange")
+	}
 }
