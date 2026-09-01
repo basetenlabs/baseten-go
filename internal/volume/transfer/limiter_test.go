@@ -33,19 +33,17 @@ func holdCapacity(t *testing.T, l volume.Limiter) int {
 	return len(held)
 }
 
-// feed runs n successful operations through the limiter, timed or untimed.
-func feed(t *testing.T, l volume.Limiter, n int, timed bool) {
+// feed runs n untimed successful operations through the limiter. Timed feeds
+// go through feedTimedMeasurable, never through a back-to-back
+// acquire/complete pair — see the note there about coarse clocks.
+func feed(t *testing.T, l volume.Limiter, n int) {
 	t.Helper()
 	for range n {
 		permit, err := l.Acquire(context.Background())
 		if err != nil {
 			t.Fatalf("acquire: %v", err)
 		}
-		if timed {
-			permit.Complete(volume.Success)
-		} else {
-			permit.CompleteUntimed(volume.Success)
-		}
+		permit.CompleteUntimed(volume.Success)
 	}
 }
 
@@ -74,7 +72,7 @@ func TestPinnedConcurrencyIsHonouredExactly(t *testing.T) {
 		t.Fatalf("pinned limiter handed out %d permits, want %d", got, pinned)
 	}
 	// Success is what an adaptive limiter grows on. A pinned one must not.
-	feed(t, l, 50, false)
+	feed(t, l, 50)
 	if got := holdCapacity(t, l); got != pinned {
 		t.Errorf("pinned limiter grew to %d after successes; the cap must not adapt", got)
 	}
@@ -108,6 +106,40 @@ func TestUnpinnedConcurrencyAdapts(t *testing.T) {
 	}
 }
 
+// feedTimedMeasurable runs n timed successes whose measured duration is
+// comfortably above any OS clock tick. The distinction it preserves is the
+// point of the test using it: a timed completion faster than the monotonic
+// clock's granularity measures as zero elapsed — Windows ticks at roughly
+// sixteen milliseconds — and a zero-duration completion is indistinguishable
+// from an untimed one at the adapter's seam, so back-to-back acquire/complete
+// pairs silently stop carrying samples on a coarse clock. Permits are taken
+// in small batches under one sleep, so the wall time is paid per batch
+// rather than per sample; the batch stays below the adaptive floor so every
+// acquire is immediate.
+func feedTimedMeasurable(t *testing.T, l volume.Limiter, n int) {
+	t.Helper()
+	const batch = 5
+	for done := 0; done < n; {
+		take := batch
+		if left := n - done; left < take {
+			take = left
+		}
+		permits := make([]*volume.Permit, 0, take)
+		for range take {
+			permit, err := l.Acquire(context.Background())
+			if err != nil {
+				t.Fatalf("acquire: %v", err)
+			}
+			permits = append(permits, permit)
+		}
+		time.Sleep(50 * time.Millisecond)
+		for _, permit := range permits {
+			permit.Complete(volume.Success)
+			done++
+		}
+	}
+}
+
 // TestTimedCompletionsReachTheDetector pins the adapter's one real decision:
 // which completions carry a latency sample.
 //
@@ -124,14 +156,14 @@ func TestUnpinnedConcurrencyAdapts(t *testing.T) {
 func TestTimedCompletionsReachTheDetector(t *testing.T) {
 	untimed := defaultLimiter(volume.Concurrency{})
 	start := holdCapacity(t, untimed)
-	feed(t, untimed, 40, false)
+	feed(t, untimed, 40)
 	grown := holdCapacity(t, untimed)
 	if grown <= start {
 		t.Fatalf("untimed successes left the limit at %d (from %d); plain AIMD should have grown it", grown, start)
 	}
 
 	timed := defaultLimiter(volume.Concurrency{})
-	feed(t, timed, 40, true)
+	feedTimedMeasurable(t, timed, 40)
 	if held := holdCapacity(t, timed); held >= grown {
 		t.Errorf("timed successes grew the limit to %d, as far as the untimed run's %d; "+
 			"the latency samples are not reaching the detector", held, grown)
@@ -161,7 +193,7 @@ func TestUntimedCompletionsStayOutOfTheBaseline(t *testing.T) {
 	for time.Now().Before(deadline) {
 		// Two instant completions per real one: dedup-heavy, which is the
 		// ordinary case for a re-push or a resumed download.
-		feed(t, l, 2, false)
+		feed(t, l, 2)
 		feedSlow(t, l, realLatency)
 	}
 	// Once the baseline has seeded, the reading that matters is what the next
