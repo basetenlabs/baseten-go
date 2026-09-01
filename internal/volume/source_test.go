@@ -275,3 +275,41 @@ func dirByPath(t *testing.T, src *Source, path string) DirectoryEntry {
 	t.Fatalf("no directory %q in %s", path, joinDirs(src.Directories))
 	return DirectoryEntry{}
 }
+
+// TestNewManifestOwnsItsSlices pins that the manifest copies what it is
+// given, so a caller reusing or reordering its own slice afterwards cannot
+// change what a later encode produces.
+func TestNewManifestOwnsItsSlices(t *testing.T) {
+	src := &Source{
+		Directories: []DirectoryEntry{{Path: "d", Mode: 0o755}},
+		Symlinks:    []SymlinkEntry{{Path: "l", Target: "d"}},
+	}
+	files := []FileEntry{
+		{Path: "b", Mode: 0o644, Kind: FileKindChunk},
+		{Path: "a", Mode: 0o644, Kind: FileKindChunk},
+	}
+	m := NewManifest(src, "file:///s", files)
+	before := string(EncodeManifest(m))
+
+	// Everything the caller still holds is rearranged and rewritten.
+	files[0], files[1] = files[1], files[0]
+	files[0].Path = "clobbered"
+	src.Directories[0].Path = "clobbered"
+	src.Symlinks[0].Path = "clobbered"
+
+	require.Equal(t, before, string(EncodeManifest(m)))
+}
+
+// TestFileURIIsUnchangedForUnixPaths is the byte-identity gate on the URI
+// construction. The URI is inside the digest, so any change to what a
+// slash-rooted path produces would invalidate every manifest already made
+// from one. The helper is pure and takes an already-slashed path, so this
+// holds on every platform rather than only where the test happens to run.
+func TestFileURIIsUnchangedForUnixPaths(t *testing.T) {
+	for _, path := range []string{"/", "/tmp/x", "/tmp/bdn-volume-fixture/tree", "/a b/c#d"} {
+		require.Equal(t, "file://"+path, fileURI(path))
+	}
+	// The windows shape is the one that changes, and the drive moves out of
+	// the authority where it never belonged.
+	require.Equal(t, "file:///C:/data/v", fileURI("C:/data/v"))
+}

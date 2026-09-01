@@ -378,3 +378,45 @@ func TestDecodeChunkmapRejectsCorruption(t *testing.T) {
 func itoa(v uint64) string {
 	return strconv.FormatUint(v, 10)
 }
+
+// TestAppendModeMasksToTheRecordedBits pins the encode-side narrowing. The
+// mode is inside the digest, so a caller handing in a Go file mode's type
+// bits must not produce a manifest nobody else can reproduce for the tree.
+func TestAppendModeMasksToTheRecordedBits(t *testing.T) {
+	// 0o40755 is a directory's mode with its type bit set — what a caller
+	// gets from fs.FileMode if it forgets to narrow.
+	withTypeBits := EncodeManifest(&Manifest{
+		Directories: []DirectoryEntry{{Path: "d", Mode: 0o40755}},
+	})
+	narrowed := EncodeManifest(&Manifest{
+		Directories: []DirectoryEntry{{Path: "d", Mode: 0o755}},
+	})
+	require.Equal(t, string(narrowed), string(withTypeBits))
+	require.True(t, strings.Contains(string(withTypeBits), `"mode":"0755"`),
+		"encoded mode: %s", withTypeBits)
+
+	// The setuid, setgid and sticky bits are inside the mask and must survive.
+	kept := EncodeManifest(&Manifest{
+		Directories: []DirectoryEntry{{Path: "d", Mode: 0o7755}},
+	})
+	require.True(t, strings.Contains(string(kept), `"mode":"7755"`),
+		"encoded mode: %s", kept)
+}
+
+// TestParseModeRefusesAboveTheMask covers the decode side, which does the
+// opposite of the encoder: it refuses rather than narrows, because masking
+// would silently alter what was received and leaving it would let a mode the
+// format forbids reach code that assumes it is already narrowed.
+func TestParseModeRefusesAboveTheMask(t *testing.T) {
+	for _, s := range []string{"40755", "10000", "177777"} {
+		_, err := parseMode(s)
+		require.Error(t, err)
+	}
+	// Everything inside the mask still decodes, including the three bits
+	// above the permission bits.
+	for _, s := range []string{"0644", "7777", "0"} {
+		mode, err := parseMode(s)
+		require.NoError(t, err)
+		require.True(t, mode <= ModeMask, "mode %q decoded to %o", s, mode)
+	}
+}
