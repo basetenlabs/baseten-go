@@ -206,6 +206,14 @@ func startPush(ctx context.Context, client *bdn.Client, opts PushOptions) (*push
 	if err != nil {
 		return nil, nil, err
 	}
+	// A tree the format refuses should fail here, with the entry named,
+	// rather than at the commit gate with the whole upload already spent.
+	// Everything is strict on this side, dangling links included: the
+	// version being published is immutable, so a missing target can never
+	// appear later.
+	if err := volume.CheckSourceContainment(source); err != nil {
+		return nil, nil, err
+	}
 
 	session, err := client.BeginUpload(ctx, bdn.BeginUploadRequest{
 		Namespace:       opts.Namespace,
