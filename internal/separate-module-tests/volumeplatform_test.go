@@ -10,25 +10,29 @@ import (
 
 // platformMode maps the mode a unix tree carries to the mode this platform's
 // filesystem reports for it — after a scan or after materialization; the two
-// see the same thing. On unix it is the identity, so every assertion built on
-// it keeps its full strength there. On Windows there are no unix permission
-// bits: the platform reports every directory as 0777 and a file as 0666, or
-// 0444 when the read-only flag is set — which is the one bit chmod can move
-// there, so a recorded mode without owner-write reads back 0444. The scanner
-// records what the platform reports (entryMode takes Perm() verbatim), so
-// asserting these values on Windows is asserting the documented contract,
-// not loosening the unix one.
+// see the same thing. On unix it is the identity, so every assertion built
+// on it keeps its full strength there. On Windows there are no unix
+// permission bits, only the read-only flag — the one bit chmod can move
+// there, set exactly when the requested mode lacks owner-write — and the
+// platform reports 0444 with it, 0666 without, directories adding 0111 on
+// top (so 0555 or 0777). That is the standard library's own derivation, read
+// from its Windows stat and chmod source, and the first probe run confirmed
+// both file values and the read-only directory. The scanner records what the
+// platform reports (entryMode takes Perm() verbatim), so asserting these
+// values on Windows is asserting the documented contract, not loosening the
+// unix one.
 func platformMode(recorded uint16, dir bool) uint16 {
 	if runtime.GOOS != "windows" {
 		return recorded
 	}
-	if dir {
-		return 0o777
-	}
+	perm := uint16(0o666)
 	if recorded&0o200 == 0 {
-		return 0o444
+		perm = 0o444
 	}
-	return 0o666
+	if dir {
+		perm |= 0o111
+	}
+	return perm
 }
 
 // platformModeString renders platformMode the way treeDescription prints
