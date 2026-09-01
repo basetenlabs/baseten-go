@@ -120,7 +120,7 @@ func FetchObject(
 		body = io.LimitReader(body, maxSize+1)
 	}
 
-	data, err := io.ReadAll(body)
+	data, err := readAllSized(body, req.ExpectedSize)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", req.Key, err)
 	}
@@ -128,6 +128,39 @@ func FetchObject(
 		return nil, fmt.Errorf("object %s is larger than the %d byte limit", req.Key, maxSize)
 	}
 	return data, nil
+}
+
+// readAllSized reads r to EOF. A caller that knows the content's length
+// passes it so the buffer is allocated once at that size — for a chunk,
+// io.ReadAll's doubling would reallocate around fourteen times and copy the
+// content about twice over, all of it garbage but the last. The expected size
+// is the content's own length, so it holds for compressed objects too, where
+// the stored size says nothing useful.
+//
+// One byte of spare capacity lets a body running past the expected length
+// keep reading rather than fail here: the caller's bound check is what
+// decides what an overrun means, and it needs to see the extra byte to fire.
+func readAllSized(r io.Reader, size int64) ([]byte, error) {
+	if size <= 0 {
+		return io.ReadAll(r)
+	}
+	data := make([]byte, 0, size+1)
+	for {
+		n, err := r.Read(data[len(data):cap(data)])
+		data = data[:len(data)+n]
+		if err == io.EOF {
+			return data, nil
+		}
+		if err != nil {
+			return data, err
+		}
+		if len(data) == cap(data) {
+			// Longer than the caller expected. Read the rest the growing
+			// way; the caller's size check names what that means.
+			rest, err := io.ReadAll(r)
+			return append(data, rest...), err
+		}
+	}
 }
 
 // MaxManifestBytes bounds a manifest read into memory. A manifest is one line
