@@ -664,17 +664,17 @@ func TestPullRestoresTheSpecialBits(t *testing.T) {
 	}
 	// Whichever of the three this filesystem will keep is enough: they take
 	// the same path through the translation, and the point is that the path
-	// is taken at all.
+	// is taken at all. The probe asks with Go's named bits — a chmod consults
+	// only those and the permission bits, so probing with the raw unix
+	// positions would be the very conversion this test exists to catch, and
+	// would report every filesystem as unsupporting.
 	var special fs.FileMode
-	for _, candidate := range []struct {
-		mode uint32
-		bit  fs.FileMode
-	}{{0o4755, fs.ModeSetuid}, {0o2755, fs.ModeSetgid}, {0o1755, fs.ModeSticky}} {
-		if os.Chmod(path, os.FileMode(candidate.mode)) != nil {
+	for _, bit := range []fs.FileMode{fs.ModeSetuid, fs.ModeSetgid, fs.ModeSticky} {
+		if os.Chmod(path, 0o755|bit) != nil {
 			continue
 		}
-		if info, err := os.Stat(path); err == nil && info.Mode()&candidate.bit != 0 {
-			special = candidate.bit
+		if info, err := os.Stat(path); err == nil && info.Mode()&bit != 0 {
+			special = bit
 			break
 		}
 	}
