@@ -185,6 +185,12 @@ func fixtureMode(t *testing.T, mode string) os.FileMode {
 // two different digests depending on which client pushed it, so neither could
 // reuse the other's objects.
 func TestManifestMatchesServiceCapture(t *testing.T) {
+	// Byte identity embeds the recorded modes, so it holds only where the
+	// filesystem can express them; the probe measures that instead of
+	// guessing by platform name. The chunkmap capture test stays unguarded —
+	// chunk bytes carry no modes — and the decode-only capture tests run
+	// everywhere.
+	requireExpressibleModes(t)
 	fixture := loadCaptureFixture(t)
 	root := buildFixtureTree(t, fixture)
 
