@@ -71,6 +71,13 @@ func (a *adaptiveLimiter) Acquire(ctx context.Context) (*volume.Permit, error) {
 		// request is a different size and shape from a chunk; either one in
 		// the sample drags the baseline down, which makes ordinary transfers
 		// look inflated and holds the limit below what the origin would serve.
+		//
+		// The zero is an in-band signal, and it has one collision: a TIMED
+		// completion an OS clock quantized to zero — coarse monotonic clocks
+		// tick in milliseconds — rides this path too and carries no sample.
+		// A real transfer cannot complete inside a clock tick, so nothing on
+		// a data path loses a sample to this; tests that feed the seam must
+		// take durations the coarsest clock can see.
 		if elapsed <= 0 {
 			permit.Complete(adaptiveOutcome(outcome))
 			return
