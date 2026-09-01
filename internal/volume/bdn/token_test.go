@@ -90,11 +90,35 @@ func TestUnreadableTokensArePermissive(t *testing.T) {
 // claim disagrees with its grants must still be read the server's way —
 // otherwise this client would skip a head move the server would have allowed,
 // and the push would publish without moving head for no reason.
-func TestOrgComesFromTheGrants(t *testing.T) {
-	grants := DecodeGrants(makeToken(
-		`{"org":"stale-claim","grants":[{"org":"real","namespaces":["ns"],"volumes":["vol"],` +
+// TestOrgComesFromTheTopLevelClaim covers the claim the service treats as the
+// org. It also covers the fallback the service still keeps for tokens minted
+// before issuers wrote that claim, and the two shapes the service refuses.
+func TestOrgComesFromTheTopLevelClaim(t *testing.T) {
+	withClaim := DecodeGrants(makeToken(
+		`{"org":"real","grants":[{"org":"real","namespaces":["ns"],"volumes":["vol"],` +
 			`"tags":["*"],"scopes":["push"]}]}`))
-	require.True(t, grants.PermitsHeadMove("ns", "vol"), "the grant's own org should be the token's org")
+	require.Equal(t, "real", withClaim.org)
+	require.True(t, withClaim.PermitsHeadMove("ns", "vol"), "the token's own org should carry the grant")
+
+	// No top-level claim: the org comes from the grants, which is what the
+	// service does for a token minted before the claim existed.
+	legacy := DecodeGrants(makeToken(
+		`{"grants":[{"org":"real","namespaces":["ns"],"volumes":["vol"],` +
+			`"tags":["*"],"scopes":["push"]}]}`))
+	require.Equal(t, "real", legacy.org)
+
+	// A grant naming a different org than the claim is a token the service
+	// refuses outright, so no org is derived and the hint gives up rather
+	// than guessing which of the two to believe.
+	mismatched := DecodeGrants(makeToken(
+		`{"org":"one","grants":[{"org":"two","namespaces":["ns"],"volumes":["vol"],` +
+			`"tags":["*"],"scopes":["push"]}]}`))
+	require.True(t, mismatched.permissive, "a grant disagreeing with the claim should fall back")
+
+	// No org anywhere is also a token the service refuses.
+	none := DecodeGrants(makeToken(
+		`{"grants":[{"namespaces":["ns"],"volumes":["vol"],"tags":["*"],"scopes":["push"]}]}`))
+	require.True(t, none.permissive, "a token with no org at all should fall back")
 }
 
 // TestGrantsDisagreeingOnOrgArePermissive covers a token the server would

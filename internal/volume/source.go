@@ -214,6 +214,34 @@ func specialBits(mode fs.FileMode) uint16 {
 	return bits
 }
 
+// ModeFromManifest turns a mode the format records back into a Go file mode,
+// which is the inverse of what specialBits does on the way in.
+//
+// The translation is not optional. Go keeps setuid, setgid and sticky in named
+// bits well above the permission bits, and a chmod consults only those named
+// bits and the permission bits — never the raw unix positions. So converting a
+// recorded mode straight to a file mode silently drops all three: a manifest
+// recording 4755 would land on disk as 0755, and the tree a download
+// reproduces would differ from the one that was pushed in exactly the way the
+// recorded mode exists to prevent.
+//
+// Bits outside the recorded set are dropped rather than carried through, so a
+// caller cannot turn a mode into a file type by accident.
+func ModeFromManifest(mode uint16) fs.FileMode {
+	mode &= ModeMask
+	out := fs.FileMode(mode & 0o777)
+	if mode&0o4000 != 0 {
+		out |= fs.ModeSetuid
+	}
+	if mode&0o2000 != 0 {
+		out |= fs.ModeSetgid
+	}
+	if mode&0o1000 != 0 {
+		out |= fs.ModeSticky
+	}
+	return out
+}
+
 // addAncestors seeds every directory above path with the default mode, unless
 // the walk has already recorded the directory itself.
 func addAncestors(dirs map[string]uint16, path string) {
@@ -234,8 +262,11 @@ func NewManifest(src *Source, sourceURI string, files []FileEntry) *Manifest {
 			SourceFingerprintType: ProvenanceFingerprintType,
 			SourceURI:             sourceURI,
 		},
+		// The manifest owns its slices: every one is copied, so nothing the
+		// caller does to its own afterwards can change what gets encoded, and
+		// nothing done here reaches back into the caller's.
 		Directories: slices.Clone(src.Directories),
-		Files:       files,
+		Files:       slices.Clone(files),
 		Symlinks:    slices.Clone(src.Symlinks),
 	}
 }
@@ -248,5 +279,22 @@ func SourceURIForDir(dir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "file://" + filepath.ToSlash(abs), nil
+	return fileURI(filepath.ToSlash(abs)), nil
+}
+
+// fileURI builds the file URI for an absolute path that has already been
+// converted to forward slashes.
+//
+// The leading slash is what separates the empty authority from the path. A
+// unix absolute path already starts with one, so this is a no-op there and
+// the bytes are unchanged — which matters because the URI is inside the
+// digest, and changing it for existing sources would invalidate every
+// manifest they produced. A windows path starts with its drive letter
+// instead, and without the added slash the drive would be read as the
+// authority: file://C:/data names a host, file:///C:/data names a path.
+func fileURI(slashed string) string {
+	if !strings.HasPrefix(slashed, "/") {
+		slashed = "/" + slashed
+	}
+	return "file://" + slashed
 }

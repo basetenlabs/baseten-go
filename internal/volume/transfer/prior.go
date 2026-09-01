@@ -104,6 +104,14 @@ func (p *pusher) priorChunks(ctx context.Context, file volume.SourceFile) (*volu
 		if err != nil {
 			return nil, nil
 		}
+		// Same gap as on the read path, with a worse consequence: these chunk
+		// digests are copied into the manifest this push commits, so a
+		// substituted chunkmap corrupts what gets published rather than only
+		// what one caller reads. Reuse is an optimisation, so a chunkmap that
+		// does not verify is simply not reused.
+		if err := verifyBody(p.opts.NewHasher, body, entry.Digest, "chunkmap"); err != nil {
+			return nil, nil
+		}
 		chunkmap, err := volume.DecodeChunkmap(body)
 		if err != nil {
 			return nil, nil

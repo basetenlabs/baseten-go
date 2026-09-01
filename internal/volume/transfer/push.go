@@ -361,6 +361,15 @@ func (p *pusher) pushFile(ctx context.Context, file volume.SourceFile) (volume.F
 		entry.Digest = prior.Digest
 		entry.FileDigest = prior.FileDigest
 		entry.Target = prior.Target
+		// The kept chunkmap is an object the committed manifest references
+		// and this push made no request for, which is what the reused
+		// partition means. Each chunk was counted as it matched and the
+		// manifest is counted when it is sent; this return would otherwise
+		// skip the one object between them. A single-chunk entry names its
+		// chunk inline, so it has no extra object to count.
+		if prior.Kind == volume.FileKindChunkmap {
+			p.stats.add(1, 0, 1, 0)
+		}
 		return entry, nil
 	}
 
@@ -452,7 +461,7 @@ func (p *pusher) pushChunks(ctx context.Context, file volume.SourceFile, prior [
 	defer handle.Close()
 
 	ranges := volume.ChunkRanges(file.Size)
-	chunks := make([]pushedChunk, len(ranges))
+	chunks := make([]pushedChunk, volume.ChunkCount(file.Size))
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -471,7 +480,9 @@ func (p *pusher) pushChunks(ctx context.Context, file volume.SourceFile, prior [
 		}
 	}
 
+	spanned := 0
 	for i, span := range ranges {
+		spanned++
 		// The gates are taken in one order everywhere: a slot, then the bytes
 		// it will hold. Consistency is what keeps them from deadlocking, and
 		// taking the slot first means a saturated origin stops the file being
@@ -504,6 +515,16 @@ func (p *pusher) pushChunks(ctx context.Context, file volume.SourceFile, prior [
 
 	if firstErr != nil {
 		return nil, firstErr
+	}
+	// The slice was sized from the count and filled by the walk, which are two
+	// statements of the same rule. If the count were ever the larger of the
+	// two, the tail of this slice would still hold zero values — and a
+	// zero-valued chunk is a real digest of no bytes, so it would be committed
+	// as a chunk rather than caught as a blank. Nothing downstream can tell
+	// the difference, so the disagreement is caught here.
+	if spanned != len(chunks) {
+		return nil, fmt.Errorf("file %s: split yielded %d chunks, the count said %d",
+			file.Path, spanned, len(chunks))
 	}
 	return chunks, nil
 }

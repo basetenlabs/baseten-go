@@ -275,3 +275,78 @@ func dirByPath(t *testing.T, src *Source, path string) DirectoryEntry {
 	t.Fatalf("no directory %q in %s", path, joinDirs(src.Directories))
 	return DirectoryEntry{}
 }
+
+// TestNewManifestOwnsItsSlices pins that the manifest copies what it is
+// given, so a caller reusing or reordering its own slice afterwards cannot
+// change what a later encode produces.
+func TestNewManifestOwnsItsSlices(t *testing.T) {
+	src := &Source{
+		Directories: []DirectoryEntry{{Path: "d", Mode: 0o755}},
+		Symlinks:    []SymlinkEntry{{Path: "l", Target: "d"}},
+	}
+	files := []FileEntry{
+		{Path: "b", Mode: 0o644, Kind: FileKindChunk},
+		{Path: "a", Mode: 0o644, Kind: FileKindChunk},
+	}
+	m := NewManifest(src, "file:///s", files)
+	before := string(EncodeManifest(m))
+
+	// Everything the caller still holds is rearranged and rewritten.
+	files[0], files[1] = files[1], files[0]
+	files[0].Path = "clobbered"
+	src.Directories[0].Path = "clobbered"
+	src.Symlinks[0].Path = "clobbered"
+
+	require.Equal(t, before, string(EncodeManifest(m)))
+}
+
+// TestFileURIIsUnchangedForUnixPaths is the byte-identity gate on the URI
+// construction. The URI is inside the digest, so any change to what a
+// slash-rooted path produces would invalidate every manifest already made
+// from one. The helper is pure and takes an already-slashed path, so this
+// holds on every platform rather than only where the test happens to run.
+func TestFileURIIsUnchangedForUnixPaths(t *testing.T) {
+	for _, path := range []string{"/", "/tmp/x", "/tmp/bdn-volume-fixture/tree", "/a b/c#d"} {
+		require.Equal(t, "file://"+path, fileURI(path))
+	}
+	// The windows shape is the one that changes, and the drive moves out of
+	// the authority where it never belonged.
+	require.Equal(t, "file:///C:/data/v", fileURI("C:/data/v"))
+}
+
+// TestModeFromManifestRoundTripsTheSpecialBits is the primary evidence for
+// the translation, and it is deliberately a pure one: it depends on no
+// filesystem, so it cannot be skipped or flake on a mount with opinions.
+//
+// The asymmetry it covers is why the bug it guards was invisible: the encode
+// side had a test pinning all three bits, and the decode side had none.
+func TestModeFromManifestRoundTripsTheSpecialBits(t *testing.T) {
+	for _, tc := range []struct {
+		recorded uint16
+		want     fs.FileMode
+	}{
+		{0o644, 0o644},
+		{0o755, 0o755},
+		{0o4755, 0o755 | fs.ModeSetuid},
+		{0o2755, 0o755 | fs.ModeSetgid},
+		{0o1777, 0o777 | fs.ModeSticky},
+		{0o7000, fs.ModeSetuid | fs.ModeSetgid | fs.ModeSticky},
+	} {
+		require.Equal(t, tc.want, ModeFromManifest(tc.recorded))
+	}
+
+	// Every mode the scanner records must survive the trip back unchanged,
+	// which is the property the two halves together are supposed to have.
+	for _, mode := range []fs.FileMode{
+		0o644, 0o755, 0o600, 0o444,
+		0o755 | fs.ModeSetuid, 0o755 | fs.ModeSetgid, 0o777 | fs.ModeSticky,
+		0o770 | fs.ModeSetuid | fs.ModeSetgid | fs.ModeSticky,
+	} {
+		recorded := uint16(mode.Perm()) | specialBits(mode)
+		require.Equal(t, mode, ModeFromManifest(recorded))
+	}
+
+	// Anything above the recorded set is dropped, so a mode can never become
+	// a file type.
+	require.Equal(t, fs.FileMode(0o755), ModeFromManifest(0o40755))
+}
