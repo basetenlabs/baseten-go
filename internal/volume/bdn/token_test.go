@@ -85,11 +85,6 @@ func TestUnreadableTokensArePermissive(t *testing.T) {
 	}
 }
 
-// TestOrgComesFromTheGrants pins where the org is read from. The server
-// derives it from the grants and ignores the top-level claim, so a token whose
-// claim disagrees with its grants must still be read the server's way —
-// otherwise this client would skip a head move the server would have allowed,
-// and the push would publish without moving head for no reason.
 // TestOrgComesFromTheTopLevelClaim covers the claim the service treats as the
 // org. It also covers the fallback the service still keeps for tokens minted
 // before issuers wrote that claim, and the two shapes the service refuses.
