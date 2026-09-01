@@ -129,7 +129,9 @@ func markAncestors(needed map[string]bool, path string) {
 // CheckPlan reports whether a manifest can be written to a local filesystem
 // exactly as recorded. It runs before anything is created, so a tree that
 // cannot be reproduced faithfully fails with nothing written rather than
-// halfway through.
+// halfway through. Containment is deliberately not judged here: the plan may
+// be a subset, and containment is a property of the whole manifest — the
+// pull judges it with CheckManifestContainment before any narrowing.
 //
 // caseSensitive says whether the destination filesystem distinguishes paths
 // that differ only in case. When it does not, such a pair is refused: both
