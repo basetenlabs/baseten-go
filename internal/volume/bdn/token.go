@@ -49,11 +49,9 @@ type grant struct {
 	Scopes     []string `json:"scopes"`
 }
 
-// claims is the part of the token payload these checks read. The top-level
-// "org" claim is deliberately not among them: the server derives the org from
-// the grants themselves, and reading the claim instead would disagree with it
-// whenever the two differ.
+// claims is the part of the token payload these checks read.
 type claims struct {
+	Org    string  `json:"org"`
 	Grants []grant `json:"grants"`
 }
 
@@ -83,11 +81,25 @@ func DecodeGrants(token string) Grants {
 			c.Grants[i].Volumes[j] = strings.ToLower(c.Grants[i].Volumes[j])
 		}
 	}
-	// The org is the one every grant shares, taken from the first. A token
-	// whose grants disagree about it is one the server itself refuses to
-	// derive an org from, and that refusal is treated here as "attempt it and
-	// let the server decide" rather than as a denial.
-	org := c.Grants[0].Org
+	// The org is the top-level claim when the token carries one. The service
+	// treats that claim as the org and requires every grant to name the same
+	// one, refusing the token outright when they disagree — so on any token
+	// the service would accept, the claim and the grants already agree.
+	//
+	// A token minted before issuers wrote that claim carries only per-grant
+	// orgs, and the service still derives the org from them in that case. The
+	// same fallback is kept here for the same reason, and can go when it goes
+	// there.
+	org := c.Org
+	if org == "" {
+		org = c.Grants[0].Org
+	}
+	// Disagreement, or no org at all, is a token the service refuses. Neither
+	// is treated as a denial here: the check this backs is a hint, so the
+	// honest answer is to attempt the operation and let the service decide.
+	if org == "" {
+		return Grants{permissive: true}
+	}
 	for _, grant := range c.Grants {
 		if grant.Org != org {
 			return Grants{permissive: true}
