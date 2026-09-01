@@ -1,6 +1,8 @@
 package volume
 
 import (
+	"encoding/json"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -108,10 +110,10 @@ func TestEncodeManifestGolden(t *testing.T) {
 		`{"_type":"directory","mode":"0750","path":"a"}` + "\n" +
 		`{"_type":"file","_kind":"chunkmap","digest":"` + mapDigest.String() + `","mode":"0644","path":"big","size":9,` +
 		`"target":{"relative_key":"` + TargetForDigest(mapDigest).RelativeKey + `"}}` + "\n" +
+		`{"_type":"symlink","mode":"0777","path":"link","target":"z<file"}` + "\n" +
 		`{"_type":"file","_kind":"chunk","chunk":{"digest":"` + chunkDigest.String() +
 		`","length":3,"offset":0,"target":{"relative_key":"` + TargetForDigest(chunkDigest).RelativeKey +
-		`"}},"mode":"0640","path":"z<file"}` + "\n" +
-		`{"_type":"symlink","mode":"0777","path":"link","target":"z<file"}` + "\n"
+		`"}},"mode":"0640","path":"z<file"}` + "\n"
 	require.Equal(t, want, string(got))
 }
 
@@ -140,9 +142,9 @@ func TestEncodeManifestSlabmapGolden(t *testing.T) {
 	require.Equal(t, want, string(got))
 }
 
-// TestEncodeManifestSortsGroups checks that the bytes depend on content and
-// not on the order a walk produced entries in.
-func TestEncodeManifestSortsGroups(t *testing.T) {
+// TestEncodeManifestOrderIndependent checks that the bytes depend on content
+// and not on the order a walk produced entries in.
+func TestEncodeManifestOrderIndependent(t *testing.T) {
 	d := testDigest(0x11)
 	build := func(dirs []DirectoryEntry, files []FileEntry, links []SymlinkEntry) string {
 		return string(EncodeManifest(&Manifest{Directories: dirs, Files: files, Symlinks: links}))
@@ -162,6 +164,113 @@ func TestEncodeManifestSortsGroups(t *testing.T) {
 		[]SymlinkEntry{{Path: "y", Target: "b"}, {Path: "x", Target: "a"}},
 	)
 	require.Equal(t, sorted, shuffled)
+}
+
+func sign(n int) int {
+	switch {
+	case n < 0:
+		return -1
+	case n > 0:
+		return 1
+	}
+	return 0
+}
+
+// TestPathComponentCompare pins the canonical order byte by byte. The pairs
+// where it disagrees with plain bytewise comparison are the point: the
+// separator sorts below '.' and '-', so a directory's children stay together
+// instead of a similarly named sibling landing between them.
+func TestPathComponentCompare(t *testing.T) {
+	cases := []struct {
+		a, b string
+		want int
+	}{
+		{"a", "a", 0},
+		{"a", "a/b", -1},      // a proper prefix sorts first
+		{"a/b", "a/z", -1},    // within one directory, bytewise
+		{"a/z", "a.txt", -1},  // '/' below '.': the subtree stays together
+		{"a/b", "a-b", -1},    // '/' below '-' as well
+		{"a/b/c", "a/c", -1},  // the deeper subtree comes first
+		{"b", "a/z", 1},       // the first byte decides across trees
+		{"a/c", "ab/c", -1},   // byte-mapped compare, not component-at-a-time
+		{"a", "a/", -1},       // decoder leniency admits a trailing slash
+		{"a/b", "a\x00b", -1}, // NUL stays above the separator: the +1 at work
+	}
+	for _, c := range cases {
+		if got := sign(pathComponentCompare(c.a, c.b)); got != c.want {
+			t.Errorf("pathComponentCompare(%q, %q) = %d, want %d", c.a, c.b, got, c.want)
+		}
+		if got := sign(pathComponentCompare(c.b, c.a)); got != -c.want {
+			t.Errorf("pathComponentCompare(%q, %q) = %d, want %d", c.b, c.a, got, -c.want)
+		}
+	}
+}
+
+// TestPathComponentCompareAgainstReference holds the comparator to its
+// definition rather than to enumerated examples: for valid paths, canonical
+// order is "split on the separator, compare the component lists
+// lexicographically, a shorter prefix first" — which is exactly what
+// slices.Compare does over the split. Every pair from the generated corpus
+// must agree. The corpus stays within what ValidatePath admits; the edges it
+// cannot reach (NUL, a trailing slash) are pinned by the table above.
+func TestPathComponentCompareAgainstReference(t *testing.T) {
+	segments := []string{"a", "b", "z", "ab", "a.txt", "x-y", "deep", "0", "file.bin", "aa"}
+	var paths []string
+	for _, first := range segments {
+		paths = append(paths, first)
+		for _, second := range segments {
+			paths = append(paths, first+"/"+second)
+			for _, third := range segments[:4] {
+				paths = append(paths, first+"/"+second+"/"+third)
+			}
+		}
+	}
+	for _, a := range paths {
+		for _, b := range paths {
+			want := sign(slices.Compare(strings.Split(a, "/"), strings.Split(b, "/")))
+			if got := sign(pathComponentCompare(a, b)); got != want {
+				t.Fatalf("pathComponentCompare(%q, %q) = %d, the component reference says %d", a, b, got, want)
+			}
+		}
+	}
+}
+
+// TestEncodeManifestInterleavesCanonically is the distinguishing golden. On
+// this tree the canonical order — a, a/b, a/z, a.txt — differs from the
+// former grouped emission and from a plain bytewise sort alike: either of
+// those puts a.txt before the children of a, so an encoder that regresses to
+// either fails here.
+func TestEncodeManifestInterleavesCanonically(t *testing.T) {
+	d := testDigest(0x11)
+	entry := func(path string) FileEntry {
+		return FileEntry{Path: path, Mode: 0o644, Kind: FileKindChunk, Size: 1,
+			Chunk: ChunkRef{Digest: d, Length: 1, Target: TargetForDigest(d)}}
+	}
+	encoded := EncodeManifest(&Manifest{
+		Provenance:  Provenance{SourceFingerprint: "s", SourceFingerprintType: "t", SourceURI: "u"},
+		Directories: []DirectoryEntry{{Path: "a", Mode: 0o755}},
+		Files:       []FileEntry{entry("a.txt"), entry("a/b")},
+		Symlinks:    []SymlinkEntry{{Path: "a/z", Target: "a/b", Mode: 0o777}},
+	})
+
+	var paths []string
+	for _, line := range strings.Split(strings.TrimSuffix(string(encoded), "\n"), "\n") {
+		var record struct {
+			Type string `json:"_type"`
+			Path string `json:"path"`
+		}
+		if err := json.Unmarshal([]byte(line), &record); err != nil {
+			t.Fatal(err)
+		}
+		if record.Type == "manifest_header" || record.Type == "provenance" {
+			continue
+		}
+		paths = append(paths, record.Path)
+	}
+	want := []string{"a", "a/b", "a/z", "a.txt"}
+	if !slices.Equal(paths, want) {
+		t.Errorf("entries emitted as %q, want %q", paths, want)
+	}
 }
 
 func TestJSONStringEscaping(t *testing.T) {
