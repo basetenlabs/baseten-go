@@ -186,6 +186,23 @@ func TestTimedCompletionsReachTheDetector(t *testing.T) {
 // after a bucket's worth of wall time and a warmup's worth of samples, so a
 // faster test could not tell a poisoned baseline from an unseeded one.
 func TestUntimedCompletionsStayOutOfTheBaseline(t *testing.T) {
+	// Precondition against vacuity: prove the seam delivers latency samples
+	// at all before asserting what they must not do. If no sample ever
+	// reached the detector, no cut could ever happen, and the negative
+	// assertion below would pass for the wrong reason. A limiter of the same
+	// construction fed timed samples must hold growth during warmup where an
+	// untimed control grows freely — the signature that samples arrive.
+	control := defaultLimiter(volume.Concurrency{})
+	feed(t, control, 40)
+	grownUntimed := holdCapacity(t, control)
+	probe := defaultLimiter(volume.Concurrency{})
+	feedTimedMeasurable(t, probe, 40)
+	if held := holdCapacity(t, probe); held >= grownUntimed {
+		t.Fatalf("precondition failed: latency samples are not reaching the detector "+
+			"(timed run grew to %d, untimed control to %d), so the assertion below would be vacuous",
+			held, grownUntimed)
+	}
+
 	l := defaultLimiter(volume.Concurrency{})
 
 	const realLatency = 8 * time.Millisecond
