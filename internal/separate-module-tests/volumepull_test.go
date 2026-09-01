@@ -699,3 +699,160 @@ func TestPullRestoresTheSpecialBits(t *testing.T) {
 		t.Errorf("the downloaded file lost its %v bit: mode %v", special, info.Mode())
 	}
 }
+
+// injectManifest publishes a hand-built manifest into the fake as the
+// volume's head, the way a client predating the containment rule could
+// have: stored under its true digest, so nothing about the trust chain is
+// being bypassed — only the rule.
+func injectManifest(t *testing.T, fake *fakeService, m *volume.Manifest) {
+	t.Helper()
+	body := volume.EncodeManifest(m)
+	digest := volume.Digest(blake3.Sum256(body))
+	fake.mu.Lock()
+	defer fake.mu.Unlock()
+	fake.objects[digest.String()] = fake.store(bdn.ContentTypeManifest, body)
+	fake.head = digest.String()
+}
+
+// TestPullRefusesAnEscapingManifest is the read-side defense: the commit
+// gate cannot retroactively cover manifests published before the rule, so a
+// link that steps outside the volume fails the pull before anything is
+// written, and the destination never appears.
+func TestPullRefusesAnEscapingManifest(t *testing.T) {
+	fake := newFakeService(t)
+	injectManifest(t, fake, &volume.Manifest{
+		Symlinks: []volume.SymlinkEntry{{Path: "a", Target: "../../etc/passwd", Mode: 0o777}},
+	})
+	dest := filepath.Join(t.TempDir(), "downloaded")
+
+	_, err := transfer.Pull(context.Background(), fake.client(t), pullOptions(dest, fake))
+	if err == nil {
+		t.Fatal("a manifest whose link escapes the volume was materialized")
+	}
+	if !errors.Is(err, volume.ErrNotContained) {
+		t.Errorf("want ErrNotContained, got %v", err)
+	}
+	if _, err := os.Stat(dest); !errors.Is(err, os.ErrNotExist) {
+		t.Error("a refused download published its destination")
+	}
+}
+
+// TestPullRendersAHostileAbsoluteLinkHarmless covers the other pre-rule
+// shape: an absolute target means the volume's own path, so a recorded
+// /etc/passwd is created pointing at the volume-internal etc/passwd —
+// dangling here, reported rather than silent, and never at the reader's
+// real /etc/passwd.
+func TestPullRendersAHostileAbsoluteLinkHarmless(t *testing.T) {
+	fake := newFakeService(t)
+	injectManifest(t, fake, &volume.Manifest{
+		Symlinks: []volume.SymlinkEntry{{Path: "a", Target: "/etc/passwd", Mode: 0o777}},
+	})
+	dest := filepath.Join(t.TempDir(), "downloaded")
+
+	result, err := transfer.Pull(context.Background(), fake.client(t), pullOptions(dest, fake))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := os.Readlink(filepath.Join(dest, "a"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "etc/passwd" {
+		t.Errorf("the link points at %q, want the volume-internal %q", got, "etc/passwd")
+	}
+	if len(result.Warnings) != 1 || result.Warnings[0].Kind != volume.WarningDanglingLink {
+		t.Errorf("want one dangling warning, got %v", result.Warnings)
+	}
+	if len(result.Warnings) == 1 && !strings.Contains(result.Warnings[0].String(), "dangles") {
+		t.Errorf("the prose rendering should say it dangles: %q", result.Warnings[0].String())
+	}
+}
+
+// TestAbsoluteLinkRoundTrip is the legitimate half: an absolute target that
+// resolves inside the volume pushes, is stored exactly as written, and comes
+// back on disk in the relative form — climbing to the volume root from
+// wherever the link sits.
+func TestAbsoluteLinkRoundTrip(t *testing.T) {
+	root := t.TempDir()
+	mkdir(t, root, "usr/lib")
+	mkdir(t, root, "app")
+	writeFile(t, root, "usr/lib/x", []byte("lib"), 0o644)
+	for path, target := range map[string]string{
+		"libfoo.so": "/usr/lib/x",
+		"app/dep":   "/usr/lib/x",
+	} {
+		if err := os.Symlink(target, filepath.Join(root, filepath.FromSlash(path))); err != nil {
+			t.Skipf("symlinks unavailable: %v", err)
+		}
+	}
+	fake := newFakeService(t)
+	ctx := context.Background()
+
+	push, err := transfer.Push(ctx, fake.client(t), pushOptions(root, fake))
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest, err := volume.DecodeManifest(fake.manifestBytes(t, push.ManifestDigest.String()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, link := range manifest.Symlinks {
+		if link.Target != "/usr/lib/x" {
+			t.Errorf("manifest stores %q for %s, want the absolute form kept verbatim", link.Target, link.Path)
+		}
+	}
+
+	dest := filepath.Join(t.TempDir(), "downloaded")
+	result, err := transfer.Pull(ctx, fake.client(t), pullOptions(dest, fake))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for path, want := range map[string]string{
+		"libfoo.so": "usr/lib/x",
+		"app/dep":   "../usr/lib/x",
+	} {
+		got, err := os.Readlink(filepath.Join(dest, filepath.FromSlash(path)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got != want {
+			t.Errorf("%s points at %q on disk, want %q", path, got, want)
+		}
+	}
+	if len(result.Warnings) != 0 {
+		t.Errorf("a contained tree produced warnings: %v", result.Warnings)
+	}
+}
+
+// TestPullJudgesContainmentOnTheWholeManifest pins where the verdict comes
+// from. This manifest's escape is a chain — sub/up climbs to the root, esc
+// climbs through it and out — and a subset selecting only esc omits the
+// chain that proves the escape. Judged on the subset, esc would merely
+// dangle and be written verbatim; two such subset pulls into one
+// destination would then assemble a live escape that neither permitted
+// alone. So the verdict is taken on the whole manifest, before narrowing,
+// and the subset pull fails outright.
+func TestPullJudgesContainmentOnTheWholeManifest(t *testing.T) {
+	fake := newFakeService(t)
+	injectManifest(t, fake, &volume.Manifest{
+		Directories: []volume.DirectoryEntry{{Path: "sub", Mode: 0o755}},
+		Symlinks: []volume.SymlinkEntry{
+			{Path: "sub/up", Target: "..", Mode: 0o777},
+			{Path: "esc", Target: "sub/up/..", Mode: 0o777},
+		},
+	})
+	dest := filepath.Join(t.TempDir(), "downloaded")
+	opts := pullOptions(dest, fake)
+	opts.Include = []string{"esc"}
+
+	_, err := transfer.Pull(context.Background(), fake.client(t), opts)
+	if err == nil {
+		t.Fatal("a subset pull materialized a link whose full manifest proves an escape")
+	}
+	if !errors.Is(err, volume.ErrNotContained) {
+		t.Errorf("want ErrNotContained, got %v", err)
+	}
+	if _, err := os.Stat(dest); !errors.Is(err, os.ErrNotExist) {
+		t.Error("a refused download published its destination")
+	}
+}
