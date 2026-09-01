@@ -247,10 +247,10 @@ func TestPullSubset(t *testing.T) {
 	}
 
 	want := strings.Join([]string{
-		"dir nested 0755",
-		"dir nested/deep 0755",
-		"file nested/deep/data.bin 0644 " + hashPrefix(t, filepath.Join(dest, "nested/deep/data.bin")),
-		"file small.txt 0600 " + hashPrefix(t, filepath.Join(dest, "small.txt")),
+		"dir nested " + platformModeString(0o755, true),
+		"dir nested/deep " + platformModeString(0o755, true),
+		"file nested/deep/data.bin " + platformModeString(0o644, false) + " " + hashPrefix(t, filepath.Join(dest, "nested/deep/data.bin")),
+		"file small.txt " + platformModeString(0o600, false) + " " + hashPrefix(t, filepath.Join(dest, "small.txt")),
 	}, "\n")
 	if got := treeDescription(t, dest); got != want {
 		t.Errorf("subset tree is\n%s\nwant\n%s", got, want)
@@ -305,8 +305,9 @@ func TestPullSubsetDoesNotLeakAWiderStage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if got := treeDescription(t, dest); got != "file small.txt 0600 "+hashPrefix(t, filepath.Join(dest, "small.txt")) {
-		t.Errorf("the narrowed download published\n%s", got)
+	if got, want := treeDescription(t, dest),
+		"file small.txt "+platformModeString(0o600, false)+" "+hashPrefix(t, filepath.Join(dest, "small.txt")); got != want {
+		t.Errorf("the narrowed download published\n%s\nwant\n%s", got, want)
 	}
 }
 
@@ -641,11 +642,12 @@ func TestPullSubsetOfAnEmptyDirectoryThroughADirtyStage(t *testing.T) {
 	if !info.IsDir() {
 		t.Error("nested/cache is not a directory")
 	}
-	if got := info.Mode().Perm(); got != 0o700 {
-		t.Errorf("nested/cache mode is %04o, want 0700", got)
+	if got, want := info.Mode().Perm(), os.FileMode(platformMode(0o700, true)); got != want {
+		t.Errorf("nested/cache mode is %04o, want %04o", got, want)
 	}
-	if got := treeDescription(t, dest); got != "dir nested 0755\ndir nested/cache 0700" {
-		t.Errorf("published tree is\n%s", got)
+	if got, want := treeDescription(t, dest),
+		"dir nested "+platformModeString(0o755, true)+"\ndir nested/cache "+platformModeString(0o700, true); got != want {
+		t.Errorf("published tree is\n%s\nwant\n%s", got, want)
 	}
 	if result.SelectedFiles != 0 || result.TotalFiles != 5 {
 		t.Errorf("selected %d of %d files", result.SelectedFiles, result.TotalFiles)

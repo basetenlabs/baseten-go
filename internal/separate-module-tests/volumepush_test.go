@@ -116,11 +116,11 @@ func TestPushPublishesTheWholeTree(t *testing.T) {
 	if got := manifestPaths(manifest); got != "assets,nested,nested/cache,nested/deep|assets/read-only.txt,empty.txt,nested/deep/data.bin,nested/dup.txt,small.txt|nested/link" {
 		t.Errorf("manifest entries are %s", got)
 	}
-	if got := fileEntry(t, manifest, "small.txt").Mode; got != 0o600 {
-		t.Errorf("small.txt mode is %04o, want 0600", got)
+	if got, want := fileEntry(t, manifest, "small.txt").Mode, platformMode(0o600, false); got != want {
+		t.Errorf("small.txt mode is %04o, want %04o", got, want)
 	}
-	if got := dirEntry(t, manifest, "assets").Mode; got != 0o555 {
-		t.Errorf("assets mode is %04o, want 0555", got)
+	if got, want := dirEntry(t, manifest, "assets").Mode, platformMode(0o555, true); got != want {
+		t.Errorf("assets mode is %04o, want %04o", got, want)
 	}
 	if got := manifest.Symlinks[0].Target; got != "../small.txt" {
 		t.Errorf("symlink target is %q", got)
@@ -383,7 +383,11 @@ func TestPushRepublishesAfterAModeChange(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Chmod(filepath.Join(root, "small.txt"), 0o640); err != nil {
+	// The change is to 0444 — dropping owner-write — because that is the one
+	// mode transition every platform can express: unix moves the permission
+	// bits, and Windows moves its read-only flag, so the premise "same bytes,
+	// different recorded mode" exists everywhere this test runs.
+	if err := os.Chmod(filepath.Join(root, "small.txt"), 0o444); err != nil {
 		t.Fatal(err)
 	}
 	fake.reset()
@@ -403,8 +407,8 @@ func TestPushRepublishesAfterAModeChange(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := fileEntry(t, manifest, "small.txt").Mode; got != 0o640 {
-		t.Errorf("small.txt mode is %04o, want 0640", got)
+	if got, want := fileEntry(t, manifest, "small.txt").Mode, platformMode(0o444, false); got != want {
+		t.Errorf("small.txt mode is %04o, want %04o", got, want)
 	}
 }
 
