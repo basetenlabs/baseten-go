@@ -361,6 +361,15 @@ func (p *pusher) pushFile(ctx context.Context, file volume.SourceFile) (volume.F
 		entry.Digest = prior.Digest
 		entry.FileDigest = prior.FileDigest
 		entry.Target = prior.Target
+		// The kept chunkmap is an object the committed manifest references
+		// and this push made no request for, which is what the reused
+		// partition means. Each chunk was counted as it matched and the
+		// manifest is counted when it is sent; this return would otherwise
+		// skip the one object between them. A single-chunk entry names its
+		// chunk inline, so it has no extra object to count.
+		if prior.Kind == volume.FileKindChunkmap {
+			p.stats.add(1, 0, 1, 0)
+		}
 		return entry, nil
 	}
 
