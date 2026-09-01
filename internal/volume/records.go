@@ -304,7 +304,13 @@ func appendUint(out []byte, key string, val uint64) []byte {
 
 // appendMode writes a permission mode as the octal string the format uses,
 // zero-padded to at least four digits.
+//
+// The mode is masked to the bits the format records. These bytes are inside
+// the digest, so a caller that hands in a value carrying anything above them
+// — a Go file mode's type bits, say — would otherwise produce a manifest no
+// other client can reproduce for the same tree.
 func appendMode(out []byte, mode uint16) []byte {
+	mode &= ModeMask
 	out = appendComma(out, "mode")
 	out = append(out, '"')
 	// Zero-padded to four digits, and wider when the mode needs it, without
@@ -636,6 +642,15 @@ func parseMode(s string) (uint16, error) {
 	mode, err := strconv.ParseUint(s, 8, 16)
 	if err != nil {
 		return 0, fmt.Errorf("mode %q: %w", s, err)
+	}
+	// Refused rather than masked. Masking here would silently alter what was
+	// received, and the value would then differ from the bytes whose digest
+	// was verified; leaving it unmasked would let a mode the format forbids
+	// reach code that assumes it is already narrowed. Both hide the problem,
+	// so the decode fails instead — which is what this decoder already does
+	// for every other malformed value in a known field.
+	if mode > ModeMask {
+		return 0, fmt.Errorf("mode %q: above %04o", s, uint64(ModeMask))
 	}
 	return uint16(mode), nil
 }

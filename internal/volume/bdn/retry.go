@@ -50,7 +50,7 @@ func (c RetryConfig) withDefaults() RetryConfig {
 // of clients that failed together retrying together, rebuilding the pileup
 // that caused the failure.
 func (c RetryConfig) backoff(attempt int) time.Duration {
-	ceiling := c.Base << min(attempt, 32)
+	ceiling := c.Base << min(attempt-1, 32)
 	if ceiling > c.Cap || ceiling <= 0 {
 		ceiling = c.Cap
 	}
