@@ -282,9 +282,11 @@ const (
 // ErrMalformedVolumeEndpoint reports a token-exchange response whose volume
 // endpoint is present but unusable — an empty string where a URL belongs. It
 // is a service-side defect, deliberately distinct from [ErrNoVolumeAPI]'s
-// null, which is the deployment saying it has no volume API at all. When the
-// volume error type gains a reason enum, this sentinel becomes (or maps to)
-// a malformed-response reason there.
+// null, which is the deployment saying it has no volume API at all. It stays
+// a sentinel here rather than becoming a reason on the volume error type:
+// reasons report the volume service refusing an operation, and this response
+// comes from the management API's exchange before that service is ever
+// reached — a reason would report a refusal from a service that never spoke.
 var ErrMalformedVolumeEndpoint = errors.New("the token exchange returned an empty volume endpoint")
 
 // ErrNoVolumeAPI reports that the environment has no volume service to talk
