@@ -257,6 +257,44 @@ func TestPushReusesUnchangedFiles(t *testing.T) {
 	}
 }
 
+// TestPushCountsAKeptChunkmap pins the documented meaning of the object
+// counts across a wholesale reuse. The count promises every object the push
+// accounted for — chunks, chunkmaps and the manifest — and a multi-chunk file
+// reused from the previous version keeps its chunkmap without making a
+// request, which is exactly what the reused partition means. The single-chunk
+// file is here for the other direction: its entry names the chunk inline, so
+// its reuse must add nothing beyond the chunk itself.
+func TestPushCountsAKeptChunkmap(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "one.txt", []byte("hello"), 0o644)
+	writeFile(t, root, "big.bin", patternBytes(volume.ChunkSize+1024), 0o644)
+	fake := newFakeService(t)
+	ctx := context.Background()
+
+	if _, err := transfer.Push(ctx, fake.client(t), pushOptions(root, fake)); err != nil {
+		t.Fatal(err)
+	}
+	fake.reset()
+
+	second, err := transfer.Push(ctx, fake.client(t), pushOptions(root, fake))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if second.Reused != 4 {
+		t.Errorf("reused %d objects, want 4: three chunks and the kept chunkmap", second.Reused)
+	}
+	if second.Existing != 1 {
+		t.Errorf("%d objects reported as already stored, want the re-sent manifest alone", second.Existing)
+	}
+	if second.Unique != 0 {
+		t.Errorf("%d objects reported as new on an unchanged push, want 0", second.Unique)
+	}
+	if second.Chunks != 5 {
+		t.Errorf("accounted for %d objects, want 5: three chunks, one chunkmap, one manifest", second.Chunks)
+	}
+}
+
 // TestPushSendsOnlyChangedChunks covers a large file edited in one place: the
 // chunks around the edit are reused and only the changed one is sent.
 func TestPushSendsOnlyChangedChunks(t *testing.T) {
