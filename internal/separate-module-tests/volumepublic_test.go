@@ -17,6 +17,8 @@ import (
 	"time"
 
 	"github.com/basetenlabs/baseten-go/client"
+	pubvolume "github.com/basetenlabs/baseten-go/client/volume"
+	"github.com/basetenlabs/baseten-go/internal/volume"
 )
 
 // newManagementAPI stands in for the Baseten API: it answers the token
@@ -79,15 +81,15 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	var phases []client.VolumePhase
-	pushed, err := api.PushVolume(ctx, client.PushVolumeOptions{
+	var phases []pubvolume.Phase
+	pushed, err := api.PushVolume(ctx, pubvolume.PushOptions{
 		Namespace: fakeNamespace,
 		Volume:    fakeVolume,
 		SourceDir: root,
 		SourceURI: "file:///fixture",
 		Tags:      []string{"prod"},
-		NewHasher: newBlake3,
-		Progress: func(p client.VolumeProgress) {
+		Hasher:    newBlake3,
+		Progress: func(p pubvolume.Progress) {
 			if len(phases) == 0 || phases[len(phases)-1] != p.Phase {
 				phases = append(phases, p.Phase)
 			}
@@ -107,12 +109,11 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	}
 
 	dest := filepath.Join(t.TempDir(), "downloaded")
-	downloaded, err := api.DownloadVolume(ctx, client.DownloadVolumeOptions{
-		Ref:             fakeNamespace + "/" + fakeVolume + ":prod",
-		DestDir:         dest,
-		NewHasher:       newBlake3,
-		NewDecompressor: newZstdReader,
-		DownloadObject:  fake.downloader(),
+	downloaded, err := api.DownloadVolume(ctx, pubvolume.DownloadOptions{
+		Ref:     fakeNamespace + "/" + fakeVolume + ":prod",
+		DestDir: dest,
+		Hasher:  newBlake3,
+		Store:   fakePublicStore{fake: fake, t: t},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -174,9 +175,9 @@ func TestManagementClientReExchangesARejectedToken(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pushed, err := api.PushVolume(context.Background(), client.PushVolumeOptions{
+	pushed, err := api.PushVolume(context.Background(), pubvolume.PushOptions{
 		Namespace: fakeNamespace, Volume: fakeVolume, SourceDir: root,
-		SourceURI: "file:///fixture", NewHasher: newBlake3,
+		SourceURI: "file:///fixture", Hasher: newBlake3,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -244,4 +245,35 @@ func TestTokenFakeRefusesUnknownFields(t *testing.T) {
 	if exchanges.Load() != 0 {
 		t.Errorf("the refused request was counted as an exchange")
 	}
+}
+
+// fakePublicStore adapts the fake service's internal downloader to the
+// public seam, translating each request and result field by field the same
+// way the client boundary does in the other direction.
+type fakePublicStore struct {
+	fake *fakeService
+	t    *testing.T
+}
+
+func (s fakePublicStore) DownloadObject(ctx context.Context, req pubvolume.ObjectDownload) (*pubvolume.ObjectResult, error) {
+	res, err := s.fake.downloader()(ctx, volume.ObjectDownload{
+		Endpoint: req.Endpoint,
+		Region:   req.Region,
+		Bucket:   req.Bucket,
+		Key:      req.Key,
+		Credentials: volume.Credentials{
+			AccessKeyID:     req.Credentials.AccessKeyID,
+			SecretAccessKey: req.Credentials.SecretAccessKey,
+			SessionToken:    req.Credentials.SessionToken,
+		},
+		ExpectedSize: req.ExpectedSize,
+	})
+	if err != nil || res == nil {
+		return nil, err
+	}
+	return &pubvolume.ObjectResult{Body: res.Body, ContentType: res.ContentType, Size: res.Size}, nil
+}
+
+func (s fakePublicStore) Decompressor(r io.Reader) (io.ReadCloser, error) {
+	return newZstdReader(r)
 }

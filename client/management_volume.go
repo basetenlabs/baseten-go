@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"hash"
 	"io"
 	"net/http"
 	"strings"
@@ -16,251 +15,51 @@ import (
 	"time"
 
 	"github.com/basetenlabs/baseten-go/client/managementapi"
+	pub "github.com/basetenlabs/baseten-go/client/volume"
 	"github.com/basetenlabs/baseten-go/internal/volume"
 	"github.com/basetenlabs/baseten-go/internal/volume/bdn"
 	"github.com/basetenlabs/baseten-go/internal/volume/transfer"
 )
 
-// A volume is a versioned directory tree stored by content, so pushing a tree
-// that mostly matches one already stored transfers only what differs, and
-// downloading one twice transfers nothing the second time.
-//
-// Two pieces are not built in, because building them in would put a hashing
-// library and a cloud SDK into every program that imports this package. Both
-// are supplied as functions on the options:
-//
-//   - NewHasher must return an unkeyed BLAKE3 hash with a 32-byte digest. That
-//     is the whole content-addressing scheme, so getting it wrong produces a
-//     volume no other client can read. Both common libraries need to be told
-//     the size explicitly or by default:
-//     github.com/zeebo/blake3 with func() hash.Hash { return blake3.New() },
-//     or lukechampine.com/blake3 with
-//     func() hash.Hash { return blake3.New(32, nil) }.
-//     A 64-byte extended output is the mistake to watch for; it is checked
-//     against the published test vectors before a transfer starts.
-//
-//   - DownloadObject reads an object from S3, and NewDecompressor unwraps a
-//     zstd stream. aws-sdk-go-v2's GetObject and
-//     github.com/klauspost/compress/zstd fill both.
-//
-// These are aliases of internal types so that a program can name them without
-// importing anything else.
-type (
-	// VolumeObjectDownload names one object to read from the store.
-	VolumeObjectDownload = volume.ObjectDownload
-
-	// VolumeObjectResult is an open object. ContentType is not decoration: the
-	// service decides per object whether to compress it, and the media type is
-	// the only record of what it chose.
-	VolumeObjectResult = volume.ObjectResult
-
-	// VolumeObjectCredentials are the short-lived read-only credentials the
-	// service leases for reading a namespace's objects.
-	VolumeObjectCredentials = volume.Credentials
-
-	// VolumeObjectDownloader reads one object from the store. Named, like the
-	// ModelUploader it sits beside, so the field declaring it reads as a role
-	// rather than as a signature.
-	VolumeObjectDownloader = volume.ObjectDownloader
-
-	// VolumeDecompressor unwraps a zstd stream.
-	VolumeDecompressor = volume.Decompressor
-
-	// VolumeProgress reports how far a transfer has got.
-	VolumeProgress = volume.Progress
-
-	// VolumePhase names what a transfer is doing. Totals reset when it
-	// changes.
-	VolumePhase = volume.Phase
-
-	// VolumeConcurrency tunes how much of a transfer runs at once. Every zero
-	// field takes a default.
-	VolumeConcurrency = volume.Concurrency
-
-	// VolumeError is a structured error from the volume service. Branch on its
-	// Reason, which is stable, rather than on its Message, which is not.
-	VolumeError = volume.Error
-)
-
-// Phases a transfer passes through.
-const (
-	VolumePhaseScan     = volume.PhaseScan
-	VolumePhaseUpload   = volume.PhaseUpload
-	VolumePhaseCommit   = volume.PhaseCommit
-	VolumePhaseResolve  = volume.PhaseResolve
-	VolumePhaseDownload = volume.PhaseDownload
-	VolumePhasePublish  = volume.PhasePublish
-)
-
-// Reasons a [VolumeError] can carry that a caller has a reason to act on.
-const (
-	// VolumeReasonUploadSessionExpired means the push outlived the session it
-	// was uploading into. Sessions cannot be extended; the push has to run
-	// again, and will reuse whatever the previous version already had.
-	VolumeReasonUploadSessionExpired = volume.ReasonUploadSessionExpired
-
-	// VolumeReasonCASConflict means something else published to the volume
-	// while this push was running.
-	VolumeReasonCASConflict = volume.ReasonCASConflict
-
-	VolumeReasonNotFound           = volume.ReasonNotFound
-	VolumeReasonPermissionDenied   = volume.ReasonPermissionDenied
-	VolumeReasonAmbiguousPrefix    = volume.ReasonAmbiguousPrefix
-	VolumeReasonRateLimited        = volume.ReasonRateLimited
-	VolumeReasonChunkTooLarge      = volume.ReasonChunkTooLarge
-	VolumeReasonManifestTooLarge   = volume.ReasonManifestTooLarge
-	VolumeReasonServiceUnavailable = volume.ReasonUnavailable
-)
-
-// HasVolumeReason reports whether err is a [VolumeError] carrying the given
-// reason, which is the supported way to branch on a specific failure. The
-// alternative is errors.As plus a field comparison; this is the same thing
-// spelled once.
-func HasVolumeReason(err error, reason string) bool {
-	return volume.HasReason(err, reason)
-}
+// The volume vocabulary — options, results, progress, warnings, errors, the
+// caller-supplied seam — lives in the client/volume package; the operations
+// live here as methods on ManagementClient. The translation between the
+// public types and the internal engines is deliberately exhaustive and
+// field-by-field, and client/volume's parity tests hold the two sides
+// together: a field added on either side without its twin is a red test.
+// The engines' mechanics — the limiter, its permit, its outcome — are never
+// public; their semantics changed twice in one review cycle, and neither
+// change would have been API-compatible had they been exported.
 
 // PushVolumeOptions configures [ManagementClient.PushVolume].
-type PushVolumeOptions struct {
-	// Namespace and Volume name where to publish. The volume is created if it
-	// does not exist; the namespace must already.
-	Namespace string
-	Volume    string
-
-	// SourceDir is the directory to push. It is walked without following
-	// symlinks, which are recorded as links.
-	SourceDir string
-
-	// Tags are applied atomically with the publish, so a tag never points at a
-	// version that is only partly uploaded. The reserved name "head" is not a
-	// tag; see RequireHeadMove.
-	Tags []string
-
-	// RequireHeadMove fails the push before it uploads anything if the
-	// credential does not carry permission to move the volume's head. Without
-	// it, such a push still publishes the version, and refs without a tag keep
-	// resolving to the previous one — reported as HeadMoveDenied.
-	//
-	// See HeadMoveDenied: with a credential from this client's own exchange,
-	// the condition this guards against is not expected to arise.
-	RequireHeadMove bool
-
-	// NewHasher returns an unkeyed BLAKE3 hash with a 32-byte digest.
-	// Required; see the package notes above for the exact constructors.
-	NewHasher func() hash.Hash
-
-	// NewDecompressor and DownloadObject let the push read the volume's
-	// previous version, so a file whose bytes have not changed is not uploaded
-	// again. Both optional, and only together: without them the push uploads
-	// everything, which is slower and produces the same version.
-	NewDecompressor VolumeDecompressor
-	DownloadObject  VolumeObjectDownloader
-
-	// Progress is called as the push proceeds, never concurrently with itself.
-	// It should return promptly.
-	Progress func(VolumeProgress)
-
-	// HTTPClient overrides the client used for the volume service. Nil uses
-	// the one this ManagementClient was built with.
-	HTTPClient interface {
-		Do(*http.Request) (*http.Response, error)
-	}
-
-	// Concurrency overrides the transfer's concurrency limits.
-	Concurrency *VolumeConcurrency
-
-	// SourceURI records where the tree came from, and is inside the bytes the
-	// version's digest covers: two pushes of identical trees from different
-	// paths are different versions. Empty derives it from SourceDir, which
-	// means a push from a different absolute path publishes a new version of
-	// an unchanged tree. Set it to a stable string to avoid that.
-	SourceURI string
-}
-
-// Validate reports whether the options describe a push that can be attempted.
-// [ManagementClient.PushVolume] calls it before its first request.
-func (o PushVolumeOptions) Validate() error {
-	if o.NewDecompressor == nil && o.DownloadObject != nil {
-		return errors.New("NewDecompressor is required alongside DownloadObject")
-	}
-	if o.NewDecompressor != nil && o.DownloadObject == nil {
-		return errors.New("DownloadObject is required alongside NewDecompressor")
-	}
-	return o.pushOptions().Validate()
-}
-
-// PushVolumeResult is what a push published.
-type PushVolumeResult struct {
-	// ManifestDigest names the published version, and is what to pin a
-	// download to in order to get this exact tree back.
-	ManifestDigest string
-
-	// Sequence is the volume's snapshot sequence at this publish.
-	Sequence int64
-
-	// HeadUpdated reports whether this push moved head. It is false when head
-	// already pointed at this exact version, which is what re-pushing an
-	// unchanged tree does — so false does not mean untagged refs resolve
-	// elsewhere, only that nothing had to move.
-	HeadUpdated bool
-
-	// HeadMoveDenied reports that the push did not ask to move head, because
-	// the credential's grants do not cover it. The version was published and
-	// can be reached by digest or tag; what did not happen is head moving to
-	// it.
-	//
-	// Not expected to occur with a credential obtained the way this client
-	// obtains one. The exchange grants push and tag together or refuses
-	// outright, and the credential it mints covers every volume and tag in the
-	// namespaces it names — so a credential that can push can also move head.
-	// The field describes a real state of the underlying protocol, which
-	// admits credentials minted other ways, and reports what this client
-	// actually asked for rather than asserting what the service would allow.
-	HeadMoveDenied bool
-
-	TagsApplied []string
-
-	// Files and Bytes are what the source tree held.
-	Files int64
-	Bytes int64
-
-	// Chunks counts every object the push accounted for, and Unique, Reused,
-	// and Existing partition it. Reused never reached the network, because a
-	// previous version or an earlier file in the same push already had those
-	// bytes; Existing was sent and the service already had it.
-	Chunks   int64
-	Unique   int64
-	Reused   int64
-	Existing int64
-}
-
 // PushVolume uploads a directory and publishes it as a new version of a
 // volume.
 //
 // Nothing is visible until the whole tree has been uploaded, so an interrupted
 // push publishes nothing. What it uploaded is not wasted: the next push finds
 // those objects already stored and skips them.
-func (c *ManagementClient) PushVolume(ctx context.Context, opts PushVolumeOptions) (*PushVolumeResult, error) {
-	if err := opts.Validate(); err != nil {
+func (c *ManagementClient) PushVolume(ctx context.Context, opts pub.PushOptions) (*pub.PushResult, error) {
+	push := pushOptions(opts)
+	if err := push.Validate(); err != nil {
 		return nil, err
 	}
 	// Folded before the token is scoped to them, so the capability the
 	// exchange returns names the volume the transfer will actually address.
-	opts.Namespace = strings.ToLower(opts.Namespace)
-	opts.Volume = strings.ToLower(opts.Volume)
+	namespace := strings.ToLower(opts.Namespace)
+	push.Namespace = namespace
+	push.Volume = strings.ToLower(opts.Volume)
 
-	client, _, err := c.volumeClient(opts.Namespace, pushScopes(opts), newCorrelationID(), opts.HTTPClient)
+	client, _, err := c.volumeClient(namespace, pushScopes(opts), newCorrelationID())
 	if err != nil {
 		return nil, err
 	}
 
-	push := opts.pushOptions()
 	result, err := transfer.Push(ctx, client, push)
 	if err != nil {
-		return nil, err
+		return nil, volumeOpError(err)
 	}
-	return &PushVolumeResult{
-		ManifestDigest: result.ManifestDigest.String(),
+	return &pub.PushResult{
+		ManifestDigest: pub.Digest(result.ManifestDigest.String()),
 		Sequence:       result.Sequence,
 		HeadUpdated:    result.HeadUpdated,
 		HeadMoveDenied: result.HeadMoveDenied,
@@ -274,8 +73,23 @@ func (c *ManagementClient) PushVolume(ctx context.Context, opts PushVolumeOption
 	}, nil
 }
 
-// pushOptions translates the public options into the engine's.
-func (o PushVolumeOptions) pushOptions() transfer.PushOptions {
+// volumeOpError dresses a volume-service error in the public error type,
+// carrying the stable reason and the service's message and wrapping the
+// whole original chain, so sentinel matches through errors.Is keep working.
+// An error that is not the service's own — a local filesystem failure, a
+// cancelled context — comes back as itself.
+func volumeOpError(err error) error {
+	var se *volume.Error
+	if errors.As(err, &se) {
+		return &pub.Error{Reason: pub.Reason(se.Reason), Message: se.Message, Err: err}
+	}
+	return err
+}
+
+// pushOptions translates the public options into the engine's, exhaustively
+// and field by field — the form the parity tests in client/volume require,
+// because a struct-copy shortcut is exactly how a twin drifts silently.
+func pushOptions(o pub.PushOptions) transfer.PushOptions {
 	opts := transfer.PushOptions{
 		Namespace:       o.Namespace,
 		Volume:          o.Volume,
@@ -283,164 +97,121 @@ func (o PushVolumeOptions) pushOptions() transfer.PushOptions {
 		SourceURI:       o.SourceURI,
 		Tags:            o.Tags,
 		RequireHeadMove: o.RequireHeadMove,
-		NewHasher:       o.NewHasher,
-		Progress:        o.Progress,
+		NewHasher:       o.Hasher,
+		Concurrency:     internalConcurrency(o.Concurrency),
+		Progress:        progressAdapter(o.Progress),
 	}
-	if o.NewDecompressor != nil {
-		opts.Decompress = o.NewDecompressor
-	}
-	if o.DownloadObject != nil {
-		opts.DownloadObject = o.DownloadObject
-	}
-	if o.Concurrency != nil {
-		opts.Concurrency = *o.Concurrency
+	if o.Store != nil {
+		opts.DownloadObject = storeDownloader(o.Store)
+		opts.Decompress = o.Store.Decompressor
 	}
 	return opts
 }
 
-// DownloadVolumeOptions configures [ManagementClient.DownloadVolume].
-type DownloadVolumeOptions struct {
-	// Ref names what to download: "namespace/volume" for the current version,
-	// "namespace/volume:tag", or "namespace/volume@b3:..." for one exact
-	// version. Whatever it names is resolved once and pinned, so a tag that
-	// moves partway through cannot produce a tree assembled from two versions.
-	Ref string
-
-	// DestDir is where the tree ends up. Unless Overwrite is set it must not
-	// exist or must be empty, and the tree is assembled beside it and moved
-	// into place only once it is complete.
-	DestDir string
-
-	// Overwrite writes into an existing DestDir in place. Files already there
-	// that the volume does not describe are left alone; a failed download
-	// leaves a partly written directory rather than an untouched one.
-	Overwrite bool
-
-	// Include narrows the download to named entries. Each is an exact path or
-	// a directory whose contents are wanted, matched on slash boundaries. One
-	// that matches nothing fails the download rather than silently producing
-	// less than was asked for. Empty downloads the whole volume.
-	Include []string
-
-	// Restart discards a partly downloaded tree from an earlier attempt
-	// instead of continuing it.
-	Restart bool
-
-	// NewHasher returns an unkeyed BLAKE3 hash with a 32-byte digest.
-	// Required: every chunk is verified against the digest recorded for it,
-	// and continuing an interrupted download works by hashing what is already
-	// on disk. See the package notes above for the exact constructors.
-	NewHasher func() hash.Hash
-
-	// NewDecompressor unwraps a zstd stream. Required: the service compresses
-	// what it stores at its own discretion, so a reader has to be able to
-	// decompress whatever comes back.
-	NewDecompressor VolumeDecompressor
-
-	// DownloadObject reads one object from S3. Required, and it owns its own
-	// retries: an error returned from it ends the download.
-	DownloadObject VolumeObjectDownloader
-
-	// Progress is called as the download proceeds, never concurrently with
-	// itself.
-	Progress func(VolumeProgress)
-
-	// HTTPClient overrides the client used for the volume service. Nil uses
-	// the one this ManagementClient was built with.
-	HTTPClient interface {
-		Do(*http.Request) (*http.Response, error)
+func internalConcurrency(c pub.Concurrency) volume.Concurrency {
+	return volume.Concurrency{
+		FileJobs:         c.FileJobs,
+		ChunkOperations:  c.ChunkOperations,
+		MaxBytesInFlight: c.MaxBytesInFlight,
 	}
-
-	// Concurrency overrides the transfer's concurrency limits.
-	Concurrency *VolumeConcurrency
 }
 
-// Validate reports whether the options describe a download that can be
-// attempted. [ManagementClient.DownloadVolume] calls it before its first
-// request.
-func (o DownloadVolumeOptions) Validate() error {
-	return o.pullOptions().Validate()
+func progressAdapter(fn func(pub.Progress)) volume.ProgressFunc {
+	if fn == nil {
+		return nil
+	}
+	return func(p volume.Progress) {
+		fn(pub.Progress{
+			Phase:      pub.Phase(p.Phase),
+			Files:      p.Files,
+			TotalFiles: p.TotalFiles,
+			Bytes:      p.Bytes,
+			TotalBytes: p.TotalBytes,
+		})
+	}
 }
 
-// DownloadVolumeResult is what a download produced.
-type DownloadVolumeResult struct {
-	// VersionRef is the ref pinned to the version that was downloaded, which
-	// is the form to quote to get this exact tree again.
-	VersionRef string
-
-	// ManifestDigest names that version.
-	ManifestDigest string
-
-	// Files and Bytes are what was written.
-	Files int64
-	Bytes int64
-
-	// SelectedFiles and TotalFiles report what Include narrowed to. They are
-	// equal when the whole volume was downloaded.
-	SelectedFiles int64
-	TotalFiles    int64
-
-	// ChunksFetched and ChunksReused partition the chunks. Reused were already
-	// on disk with the right contents, from an earlier attempt.
-	ChunksFetched int64
-	ChunksReused  int64
+// storeDownloader adapts the public store to the engine's downloader seam.
+func storeDownloader(store pub.ObjectStore) volume.ObjectDownloader {
+	return func(ctx context.Context, req volume.ObjectDownload) (*volume.ObjectResult, error) {
+		res, err := store.DownloadObject(ctx, pub.ObjectDownload{
+			Endpoint: req.Endpoint,
+			Region:   req.Region,
+			Bucket:   req.Bucket,
+			Key:      req.Key,
+			Credentials: pub.Credentials{
+				AccessKeyID:     req.Credentials.AccessKeyID,
+				SecretAccessKey: req.Credentials.SecretAccessKey,
+				SessionToken:    req.Credentials.SessionToken,
+			},
+			ExpectedSize: req.ExpectedSize,
+		})
+		if err != nil || res == nil {
+			return nil, err
+		}
+		return &volume.ObjectResult{Body: res.Body, ContentType: res.ContentType, Size: res.Size}, nil
+	}
 }
 
+// DownloadVolumeOptions configures [ManagementClient.DownloadVolume].
 // DownloadVolume downloads a version of a volume into a directory.
 //
 // Every chunk is checked against its recorded digest before it is written, so
 // a corrupted or truncated read fails the download rather than producing a
 // file that merely looks complete. An interrupted download can be run again
 // and picks up where it stopped.
-func (c *ManagementClient) DownloadVolume(ctx context.Context, opts DownloadVolumeOptions) (*DownloadVolumeResult, error) {
-	if err := opts.Validate(); err != nil {
+func (c *ManagementClient) DownloadVolume(ctx context.Context, opts pub.DownloadOptions) (*pub.DownloadResult, error) {
+	pull := pullOptions(opts)
+	if err := pull.Validate(); err != nil {
 		return nil, err
 	}
 	ref, err := bdn.ParseRef(opts.Ref)
 	if err != nil {
 		return nil, err
 	}
-	client, _, err := c.volumeClient(ref.Namespace,
-		[]string{volumeScopePull}, newCorrelationID(), opts.HTTPClient)
+
+	client, _, err := c.volumeClient(ref.Namespace, []string{volumeScopePull}, newCorrelationID())
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := transfer.Pull(ctx, client, opts.pullOptions())
+	result, err := transfer.Pull(ctx, client, pull)
 	if err != nil {
-		return nil, err
+		return nil, volumeOpError(err)
 	}
-	return &DownloadVolumeResult{
+	warnings := make([]pub.Warning, 0, len(result.Warnings))
+	for _, w := range result.Warnings {
+		warnings = append(warnings, pub.Warning{Path: w.Path, Kind: pub.WarningKind(w.Kind), Detail: w.Detail})
+	}
+	return &pub.DownloadResult{
 		VersionRef:     result.VersionRef,
-		ManifestDigest: result.ManifestDigest.String(),
+		ManifestDigest: pub.Digest(result.ManifestDigest.String()),
 		Files:          result.Files,
 		Bytes:          result.Bytes,
 		SelectedFiles:  result.SelectedFiles,
 		TotalFiles:     result.TotalFiles,
 		ChunksFetched:  result.ChunksFetched,
 		ChunksReused:   result.ChunksReused,
+		Warnings:       warnings,
 	}, nil
 }
 
-// pullOptions translates the public options into the engine's.
-func (o DownloadVolumeOptions) pullOptions() transfer.PullOptions {
+// pullOptions translates the public options into the engine's, exhaustively
+// and field by field, like pushOptions.
+func pullOptions(o pub.DownloadOptions) transfer.PullOptions {
 	opts := transfer.PullOptions{
-		Ref:       o.Ref,
-		DestDir:   o.DestDir,
-		Overwrite: o.Overwrite,
-		Include:   o.Include,
-		Restart:   o.Restart,
-		NewHasher: o.NewHasher,
-		Progress:  o.Progress,
+		Ref:         o.Ref,
+		DestDir:     o.DestDir,
+		Overwrite:   o.Overwrite,
+		Include:     o.Include,
+		Restart:     o.Restart,
+		NewHasher:   o.Hasher,
+		Concurrency: internalConcurrency(o.Concurrency),
+		Progress:    progressAdapter(o.Progress),
 	}
-	if o.NewDecompressor != nil {
-		opts.Decompress = o.NewDecompressor
-	}
-	if o.DownloadObject != nil {
-		opts.DownloadObject = o.DownloadObject
-	}
-	if o.Concurrency != nil {
-		opts.Concurrency = *o.Concurrency
+	if o.Store != nil {
+		opts.DownloadObject = storeDownloader(o.Store)
+		opts.Decompress = o.Store.Decompressor
 	}
 	return opts
 }
@@ -455,13 +226,11 @@ func (c *ManagementClient) volumeClient(
 	namespace string,
 	scopes []string,
 	correlationID string,
-	httpClient interface {
-		Do(*http.Request) (*http.Response, error)
-	},
 ) (*bdn.Client, *volumeTokenSource, error) {
-	if httpClient == nil {
-		httpClient = c.api.HTTPClient
-	}
+	// One HTTP client, the management client's own: the per-operation
+	// override is gone — a program that needs a different transport
+	// configures it once, where every other call already gets it.
+	httpClient := c.api.HTTPClient
 	tokens := c.volumeTokenSource(namespace, scopes, correlationID)
 	client, err := bdn.New(bdn.Options{
 		HTTPClient: httpClient,
@@ -488,12 +257,12 @@ func (c *ManagementClient) volumeClient(
 // TAG is asked for only when tags are actually being applied, since applying
 // one at commit is gated like setting a tag directly. Moving head needs no
 // scope of its own beyond push.
-func pushScopes(opts PushVolumeOptions) []string {
+func pushScopes(opts pub.PushOptions) []string {
 	scopes := []string{volumeScopePush}
 	if len(opts.Tags) > 0 {
 		scopes = append(scopes, volumeScopeTag)
 	}
-	if opts.DownloadObject != nil && opts.NewDecompressor != nil {
+	if opts.Store != nil {
 		scopes = append(scopes, volumeScopePull)
 	}
 	return scopes
