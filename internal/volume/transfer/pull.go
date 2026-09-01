@@ -439,7 +439,7 @@ func (p *puller) writeFile(ctx context.Context, entry volume.FileEntry) error {
 	// The mode is applied after the contents, because the mode a file is
 	// created with is masked by the umask and cannot carry the setuid, setgid,
 	// or sticky bits at all.
-	if err := p.root.Chmod(name, fs.FileMode(entry.Mode&volume.ModeMask)); err != nil {
+	if err := p.root.Chmod(name, volume.ModeFromManifest(entry.Mode)); err != nil {
 		return err
 	}
 	p.progress.Add(1, int64(entry.Size))
@@ -600,7 +600,7 @@ func (p *puller) applyDirectoryModes(manifest *volume.Manifest) error {
 	slices.SortFunc(dirs, func(a, b volume.DirectoryEntry) int { return strings.Compare(b.Path, a.Path) })
 
 	for _, dir := range dirs {
-		if err := p.root.Chmod(filepath.FromSlash(dir.Path), fs.FileMode(dir.Mode&volume.ModeMask)); err != nil {
+		if err := p.root.Chmod(filepath.FromSlash(dir.Path), volume.ModeFromManifest(dir.Mode)); err != nil {
 			return err
 		}
 	}

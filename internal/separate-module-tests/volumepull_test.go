@@ -651,3 +651,51 @@ func TestPullSubsetOfAnEmptyDirectoryThroughADirtyStage(t *testing.T) {
 		t.Errorf("selected %d of %d files", result.SelectedFiles, result.TotalFiles)
 	}
 }
+
+// TestPullRestoresTheSpecialBits is the guard the pure helper test cannot be:
+// it drives a real push and pull, so it fails if the download stops sending
+// recorded modes through the translation. That is the gap the encode side had
+// a test for and the decode side did not.
+func TestPullRestoresTheSpecialBits(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "binary")
+	if err := os.WriteFile(path, []byte("payload"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	// Whichever of the three this filesystem will keep is enough: they take
+	// the same path through the translation, and the point is that the path
+	// is taken at all.
+	var special fs.FileMode
+	for _, candidate := range []struct {
+		mode uint32
+		bit  fs.FileMode
+	}{{0o4755, fs.ModeSetuid}, {0o2755, fs.ModeSetgid}, {0o1755, fs.ModeSticky}} {
+		if os.Chmod(path, os.FileMode(candidate.mode)) != nil {
+			continue
+		}
+		if info, err := os.Stat(path); err == nil && info.Mode()&candidate.bit != 0 {
+			special = candidate.bit
+			break
+		}
+	}
+	if special == 0 {
+		t.Skip("this filesystem keeps none of the setuid, setgid or sticky bits")
+	}
+
+	fake := newFakeService(t)
+	if _, err := transfer.Push(context.Background(), fake.client(t), pushOptions(root, fake)); err != nil {
+		t.Fatal(err)
+	}
+	dest := filepath.Join(t.TempDir(), "downloaded")
+	if _, err := transfer.Pull(context.Background(), fake.client(t), pullOptions(dest, fake)); err != nil {
+		t.Fatal(err)
+	}
+
+	info, err := os.Stat(filepath.Join(dest, "binary"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode()&special == 0 {
+		t.Errorf("the downloaded file lost its %v bit: mode %v", special, info.Mode())
+	}
+}

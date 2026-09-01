@@ -214,6 +214,34 @@ func specialBits(mode fs.FileMode) uint16 {
 	return bits
 }
 
+// ModeFromManifest turns a mode the format records back into a Go file mode,
+// which is the inverse of what specialBits does on the way in.
+//
+// The translation is not optional. Go keeps setuid, setgid and sticky in named
+// bits well above the permission bits, and a chmod consults only those named
+// bits and the permission bits — never the raw unix positions. So converting a
+// recorded mode straight to a file mode silently drops all three: a manifest
+// recording 4755 would land on disk as 0755, and the tree a download
+// reproduces would differ from the one that was pushed in exactly the way the
+// recorded mode exists to prevent.
+//
+// Bits outside the recorded set are dropped rather than carried through, so a
+// caller cannot turn a mode into a file type by accident.
+func ModeFromManifest(mode uint16) fs.FileMode {
+	mode &= ModeMask
+	out := fs.FileMode(mode & 0o777)
+	if mode&0o4000 != 0 {
+		out |= fs.ModeSetuid
+	}
+	if mode&0o2000 != 0 {
+		out |= fs.ModeSetgid
+	}
+	if mode&0o1000 != 0 {
+		out |= fs.ModeSticky
+	}
+	return out
+}
+
 // addAncestors seeds every directory above path with the default mode, unless
 // the walk has already recorded the directory itself.
 func addAncestors(dirs map[string]uint16, path string) {
