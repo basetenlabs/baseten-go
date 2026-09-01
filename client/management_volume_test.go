@@ -580,5 +580,5 @@ func TestEmptyEndpointIsNotMissingAPI(t *testing.T) {
 	_, _, err = client.volumeTokenSource("models", []string{"PULL"}, "").tokenSource()(context.Background(), "")
 	require.Error(t, err)
 	require.False(t, errors.Is(err, ErrNoVolumeAPI), "an empty endpoint must not read as a missing volume API: %v", err)
-	require.Contains(t, err.Error(), "empty volume endpoint")
+	require.True(t, errors.Is(err, ErrMalformedVolumeEndpoint), "the empty shape should carry its own sentinel: %v", err)
 }

@@ -510,6 +510,14 @@ const (
 	volumeScopeTag  = "TAG"
 )
 
+// ErrMalformedVolumeEndpoint reports a token-exchange response whose volume
+// endpoint is present but unusable — an empty string where a URL belongs. It
+// is a service-side defect, deliberately distinct from [ErrNoVolumeAPI]'s
+// null, which is the deployment saying it has no volume API at all. When the
+// volume error type gains a reason enum, this sentinel becomes (or maps to)
+// a malformed-response reason there.
+var ErrMalformedVolumeEndpoint = errors.New("the token exchange returned an empty volume endpoint")
+
 // ErrNoVolumeAPI reports that the environment has no volume service to talk
 // to. It is a deployment fact rather than a failure, and distinct from a
 // transport error, so a caller can say so plainly instead of surfacing
@@ -756,7 +764,7 @@ func (c *ManagementClient) exchangeVolumeToken(
 		// says that — it is a response this client cannot use, and calling it
 		// a missing capability would send an operator hunting deployment
 		// configuration for what is actually a service bug.
-		return nil, errors.New("exchange volume token: the response carried an empty volume endpoint")
+		return nil, fmt.Errorf("exchange volume token: %w", ErrMalformedVolumeEndpoint)
 	}
 
 	token := &volumeToken{
