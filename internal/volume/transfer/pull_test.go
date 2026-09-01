@@ -42,9 +42,11 @@ func TestPullOptionsRejectRestartWithOverwrite(t *testing.T) {
 
 // TestPulledModesKeepTheSpecialBits is the secondary evidence for the mode
 // translation: the primary is the pure helper's own test, which no filesystem
-// can skip. This one goes through a real chmod, so it is guarded — some mounts
-// have opinions about these bits — and it is the only place the whole path
-// from a recorded mode to a file on disk is exercised.
+// can skip. This one exercises the helper through a real chmod, so it is
+// guarded — some mounts have opinions about these bits. It calls the
+// translation directly, so it does not cover the download's call sites; that
+// whole path, from a recorded mode to a file on disk, is what the nested
+// test module's TestPullRestoresTheSpecialBits guards.
 func TestPulledModesKeepTheSpecialBits(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "binary")
