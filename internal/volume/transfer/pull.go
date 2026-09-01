@@ -234,6 +234,15 @@ func resolvePlan(
 	if err != nil {
 		return nil, fmt.Errorf("read manifest %s: %w", plan.digest, err)
 	}
+	// Everything a download trusts comes out of these bytes: which files
+	// exist, and the digest each chunk is checked against. Verifying every
+	// chunk against a manifest nobody verified would authenticate the leaves
+	// of the tree against a root taken on faith, so the root is checked first.
+	// The digest covers the content, not the stored object, so it is the
+	// decompressed body that is hashed.
+	if err := verifyBody(opts.NewHasher, body, plan.digest, "manifest"); err != nil {
+		return nil, err
+	}
 	manifest, err := volume.DecodeManifest(body)
 	if err != nil {
 		return nil, err
@@ -468,6 +477,13 @@ func (p *puller) chunksOf(ctx context.Context, entry volume.FileEntry) ([]volume
 		}
 		permit.CompleteUntimed(volume.Success)
 
+		// The per-chunk digests come out of this object, so a substituted
+		// chunkmap makes every wrong chunk verify perfectly against it. The
+		// size check below stays, but it is a consistency check rather than
+		// an authentication.
+		if err := verifyBody(p.opts.NewHasher, body, entry.Digest, "chunkmap"); err != nil {
+			return nil, err
+		}
 		chunkmap, err := volume.DecodeChunkmap(body)
 		if err != nil {
 			return nil, err
