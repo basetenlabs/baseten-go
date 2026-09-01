@@ -96,7 +96,7 @@ func TestDownloadVolumeOptionsValidate(t *testing.T) {
 
 // TestVolumeTokenExchange covers the hand-off from the API key to a capability
 // token: the key authenticates one request, and everything after it goes to a
-// different host with a token scoped to one volume.
+// different host with a token scoped to a namespace and a set of scopes.
 func TestVolumeTokenExchange(t *testing.T) {
 	var exchanges atomic.Int64
 	var gotAuth, gotBody, gotPath string
@@ -162,6 +162,13 @@ func TestVolumeTokenExchangeFailures(t *testing.T) {
 		"unparseable expiry": func(w http.ResponseWriter, _ *http.Request) {
 			_, _ = io.WriteString(w,
 				`{"token":"t","bdn_endpoint":"https://x","expires_at":"whenever"}`)
+		},
+		// An empty-string endpoint is not null: null is the deployment saying
+		// it has no volume API, an empty string is a response this client
+		// cannot use. The two shapes get different errors, tested here and in
+		// the sentinel test below.
+		"empty endpoint": func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = io.WriteString(w, `{"token":"capability-token","bdn_endpoint":""}`)
 		},
 	}
 	for name, handler := range tests {
@@ -555,4 +562,23 @@ func TestNoVolumeAPIIsDistinguishable(t *testing.T) {
 	_, _, err = client.volumeTokenSource("models", []string{"PULL"}, "").tokenSource()(context.Background(), "")
 	require.Error(t, err)
 	require.True(t, errors.Is(err, ErrNoVolumeAPI), "expected ErrNoVolumeAPI, got %v", err)
+}
+
+// TestEmptyEndpointIsNotMissingAPI pins the other half of that distinction:
+// an empty-string endpoint is a malformed response, not the deployment
+// saying it has no volume API. Reporting the sentinel for it would send an
+// operator hunting deployment configuration for a service bug.
+func TestEmptyEndpointIsNotMissingAPI(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = io.WriteString(w, `{"token":"t","bdn_endpoint":"","scopes":["PULL"],"namespaces":["models"]}`)
+	}))
+	defer server.Close()
+
+	client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
+	require.NoError(t, err)
+
+	_, _, err = client.volumeTokenSource("models", []string{"PULL"}, "").tokenSource()(context.Background(), "")
+	require.Error(t, err)
+	require.False(t, errors.Is(err, ErrNoVolumeAPI), "an empty endpoint must not read as a missing volume API: %v", err)
+	require.Contains(t, err.Error(), "empty volume endpoint")
 }

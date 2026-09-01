@@ -499,9 +499,11 @@ func pushScopes(opts PushVolumeOptions) []string {
 	return scopes
 }
 
-// Scopes a capability token can carry. A token is granted a set of these for a
-// set of namespaces, and the service returns the set it actually granted,
-// which may be smaller than the set asked for.
+// Scopes a capability token can carry. A token is granted a set of these for
+// a set of namespaces. The exchange refuses a scope it will not grant rather
+// than returning a smaller set, so the response's scope list is the request
+// echoed back, never a narrowing — the same contract the response type
+// documents.
 const (
 	volumeScopePull = "PULL"
 	volumeScopePush = "PUSH"
@@ -519,6 +521,14 @@ var ErrNoVolumeAPI = errors.New("this environment does not expose a volume API")
 // transfer that carries on and one that has every request in flight rejected
 // at once and has to recover.
 const tokenRefreshMargin = 2 * time.Minute
+
+// tokenExchangeTimeout bounds one token exchange. The exchange runs while
+// the token source's mutex is held — every other operation on the transfer
+// queues behind it — so a hung network call must not be allowed to hold the
+// lock until the caller's own deadline, which a long push may not have set
+// at all. Ten seconds is generous for one small HTTPS POST and still frees
+// the mutex promptly when the management API is unreachable.
+const tokenExchangeTimeout = 10 * time.Second
 
 // volumeToken is one exchanged capability token and what the service granted
 // with it.
@@ -577,7 +587,10 @@ type volumeTokenSource struct {
 	current *volumeToken
 
 	// proactive goes false once a replacement arrives already inside the
-	// refresh margin. A deployment issuing tokens shorter than the margin — or
+	// refresh margin. A freshly minted token that is already near expiry is
+	// pathological — it means the server's TTL fits inside our refresh
+	// margin — and the latch chooses degraded once-per-refusal refresh over
+	// hammering the exchange's rate limit for nothing. A deployment issuing tokens shorter than the margin — or
 	// a clock far enough ahead — would otherwise make every attempt of every
 	// request exchange a token that is instantly stale again, serialized
 	// behind this mutex, until the endpoint's per-key rate limit ends the
@@ -605,7 +618,11 @@ func (s *volumeTokenSource) get(ctx context.Context, rejected string) (*volumeTo
 	if s.current != nil && s.current.token != rejected && !replacing {
 		return s.current, nil
 	}
-	exchanged, err := s.client.exchangeVolumeToken(ctx, s.namespace, s.scopes, s.correlationID)
+	// Bounded because the mutex is held across this call; see
+	// tokenExchangeTimeout.
+	exchangeCtx, cancel := context.WithTimeout(ctx, tokenExchangeTimeout)
+	defer cancel()
+	exchanged, err := s.client.exchangeVolumeToken(exchangeCtx, s.namespace, s.scopes, s.correlationID)
 	if err != nil {
 		return nil, err
 	}
@@ -728,11 +745,18 @@ func (c *ManagementClient) exchangeVolumeToken(
 	if decoded.Token == "" {
 		return nil, errors.New("exchange volume token: the response carried no token")
 	}
-	if decoded.Endpoint == nil || *decoded.Endpoint == "" {
-		// Distinguished from a malformed response on purpose: this one means
-		// the deployment is not serving volumes yet, which the caller can do
+	if decoded.Endpoint == nil {
+		// Distinguished from a malformed response on purpose: null means the
+		// deployment is not serving volumes yet, which the caller can do
 		// nothing about and should not see as a transport failure later.
 		return nil, fmt.Errorf("exchange volume token: %w", ErrNoVolumeAPI)
+	}
+	if *decoded.Endpoint == "" {
+		// An empty string is not the deployment saying "no volumes" — null
+		// says that — it is a response this client cannot use, and calling it
+		// a missing capability would send an operator hunting deployment
+		// configuration for what is actually a service bug.
+		return nil, errors.New("exchange volume token: the response carried an empty volume endpoint")
 	}
 
 	token := &volumeToken{
