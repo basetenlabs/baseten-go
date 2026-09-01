@@ -452,12 +452,7 @@ func (p *pusher) pushChunks(ctx context.Context, file volume.SourceFile, prior [
 	defer handle.Close()
 
 	ranges := volume.ChunkRanges(file.Size)
-	// Sized from the file rather than from the range value, so that the range
-	// value can become an iterator without this line changing with it. The
-	// count is the one the split defines — one chunk for an empty file,
-	// otherwise the size divided by the chunk size and rounded up — and is
-	// replaced by volume.ChunkCount once that exists.
-	chunks := make([]pushedChunk, max(1, (file.Size+volume.ChunkSize-1)/volume.ChunkSize))
+	chunks := make([]pushedChunk, volume.ChunkCount(file.Size))
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -476,7 +471,9 @@ func (p *pusher) pushChunks(ctx context.Context, file volume.SourceFile, prior [
 		}
 	}
 
+	spanned := 0
 	for i, span := range ranges {
+		spanned++
 		// The gates are taken in one order everywhere: a slot, then the bytes
 		// it will hold. Consistency is what keeps them from deadlocking, and
 		// taking the slot first means a saturated origin stops the file being
@@ -509,6 +506,16 @@ func (p *pusher) pushChunks(ctx context.Context, file volume.SourceFile, prior [
 
 	if firstErr != nil {
 		return nil, firstErr
+	}
+	// The slice was sized from the count and filled by the walk, which are two
+	// statements of the same rule. If the count were ever the larger of the
+	// two, the tail of this slice would still hold zero values — and a
+	// zero-valued chunk is a real digest of no bytes, so it would be committed
+	// as a chunk rather than caught as a blank. Nothing downstream can tell
+	// the difference, so the disagreement is caught here.
+	if spanned != len(chunks) {
+		return nil, fmt.Errorf("file %s: split yielded %d chunks, the count said %d",
+			file.Path, spanned, len(chunks))
 	}
 	return chunks, nil
 }
