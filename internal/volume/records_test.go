@@ -72,6 +72,29 @@ func TestEncodeChunkmapGolden(t *testing.T) {
 	require.Equal(t, want, string(got))
 }
 
+// TestEncodeChunkmapOwnsNothing pins that encoding leaves the caller's
+// chunks exactly as given — the same promise the manifest encoder makes.
+// The emission is still offset-ordered; the caller's slice is not the
+// scratch space that produces it.
+func TestEncodeChunkmapOwnsNothing(t *testing.T) {
+	first, second := testDigest(0x11), testDigest(0x22)
+	shuffled := &Chunkmap{
+		FileSize: 5,
+		Chunks: []ChunkRef{
+			{Digest: second, Length: 2, Offset: 3, Target: TargetForDigest(second)},
+			{Digest: first, Length: 3, Offset: 0, Target: TargetForDigest(first)},
+		},
+	}
+	encoded := EncodeChunkmap(shuffled)
+
+	if shuffled.Chunks[0].Offset != 3 || shuffled.Chunks[1].Offset != 0 {
+		t.Errorf("encoding reordered the caller's chunks: offsets %d, %d",
+			shuffled.Chunks[0].Offset, shuffled.Chunks[1].Offset)
+	}
+	sorted := &Chunkmap{FileSize: 5, Chunks: []ChunkRef{shuffled.Chunks[1], shuffled.Chunks[0]}}
+	require.Equal(t, string(EncodeChunkmap(sorted)), string(encoded))
+}
+
 // TestEncodeManifestGolden pins the manifest wire bytes across every record
 // type a push emits. The "z<file" path is deliberate: an encoder that HTML
 // escapes, as encoding/json does by default, would write < there and

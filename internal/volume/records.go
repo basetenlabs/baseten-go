@@ -264,19 +264,23 @@ func appendFileRecord(out []byte, f FileEntry) []byte {
 	return endRecord(out)
 }
 
-// EncodeChunkmap renders a chunkmap as canonical JSONL. Chunks are sorted by
-// offset; a caller that built them by reading the file forward already has
-// them in that order.
+// EncodeChunkmap renders a chunkmap as canonical JSONL. Chunks are emitted in
+// offset order whatever order they arrive in, and EncodeChunkmap does not
+// mutate the chunkmap: the sort works on a copy, so a caller's slice keeps
+// its own order — the same promise the manifest encoder makes. A caller that
+// built the chunks by reading the file forward already has them in emission
+// order, and validation requires that order outright.
 func EncodeChunkmap(c *Chunkmap) []byte {
-	slices.SortFunc(c.Chunks, func(a, b ChunkRef) int { return cmp.Compare(a.Offset, b.Offset) })
+	chunks := slices.Clone(c.Chunks)
+	slices.SortFunc(chunks, func(a, b ChunkRef) int { return cmp.Compare(a.Offset, b.Offset) })
 
-	out := make([]byte, 0, 160*len(c.Chunks)+64)
+	out := make([]byte, 0, 160*len(chunks)+64)
 	out = appendType(out, "chunkmap_header")
-	out = appendUint(out, "chunk_count", uint64(len(c.Chunks)))
+	out = appendUint(out, "chunk_count", uint64(len(chunks)))
 	out = appendUint(out, "file_size", c.FileSize)
 	out = endRecord(out)
 
-	for _, ch := range c.Chunks {
+	for _, ch := range chunks {
 		out = appendType(out, "chunk")
 		out = appendString(out, "digest", ch.Digest.String())
 		out = appendUint(out, "length", ch.Length)
@@ -360,12 +364,14 @@ func appendMode(out []byte, mode uint16) []byte {
 	out = append(out, '"')
 	// Zero-padded to four digits, and wider when the mode needs it, without
 	// the allocation a Sprintf would cost on every entry of a large manifest.
-	var digits [8]byte
-	n := len(strconv.AppendUint(digits[:0], uint64(mode), 8))
-	for pad := n; pad < 4; pad++ {
+	// Formatted once: the scratch buffer is what gets appended, not just
+	// measured.
+	var scratch [8]byte
+	digits := strconv.AppendUint(scratch[:0], uint64(mode), 8)
+	for pad := len(digits); pad < 4; pad++ {
 		out = append(out, '0')
 	}
-	out = strconv.AppendUint(out, uint64(mode), 8)
+	out = append(out, digits...)
 	return append(out, '"')
 }
 
