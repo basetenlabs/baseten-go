@@ -44,7 +44,13 @@ func TestChunkRanges(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got := ChunkRanges(tc.size)
+			var got []ChunkRange
+			for i, r := range ChunkRanges(tc.size) {
+				// The ordinal is the chunk's position in the chunkmap, so it
+				// must count from zero without gaps.
+				require.Equal(t, len(got), i)
+				got = append(got, r)
+			}
 			require.Len(t, got, len(tc.want))
 			for i := range tc.want {
 				require.Equal(t, tc.want[i], got[i])
@@ -63,4 +69,35 @@ func TestChunkRanges(t *testing.T) {
 			require.Equal(t, tc.size, total)
 		})
 	}
+}
+
+// TestChunkCountAgreesWithTheSplit pins the two statements of the same rule
+// against each other. ChunkCount exists so a caller can size a slice without
+// draining the sequence, which makes it a second source of truth; this is
+// what keeps the two from drifting apart.
+func TestChunkCountAgreesWithTheSplit(t *testing.T) {
+	for _, size := range []uint64{
+		0, 1, ChunkSize - 1, ChunkSize, ChunkSize + 1, 2*ChunkSize - 1,
+		2 * ChunkSize, 3 * ChunkSize, 3*ChunkSize + 7,
+	} {
+		var counted uint64
+		for range ChunkRanges(size) {
+			counted++
+		}
+		require.Equal(t, counted, ChunkCount(size))
+	}
+}
+
+// TestChunkRangesStopsWhenTheCallerBreaks covers the half of the iterator
+// contract a range loop hides: a caller that stops early must not keep the
+// sequence running.
+func TestChunkRangesStopsWhenTheCallerBreaks(t *testing.T) {
+	seen := 0
+	for range ChunkRanges(10 * ChunkSize) {
+		seen++
+		if seen == 3 {
+			break
+		}
+	}
+	require.Equal(t, 3, seen)
 }
