@@ -110,6 +110,9 @@ func ScanSource(root string) (*Source, error) {
 	for path, mode := range dirs {
 		src.Directories = append(src.Directories, DirectoryEntry{Path: path, Mode: mode})
 	}
+	// These sorts make the scanner's output deterministic — the directory set
+	// is collected in a map — and decide nothing about the wire: the manifest's
+	// entry order is computed at encode time, over the complete set.
 	slices.SortFunc(src.Directories, func(a, b DirectoryEntry) int { return strings.Compare(a.Path, b.Path) })
 	slices.SortFunc(src.Files, func(a, b SourceFile) int { return strings.Compare(a.Path, b.Path) })
 	slices.SortFunc(src.Symlinks, func(a, b SymlinkEntry) int { return strings.Compare(a.Path, b.Path) })
