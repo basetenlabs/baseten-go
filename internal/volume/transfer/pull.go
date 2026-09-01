@@ -114,6 +114,14 @@ type PullResult struct {
 	// file produces it.
 	ChunksFetched int64
 	ChunksReused  int64
+
+	// Warnings are the containment findings that did not stop the download:
+	// a dangling link, a link through a file, an entry whose parent has no
+	// record. Manifests predating the containment rule carry these; they are
+	// written out faithfully and reported here rather than silently. They
+	// are judged on the whole manifest, so a subset download still reports
+	// what the version carries.
+	Warnings []volume.ContainmentWarning
 }
 
 // Pull downloads a version of a volume into a directory.
@@ -183,6 +191,7 @@ func Pull(ctx context.Context, client *bdn.Client, opts PullOptions) (*PullResul
 	}
 
 	return &PullResult{
+		Warnings:       plan.warnings,
 		VersionRef:     plan.pinned.String(),
 		ManifestDigest: plan.digest,
 		Files:          int64(len(plan.manifest.Files)),
@@ -205,6 +214,10 @@ type pullPlan struct {
 	// totalFiles is the whole version's file count, which a subset download
 	// reports alongside the smaller number it selected.
 	totalFiles int64
+
+	// warnings are the plan check's non-fatal containment findings, carried
+	// through to the result.
+	warnings []volume.ContainmentWarning
 }
 
 // resolvePlan pins the ref to one version, reads its manifest, and narrows it
@@ -247,6 +260,17 @@ func resolvePlan(
 	if err != nil {
 		return nil, err
 	}
+
+	// Containment is judged on the WHOLE manifest, before any narrowing. A
+	// subset that leaves out part of a link's chain must not soften the
+	// verdict: subset pulls into one destination compose, and two pulls
+	// neither of which would permit an escape on its own can assemble one
+	// together. The manifest is the unit the rule speaks about.
+	containmentWarnings, err := volume.CheckManifestContainment(manifest)
+	if err != nil {
+		return nil, err
+	}
+	plan.warnings = containmentWarnings
 
 	plan.totalFiles = int64(len(manifest.Files))
 	if plan.manifest, err = volume.SelectEntries(manifest, opts.Include); err != nil {
@@ -342,20 +366,26 @@ func (p *puller) materialize(ctx context.Context, manifest *volume.Manifest) err
 	return p.writeFiles(ctx, manifest.Files)
 }
 
-// writeSymlink recreates one link with its recorded target, replacing whatever
-// is in its place.
+// writeSymlink recreates one link, replacing whatever is in its place. The
+// recorded target may be volume-root-absolute; what is created on disk is
+// the relative rendering, because relative is the only encoding a kernel
+// resolves inside the tree wherever the tree ends up.
 func (p *puller) writeSymlink(link volume.SymlinkEntry) error {
 	name := filepath.FromSlash(link.Path)
+	target := link.Target
+	if strings.HasPrefix(target, "/") {
+		target = volume.RelativeLinkTarget(link.Path, target)
+	}
 	if err := p.root.MkdirAll(filepath.Dir(name), 0o755); err != nil {
 		return err
 	}
-	if existing, err := p.root.Readlink(name); err == nil && existing == link.Target {
+	if existing, err := p.root.Readlink(name); err == nil && existing == target {
 		return nil
 	}
 	if err := p.root.Remove(name); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
 	}
-	if err := p.root.Symlink(link.Target, name); err != nil {
+	if err := p.root.Symlink(target, name); err != nil {
 		// Creating a symlink is a privileged operation on Windows unless
 		// developer mode is on. The tree cannot be reproduced without it, and
 		// a download that quietly skipped links would hand back something that
