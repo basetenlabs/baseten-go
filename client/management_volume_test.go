@@ -129,7 +129,19 @@ func TestVolumeTokenExchange(t *testing.T) {
 	require.Equal(t, "https://volumes.example", host)
 	require.Equal(t, "/v1/volumes/token", gotPath)
 	require.Equal(t, "Bearer api-key", gotAuth)
-	require.Equal(t, `{"scopes":["PUSH","TAG"],"namespaces":["models"],"correlation_id":"corr-1"}`, gotBody)
+	// Field-by-field rather than byte-for-byte: the request goes through the
+	// generated client, whose struct declares the same three fields in a
+	// different order. Key order carries no meaning to the service; the pin
+	// is that every field arrives with its value.
+	var sent struct {
+		Scopes        []string `json:"scopes"`
+		Namespaces    []string `json:"namespaces"`
+		CorrelationID string   `json:"correlation_id"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(gotBody), &sent))
+	require.Equal(t, "PUSH,TAG", strings.Join(sent.Scopes, ","))
+	require.Equal(t, "models", strings.Join(sent.Namespaces, ","))
+	require.Equal(t, "corr-1", sent.CorrelationID)
 
 	// The token is held on to rather than exchanged per request.
 	if _, _, err := tokens(context.Background(), ""); err != nil {
@@ -154,16 +166,22 @@ func TestVolumeTokenExchangeFailures(t *testing.T) {
 		"not json": func(w http.ResponseWriter, _ *http.Request) {
 			_, _ = io.WriteString(w, "<html>hello</html>")
 		},
+		// The fakes below declare the JSON content type the real service always
+		// sends; without it the generated client refuses the response before
+		// the condition under test is ever reached.
 		"no token": func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
 			_, _ = io.WriteString(w, `{"bdn_endpoint":"https://volumes.example"}`)
 		},
 		// A null endpoint is the service saying this deployment does not serve
 		// volumes yet, which is a different thing from a malformed response
 		// and must not be mistaken for one later.
 		"null endpoint": func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
 			_, _ = io.WriteString(w, `{"token":"capability-token","bdn_endpoint":null}`)
 		},
 		"unparseable expiry": func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
 			_, _ = io.WriteString(w,
 				`{"token":"t","bdn_endpoint":"https://x","expires_at":"whenever"}`)
 		},
@@ -172,6 +190,7 @@ func TestVolumeTokenExchangeFailures(t *testing.T) {
 		// cannot use. The two shapes get different errors, tested here and in
 		// the sentinel test below.
 		"empty endpoint": func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
 			_, _ = io.WriteString(w, `{"token":"capability-token","bdn_endpoint":""}`)
 		},
 	}
@@ -556,6 +575,7 @@ func TestRefreshStopsWhenItBuysNothing(t *testing.T) {
 // like an outage, so it is a sentinel rather than an opaque message.
 func TestNoVolumeAPIIsDistinguishable(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"token":"t","bdn_endpoint":null,"scopes":["PULL"],"namespaces":["models"]}`)
 	}))
 	defer server.Close()
@@ -574,6 +594,7 @@ func TestNoVolumeAPIIsDistinguishable(t *testing.T) {
 // operator hunting deployment configuration for a service bug.
 func TestEmptyEndpointIsNotMissingAPI(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"token":"t","bdn_endpoint":"","scopes":["PULL"],"namespaces":["models"]}`)
 	}))
 	defer server.Close()

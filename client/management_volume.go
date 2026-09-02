@@ -1,15 +1,11 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -271,8 +267,7 @@ func pushScopes(opts pub.PushOptions) []string {
 // Scopes a capability token can carry. A token is granted a set of these for
 // a set of namespaces. The exchange refuses a scope it will not grant rather
 // than returning a smaller set, so the response's scope list is the request
-// echoed back, never a narrowing — the same contract the response type
-// documents.
+// echoed back, never a narrowing.
 const (
 	volumeScopePull = "PULL"
 	volumeScopePush = "PUSH"
@@ -323,8 +318,12 @@ type volumeToken struct {
 	expiresAt time.Time
 
 	// scopes and namespaces are what the service reported alongside the token,
-	// kept for diagnostics. Nothing is decided from scopes; see
-	// volumeTokenResponse.Scopes.
+	// kept for diagnostics. Nothing is decided from scopes: the response
+	// describes them as the capabilities granted, but the exchange refuses a
+	// scope it will not grant rather than returning a smaller set, so the list
+	// is the request echoed back. A field that cannot differ from what was
+	// sent carries no information, and if it ever began to differ, believing
+	// it would mean claiming a capability the minted token does not hold.
 	scopes     []string
 	namespaces []string
 }
@@ -442,95 +441,41 @@ func (s *volumeTokenSource) granted() *volumeToken {
 	return s.current
 }
 
-type volumeTokenRequest struct {
-	Scopes        []string `json:"scopes"`
-	Namespaces    []string `json:"namespaces"`
-	CorrelationID string   `json:"correlation_id,omitempty"`
-}
-
-type volumeTokenResponse struct {
-	Token string `json:"token"`
-	// ExpiresAt is ISO 8601.
-	ExpiresAt string `json:"expires_at"`
-	// Scopes is described as the capabilities granted, but is the request
-	// echoed back — the exchange refuses a scope it will not grant rather than
-	// returning a smaller set. Nothing is decided from it: a field that cannot
-	// differ from what was sent carries no information, and if it ever began
-	// to differ, believing it would mean claiming a capability the minted
-	// token does not hold.
-	Scopes []string `json:"scopes"`
-	// Namespaces come back canonicalized to lowercase.
-	Namespaces []string `json:"namespaces"`
-	// Endpoint is null in an environment with no public volume API.
-	Endpoint *string `json:"bdn_endpoint"`
-}
-
 // exchangeVolumeToken trades the API key for a capability token over a
-// namespace.
-//
-// The request is built here rather than through the generated API client
-// because this endpoint is not in the generated surface yet. It borrows that
-// client's base URL, transport, and headers so authentication and user agent
-// behave the same as every other call.
-//
-// TODO: switch to the generated client once the endpoint lands in the
-// management API's OpenAPI spec, and re-verify the request and response
-// shapes against what shipped.
+// namespace. The call goes through the generated management API client, so
+// the base URL, transport, authentication, and user agent behave the same as
+// every other management call.
 func (c *ManagementClient) exchangeVolumeToken(
 	ctx context.Context,
 	namespace string,
 	scopes []string,
 	correlationID string,
 ) (*volumeToken, error) {
-	body, err := json.Marshal(volumeTokenRequest{
-		Scopes:        scopes,
-		Namespaces:    []string{namespace},
-		CorrelationID: correlationID,
-	})
-	if err != nil {
-		return nil, err
+	req := managementapi.CreateVolumeTokenRequest{
+		Scopes:     make([]managementapi.VolumeTokenScope, 0, len(scopes)),
+		Namespaces: []string{namespace},
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
-		strings.TrimRight(c.api.BaseURL, "/")+"/v1/volumes/token", bytes.NewReader(body))
-	if err != nil {
-		return nil, err
+	for _, scope := range scopes {
+		req.Scopes = append(req.Scopes, managementapi.VolumeTokenScope(scope))
 	}
-	for name, values := range c.api.Headers {
-		for _, value := range values {
-			req.Header.Add(name, value)
-		}
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.api.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("exchange volume token: %w", err)
-	}
-	defer resp.Body.Close()
-
-	payload, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("exchange volume token: %w", err)
-	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("exchange volume token: %w",
-			&managementapi.ResponseError{StatusCode: resp.StatusCode, Body: string(payload)})
+	if correlationID != "" {
+		req.CorrelationId = &correlationID
 	}
 
-	var decoded volumeTokenResponse
-	if err := json.Unmarshal(payload, &decoded); err != nil {
+	decoded, err := c.api.PostVolumesToken(ctx, req)
+	if err != nil {
 		return nil, fmt.Errorf("exchange volume token: %w", err)
 	}
 	if decoded.Token == "" {
 		return nil, errors.New("exchange volume token: the response carried no token")
 	}
-	if decoded.Endpoint == nil {
+	if decoded.BdnEndpoint == nil {
 		// Distinguished from a malformed response on purpose: null means the
 		// deployment is not serving volumes yet, which the caller can do
 		// nothing about and should not see as a transport failure later.
 		return nil, fmt.Errorf("exchange volume token: %w", ErrNoVolumeAPI)
 	}
-	if *decoded.Endpoint == "" {
+	if *decoded.BdnEndpoint == "" {
 		// An empty string is not the deployment saying "no volumes" — null
 		// says that — it is a response this client cannot use, and calling it
 		// a missing capability would send an operator hunting deployment
@@ -538,18 +483,17 @@ func (c *ManagementClient) exchangeVolumeToken(
 		return nil, fmt.Errorf("exchange volume token: %w", ErrMalformedVolumeEndpoint)
 	}
 
-	token := &volumeToken{
+	granted := make([]string, 0, len(decoded.Scopes))
+	for _, scope := range decoded.Scopes {
+		granted = append(granted, string(scope))
+	}
+	return &volumeToken{
 		token:      decoded.Token,
-		endpoint:   *decoded.Endpoint,
-		scopes:     decoded.Scopes,
+		endpoint:   *decoded.BdnEndpoint,
+		expiresAt:  decoded.ExpiresAt,
+		scopes:     granted,
 		namespaces: decoded.Namespaces,
-	}
-	if decoded.ExpiresAt != "" {
-		if token.expiresAt, err = time.Parse(time.RFC3339Nano, decoded.ExpiresAt); err != nil {
-			return nil, fmt.Errorf("exchange volume token: expires_at: %w", err)
-		}
-	}
-	return token, nil
+	}, nil
 }
 
 // newCorrelationID mints an identifier for one transfer, which the service
