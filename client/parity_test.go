@@ -4,6 +4,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -127,7 +128,7 @@ func TestVolumeVocabularyIsClassified(t *testing.T) {
 	// reason it is not in the table.
 	exceptions := map[string]string{
 		"VolumePhase":       "defined string type; its values mirror the internal phase strings and cross the boundary as a cast — VolumeProgress's parity covers the field that carries it",
-		"VolumeWarningKind": "defined uint8 type; its values mirror the internal containment kinds one to one and cross the boundary as a cast — VolumeWarning's parity covers the field that carries it",
+		"VolumeWarningKind": "defined uint8 type crossing the boundary as a positional cast; TestVolumeWarningKindCastIsValueExact guards the mirror value by value with a count leg, and VolumeWarning's parity covers the field that carries it",
 		"VolumeErrorReason": "defined string type mirroring the service's wire reason strings, so a reason the service adds flows through without new API",
 		"VolumeError":       "deliberately narrower than the internal error: Reason and Message are the caller's API, Err wraps the whole original chain, and the internal Code and Domain stay internal — volumeOpError owns the translation",
 		"VolumeObjectStore": "the seam interface; its two halves are the internal DownloadObject and Decompress function pair, excepted per pair in the table",
@@ -191,4 +192,71 @@ func fieldNames(t reflect.Type) map[string]bool {
 		names[t.Field(i).Name] = true
 	}
 	return names
+}
+
+// TestVolumeWarningKindCastIsValueExact guards the one positional cast at the
+// boundary: VolumeWarningKind and the internal containment kind are both
+// iota-defined, and the download translation maps them by VALUE. The two
+// const blocks are independent declarations — swapping two kinds on one
+// side, or appending to one side only, changes no type and fails no compile,
+// and every suite stays green while a caller branches on the wrong kind. So
+// the mirror is asserted here value by value, with a declared-count leg that
+// forces a kind added to either enum into this table.
+func TestVolumeWarningKindCastIsValueExact(t *testing.T) {
+	pairs := []struct {
+		name     string
+		public   VolumeWarningKind
+		internal internal.ContainmentWarningKind
+	}{
+		{"DanglingLink", VolumeWarningKindDanglingLink, internal.WarningDanglingLink},
+		{"LinkThroughFile", VolumeWarningKindLinkThroughFile, internal.WarningLinkThroughFile},
+		{"ParentUnrecorded", VolumeWarningKindParentUnrecorded, internal.WarningParentUnrecorded},
+		{"PathNormalized", VolumeWarningKindPathNormalized, internal.WarningPathNormalized},
+	}
+	for _, p := range pairs {
+		if uint8(p.public) != uint8(p.internal) {
+			t.Errorf("%s: the boundary cast delivers the wrong kind — public value %d, internal value %d",
+				p.name, uint8(p.public), uint8(p.internal))
+		}
+	}
+
+	publicCount := declaredConstCount(t, "volume_types.go", "VolumeWarningKind")
+	internalCount := declaredConstCount(t, filepath.Join("..", "internal", "volume", "containment.go"), "ContainmentWarningKind")
+	if publicCount == 0 || internalCount == 0 {
+		t.Fatalf("enumeration found %d public and %d internal declared kinds — the guard is measuring nothing", publicCount, internalCount)
+	}
+	if publicCount != len(pairs) || internalCount != len(pairs) {
+		t.Errorf("declared kinds: %d public, %d internal, %d paired here — every kind on either side must be in the table",
+			publicCount, internalCount, len(pairs))
+	}
+}
+
+// declaredConstCount parses file and counts the constants declared with (or
+// inheriting, within an iota block) the named type.
+func declaredConstCount(t *testing.T, file, typeName string) int {
+	t.Helper()
+	fset := token.NewFileSet()
+	parsed, err := parser.ParseFile(fset, file, nil, parser.SkipObjectResolution)
+	if err != nil {
+		t.Fatal(err)
+	}
+	count := 0
+	for _, decl := range parsed.Decls {
+		gd, ok := decl.(*ast.GenDecl)
+		if !ok || gd.Tok != token.CONST {
+			continue
+		}
+		inBlock := false
+		for _, spec := range gd.Specs {
+			vs := spec.(*ast.ValueSpec)
+			if vs.Type != nil {
+				id, isIdent := vs.Type.(*ast.Ident)
+				inBlock = isIdent && id.Name == typeName
+			}
+			if inBlock {
+				count += len(vs.Names)
+			}
+		}
+	}
+	return count
 }

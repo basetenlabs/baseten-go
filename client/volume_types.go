@@ -145,6 +145,12 @@ const (
 	// nearest recorded one are all implicit — nothing records the parent
 	// directory.
 	VolumeWarningKindParentUnrecorded
+	// VolumeWarningKindPathNormalized: the entry's path was recorded
+	// root-anchored — "/a/b" — and was normalized to a relative one on
+	// download. Only volumes published before the containment rule carry
+	// that shape; pushing it is refused, so this warning marks a legacy
+	// volume, never a fresh push.
+	VolumeWarningKindPathNormalized
 )
 
 // VolumeWarning is a containment finding that did not stop a download:
@@ -361,8 +367,8 @@ type DownloadVolumeResult struct {
 
 	// Warnings are the containment findings that did not stop the download —
 	// a dangling link, a link through a file, an entry whose parent has no
-	// record. Volumes published before the containment rule carry these;
-	// they are written out faithfully and reported here rather than
-	// silently.
+	// record, a root-anchored path normalized on the way out. Volumes
+	// published before the containment rule carry these; they are written
+	// out faithfully and reported here rather than silently.
 	Warnings []VolumeWarning
 }
