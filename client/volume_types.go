@@ -18,8 +18,15 @@ import (
 // change would have been API-compatible had they been exported.
 
 // VolumeConcurrencyOptions is a transfer's concurrency limits. The zero value
-// means defaults: sixteen concurrent files, an adaptive number of in-flight
-// object operations, and two gibibytes of chunk data resident in memory.
+// means defaults: concurrent files follow the pinned object-operation count
+// when one is set and otherwise default to 256, in-flight object operations
+// adapt to what the origin will bear, and two gibibytes of chunk data may be
+// resident in memory.
+//
+// A wide fan-out is served best by an injected HTTPClient whose transport
+// raises MaxIdleConnsPerHost toward the operation ceiling: the default
+// transport parks only two idle connections per host, so most requests in a
+// wide wave open a fresh connection instead of reusing one.
 type VolumeConcurrencyOptions struct {
 	// FileJobs is how many files are processed concurrently on push. Zero
 	// means the default.
