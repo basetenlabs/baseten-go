@@ -583,10 +583,18 @@ func TestDecodeNormalizesPreRulePaths(t *testing.T) {
 
 	// The single normalization point is what makes this pass: containment and
 	// the link namespace validate the normalized paths and resolve the link
-	// against them. Before normalization the same manifest failed here.
+	// against them. Before normalization the same manifest failed here. Each
+	// normalized path is reported as a typed finding — the warning channel's
+	// charter is findings that did not stop the download, and a silently
+	// rewritten path would be the one silent mutation in it.
 	warnings, err := CheckManifestContainment(m)
 	require.NoError(t, err)
-	require.Len(t, warnings, 0)
+	require.Len(t, warnings, 4)
+	for i, want := range []string{"a", "deep", "a/b", "l"} {
+		require.Equal(t, WarningPathNormalized, warnings[i].Kind)
+		require.Equal(t, want, warnings[i].Path)
+		require.Contains(t, warnings[i].Detail, "root-anchored")
+	}
 
 	// The push side is unchanged: a root-anchored path is still refused.
 	require.Error(t, ValidatePath("/a/b"))

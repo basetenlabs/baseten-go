@@ -115,9 +115,8 @@ type Manifest struct {
 
 	// NormalizedPaths lists entry paths that decoding normalized from the
 	// root-anchored form manifests published before the containment rule can
-	// carry, spelled as the wire carried them. The fact is kept here so the
-	// pull path can surface it to the caller once the reporting shape is
-	// settled; nothing else reads it.
+	// carry, spelled as the wire carried them. CheckManifestContainment
+	// reports each as a WarningPathNormalized finding.
 	NormalizedPaths []string
 }
 
@@ -590,10 +589,17 @@ func DecodeManifest(body []byte) (*Manifest, error) {
 // manifest published before the containment rule, so pre-rule volumes still
 // materialize: readers normalize the path rather than refuse the volume. The
 // wire bytes are untouched — the digest still covers what was written — and
-// the manifest records what it normalized. Decode is the one place this
-// happens, so the containment walk, the link namespace, and materialization
-// all see the same normalized form. Push stays strict: a scan never produces
-// a root-anchored path, and validation still refuses one.
+// the manifest records what it normalized, which the containment check
+// reports as a typed warning. Reporting is a deliberate choice: readers
+// whose warnings feed command-line output stay silent about this
+// normalization, but a download result here carries a typed warning list
+// whose charter is exactly this class — findings that did not stop the
+// download, written out faithfully and reported rather than silently — and a
+// quietly rewritten path would be the one silent mutation in that channel's
+// domain. Decode is the one place normalization happens, so the containment
+// walk, the link namespace, and materialization all see the same normalized
+// form. Push stays strict: a scan never produces a root-anchored path, and
+// validation still refuses one.
 func (m *Manifest) normalizeEntryPath(path string) string {
 	if !strings.HasPrefix(path, "/") {
 		return path
