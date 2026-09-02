@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -354,5 +355,92 @@ func requireNoZeroField(t *testing.T, v reflect.Value, what string) {
 		if field.IsZero() {
 			t.Errorf("%s.%s is zero — populate it in this test and make sure the fake copies it", what, name)
 		}
+	}
+}
+
+// TestMixedCaseNamesAreLoweredForBothConsumers pins the single fold: the
+// options translation lowercases Namespace and Volume once, and both
+// consumers of the name — the token exchange that scopes the capability and
+// the wire requests the transfer makes — read that translated value. A token
+// scoped to "MoDeLs" would not authorize a transfer addressing "models", so
+// the two seeing different foldings is not cosmetic.
+func TestMixedCaseNamesAreLoweredForBothConsumers(t *testing.T) {
+	root := buildTree(t)
+	fake := newFakeService(t)
+
+	var mu sync.Mutex
+	var wirePaths []string
+	recorded := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		wirePaths = append(wirePaths, r.URL.Path)
+		mu.Unlock()
+		proxyTo(w, r, fake.server.URL)
+	}))
+	t.Cleanup(recorded.Close)
+
+	var scoped [][]string
+	managementAPI := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request struct {
+			Scopes     []string `json:"scopes"`
+			Namespaces []string `json:"namespaces"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&request)
+		mu.Lock()
+		scoped = append(scoped, request.Namespaces)
+		mu.Unlock()
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"token": fake.token(), "bdn_endpoint": recorded.URL,
+			"expires_at": time.Now().Add(time.Hour).UTC().Format(time.RFC3339),
+			"scopes":     request.Scopes, "namespaces": request.Namespaces,
+		})
+	}))
+	t.Cleanup(managementAPI.Close)
+
+	api, err := client.NewManagementClient(client.ManagementClientOptions{
+		APIKey: "api-key", BaseURL: managementAPI.URL,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := api.PushVolume(context.Background(), client.PushVolumeOptions{
+		Namespace: "MoDeLs", Volume: "GPT2", SourceDir: root,
+		SourceURI: "file:///fixture", Hasher: newBlake3,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	// Consumer one: the capability token was scoped to the lowered namespace.
+	if len(scoped) == 0 {
+		t.Fatal("no token exchange happened — the assertion never ran")
+	}
+	for _, namespaces := range scoped {
+		for _, ns := range namespaces {
+			if ns != fakeNamespace {
+				t.Errorf("the exchange was scoped to namespace %q, want %q", ns, fakeNamespace)
+			}
+		}
+	}
+
+	// Consumer two: every wire request addressed the lowered names, and at
+	// least one carried them, so the assertion is not vacuously green.
+	if len(wirePaths) == 0 {
+		t.Fatal("no wire requests recorded — the assertion never ran")
+	}
+	sawNames := false
+	for _, path := range wirePaths {
+		if strings.Contains(path, "MoDeLs") || strings.Contains(path, "GPT2") {
+			t.Errorf("a wire request addressed the mixed-case name: %s", path)
+		}
+		if strings.Contains(path, "/"+fakeNamespace+"/"+fakeVolume+"/") {
+			sawNames = true
+		}
+	}
+	if !sawNames {
+		t.Errorf("no wire request addressed %s/%s: %v", fakeNamespace, fakeVolume, wirePaths)
 	}
 }

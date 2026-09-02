@@ -27,17 +27,15 @@ import (
 // push publishes nothing. What it uploaded is not wasted: the next push finds
 // those objects already stored and skips them.
 func (c *ManagementClient) PushVolume(ctx context.Context, opts PushVolumeOptions) (*PushVolumeResult, error) {
-	push := pushOptions(opts)
+	push := volumePushOptions(opts)
 	if err := push.Validate(); err != nil {
 		return nil, err
 	}
-	// Folded before the token is scoped to them, so the capability the
-	// exchange returns names the volume the transfer will actually address.
-	namespace := strings.ToLower(opts.Namespace)
-	push.Namespace = namespace
-	push.Volume = strings.ToLower(opts.Volume)
-
-	client, _, err := c.volumeClient(namespace, pushScopes(opts), newCorrelationID())
+	// The exchange reads the namespace from the translated options rather
+	// than folding the caller's value a second time: one fold, in the
+	// translation, so the namespace the capability token is scoped to and
+	// the one the transfer addresses cannot drift apart.
+	client, _, err := c.volumeClient(push.Namespace, volumePushScopes(opts), newVolumeCorrelationID())
 	if err != nil {
 		return nil, err
 	}
@@ -74,37 +72,40 @@ func volumeOpError(err error) error {
 	return err
 }
 
-// pushOptions translates the public options into the engine's, exhaustively
+// volumePushOptions translates the public options into the engine's, exhaustively
 // and field by field — the form the parity tests require, because a
 // struct-copy shortcut is exactly how a twin drifts silently.
-func pushOptions(o PushVolumeOptions) transfer.PushOptions {
+func volumePushOptions(o PushVolumeOptions) transfer.PushOptions {
 	opts := transfer.PushOptions{
-		Namespace:       o.Namespace,
-		Volume:          o.Volume,
+		// Namespace and Volume fold to lowercase here, with the other
+		// conversions, and before the token is scoped to them: the capability
+		// the exchange returns must name the volume the transfer will
+		// actually address.
+		Namespace:       strings.ToLower(o.Namespace),
+		Volume:          strings.ToLower(o.Volume),
 		SourceDir:       o.SourceDir,
 		SourceURI:       o.SourceURI,
 		Tags:            o.Tags,
 		RequireHeadMove: o.RequireHeadMove,
 		NewHasher:       o.Hasher,
-		Concurrency:     internalConcurrency(o.Concurrency),
-		Progress:        progressAdapter(o.Progress),
+		// The concurrency literal is keyed and exhaustive for the same reason
+		// the translation is: the parity tests hold the twins together, and a
+		// field dropped here is a silently ignored option.
+		Concurrency: volume.Concurrency{
+			FileJobs:         o.Concurrency.FileJobs,
+			ChunkOperations:  o.Concurrency.ChunkOperations,
+			MaxBytesInFlight: o.Concurrency.MaxBytesInFlight,
+		},
+		Progress: volumeProgressAdapter(o.Progress),
 	}
 	if o.Store != nil {
-		opts.DownloadObject = storeDownloader(o.Store)
+		opts.DownloadObject = volumeStoreDownloader(o.Store)
 		opts.Decompress = o.Store.Decompressor
 	}
 	return opts
 }
 
-func internalConcurrency(c VolumeConcurrencyOptions) volume.Concurrency {
-	return volume.Concurrency{
-		FileJobs:         c.FileJobs,
-		ChunkOperations:  c.ChunkOperations,
-		MaxBytesInFlight: c.MaxBytesInFlight,
-	}
-}
-
-func progressAdapter(fn func(VolumeProgress)) volume.ProgressFunc {
+func volumeProgressAdapter(fn func(VolumeProgress)) volume.ProgressFunc {
 	if fn == nil {
 		return nil
 	}
@@ -119,8 +120,8 @@ func progressAdapter(fn func(VolumeProgress)) volume.ProgressFunc {
 	}
 }
 
-// storeDownloader adapts the public store to the engine's downloader seam.
-func storeDownloader(store VolumeObjectStore) volume.ObjectDownloader {
+// volumeStoreDownloader adapts the public store to the engine's downloader seam.
+func volumeStoreDownloader(store VolumeObjectStore) volume.ObjectDownloader {
 	return func(ctx context.Context, req volume.ObjectDownload) (*volume.ObjectResult, error) {
 		res, err := store.DownloadObject(ctx, VolumeObjectDownload{
 			Endpoint: req.Endpoint,
@@ -153,7 +154,7 @@ func storeDownloader(store VolumeObjectStore) volume.ObjectDownloader {
 // file that merely looks complete. An interrupted download can be run again
 // and picks up where it stopped.
 func (c *ManagementClient) DownloadVolume(ctx context.Context, opts DownloadVolumeOptions) (*DownloadVolumeResult, error) {
-	pull := pullOptions(opts)
+	pull := volumePullOptions(opts)
 	if err := pull.Validate(); err != nil {
 		return nil, err
 	}
@@ -162,7 +163,7 @@ func (c *ManagementClient) DownloadVolume(ctx context.Context, opts DownloadVolu
 		return nil, err
 	}
 
-	client, _, err := c.volumeClient(ref.Namespace, []string{volumeScopePull}, newCorrelationID())
+	client, _, err := c.volumeClient(ref.Namespace, []string{volumeScopePull}, newVolumeCorrelationID())
 	if err != nil {
 		return nil, err
 	}
@@ -188,21 +189,27 @@ func (c *ManagementClient) DownloadVolume(ctx context.Context, opts DownloadVolu
 	}, nil
 }
 
-// pullOptions translates the public options into the engine's, exhaustively
-// and field by field, like pushOptions.
-func pullOptions(o DownloadVolumeOptions) transfer.PullOptions {
+// volumePullOptions translates the public options into the engine's, exhaustively
+// and field by field, like volumePushOptions.
+func volumePullOptions(o DownloadVolumeOptions) transfer.PullOptions {
 	opts := transfer.PullOptions{
-		Ref:         o.Ref,
-		DestDir:     o.DestDir,
-		Overwrite:   o.Overwrite,
-		Include:     o.Include,
-		Restart:     o.Restart,
-		NewHasher:   o.Hasher,
-		Concurrency: internalConcurrency(o.Concurrency),
-		Progress:    progressAdapter(o.Progress),
+		Ref:       o.Ref,
+		DestDir:   o.DestDir,
+		Overwrite: o.Overwrite,
+		Include:   o.Include,
+		Restart:   o.Restart,
+		NewHasher: o.Hasher,
+		// Keyed and exhaustive like volumePushOptions's, and for the same
+		// reason.
+		Concurrency: volume.Concurrency{
+			FileJobs:         o.Concurrency.FileJobs,
+			ChunkOperations:  o.Concurrency.ChunkOperations,
+			MaxBytesInFlight: o.Concurrency.MaxBytesInFlight,
+		},
+		Progress: volumeProgressAdapter(o.Progress),
 	}
 	if o.Store != nil {
-		opts.DownloadObject = storeDownloader(o.Store)
+		opts.DownloadObject = volumeStoreDownloader(o.Store)
 		opts.Decompress = o.Store.Decompressor
 	}
 	return opts
@@ -234,7 +241,7 @@ func (c *ManagementClient) volumeClient(
 	return client, tokens, nil
 }
 
-// pushScopes is what a push asks for, and asks for nothing beyond it.
+// volumePushScopes is what a push asks for, and asks for nothing beyond it.
 //
 // The exchange refuses rather than narrows: a scope the caller has no
 // permission for fails the whole exchange with no token at all. So an
@@ -249,7 +256,7 @@ func (c *ManagementClient) volumeClient(
 // TAG is asked for only when tags are actually being applied, since applying
 // one at commit is gated like setting a tag directly. Moving head needs no
 // scope of its own beyond push.
-func pushScopes(opts PushVolumeOptions) []string {
+func volumePushScopes(opts PushVolumeOptions) []string {
 	scopes := []string{volumeScopePush}
 	if len(opts.Tags) > 0 {
 		scopes = append(scopes, volumeScopeTag)
@@ -492,7 +499,7 @@ func (c *ManagementClient) exchangeVolumeToken(
 	}, nil
 }
 
-// newCorrelationID mints an identifier for one transfer, which the service
+// newVolumeCorrelationID mints an identifier for one transfer, which the service
 // echoes into its own logs and carries onward as a header. It makes a report
 // of "my push failed" answerable from the other side without guessing which
 // push.
@@ -502,7 +509,7 @@ func (c *ManagementClient) exchangeVolumeToken(
 // printable ASCII with no spaces, which is what the field accepts; an empty or
 // space-bearing value would be rejected, and rejection there fails the whole
 // exchange rather than dropping the field.
-func newCorrelationID() string {
+func newVolumeCorrelationID() string {
 	var b [8]byte
 	if _, err := rand.Read(b[:]); err != nil {
 		// The identifier only correlates logs; a transfer should not fail

@@ -36,7 +36,7 @@ func TestPushOptionsValidate(t *testing.T) {
 	valid := PushVolumeOptions{
 		Namespace: "models", Volume: "gpt2", SourceDir: "/tmp/tree", Hasher: stubHasher,
 	}
-	require.NoError(t, pushOptions(valid).Validate())
+	require.NoError(t, volumePushOptions(valid).Validate())
 
 	// The old shape allowed a downloader without a decompressor and had to
 	// refuse it in validation; the Store interface makes that state
@@ -44,7 +44,7 @@ func TestPushOptionsValidate(t *testing.T) {
 	// they guarded.
 	withStore := valid
 	withStore.Store = stubStore{}
-	require.NoError(t, pushOptions(withStore).Validate())
+	require.NoError(t, volumePushOptions(withStore).Validate())
 
 	tests := map[string]func(*PushVolumeOptions){
 		"no namespace": func(o *PushVolumeOptions) { o.Namespace = "" },
@@ -57,7 +57,7 @@ func TestPushOptionsValidate(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			opts := valid
 			break_(&opts)
-			require.Error(t, pushOptions(opts).Validate())
+			require.Error(t, volumePushOptions(opts).Validate())
 		})
 	}
 }
@@ -67,13 +67,13 @@ func TestDownloadOptionsValidate(t *testing.T) {
 		Ref: "models/gpt2", DestDir: "/tmp/out",
 		Hasher: stubHasher, Store: stubStore{},
 	}
-	require.NoError(t, pullOptions(valid).Validate())
+	require.NoError(t, volumePullOptions(valid).Validate())
 
 	for _, ref := range []string{"models/gpt2:prod", "models/gpt2@b3:abc123abc123", "bdn://models/gpt2"} {
 		t.Run(ref, func(t *testing.T) {
 			opts := valid
 			opts.Ref = ref
-			require.NoError(t, pullOptions(opts).Validate())
+			require.NoError(t, volumePullOptions(opts).Validate())
 		})
 	}
 
@@ -92,7 +92,7 @@ func TestDownloadOptionsValidate(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			opts := valid
 			break_(&opts)
-			require.Error(t, pullOptions(opts).Validate())
+			require.Error(t, volumePullOptions(opts).Validate())
 		})
 	}
 }
@@ -213,7 +213,7 @@ func TestVolumeTokenExchangeFailures(t *testing.T) {
 func TestVolumeOptionsReachTheEngine(t *testing.T) {
 	concurrency := VolumeConcurrencyOptions{FileJobs: 3, ChunkOperations: 4, MaxBytesInFlight: 5}
 
-	push := pushOptions(PushVolumeOptions{
+	push := volumePushOptions(PushVolumeOptions{
 		Namespace: "models", Volume: "gpt2", SourceDir: "/tmp/tree", SourceURI: "file:///fixed",
 		Tags: []string{"prod"}, RequireHeadMove: true, Hasher: stubHasher,
 		Store:       stubStore{},
@@ -229,7 +229,7 @@ func TestVolumeOptionsReachTheEngine(t *testing.T) {
 	require.NotNil(t, push.DownloadObject)
 	require.Equal(t, 3, push.Concurrency.FileJobs)
 
-	pull := pullOptions(DownloadVolumeOptions{
+	pull := volumePullOptions(DownloadVolumeOptions{
 		Ref: "models/gpt2:prod", DestDir: "/tmp/out", Overwrite: true, Restart: true,
 		Include: []string{"weights"}, Hasher: stubHasher,
 		Store:       stubStore{},
@@ -245,7 +245,17 @@ func TestVolumeOptionsReachTheEngine(t *testing.T) {
 	// Leaving concurrency unset must not zero the engine's defaults: the
 	// zero value translates to the engine's zero value, whose meaning is
 	// already "defaults".
-	require.Equal(t, 0, pushOptions(PushVolumeOptions{}).Concurrency.FileJobs)
+	require.Equal(t, 0, volumePushOptions(PushVolumeOptions{}).Concurrency.FileJobs)
+
+	// Mixed case folds in the translation, and nowhere else: PushVolume
+	// scopes the token exchange to the translated namespace, so this one
+	// fold is what both the engine and the exchange see. The end-to-end
+	// half of this pin — the exchange body actually carrying the lowered
+	// namespace — lives in the nested test module, where a whole push can
+	// run.
+	lowered := volumePushOptions(PushVolumeOptions{Namespace: "MoDeLs", Volume: "GPT2"})
+	require.Equal(t, "models", lowered.Namespace)
+	require.Equal(t, "gpt2", lowered.Volume)
 }
 
 // TestVolumeTransfersValidateBeforeExchangingAToken checks that bad options
@@ -390,7 +400,7 @@ func TestPushScopeSelection(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			opts := bare
 			tc.with(&opts)
-			require.Equal(t, tc.want, strings.Join(pushScopes(opts), ","))
+			require.Equal(t, tc.want, strings.Join(volumePushScopes(opts), ","))
 		})
 	}
 }
@@ -401,7 +411,7 @@ func TestPushScopeSelection(t *testing.T) {
 // field.
 func TestCorrelationIDIsAcceptable(t *testing.T) {
 	for range 50 {
-		id := newCorrelationID()
+		id := newVolumeCorrelationID()
 		require.True(t, id != "", "correlation id must not be empty")
 		require.True(t, len(id) <= 128, "correlation id %q is longer than 128", id)
 		for _, r := range id {
