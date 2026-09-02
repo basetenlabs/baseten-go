@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 )
 
 // Wire constants. The vendor media types and the schema string are matched
@@ -111,6 +112,13 @@ type Manifest struct {
 	Directories []DirectoryEntry
 	Files       []FileEntry
 	Symlinks    []SymlinkEntry
+
+	// NormalizedPaths lists entry paths that decoding normalized from the
+	// root-anchored form manifests published before the containment rule can
+	// carry, spelled as the wire carried them. The fact is kept here so the
+	// pull path can surface it to the caller once the reporting shape is
+	// settled; nothing else reads it.
+	NormalizedPaths []string
 }
 
 // EntryCount is the manifest header's entry_count: every directory, file, and
@@ -536,7 +544,7 @@ func DecodeManifest(body []byte) (*Manifest, error) {
 			if err != nil {
 				return err
 			}
-			m.Directories = append(m.Directories, DirectoryEntry{Path: w.Path, Mode: mode})
+			m.Directories = append(m.Directories, DirectoryEntry{Path: m.normalizeEntryPath(w.Path), Mode: mode})
 			return nil
 		case "symlink":
 			var w wireSymlink
@@ -547,13 +555,14 @@ func DecodeManifest(body []byte) (*Manifest, error) {
 			if err != nil {
 				return err
 			}
-			m.Symlinks = append(m.Symlinks, SymlinkEntry{Path: w.Path, Target: w.Target, Mode: mode})
+			m.Symlinks = append(m.Symlinks, SymlinkEntry{Path: m.normalizeEntryPath(w.Path), Target: w.Target, Mode: mode})
 			return nil
 		case "file":
 			f, err := decodeFile(line)
 			if err != nil {
 				return err
 			}
+			f.Path = m.normalizeEntryPath(f.Path)
 			m.Files = append(m.Files, f)
 			return nil
 		default:
@@ -575,6 +584,22 @@ func DecodeManifest(body []byte) (*Manifest, error) {
 		return nil, fmt.Errorf("decode manifest: header claims %d total bytes, files sum to %d", header.TotalSize, got)
 	}
 	return m, nil
+}
+
+// normalizeEntryPath strips the leading slashes an entry path can carry in a
+// manifest published before the containment rule, so pre-rule volumes still
+// materialize: readers normalize the path rather than refuse the volume. The
+// wire bytes are untouched — the digest still covers what was written — and
+// the manifest records what it normalized. Decode is the one place this
+// happens, so the containment walk, the link namespace, and materialization
+// all see the same normalized form. Push stays strict: a scan never produces
+// a root-anchored path, and validation still refuses one.
+func (m *Manifest) normalizeEntryPath(path string) string {
+	if !strings.HasPrefix(path, "/") {
+		return path
+	}
+	m.NormalizedPaths = append(m.NormalizedPaths, path)
+	return strings.TrimLeft(path, "/")
 }
 
 func decodeFile(line []byte) (FileEntry, error) {

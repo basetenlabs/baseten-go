@@ -552,3 +552,42 @@ func TestParseModeRefusesAboveTheMask(t *testing.T) {
 		require.True(t, mode <= ModeMask, "mode %q decoded to %o", s, mode)
 	}
 }
+
+// TestDecodeNormalizesPreRulePaths covers manifests published before the
+// containment rule, whose entry paths can be root-anchored. Readers normalize
+// them — strip the leading slashes — rather than refuse the volume, and they
+// do it at decode, the one point every consumer sits behind: the containment
+// walk, the link namespace, and materialization all see the same normalized
+// form. The manifest records what it normalized, verbatim, for the pull path
+// to surface once the reporting shape is settled. Push stays strict: a scan
+// never produces a root-anchored path and validation still refuses one.
+func TestDecodeNormalizesPreRulePaths(t *testing.T) {
+	d := testDigest(0xaa)
+	body := `{"_type":"manifest_header","entry_count":4,"manifest_schema":"v1","total_size":5}` + "\n" +
+		`{"_type":"directory","mode":"0755","path":"/a"}` + "\n" +
+		`{"_type":"directory","mode":"0755","path":"///deep"}` + "\n" +
+		`{"_type":"file","_kind":"chunk","chunk":{"digest":"` + d.String() +
+		`","length":5,"offset":0,"target":{"relative_key":"k"}},"mode":"0644","path":"/a/b"}` + "\n" +
+		`{"_type":"symlink","mode":"0777","path":"/l","target":"a/b"}` + "\n"
+
+	m, err := DecodeManifest([]byte(body))
+	require.NoError(t, err)
+	require.Equal(t, "a", m.Directories[0].Path)
+	require.Equal(t, "deep", m.Directories[1].Path)
+	require.Equal(t, "a/b", m.Files[0].Path)
+	require.Equal(t, "l", m.Symlinks[0].Path)
+	require.Len(t, m.NormalizedPaths, 4)
+	for i, want := range []string{"/a", "///deep", "/a/b", "/l"} {
+		require.Equal(t, want, m.NormalizedPaths[i])
+	}
+
+	// The single normalization point is what makes this pass: containment and
+	// the link namespace validate the normalized paths and resolve the link
+	// against them. Before normalization the same manifest failed here.
+	warnings, err := CheckManifestContainment(m)
+	require.NoError(t, err)
+	require.Len(t, warnings, 0)
+
+	// The push side is unchanged: a root-anchored path is still refused.
+	require.Error(t, ValidatePath("/a/b"))
+}
