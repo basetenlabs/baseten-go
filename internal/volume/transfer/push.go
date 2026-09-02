@@ -357,12 +357,15 @@ func (p *pusher) pushFile(ctx context.Context, file volume.SourceFile) (volume.F
 	p.stats.addFile(int64(file.Size))
 	p.progress.Add(1, int64(file.Size))
 
-	entry := volume.FileEntry{Path: file.Path, Mode: file.Mode, Size: file.Size}
+	entry := volume.FileEntry{Path: file.Path, Mode: file.Mode, Size: file.Size, MTime: file.MTime}
 
 	// Every chunk came from the previous version, so the object describing
 	// them is still correct and need not be rebuilt or re-uploaded. The mode
 	// is taken from this scan rather than from the previous entry: a file
 	// whose permissions changed has the same bytes and a different meaning.
+	// The modification time follows the mode — this scan's, never the prior
+	// entry's — for the same reason: a touched file has the same bytes and a
+	// different time, and the manifest must record the tree as it is.
 	if prior != nil && allReused(chunks, priorChunks) {
 		entry.Kind = prior.Kind
 		entry.Chunk = prior.Chunk

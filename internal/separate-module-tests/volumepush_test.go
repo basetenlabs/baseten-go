@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/basetenlabs/baseten-go/internal/volume"
 	"github.com/basetenlabs/baseten-go/internal/volume/bdn"
@@ -565,4 +566,54 @@ func readChunkmap(t *testing.T, f *fakeService, digest volume.Digest) *volume.Ch
 		t.Fatal(err)
 	}
 	return chunkmap
+}
+
+// TestRePushAfterTouchRecordsTheNewTime pins two facts with one transfer.
+// First, the reuse branch's modification time follows the mode — the current
+// scan's, never the prior entry's: a touched file has the same bytes and a
+// different time, and keeping the prior time would publish a tree that no
+// longer matches the source. Second, the version-identity consequence of
+// recording times at all: identical content re-pushed after a touch reuses
+// its chunks and still mints a new version, because the manifest digest
+// covers the times.
+func TestRePushAfterTouchRecordsTheNewTime(t *testing.T) {
+	root := buildTree(t)
+	fake := newFakeService(t)
+
+	first, err := transfer.Push(context.Background(), fake.client(t), pushOptions(root, fake))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	touched := time.Date(2031, 3, 4, 5, 6, 7, 0, time.UTC)
+	if err := os.Chtimes(filepath.Join(root, "small.txt"), touched, touched); err != nil {
+		t.Fatal(err)
+	}
+
+	second, err := transfer.Push(context.Background(), fake.client(t), pushOptions(root, fake))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if second.Reused == 0 {
+		t.Error("the re-push reused nothing, so the assertion below would not cover the reuse branch")
+	}
+	if second.ManifestDigest == first.ManifestDigest {
+		t.Error("the touch did not mint a new version — the manifest digest ignored the time")
+	}
+
+	m, err := volume.DecodeManifest(fake.manifestBytes(t, second.ManifestDigest.String()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range m.Files {
+		if f.Path != "small.txt" {
+			continue
+		}
+		if !f.MTime.Equal(touched) {
+			t.Errorf("the re-pushed entry carries mtime %v, want the touched %v — the reuse branch kept the prior time", f.MTime, touched)
+		}
+		return
+	}
+	t.Fatal("small.txt not found in the re-pushed manifest")
 }
