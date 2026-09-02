@@ -442,11 +442,20 @@ func appendMode(out []byte, mode uint16) []byte {
 // zero one: absent means unknown, and an epoch key would assert 1970 as
 // fact. The key sorts between mode and path, which is where every record
 // writer above places it.
+//
+// The time is clamped here as well as at the scan, because this is where the
+// invariant lives: no unreadable bytes under a digest is a property of the
+// bytes, and a manifest built without a scan — by hand, from decoded pieces
+// — reaches this writer with whatever time its builder set. The scan-site
+// clamps stay for a different job, keeping the in-memory entries truthful.
+// clampMTime is idempotent — clamping a clamped time changes nothing — so
+// the second application cannot drift from the first; there is one clamp
+// function and one pair of bounds, applied twice.
 func appendMTime(out []byte, t time.Time) []byte {
 	if t.IsZero() {
 		return out
 	}
-	return appendString(out, "mtime", t.UTC().Format(time.RFC3339Nano))
+	return appendString(out, "mtime", clampMTime(t).UTC().Format(time.RFC3339Nano))
 }
 
 func appendTarget(out []byte, t Target) []byte {

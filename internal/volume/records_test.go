@@ -778,3 +778,22 @@ func TestMTimeClampKeepsTheWireParseable(t *testing.T) {
 		})
 	}
 }
+
+// TestEncoderClampsWithoutAScan pins the encoder-side clamp: a manifest built
+// by hand — no scan, no filesystem — reaches the encoder with whatever time
+// its builder set, and the bytes must still be readable by our own decoder.
+// The scan-site clamps cannot see this path. Idempotence makes the double
+// application safe: clamping a clamped time changes nothing.
+func TestEncoderClampsWithoutAScan(t *testing.T) {
+	m := &Manifest{Directories: []DirectoryEntry{
+		{Path: "future", Mode: 0o755, MTime: time.Date(99999, 1, 1, 0, 0, 0, 0, time.UTC)},
+		{Path: "past", Mode: 0o755, MTime: time.Date(-5, 1, 1, 0, 0, 0, 0, time.UTC)},
+	}}
+	decoded, err := DecodeManifest(EncodeManifest(m))
+	require.NoError(t, err)
+	require.True(t, decoded.Directories[0].MTime.Equal(mtimeCap), "the far-future time must land on the cap")
+	require.True(t, decoded.Directories[1].MTime.Equal(mtimeFloor), "the pre-range time must land on the floor")
+
+	require.True(t, clampMTime(clampMTime(time.Date(99999, 1, 1, 0, 0, 0, 0, time.UTC))).Equal(mtimeCap),
+		"clampMTime must be idempotent, or the double application could drift")
+}
