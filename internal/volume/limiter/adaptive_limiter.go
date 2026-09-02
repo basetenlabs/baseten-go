@@ -10,11 +10,14 @@
 // to depend on, so it is synchronised by hand: a change made here does not
 // reach the original, and a fix made there does not reach this copy.
 //
-// Three deliberate divergences from that source, all recorded so a reader does
+// Five deliberate divergences from that source, all recorded so a reader does
 // not mistake them for sloppiness, and so that anyone re-synchronising can tell
 // a deliberate change from drift. The list is meant to be exhaustive: apart
-// from these three and the package clause, every remaining difference from the
+// from these five and the package clause, every remaining difference from the
 // source is a comment.
+//
+// The first three are removals this module requires — on a re-sync they are
+// re-applied:
 //
 //   - Metrics are removed, since this module has no metrics dependency and
 //     will not take one. The three reporting helpers are kept as empty
@@ -27,6 +30,17 @@
 //     or paths are renamed in the two test files. They are hygiene only: no
 //     behaviour, no thresholds, no assertions change. Each test file says so
 //     at its top.
+//
+// The last two point the other way: fixes to defects in the source's own
+// tests, which belong upstream — a re-sync should carry them to the original
+// rather than quietly restore the defect:
+//
+//   - The cancel-at-grant test fake closes its done channel exactly once, so
+//     consulting Err a third time answers instead of panicking; a Context's
+//     Err carries no limit on how often it may be called.
+//   - The sim harness's non-blocking acquire counts its admission through the
+//     in-flight seam as the real fast path does, since the permits it hands
+//     out complete through the real release, which counts the exit.
 package limiter
 
 import (
