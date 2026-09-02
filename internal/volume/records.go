@@ -602,6 +602,29 @@ func (m *Manifest) normalizeEntryPath(path string) string {
 	return strings.TrimLeft(path, "/")
 }
 
+// ValidateObjectTarget mirrors the checks the service applies to a
+// relative_key before it will build a storage key from one. The digest
+// verification and lease scoping already bound what a hostile manifest can
+// do with a target, but a key escaping the namespace prefix would aim reads
+// outside it — so a record carrying one is refused where it is decoded
+// rather than fetched from.
+func ValidateObjectTarget(t Target) error {
+	key := t.RelativeKey
+	switch {
+	case key == "":
+		return fmt.Errorf("object target is empty")
+	case strings.HasPrefix(key, "/"):
+		return fmt.Errorf("object target %q is anchored at the root rather than the namespace", key)
+	case strings.Contains(key, ".."):
+		return fmt.Errorf("object target %q contains %q", key, "..")
+	case strings.ContainsRune(key, 0):
+		return fmt.Errorf("object target contains a NUL byte")
+	case !strings.HasPrefix(key, "objects/b3/"):
+		return fmt.Errorf("object target %q does not name a content-addressed object under objects/b3/", key)
+	}
+	return nil
+}
+
 func decodeFile(line []byte) (FileEntry, error) {
 	var w wireFile
 	if err := json.Unmarshal(line, &w); err != nil {
@@ -625,6 +648,9 @@ func decodeFile(line []byte) (FileEntry, error) {
 		if f.Digest, err = ParseDigest(w.Digest); err != nil {
 			return FileEntry{}, fmt.Errorf("file %q: %w", w.Path, err)
 		}
+		if err := ValidateObjectTarget(f.Target); err != nil {
+			return FileEntry{}, fmt.Errorf("file %q: %w", w.Path, err)
+		}
 		if f.Kind == FileKindSlabmap {
 			if f.FileDigest, err = ParseDigest(w.FileDigest); err != nil {
 				return FileEntry{}, fmt.Errorf("file %q: %w", w.Path, err)
@@ -639,6 +665,9 @@ func decodeFile(line []byte) (FileEntry, error) {
 func decodeChunkRef(w wireChunk) (ChunkRef, error) {
 	digest, err := ParseDigest(w.Digest)
 	if err != nil {
+		return ChunkRef{}, err
+	}
+	if err := ValidateObjectTarget(w.Target); err != nil {
 		return ChunkRef{}, err
 	}
 	return ChunkRef{Digest: digest, Length: w.Length, Offset: w.Offset, Target: w.Target}, nil

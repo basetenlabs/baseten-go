@@ -221,8 +221,10 @@ func (c *Client) UploadObject(
 	if echoed != digest {
 		return nil, fmt.Errorf("upload object %s: server stored it as %s", digest, echoed)
 	}
-	if out.Target.RelativeKey == "" {
-		return nil, fmt.Errorf("upload object %s: server returned no target", digest)
+	// The echoed target lands in the manifest this push will commit, so it
+	// is held to the same rule every decoded target is.
+	if err := volume.ValidateObjectTarget(out.Target); err != nil {
+		return nil, fmt.Errorf("upload object %s: server returned %w", digest, err)
 	}
 	return &UploadResult{Digest: digest, Target: out.Target, Created: out.Created, Outcome: outcome}, nil
 }
@@ -386,8 +388,8 @@ func (c *Client) Resolve(ctx context.Context, ref string) (*ResolveResult, error
 	if err != nil {
 		return nil, fmt.Errorf("resolve %s: origin_digest: %w", ref, err)
 	}
-	if out.Resolved.Target.RelativeKey == "" {
-		return nil, fmt.Errorf("resolve %s: no target", ref)
+	if err := volume.ValidateObjectTarget(out.Resolved.Target); err != nil {
+		return nil, fmt.Errorf("resolve %s: %w", ref, err)
 	}
 	result := &ResolveResult{
 		Resolved: Resolved{
