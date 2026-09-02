@@ -70,6 +70,10 @@ func (l *AdaptiveLimiter) tryAcquire() *Permit {
 	defer l.mu.Unlock()
 	if l.waiters.Len() == 0 && l.inflight < l.effectiveLimitLocked() {
 		l.inflight++
+		// Through the seam, as Acquire's fast path does: permits complete
+		// through the real release, which decrements it — an admission that
+		// skipped the increment would drive a wired-up gauge negative.
+		l.addInFlight(1)
 		return &Permit{l: l, gen: l.cuts}
 	}
 	return nil
