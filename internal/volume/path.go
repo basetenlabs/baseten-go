@@ -98,11 +98,22 @@ func NormalizeSymlinkTarget(target string) (string, error) {
 	return target, nil
 }
 
-// rejectVolumeTarget reports targets anchored to a Windows volume. It runs on
-// every platform: a manifest built on Windows is read on unix, so the check
-// belongs to the format rather than to the machine that happens to run it.
+// rejectVolumeTarget reports targets anchored to a Windows volume. Only a
+// target carrying a backslash is judged: the format records targets as
+// bytes, and "c:data" or "//usr/lib/x" are legal unix names — a colon or a
+// doubled slash is not enough to call a target windows-shaped, and refusing
+// them would refuse trees the format accepts. A backslash is enough: no
+// unix target needs one as a separator, and a windows-anchored spelling —
+// a UNC prefix or a drive letter — cannot resolve anywhere a volume is
+// materialized, so those are refused on every platform rather than recorded
+// for another reader to trip over. A doubled leading slash without a
+// backslash is an absolute target, resolved from the volume root like any
+// other.
 func rejectVolumeTarget(target string) error {
-	if strings.HasPrefix(target, `\\`) || strings.HasPrefix(target, "//") {
+	if !strings.ContainsRune(target, '\\') {
+		return nil
+	}
+	if strings.HasPrefix(target, `\\`) {
 		return fmt.Errorf("symlink target %q names a UNC path", target)
 	}
 	if len(target) >= 2 && target[1] == ':' {

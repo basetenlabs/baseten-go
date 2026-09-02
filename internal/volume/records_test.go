@@ -437,7 +437,7 @@ func TestDecodeManifestRejectsCorruption(t *testing.T) {
 	d := testDigest(0xaa)
 	header := `{"_type":"manifest_header","entry_count":1,"manifest_schema":"v1","total_size":5}` + "\n"
 	fileRecord := `{"_type":"file","_kind":"chunk","chunk":{"digest":"` + d.String() +
-		`","length":5,"offset":0,"target":{"relative_key":"k"}},"mode":"0644","path":"f"}` + "\n"
+		`","length":5,"offset":0,"target":{"relative_key":"objects/b3/aa/bb/stub"}},"mode":"0644","path":"f"}` + "\n"
 	provenance := `{"_type":"provenance","source_fingerprint":"local",` +
 		`"source_fingerprint_type":"local_push","source_uri":"file:///a"}` + "\n"
 
@@ -475,7 +475,7 @@ func TestDecodeChunkmapRejectsCorruption(t *testing.T) {
 	first, second := testDigest(0x11), testDigest(0x22)
 	chunk := func(d Digest, length, offset uint64) string {
 		return `{"_type":"chunk","digest":"` + d.String() + `","length":` +
-			itoa(length) + `,"offset":` + itoa(offset) + `,"target":{"relative_key":"k"}}` + "\n"
+			itoa(length) + `,"offset":` + itoa(offset) + `,"target":{"relative_key":"objects/b3/aa/bb/stub"}}` + "\n"
 	}
 	header := func(count, size uint64) string {
 		return `{"_type":"chunkmap_header","chunk_count":` + itoa(count) + `,"file_size":` + itoa(size) + `}` + "\n"
@@ -551,4 +551,118 @@ func TestParseModeRefusesAboveTheMask(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, mode <= ModeMask, "mode %q decoded to %o", s, mode)
 	}
+}
+
+// TestDecodeNormalizesPreRulePaths covers manifests published before the
+// containment rule, whose entry paths can be root-anchored. Readers normalize
+// them — strip the leading slashes — rather than refuse the volume, and they
+// do it at decode, the one point every consumer sits behind: the containment
+// walk, the link namespace, and materialization all see the same normalized
+// form. The manifest records what it normalized, verbatim, for the pull path
+// to surface once the reporting shape is settled. Push stays strict: a scan
+// never produces a root-anchored path and validation still refuses one.
+func TestDecodeNormalizesPreRulePaths(t *testing.T) {
+	d := testDigest(0xaa)
+	body := `{"_type":"manifest_header","entry_count":4,"manifest_schema":"v1","total_size":5}` + "\n" +
+		`{"_type":"directory","mode":"0755","path":"/a"}` + "\n" +
+		`{"_type":"directory","mode":"0755","path":"///deep"}` + "\n" +
+		`{"_type":"file","_kind":"chunk","chunk":{"digest":"` + d.String() +
+		`","length":5,"offset":0,"target":{"relative_key":"objects/b3/aa/bb/stub"}},"mode":"0644","path":"/a/b"}` + "\n" +
+		`{"_type":"symlink","mode":"0777","path":"/l","target":"a/b"}` + "\n"
+
+	m, err := DecodeManifest([]byte(body))
+	require.NoError(t, err)
+	require.Equal(t, "a", m.Directories[0].Path)
+	require.Equal(t, "deep", m.Directories[1].Path)
+	require.Equal(t, "a/b", m.Files[0].Path)
+	require.Equal(t, "l", m.Symlinks[0].Path)
+	require.Len(t, m.NormalizedPaths, 4)
+	for i, want := range []string{"/a", "///deep", "/a/b", "/l"} {
+		require.Equal(t, want, m.NormalizedPaths[i])
+	}
+
+	// The single normalization point is what makes this pass: containment and
+	// the link namespace validate the normalized paths and resolve the link
+	// against them. Before normalization the same manifest failed here. Each
+	// normalized path is reported as a typed finding — the warning channel's
+	// charter is findings that did not stop the download, and a silently
+	// rewritten path would be the one silent mutation in it.
+	warnings, err := CheckManifestContainment(m)
+	require.NoError(t, err)
+	require.Len(t, warnings, 4)
+	for i, want := range []string{"a", "deep", "a/b", "l"} {
+		require.Equal(t, WarningPathNormalized, warnings[i].Kind)
+		require.Equal(t, want, warnings[i].Path)
+		require.Contains(t, warnings[i].Detail, "root-anchored")
+	}
+
+	// The push side is unchanged: a root-anchored path is still refused.
+	require.Error(t, ValidatePath("/a/b"))
+}
+
+// TestValidateObjectTarget mirrors, check for check, what the service
+// requires of a relative_key before it will build a storage key from one.
+// The dot-dot rule is a substring match rather than component-wise — the
+// service refuses any occurrence — so a key like "aa..bb" is refused here
+// too, exactly as it would be there.
+func TestValidateObjectTarget(t *testing.T) {
+	require.NoError(t, ValidateObjectTarget(Target{RelativeKey: "objects/b3/aa/bb/abc"}))
+
+	hostile := map[string]struct{ key, want string }{
+		"empty":            {"", "is empty"},
+		"leading slash":    {"/objects/b3/aa/bb/x", "anchored at the root"},
+		"dot-dot escape":   {"objects/b3/../../../etc/creds", `contains ".."`},
+		"embedded dot-dot": {"objects/b3/aa..bb/x", `contains ".."`},
+		"nul byte":         {"objects/b3/aa/bb/x\x00y", "NUL byte"},
+		"wrong prefix":     {"stuff/x", "objects/b3/"},
+		// versions/ keys are real service keys, but they are mutable state:
+		// a manifest record must name content-addressed bytes, never a key
+		// whose contents can change under the digest.
+		"mutable versions key": {"versions/v1/head", "objects/b3/"},
+	}
+	for name, tc := range hostile {
+		t.Run(name, func(t *testing.T) {
+			err := ValidateObjectTarget(Target{RelativeKey: tc.key})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.want)
+		})
+	}
+}
+
+// TestDecodeRefusesHostileObjectTargets drives one hostile key through each
+// decode intake — a manifest's inline chunk, a manifest's chunkmap-kind file
+// record, and a chunkmap's chunk record — so no intake accepts what the
+// validator refuses. The digest check and lease scoping would contain the
+// damage, but a key aimed outside the namespace is refused rather than
+// fetched from.
+func TestDecodeRefusesHostileObjectTargets(t *testing.T) {
+	d := testDigest(0xaa)
+	hostileTarget := `{"relative_key":"objects/b3/../../creds"}`
+
+	t.Run("manifest inline chunk", func(t *testing.T) {
+		body := `{"_type":"manifest_header","entry_count":1,"manifest_schema":"v1","total_size":5}` + "\n" +
+			`{"_type":"file","_kind":"chunk","chunk":{"digest":"` + d.String() +
+			`","length":5,"offset":0,"target":` + hostileTarget + `},"mode":"0644","path":"f"}` + "\n"
+		_, err := DecodeManifest([]byte(body))
+		require.Error(t, err)
+		require.Contains(t, err.Error(), `contains ".."`)
+	})
+
+	t.Run("manifest chunkmap file", func(t *testing.T) {
+		body := `{"_type":"manifest_header","entry_count":1,"manifest_schema":"v1","total_size":9}` + "\n" +
+			`{"_type":"file","_kind":"chunkmap","digest":"` + d.String() +
+			`","mode":"0644","path":"f","size":9,"target":` + hostileTarget + `}` + "\n"
+		_, err := DecodeManifest([]byte(body))
+		require.Error(t, err)
+		require.Contains(t, err.Error(), `contains ".."`)
+	})
+
+	t.Run("chunkmap chunk", func(t *testing.T) {
+		body := `{"_type":"chunkmap_header","chunk_count":1,"file_size":5}` + "\n" +
+			`{"_type":"chunk","digest":"` + d.String() +
+			`","length":5,"offset":0,"target":` + hostileTarget + `}` + "\n"
+		_, err := DecodeChunkmap([]byte(body))
+		require.Error(t, err)
+		require.Contains(t, err.Error(), `contains ".."`)
+	})
 }

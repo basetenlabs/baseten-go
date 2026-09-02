@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 )
 
 // Wire constants. The vendor media types and the schema string are matched
@@ -111,6 +112,12 @@ type Manifest struct {
 	Directories []DirectoryEntry
 	Files       []FileEntry
 	Symlinks    []SymlinkEntry
+
+	// NormalizedPaths lists entry paths that decoding normalized from the
+	// root-anchored form manifests published before the containment rule can
+	// carry, spelled as the wire carried them. CheckManifestContainment
+	// reports each as a WarningPathNormalized finding.
+	NormalizedPaths []string
 }
 
 // EntryCount is the manifest header's entry_count: every directory, file, and
@@ -536,7 +543,7 @@ func DecodeManifest(body []byte) (*Manifest, error) {
 			if err != nil {
 				return err
 			}
-			m.Directories = append(m.Directories, DirectoryEntry{Path: w.Path, Mode: mode})
+			m.Directories = append(m.Directories, DirectoryEntry{Path: m.normalizeEntryPath(w.Path), Mode: mode})
 			return nil
 		case "symlink":
 			var w wireSymlink
@@ -547,13 +554,14 @@ func DecodeManifest(body []byte) (*Manifest, error) {
 			if err != nil {
 				return err
 			}
-			m.Symlinks = append(m.Symlinks, SymlinkEntry{Path: w.Path, Target: w.Target, Mode: mode})
+			m.Symlinks = append(m.Symlinks, SymlinkEntry{Path: m.normalizeEntryPath(w.Path), Target: w.Target, Mode: mode})
 			return nil
 		case "file":
 			f, err := decodeFile(line)
 			if err != nil {
 				return err
 			}
+			f.Path = m.normalizeEntryPath(f.Path)
 			m.Files = append(m.Files, f)
 			return nil
 		default:
@@ -577,6 +585,52 @@ func DecodeManifest(body []byte) (*Manifest, error) {
 	return m, nil
 }
 
+// normalizeEntryPath strips the leading slashes an entry path can carry in a
+// manifest published before the containment rule, so pre-rule volumes still
+// materialize: readers normalize the path rather than refuse the volume. The
+// wire bytes are untouched — the digest still covers what was written — and
+// the manifest records what it normalized, which the containment check
+// reports as a typed warning. Reporting is a deliberate choice: readers
+// whose warnings feed command-line output stay silent about this
+// normalization, but a download result here carries a typed warning list
+// whose charter is exactly this class — findings that did not stop the
+// download, written out faithfully and reported rather than silently — and a
+// quietly rewritten path would be the one silent mutation in that channel's
+// domain. Decode is the one place normalization happens, so the containment
+// walk, the link namespace, and materialization all see the same normalized
+// form. Push stays strict: a scan never produces a root-anchored path, and
+// validation still refuses one.
+func (m *Manifest) normalizeEntryPath(path string) string {
+	if !strings.HasPrefix(path, "/") {
+		return path
+	}
+	m.NormalizedPaths = append(m.NormalizedPaths, path)
+	return strings.TrimLeft(path, "/")
+}
+
+// ValidateObjectTarget mirrors the checks the service applies to a
+// relative_key before it will build a storage key from one. The digest
+// verification and lease scoping already bound what a hostile manifest can
+// do with a target, but a key escaping the namespace prefix would aim reads
+// outside it — so a record carrying one is refused where it is decoded
+// rather than fetched from.
+func ValidateObjectTarget(t Target) error {
+	key := t.RelativeKey
+	switch {
+	case key == "":
+		return fmt.Errorf("object target is empty")
+	case strings.HasPrefix(key, "/"):
+		return fmt.Errorf("object target %q is anchored at the root rather than the namespace", key)
+	case strings.Contains(key, ".."):
+		return fmt.Errorf("object target %q contains %q", key, "..")
+	case strings.ContainsRune(key, 0):
+		return fmt.Errorf("object target contains a NUL byte")
+	case !strings.HasPrefix(key, "objects/b3/"):
+		return fmt.Errorf("object target %q does not name a content-addressed object under objects/b3/", key)
+	}
+	return nil
+}
+
 func decodeFile(line []byte) (FileEntry, error) {
 	var w wireFile
 	if err := json.Unmarshal(line, &w); err != nil {
@@ -586,6 +640,13 @@ func decodeFile(line []byte) (FileEntry, error) {
 	if err != nil {
 		return FileEntry{}, err
 	}
+	// Target is copied for every kind, but for FileKindChunk it is inert, and
+	// the inertness is load-bearing: the encoder never emits a file-level
+	// target for chunk entries and no read path consults it — the inline
+	// chunk's own validated target is what a read follows. The switch below
+	// validates the field only for the kinds that use it, so an encoder that
+	// ever starts emitting it for chunk entries must add its validation here
+	// in the same change.
 	f := FileEntry{Path: w.Path, Mode: mode, Kind: FileKind(w.Kind), Size: w.Size, Target: w.Target}
 	switch f.Kind {
 	case FileKindChunk:
@@ -598,6 +659,9 @@ func decodeFile(line []byte) (FileEntry, error) {
 		f.Size = f.Chunk.Length
 	case FileKindChunkmap, FileKindSlabmap:
 		if f.Digest, err = ParseDigest(w.Digest); err != nil {
+			return FileEntry{}, fmt.Errorf("file %q: %w", w.Path, err)
+		}
+		if err := ValidateObjectTarget(f.Target); err != nil {
 			return FileEntry{}, fmt.Errorf("file %q: %w", w.Path, err)
 		}
 		if f.Kind == FileKindSlabmap {
@@ -614,6 +678,9 @@ func decodeFile(line []byte) (FileEntry, error) {
 func decodeChunkRef(w wireChunk) (ChunkRef, error) {
 	digest, err := ParseDigest(w.Digest)
 	if err != nil {
+		return ChunkRef{}, err
+	}
+	if err := ValidateObjectTarget(w.Target); err != nil {
 		return ChunkRef{}, err
 	}
 	return ChunkRef{Digest: digest, Length: w.Length, Offset: w.Offset, Target: w.Target}, nil

@@ -50,6 +50,11 @@ const (
 	// WarningParentUnrecorded: the entry's ancestors up to the nearest
 	// recorded one are all implicit — nothing records the parent directory.
 	WarningParentUnrecorded
+	// WarningPathNormalized: the entry's path was recorded root-anchored —
+	// "/a/b" — and decoding normalized it to a relative one. Only manifests
+	// published before the containment rule carry the shape; publish refuses
+	// it, so the warning marks a legacy volume, never a fresh push.
+	WarningPathNormalized
 )
 
 // ContainmentWarning is a finding the lenient profile reports rather than
@@ -120,6 +125,16 @@ func CheckManifestContainment(m *Manifest) ([]ContainmentWarning, error) {
 		return nil, err
 	}
 	var warnings []ContainmentWarning
+	// Paths the decoder normalized are reported through the same channel as
+	// the other pre-rule findings: they write out harmlessly, and a caller
+	// deciding whether to trust a legacy volume can branch on the kind.
+	for _, raw := range m.NormalizedPaths {
+		warnings = append(warnings, ContainmentWarning{
+			Path:   strings.TrimLeft(raw, "/"),
+			Kind:   WarningPathNormalized,
+			Detail: fmt.Sprintf("recorded as %q, a root-anchored path from before the containment rule; materialized relative to the volume root", raw),
+		})
+	}
 	for _, issue := range ns.parentIssues() {
 		if issue.missing {
 			warnings = append(warnings, ContainmentWarning{

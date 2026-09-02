@@ -88,7 +88,7 @@ func TestRetryAfterCapsTheWait(t *testing.T) {
 		writeJSON(t, w, http.StatusOK, map[string]any{
 			"resolved": map[string]any{
 				"origin_digest": volume.Digest{}.String(),
-				"target":        volume.Target{RelativeKey: "k"},
+				"target":        volume.Target{RelativeKey: "objects/b3/aa/bb/stub"},
 			},
 			"origin": map[string]any{},
 		})
@@ -269,7 +269,7 @@ func TestRetriesTransportFailures(t *testing.T) {
 		writeJSON(t, w, http.StatusOK, map[string]any{
 			"resolved": map[string]any{
 				"origin_digest": volume.Digest{}.String(),
-				"target":        volume.Target{RelativeKey: "k"},
+				"target":        volume.Target{RelativeKey: "objects/b3/aa/bb/stub"},
 			},
 			"origin": map[string]any{},
 		})
@@ -365,7 +365,7 @@ func TestReExchangesRejectedToken(t *testing.T) {
 		writeJSON(t, w, http.StatusOK, map[string]any{
 			"resolved": map[string]any{
 				"origin_digest": volume.Digest{}.String(),
-				"target":        volume.Target{RelativeKey: "k"},
+				"target":        volume.Target{RelativeKey: "objects/b3/aa/bb/stub"},
 			},
 			"origin": map[string]any{},
 		})
@@ -423,7 +423,7 @@ func TestCredentialExchangeDoesNotSpendARetry(t *testing.T) {
 			writeJSON(t, w, http.StatusOK, map[string]any{
 				"resolved": map[string]any{
 					"origin_digest": volume.Digest{}.String(),
-					"target":        volume.Target{RelativeKey: "k"},
+					"target":        volume.Target{RelativeKey: "objects/b3/aa/bb/stub"},
 				},
 				"origin": map[string]any{},
 			})
