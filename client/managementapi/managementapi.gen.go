@@ -1260,6 +1260,30 @@ func (e V1InteractiveSessionTrigger) Valid() bool {
 	}
 }
 
+// Defines values for VolumeTokenScope.
+const (
+	VolumeTokenScope_INSPECT VolumeTokenScope = "INSPECT"
+	VolumeTokenScope_PULL    VolumeTokenScope = "PULL"
+	VolumeTokenScope_PUSH    VolumeTokenScope = "PUSH"
+	VolumeTokenScope_TAG     VolumeTokenScope = "TAG"
+)
+
+// Valid indicates whether the value is a known member of the VolumeTokenScope enum.
+func (e VolumeTokenScope) Valid() bool {
+	switch e {
+	case VolumeTokenScope_INSPECT:
+		return true
+	case VolumeTokenScope_PULL:
+		return true
+	case VolumeTokenScope_PUSH:
+		return true
+	case VolumeTokenScope_TAG:
+		return true
+	default:
+		return false
+	}
+}
+
 // APIKey Represents an API key.
 type APIKey struct {
 	// ApiKey The API key string
@@ -2193,15 +2217,13 @@ type BasetenNamedCheckpointConfig struct {
 
 // BenchmarkSnapshot defines model for BenchmarkSnapshot.
 type BenchmarkSnapshot struct {
-	CostPer1mTokensUsd           *float32 `json:"cost_per_1m_tokens_usd,omitempty"`
-	MaxConcurrentUsersAt50msTpot *int     `json:"max_concurrent_users_at_50ms_tpot,omitempty"`
-	MeasuredAt                   string   `json:"measured_at"`
-	OutputTokensPerSecPerUserP50 *float32 `json:"output_tokens_per_sec_per_user_p50,omitempty"`
-	Profile                      *string  `json:"profile,omitempty"`
-	Replicas                     *int     `json:"replicas,omitempty"`
-	RequestsPerSecP50            *float32 `json:"requests_per_sec_p50,omitempty"`
-	RunId                        string   `json:"run_id"`
-	TtftMsP50                    *float32 `json:"ttft_ms_p50,omitempty"`
+	Embedding  *EmbeddingBenchmarkMetrics `json:"embedding,omitempty"`
+	Llm        *LLMBenchmarkMetrics       `json:"llm,omitempty"`
+	MeasuredAt string                     `json:"measured_at"`
+	Profile    *string                    `json:"profile,omitempty"`
+	Replicas   *int                       `json:"replicas,omitempty"`
+	RunId      string                     `json:"run_id"`
+	Tts        *TTSBenchmarkMetrics       `json:"tts,omitempty"`
 }
 
 // BillableResource defines model for BillableResource.
@@ -2739,7 +2761,7 @@ type CreateLoopsRunRequest struct {
 	// ReuseFromSessionId Optional ID of a prior Loops session whose trainer and/or sampler should be reused for this run. Deprecated in favor of reuse_from_run_id.
 	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
 
-	// ScaleDownDelaySeconds Seconds of inactivity before the run scales to zero. Must be between 1 and 3600 (1 hour). Defaults to 3600.
+	// ScaleDownDelaySeconds Seconds of inactivity before the run scales to zero. Must be between 1 and 3600 (1 hour). Defaults to 900 (15 minutes).
 	ScaleDownDelaySeconds *int `json:"scale_down_delay_seconds,omitempty"`
 
 	// Seed Random seed for reproducibility.
@@ -2955,6 +2977,36 @@ type CreateTrainingJobS3Artifact struct {
 
 	// S3Key S3 key for the uploaded runtime artifact.
 	S3Key string `json:"s3_key"`
+}
+
+// CreateVolumeTokenRequest defines model for CreateVolumeTokenRequest.
+type CreateVolumeTokenRequest struct {
+	// CorrelationId Optional client-chosen identifier, at most 128 printable ASCII characters. Echoed into server logs to link the issued token to a client operation.
+	CorrelationId *string `json:"correlation_id,omitempty"`
+
+	// Namespaces Volume namespaces the token is limited to, lowercase ASCII, at least one. Pass only the namespaces the operation needs.
+	Namespaces []string `json:"namespaces"`
+
+	// Scopes Capabilities the token grants, at least one. Requesting PUSH or TAG requires organization-level model management permission.
+	Scopes []VolumeTokenScope `json:"scopes"`
+}
+
+// CreateVolumeTokenResponse defines model for CreateVolumeTokenResponse.
+type CreateVolumeTokenResponse struct {
+	// BdnEndpoint Base URL of the volume API this token authenticates against. Null when the environment does not expose a public volume API yet.
+	BdnEndpoint *string `json:"bdn_endpoint"`
+
+	// ExpiresAt Token expiry in ISO 8601 format. Tokens cannot be renewed; exchange again for a fresh token.
+	ExpiresAt time.Time `json:"expires_at"`
+
+	// Namespaces Effective namespaces granted, in canonical lowercase form.
+	Namespaces []string `json:"namespaces"`
+
+	// Scopes Effective capabilities granted.
+	Scopes []VolumeTokenScope `json:"scopes"`
+
+	// Token Volume access token. Pass as a bearer token to the volume APIs.
+	Token string `json:"token"`
 }
 
 // CreatedModelDeployment A newly created deployment and its model.
@@ -3535,6 +3587,14 @@ type EffectiveUsageLimit struct {
 	Threshold int            `json:"threshold"`
 	Type      LimitType      `json:"type"`
 	Unit      UsageLimitUnit `json:"unit"`
+}
+
+// EmbeddingBenchmarkMetrics defines model for EmbeddingBenchmarkMetrics.
+type EmbeddingBenchmarkMetrics struct {
+	E2eLatencyMsP50   *float32 `json:"e2e_latency_ms_p50,omitempty"`
+	E2eLatencyMsP99   *float32 `json:"e2e_latency_ms_p99,omitempty"`
+	InputTokensPerSec *float32 `json:"input_tokens_per_sec,omitempty"`
+	RequestsPerSec    *float32 `json:"requests_per_sec,omitempty"`
 }
 
 // Endpoint A Gateway endpoint: a slug and its priority-ordered targets (index 0 tried first).
@@ -4326,6 +4386,15 @@ type KeysForGroupResponse struct {
 	Pagination PaginationResponse `json:"pagination"`
 }
 
+// LLMBenchmarkMetrics defines model for LLMBenchmarkMetrics.
+type LLMBenchmarkMetrics struct {
+	CostPer1mTokensUsd           *float32 `json:"cost_per_1m_tokens_usd,omitempty"`
+	MaxConcurrentUsersAt50msTpot *int     `json:"max_concurrent_users_at_50ms_tpot,omitempty"`
+	OutputTokensPerSecPerUserP50 *float32 `json:"output_tokens_per_sec_per_user_p50,omitempty"`
+	RequestsPerSecP50            *float32 `json:"requests_per_sec_p50,omitempty"`
+	TtftMsP50                    *float32 `json:"ttft_ms_p50,omitempty"`
+}
+
 // LLMModelHandle Handle for a BIS-LLM model deployment.
 type LLMModelHandle struct {
 	// Hostname Hostname used to invoke the model
@@ -4531,7 +4600,7 @@ type Log struct {
 	// Level Severity of the log line, if one was detected. null when unknown.
 	Level *LogLevel `json:"level,omitempty"`
 
-	// Message The contents of the log message.
+	// Message The contents of the log message. When the logger captured an exception, the traceback is appended after the message.
 	Message string `json:"message"`
 
 	// Replica The replica the log line was emitted from.
@@ -5686,6 +5755,14 @@ type SyncDeploymentPatchesResponse struct {
 	NeedsFullDeployReason *string `json:"needs_full_deploy_reason,omitempty"`
 }
 
+// TTSBenchmarkMetrics defines model for TTSBenchmarkMetrics.
+type TTSBenchmarkMetrics struct {
+	CostPerAudioMinuteUsd      *float32 `json:"cost_per_audio_minute_usd,omitempty"`
+	MaxConcurrentStreamsAtRtf1 *int     `json:"max_concurrent_streams_at_rtf1,omitempty"`
+	TtftMsP50                  *float32 `json:"ttft_ms_p50,omitempty"`
+	TtftMsP50AtMaxConcurrency  *float32 `json:"ttft_ms_p50_at_max_concurrency,omitempty"`
+}
+
 // Team A team.
 type Team struct {
 	// CreatedAt Time the team was created in ISO 8601 format
@@ -6265,9 +6342,15 @@ type UpdateRollingDeployConfig struct {
 }
 
 // UpdateTrainingJobRequest A request to update mutable fields on a training job.
+//
+// Every field is optional so a caller can patch one without the other, but at least
+// one must be provided: an empty body has nothing to apply.
 type UpdateTrainingJobRequest struct {
+	// AvailabilityModel New capacity guarantee for a PENDING training job. 'dedicated' runs on on-demand capacity that is not preempted. 'spot' runs on interruptible capacity that may be preempted; the user is responsible for checkpointing their own progress. Only jobs in the PENDING state can have their availability model changed.
+	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+
 	// Priority New queue priority for a PENDING training job. Higher values are dequeued first. Only jobs in the PENDING state can have their priority changed.
-	Priority int `json:"priority"`
+	Priority *int `json:"priority,omitempty"`
 }
 
 // UpdateTrainingJobResponse A response to updating a training job.
@@ -6391,6 +6474,14 @@ type VertexTargetConfig struct {
 	// ProjectId Google Cloud project ID or project number.
 	ProjectId string `json:"project_id"`
 }
+
+// VolumeTokenScope Capability a volume token grants.
+//
+// - “PULL“: read volume data.
+// - “INSPECT“: read volume metadata without data access.
+// - “PUSH“: upload and commit volume versions.
+// - “TAG“: move or remove tags.
+type VolumeTokenScope string
 
 // ApiKeyPrefix defines model for api_key_prefix.
 type ApiKeyPrefix = string
@@ -7141,6 +7232,9 @@ type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdSshSignJSONRequestB
 
 // PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody defines body for PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStop for application/json ContentType.
 type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody = StopTrainingJobRequest
+
+// PostV1VolumesTokenJSONRequestBody defines body for PostV1VolumesToken for application/json ContentType.
+type PostV1VolumesTokenJSONRequestBody = CreateVolumeTokenRequest
 
 // AsAuditLogEventModelDeployed returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeployed
 func (t AuditLogEntry_EventData) AsAuditLogEventModelDeployed() (AuditLogEventModelDeployed, error) {

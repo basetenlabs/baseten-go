@@ -26,6 +26,46 @@ type AutoscalingMetric struct {
 	Target float64 `json:"target" yaml:"target"`
 }
 
+// Configuration for mounting BDN volumes.
+type BDNConfig struct {
+	// Existing BDN volumes to mount when the model starts.
+	Mounts []BDNVolumeMount `json:"mounts,omitempty,omitzero" yaml:"mounts,omitempty"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
+// An existing BDN volume mounted into a model container.
+//
+// BDN vocabulary, read off a reference like `bdn://weights/llama-8b:prod`:
+//
+//   - A *namespace* (`weights`) groups volumes within your organization, and is
+//     the unit that access grants and storage are scoped to. Names are
+//     lowercase alphanumeric plus hyphens, at least two characters, and may not
+//     begin with a digit; `namespaces` and `resolve` are reserved.
+//   - A *volume* (`llama-8b`) is one versioned collection of files. Every
+//     published version is immutable and identified by its content digest.
+//   - A *tag* (`prod`) is a mutable, case-sensitive name pointing at one
+//     version, repointed as newer versions are published. A reference carrying
+//     neither tag nor digest resolves to the volume's head, its latest version.
+//
+// ```
+// bdn:
+//
+//	mounts:
+//	  - source: bdn://weights/llama-8b:prod
+//	    path: /models/llama
+//
+// ```
+type BDNVolumeMount struct {
+	// Absolute path where the volume will be mounted at runtime.
+	Path string `json:"path" yaml:"path"`
+
+	// BDN volume reference to mount (for example, bdn://weights/llama-8b:prod).
+	Source string `json:"source" yaml:"source"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
 // Configuration options for BIS LLM deployments.
 type BISLLM struct {
 	// Additional autoscaling configuration
@@ -305,6 +345,9 @@ type ModelConfig struct {
 
 	// Use a custom Docker base image instead of the default Truss image.
 	BaseImage *BaseImage `json:"base_image,omitempty,omitzero" yaml:"base_image,omitempty"`
+
+	// Configure BDN volume mounts.
+	Bdn *BDNConfig `json:"bdn,omitempty,omitzero" yaml:"bdn,omitempty"`
 
 	// Configuration options for BIS LLM deployments. This field may change in the
 	// future.
