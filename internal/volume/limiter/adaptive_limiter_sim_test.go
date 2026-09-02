@@ -4,8 +4,11 @@ package limiter
 // name, and a set of hygiene renames: identifiers and strings that named the
 // source's own service, package or path (a config helper and its two tests,
 // the report environment variable, and the example command) carry neutral names
-// here. Nothing else differs — no scenario, threshold, seed or assertion is
-// changed. See the package doc for the full list of deliberate divergences.
+// here. One fix to the source's own harness: tryAcquire counts its admission
+// through the in-flight seam as the real fast path does (the package doc's
+// fifth divergence, the kind a re-sync carries upstream). Nothing else
+// differs — no scenario, threshold, seed or assertion is changed. See the
+// package doc for the full list of deliberate divergences.
 
 // Simulation harness for AdaptiveLimiter: drives the *real* limiter against a
 // processor-sharing queue model of an origin, under the injected fake clock

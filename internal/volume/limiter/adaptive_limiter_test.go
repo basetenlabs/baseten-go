@@ -1,9 +1,12 @@
 package limiter
 
 // Vendored verbatim alongside the limiter, apart from this note, the package
-// name, and one comment whose citation named the original source tree. No
-// assertion, threshold or helper differs from the original — see the package
-// doc for the full list of deliberate divergences.
+// name, one comment whose citation named the original source tree, and one
+// fix to a defect in the source's own fake: cancelAtGrantContext now closes
+// its done channel exactly once (the package doc's fourth divergence, the
+// kind a re-sync carries upstream). No assertion or threshold differs from
+// the original — see the package doc for the full list of deliberate
+// divergences.
 
 import (
 	"context"

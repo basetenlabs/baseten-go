@@ -27,7 +27,7 @@
 //   - The config field that labelled those metrics is gone, rather than left
 //     as a knob that does nothing.
 //   - Identifiers and strings that named the source's own services, packages
-//     or paths are renamed in the two test files. They are hygiene only: no
+//     or paths are renamed in the sim test file. They are hygiene only: no
 //     behaviour, no thresholds, no assertions change. Each test file says so
 //     at its top.
 //
