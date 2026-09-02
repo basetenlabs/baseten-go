@@ -237,15 +237,6 @@ type InferenceRetryConfig struct {
 	MaxDelayMs *int `json:"max_delay_ms,omitempty"`
 }
 
-// DeploymentId defines model for deployment_id.
-type DeploymentId = string
-
-// EnvName defines model for env_name.
-type EnvName = string
-
-// RequestId defines model for request_id.
-type RequestId = string
-
 // AsyncPredictOutput defines model for AsyncPredictOutput.
 type AsyncPredictOutput struct {
 	// RequestId The ID of the async request.

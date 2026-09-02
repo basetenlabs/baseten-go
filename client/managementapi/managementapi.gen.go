@@ -2989,6 +2989,9 @@ type CreateVolumeTokenRequest struct {
 
 	// Scopes Capabilities the token grants, at least one. Requesting PUSH or TAG requires organization-level model management permission.
 	Scopes []VolumeTokenScope `json:"scopes"`
+
+	// Volumes Volume names the token is limited to, lowercase ASCII, exact names only, at least one. The limit applies to every requested scope in every requested namespace.
+	Volumes []string `json:"volumes"`
 }
 
 // CreateVolumeTokenResponse defines model for CreateVolumeTokenResponse.
@@ -3007,6 +3010,9 @@ type CreateVolumeTokenResponse struct {
 
 	// Token Volume access token. Pass as a bearer token to the volume APIs.
 	Token string `json:"token"`
+
+	// Volumes Effective volume names granted, in canonical lowercase form.
+	Volumes []string `json:"volumes"`
 }
 
 // CreatedModelDeployment A newly created deployment and its model.
@@ -4576,6 +4582,30 @@ type ListTrainingJobsResponse struct {
 type ListTrainingProjectsResponse struct {
 	// TrainingProjects List of training projects.
 	TrainingProjects []TrainingProject `json:"training_projects"`
+}
+
+// ListVolumeNamespacesResponse A page of namespaces the caller can read.
+type ListVolumeNamespacesResponse struct {
+	// Items Items in this page.
+	Items      []string           `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
+// ListVolumeVersionsResponse Every version of a volume, newest first.
+//
+// Unpaginated: `limit` and `cursor` are absent rather than accepted and
+// ignored, so adding them once the volume service pages this listing is a
+// purely additive change.
+type ListVolumeVersionsResponse struct {
+	// Versions Versions of the volume, newest first.
+	Versions []VolumeVersion `json:"versions"`
+}
+
+// ListVolumesResponse A page of volumes in one namespace.
+type ListVolumesResponse struct {
+	// Items Items in this page.
+	Items      []Volume           `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 // LoadCheckpointConfig defines model for LoadCheckpointConfig.
@@ -6475,6 +6505,51 @@ type VertexTargetConfig struct {
 	ProjectId string `json:"project_id"`
 }
 
+// Volume defines model for Volume.
+type Volume struct {
+	// Head Version that the reserved `head` tag points at, which a reference with no tag or digest resolves to. Null when the volume has no head, or when your API key cannot read it.
+	Head *VolumeVersionSummary `json:"head"`
+
+	// Name Name of the volume, in lowercase.
+	Name string `json:"name"`
+
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
+
+	// Sequence Revision counter for the volume, incremented on every commit and tag change. Use it to detect that a volume changed.
+	Sequence int `json:"sequence"`
+
+	// TagCount Total number of tags on the volume, which can exceed the length of `tags` when your API key cannot read all of them.
+	TagCount int `json:"tag_count"`
+
+	// Tags Tags on the volume that your API key can read.
+	Tags []VolumeTag `json:"tags"`
+
+	// UpdatedAt When the volume last changed, in ISO 8601 format.
+	UpdatedAt time.Time `json:"updated_at"`
+
+	// VersionRef Full address of the volume, as `bdn://<namespace>/<volume>`. Paste this into the `bdn.mounts` section of a config.yaml.
+	VersionRef string `json:"version_ref"`
+
+	// VersionsAlive Number of versions that have not been deleted.
+	VersionsAlive int `json:"versions_alive"`
+
+	// VersionsTombstoned Number of versions that have been deleted.
+	VersionsTombstoned int `json:"versions_tombstoned"`
+
+	// VersionsUntagged Number of versions that no tag points at.
+	VersionsUntagged int `json:"versions_untagged"`
+}
+
+// VolumeTag defines model for VolumeTag.
+type VolumeTag struct {
+	// Digest Digest of the version the tag points at, as `b3:<hex>`.
+	Digest string `json:"digest"`
+
+	// Name Tag name. Tags are case-sensitive.
+	Name string `json:"name"`
+}
+
 // VolumeTokenScope Capability a volume token grants.
 //
 // - “PULL“: read volume data.
@@ -6483,71 +6558,50 @@ type VertexTargetConfig struct {
 // - “TAG“: move or remove tags.
 type VolumeTokenScope string
 
-// ApiKeyPrefix defines model for api_key_prefix.
-type ApiKeyPrefix = string
+// VolumeVersion defines model for VolumeVersion.
+type VolumeVersion struct {
+	// CreatedAt When the version was committed, in ISO 8601 format.
+	CreatedAt time.Time `json:"created_at"`
 
-// ChainDeploymentId defines model for chain_deployment_id.
-type ChainDeploymentId = string
+	// Digest Content digest of the version, as `b3:<hex>`.
+	Digest string `json:"digest"`
 
-// ChainId defines model for chain_id.
-type ChainId = string
+	// IsHead Whether the reserved `head` tag points at this version.
+	IsHead bool `json:"is_head"`
 
-// ChainletId defines model for chainlet_id.
-type ChainletId = string
+	// Lifecycle Lifecycle state of the version, for example ALIVE or TOMBSTONED.
+	Lifecycle string `json:"lifecycle"`
 
-// CheckpointId defines model for checkpoint_id.
-type CheckpointId = string
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
 
-// DeploymentId defines model for deployment_id.
-type DeploymentId = string
+	// Sequence Revision the version was committed at. Null for versions committed before the volume service recorded it.
+	Sequence *int `json:"sequence"`
 
-// EndpointId defines model for endpoint_id.
-type EndpointId = string
+	// Tags Tags pointing at this version that your API key can read.
+	Tags []string `json:"tags"`
 
-// EnvName defines model for env_name.
-type EnvName = string
+	// TotalSizeBytes Total size of the version's files in bytes. Null when not recorded.
+	TotalSizeBytes *int `json:"total_size_bytes"`
 
-// GroupId defines model for group_id.
-type GroupId = string
+	// VersionRef Full address of this version, as `bdn://<namespace>/<volume>@<digest>`. Paste this into the `bdn.mounts` section of a config.yaml to pin to it.
+	VersionRef string `json:"version_ref"`
 
-// ModelApiName defines model for model_api_name.
-type ModelApiName = string
+	// Volume Name of the volume, in lowercase.
+	Volume string `json:"volume"`
+}
 
-// ModelId defines model for model_id.
-type ModelId = string
+// VolumeVersionSummary defines model for VolumeVersionSummary.
+type VolumeVersionSummary struct {
+	// CreatedAt When the version was committed, in ISO 8601 format.
+	CreatedAt time.Time `json:"created_at"`
 
-// ReplicaId defines model for replica_id.
-type ReplicaId = string
+	// Digest Content digest of the version, as `b3:<hex>`.
+	Digest string `json:"digest"`
 
-// RunId defines model for run_id.
-type RunId = string
-
-// SamplerId defines model for sampler_id.
-type SamplerId = string
-
-// SecretName defines model for secret_name.
-type SecretName = string
-
-// SessionId defines model for session_id.
-type SessionId = string
-
-// TeamId defines model for team_id.
-type TeamId = string
-
-// TrainingJobId defines model for training_job_id.
-type TrainingJobId = string
-
-// TrainingProjectId defines model for training_project_id.
-type TrainingProjectId = string
-
-// UserDefinedListingId defines model for user_defined_listing_id.
-type UserDefinedListingId = string
-
-// UserId defines model for user_id.
-type UserId = string
-
-// VersionTag defines model for version_tag.
-type VersionTag = string
+	// TotalSizeBytes Total size of the version's files in bytes.
+	TotalSizeBytes int `json:"total_size_bytes"`
+}
 
 // GetV1AuditLogsParams defines parameters for GetV1AuditLogs.
 type GetV1AuditLogsParams struct {
@@ -7045,6 +7099,27 @@ type GetV1UsersParams struct {
 
 	// Email When set, returns only users with this exact email, if any.
 	Email *string `form:"email,omitempty" json:"email,omitempty"`
+}
+
+// GetV1VolumesParams defines parameters for GetV1Volumes.
+type GetV1VolumesParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of volumes to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Namespace Namespace to list volumes in. Required, because the volume service has no cross-namespace inventory.
+	Namespace string `form:"namespace" json:"namespace"`
+}
+
+// GetV1VolumesNamespacesParams defines parameters for GetV1VolumesNamespaces.
+type GetV1VolumesNamespacesParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of namespaces to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // PostV1ApiKeysJSONRequestBody defines body for PostV1ApiKeys for application/json ContentType.

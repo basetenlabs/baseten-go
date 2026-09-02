@@ -15,17 +15,89 @@
         }
     ],
     "paths": {
+        "/v1/volumes": {
+            "get": {
+                "summary": "Gets the volumes in a namespace",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/volumes \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'namespace': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns one row per volume in the namespace, each with its tags, head version, and version counts. Pass namespace to choose the namespace, which is required because the volume service has no cross-namespace inventory. Versions live on the versions sub-resource, so this response stays a fixed size per volume no matter how long a volume's history is.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of volumes to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true,
+                        "description": "Namespace to list volumes in. Required, because the volume service has no cross-namespace inventory.",
+                        "schema": {
+                            "title": "Namespace",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListVolumesResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
         "/v1/volumes/token": {
             "post": {
                 "summary": "Creates a volume access token",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/token \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"scopes\": null,\n  \"namespaces\": null,\n  \"correlation_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/token \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"scopes\": null,\n  \"namespaces\": null,\n  \"volumes\": null,\n  \"correlation_id\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/token\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'scopes': None, 'namespaces': None, 'correlation_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/token\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'scopes': None, 'namespaces': None, 'volumes': None, 'correlation_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Exchanges your API key for a short-lived token that authenticates against Baseten volume storage. A volume token is needed only to push and pull volume data; other volume operations use your API key directly. Tokens expire after one hour and cannot be renewed; exchange again for a fresh token. Push and tag capabilities require organization-level model management permission. Pass correlation_id to link the issued token to a client operation in server logs.",
@@ -53,6 +125,182 @@
                 },
                 "x-stability": "unstable"
             }
+        },
+        "/v1/volumes/namespaces": {
+            "get": {
+                "summary": "Gets the volume namespaces in your workspace",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/volumes/namespaces \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/namespaces\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns the namespaces that hold volumes your API key can read, in lowercase. Namespaces are not created directly: a namespace comes into existence when the first volume is pushed into it.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of namespaces to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListVolumeNamespacesResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/volumes/{volume_namespace}/{volume_name}": {
+            "get": {
+                "summary": "Gets a volume",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns a volume with its tags, head version, and version counts. Versions live on the versions sub-resource so they can be paged separately.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VolumeV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/volume_namespace"
+                },
+                {
+                    "$ref": "#/components/parameters/volume_name"
+                }
+            ]
+        },
+        "/v1/volumes/{volume_namespace}/{volume_name}/versions": {
+            "get": {
+                "summary": "Gets the versions of a volume",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns every version of the volume, newest first, each with its digest, size, lifecycle, and the tags pointing at it. Deleted versions are included and carry a tombstoned lifecycle, so filter on lifecycle to list only live versions.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListVolumeVersionsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/volume_namespace"
+                },
+                {
+                    "$ref": "#/components/parameters/volume_name"
+                }
+            ]
+        },
+        "/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}": {
+            "get": {
+                "summary": "Gets one version of a volume",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns a single version of the volume. Address it with `:<tag>` for a tag, `@<digest>` for a content digest of at least 12 hexadecimal characters, or `head` for the version a reference with no tag or digest resolves to. A digest that matches more than one version is rejected: supply more characters.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VolumeVersionV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/volume_namespace"
+                },
+                {
+                    "$ref": "#/components/parameters/volume_name"
+                },
+                {
+                    "$ref": "#/components/parameters/volume_version"
+                }
+            ]
         },
         "/v1/secrets": {
             "get": {
@@ -8719,6 +8967,222 @@
     "openapi": "3.1.0",
     "components": {
         "schemas": {
+            "PaginationResponseV1": {
+                "properties": {
+                    "has_more": {
+                        "description": "Whether more items exist after this page.",
+                        "title": "Has More",
+                        "type": "boolean"
+                    },
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor to pass into the next request. Null when there is no next page.",
+                        "title": "Cursor"
+                    }
+                },
+                "required": [
+                    "has_more"
+                ],
+                "title": "PaginationResponseV1",
+                "type": "object"
+            },
+            "VolumeTagV1": {
+                "properties": {
+                    "name": {
+                        "description": "Tag name. Tags are case-sensitive.",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "digest": {
+                        "description": "Digest of the version the tag points at, as `b3:<hex>`.",
+                        "title": "Digest",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "digest"
+                ],
+                "title": "VolumeTagV1",
+                "type": "object"
+            },
+            "VolumeV1": {
+                "properties": {
+                    "namespace": {
+                        "description": "Namespace the volume belongs to, in lowercase.",
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name of the volume, in lowercase.",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "version_ref": {
+                        "description": "Full address of the volume, as `bdn://<namespace>/<volume>`. Paste this into the `bdn.mounts` section of a config.yaml.",
+                        "title": "Version Ref",
+                        "type": "string"
+                    },
+                    "sequence": {
+                        "description": "Revision counter for the volume, incremented on every commit and tag change. Use it to detect that a volume changed.",
+                        "title": "Sequence",
+                        "type": "integer"
+                    },
+                    "updated_at": {
+                        "description": "When the volume last changed, in ISO 8601 format.",
+                        "format": "date-time",
+                        "title": "Updated At",
+                        "type": "string"
+                    },
+                    "head": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeVersionSummaryV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Version that the reserved `head` tag points at, which a reference with no tag or digest resolves to. Null when the volume has no head, or when your API key cannot read it."
+                    },
+                    "tags": {
+                        "description": "Tags on the volume that your API key can read.",
+                        "items": {
+                            "$ref": "#/components/schemas/VolumeTagV1"
+                        },
+                        "title": "Tags",
+                        "type": "array"
+                    },
+                    "tag_count": {
+                        "description": "Total number of tags on the volume, which can exceed the length of `tags` when your API key cannot read all of them.",
+                        "title": "Tag Count",
+                        "type": "integer"
+                    },
+                    "versions_alive": {
+                        "description": "Number of versions that have not been deleted.",
+                        "title": "Versions Alive",
+                        "type": "integer"
+                    },
+                    "versions_tombstoned": {
+                        "description": "Number of versions that have been deleted.",
+                        "title": "Versions Tombstoned",
+                        "type": "integer"
+                    },
+                    "versions_untagged": {
+                        "description": "Number of versions that no tag points at.",
+                        "title": "Versions Untagged",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "name",
+                    "version_ref",
+                    "sequence",
+                    "updated_at",
+                    "head",
+                    "tags",
+                    "tag_count",
+                    "versions_alive",
+                    "versions_tombstoned",
+                    "versions_untagged"
+                ],
+                "title": "VolumeV1",
+                "type": "object"
+            },
+            "VolumeVersionSummaryV1": {
+                "properties": {
+                    "digest": {
+                        "description": "Content digest of the version, as `b3:<hex>`.",
+                        "title": "Digest",
+                        "type": "string"
+                    },
+                    "total_size_bytes": {
+                        "description": "Total size of the version's files in bytes.",
+                        "title": "Total Size Bytes",
+                        "type": "integer"
+                    },
+                    "created_at": {
+                        "description": "When the version was committed, in ISO 8601 format.",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "digest",
+                    "total_size_bytes",
+                    "created_at"
+                ],
+                "title": "VolumeVersionSummaryV1",
+                "type": "object"
+            },
+            "ListVolumesResponseV1": {
+                "description": "A page of volumes in one namespace.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/VolumeV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "ListVolumesResponseV1",
+                "type": "object"
+            },
+            "ListVolumesRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of volumes to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "namespace": {
+                        "description": "Namespace to list volumes in. Required, because the volume service has no cross-namespace inventory.",
+                        "title": "Namespace",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "namespace"
+                ],
+                "title": "ListVolumesRequestV1",
+                "type": "object"
+            },
             "VolumeTokenScopeV1": {
                 "description": "Capability a volume token grants.\n\n- ``PULL``: read volume data.\n- ``INSPECT``: read volume metadata without data access.\n- ``PUSH``: upload and commit volume versions.\n- ``TAG``: move or remove tags.",
                 "enum": [
@@ -8751,6 +9215,15 @@
                         "title": "Namespaces",
                         "type": "array"
                     },
+                    "volumes": {
+                        "description": "Volume names the token is limited to, lowercase ASCII, exact names only, at least one. The limit applies to every requested scope in every requested namespace.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "minItems": 1,
+                        "title": "Volumes",
+                        "type": "array"
+                    },
                     "correlation_id": {
                         "anyOf": [
                             {
@@ -8769,7 +9242,8 @@
                 },
                 "required": [
                     "scopes",
-                    "namespaces"
+                    "namespaces",
+                    "volumes"
                 ],
                 "title": "CreateVolumeTokenRequestV1",
                 "type": "object"
@@ -8803,6 +9277,14 @@
                         "title": "Namespaces",
                         "type": "array"
                     },
+                    "volumes": {
+                        "description": "Effective volume names granted, in canonical lowercase form.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Volumes",
+                        "type": "array"
+                    },
                     "bdn_endpoint": {
                         "anyOf": [
                             {
@@ -8821,9 +9303,164 @@
                     "expires_at",
                     "scopes",
                     "namespaces",
+                    "volumes",
                     "bdn_endpoint"
                 ],
                 "title": "CreateVolumeTokenResponseV1",
+                "type": "object"
+            },
+            "ListVolumeNamespacesResponseV1": {
+                "description": "A page of namespaces the caller can read.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "ListVolumeNamespacesResponseV1",
+                "type": "object"
+            },
+            "ListVolumeNamespacesRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of namespaces to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    }
+                },
+                "title": "ListVolumeNamespacesRequestV1",
+                "type": "object"
+            },
+            "VolumeVersionV1": {
+                "properties": {
+                    "namespace": {
+                        "description": "Namespace the volume belongs to, in lowercase.",
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume": {
+                        "description": "Name of the volume, in lowercase.",
+                        "title": "Volume",
+                        "type": "string"
+                    },
+                    "version_ref": {
+                        "description": "Full address of this version, as `bdn://<namespace>/<volume>@<digest>`. Paste this into the `bdn.mounts` section of a config.yaml to pin to it.",
+                        "title": "Version Ref",
+                        "type": "string"
+                    },
+                    "digest": {
+                        "description": "Content digest of the version, as `b3:<hex>`.",
+                        "title": "Digest",
+                        "type": "string"
+                    },
+                    "sequence": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Revision the version was committed at. Null for versions committed before the volume service recorded it.",
+                        "title": "Sequence"
+                    },
+                    "lifecycle": {
+                        "description": "Lifecycle state of the version, for example ALIVE or TOMBSTONED.",
+                        "title": "Lifecycle",
+                        "type": "string"
+                    },
+                    "is_head": {
+                        "description": "Whether the reserved `head` tag points at this version.",
+                        "title": "Is Head",
+                        "type": "boolean"
+                    },
+                    "tags": {
+                        "description": "Tags pointing at this version that your API key can read.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Tags",
+                        "type": "array"
+                    },
+                    "total_size_bytes": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Total size of the version's files in bytes. Null when not recorded.",
+                        "title": "Total Size Bytes"
+                    },
+                    "created_at": {
+                        "description": "When the version was committed, in ISO 8601 format.",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "volume",
+                    "version_ref",
+                    "digest",
+                    "sequence",
+                    "lifecycle",
+                    "is_head",
+                    "tags",
+                    "total_size_bytes",
+                    "created_at"
+                ],
+                "title": "VolumeVersionV1",
+                "type": "object"
+            },
+            "ListVolumeVersionsResponseV1": {
+                "description": "Every version of a volume, newest first.\n\nUnpaginated: `limit` and `cursor` are absent rather than accepted and\nignored, so adding them once the volume service pages this listing is a\npurely additive change.",
+                "properties": {
+                    "versions": {
+                        "description": "Versions of the volume, newest first.",
+                        "items": {
+                            "$ref": "#/components/schemas/VolumeVersionV1"
+                        },
+                        "title": "Versions",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "versions"
+                ],
+                "title": "ListVolumeVersionsResponseV1",
                 "type": "object"
             },
             "SecretV1": {
@@ -9019,33 +9656,6 @@
                     "manage_access"
                 ],
                 "title": "EnvironmentGroupV1",
-                "type": "object"
-            },
-            "PaginationResponseV1": {
-                "properties": {
-                    "has_more": {
-                        "description": "Whether more items exist after this page.",
-                        "title": "Has More",
-                        "type": "boolean"
-                    },
-                    "cursor": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Opaque cursor to pass into the next request. Null when there is no next page.",
-                        "title": "Cursor"
-                    }
-                },
-                "required": [
-                    "has_more"
-                ],
-                "title": "PaginationResponseV1",
                 "type": "object"
             },
             "EnvironmentGroupsV1": {
@@ -26616,6 +27226,30 @@
             }
         },
         "parameters": {
+            "volume_namespace": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "volume_namespace",
+                "in": "path",
+                "required": true
+            },
+            "volume_name": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "volume_name",
+                "in": "path",
+                "required": true
+            },
+            "volume_version": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "volume_version",
+                "in": "path",
+                "required": true
+            },
             "secret_name": {
                 "schema": {
                     "type": "string"
