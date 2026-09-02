@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/basetenlabs/baseten-go/internal/require"
 )
@@ -665,4 +666,112 @@ func TestDecodeRefusesHostileObjectTargets(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), `contains ".."`)
 	})
+}
+
+// TestClampMTime pins the wire-range clamp. The floor is year zero — below
+// the zero time's year one — so no clamped value can collide with the
+// zero-means-omit sentinel; the cap is the last representable instant of the
+// four-digit-year range.
+func TestClampMTime(t *testing.T) {
+	require.True(t, clampMTime(time.Time{}).IsZero(), "the zero time must stay the omit sentinel")
+	in := time.Date(2024, 5, 6, 7, 8, 9, 123, time.UTC)
+	require.True(t, clampMTime(in).Equal(in), "an in-range time must pass through untouched")
+	require.True(t, clampMTime(time.Date(99999, 1, 1, 0, 0, 0, 0, time.UTC)).Equal(mtimeCap),
+		"a far-future time must clamp to the cap")
+	require.True(t, clampMTime(time.Date(-5, 1, 1, 0, 0, 0, 0, time.UTC)).Equal(mtimeFloor),
+		"a pre-range time must clamp to the floor")
+	require.False(t, mtimeFloor.IsZero(), "the floor must never read as the omit sentinel")
+}
+
+// TestEncodeManifestMTimeGolden pins the wire form of mtime with the three
+// truncation witnesses: the format is not fixed-width — trailing zeros of
+// the fraction truncate, so half a second is ".5", never ".500000000" — and
+// the bytes are digest-covered, so the truncation behavior itself is pinned.
+// The struct-built goldens above stay mtime-free on purpose: no scan
+// produces a zero mtime, so those manifests are what keeps the omit branch
+// tested.
+func TestEncodeManifestMTimeGolden(t *testing.T) {
+	chunk := testDigest(0xaa)
+	wholeSecond := time.Date(2024, 5, 6, 7, 8, 9, 0, time.UTC)
+	halfSecond := time.Date(2024, 5, 6, 7, 8, 9, 500000000, time.UTC)
+	irregular := time.Date(2024, 5, 6, 7, 8, 9, 123456789, time.UTC)
+
+	m := &Manifest{
+		Provenance: Provenance{
+			SourceFingerprint:     ProvenanceFingerprint,
+			SourceFingerprintType: ProvenanceFingerprintType,
+			SourceURI:             "file:///tmp/tree",
+		},
+		Directories: []DirectoryEntry{{Path: "dir", Mode: 0o755, MTime: wholeSecond}},
+		Files: []FileEntry{{Path: "dir/f", Mode: 0o644, Kind: FileKindChunk, Size: 4, MTime: halfSecond,
+			Chunk: ChunkRef{Digest: chunk, Length: 4, Target: TargetForDigest(chunk)}}},
+		Symlinks: []SymlinkEntry{{Path: "dir/l", Target: "f", Mode: SymlinkMode, MTime: irregular}},
+	}
+
+	want := `{"_type":"manifest_header","entry_count":3,"manifest_schema":"v1","total_size":4}` + "\n" +
+		`{"_type":"provenance","source_fingerprint":"local","source_fingerprint_type":"local_push","source_uri":"file:///tmp/tree"}` + "\n" +
+		`{"_type":"directory","mode":"0755","mtime":"2024-05-06T07:08:09Z","path":"dir"}` + "\n" +
+		`{"_type":"file","_kind":"chunk","chunk":{"digest":"` + chunk.String() +
+		`","length":4,"offset":0,"target":{"relative_key":"` + TargetForDigest(chunk).RelativeKey +
+		`"}},"mode":"0644","mtime":"2024-05-06T07:08:09.5Z","path":"dir/f"}` + "\n" +
+		`{"_type":"symlink","mode":"0777","mtime":"2024-05-06T07:08:09.123456789Z","path":"dir/l","target":"f"}` + "\n"
+	require.Equal(t, want, string(EncodeManifest(m)))
+
+	// The round trip preserves every recorded time exactly.
+	decoded, err := DecodeManifest(EncodeManifest(m))
+	require.NoError(t, err)
+	require.True(t, decoded.Directories[0].MTime.Equal(wholeSecond), "directory mtime did not survive")
+	require.True(t, decoded.Files[0].MTime.Equal(halfSecond), "file mtime did not survive")
+	require.True(t, decoded.Symlinks[0].MTime.Equal(irregular), "symlink mtime did not survive")
+}
+
+// TestDecodeMTimeMixedAndMalformed covers the two decoder rules: a document
+// may carry mtime on some entries and not others — manifests written before
+// the key existed omit it everywhere, and entries with unknown times omit it
+// individually — while a key that is present and malformed is refused like
+// every other checked field.
+func TestDecodeMTimeMixedAndMalformed(t *testing.T) {
+	d := testDigest(0xaa)
+
+	mixed := `{"_type":"manifest_header","entry_count":2,"manifest_schema":"v1","total_size":5}` + "\n" +
+		`{"_type":"directory","mode":"0755","mtime":"2024-05-06T07:08:09Z","path":"dir"}` + "\n" +
+		`{"_type":"file","_kind":"chunk","chunk":{"digest":"` + d.String() +
+		`","length":5,"offset":0,"target":{"relative_key":"objects/b3/aa/bb/stub"}},"mode":"0644","path":"dir/f"}` + "\n"
+	m, err := DecodeManifest([]byte(mixed))
+	require.NoError(t, err)
+	require.False(t, m.Directories[0].MTime.IsZero(), "the present mtime was dropped")
+	require.True(t, m.Files[0].MTime.IsZero(), "the absent mtime was invented")
+
+	malformed := map[string]string{
+		"not a time":      "whenever",
+		"wrong shape":     "2024-05-06 07:08:09",
+		"five-digit year": "10000-01-01T00:00:00Z",
+	}
+	for name, mt := range malformed {
+		t.Run(name, func(t *testing.T) {
+			body := `{"_type":"manifest_header","entry_count":1,"manifest_schema":"v1","total_size":0}` + "\n" +
+				`{"_type":"directory","mode":"0755","mtime":"` + mt + `","path":"dir"}` + "\n"
+			_, err := DecodeManifest([]byte(body))
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "mtime")
+		})
+	}
+}
+
+// TestMTimeClampKeepsTheWireParseable is the pipeline form of the clamp: the
+// formatter never errors, so an out-of-range time would silently become
+// digest-covered bytes the parser refuses. What the scanner clamps must
+// encode to bytes the decoder accepts, at both ends of the range.
+func TestMTimeClampKeepsTheWireParseable(t *testing.T) {
+	for name, hostile := range map[string]time.Time{
+		"far future": time.Date(99999, 1, 1, 0, 0, 0, 0, time.UTC),
+		"pre range":  time.Date(-5, 1, 1, 0, 0, 0, 0, time.UTC),
+	} {
+		t.Run(name, func(t *testing.T) {
+			m := &Manifest{Directories: []DirectoryEntry{{Path: "d", Mode: 0o755, MTime: clampMTime(hostile)}}}
+			decoded, err := DecodeManifest(EncodeManifest(m))
+			require.NoError(t, err)
+			require.False(t, decoded.Directories[0].MTime.IsZero(), "the clamped time must still be recorded, not omitted")
+		})
+	}
 }

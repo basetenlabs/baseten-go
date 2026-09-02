@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 )
 
 // SourceFile is a regular file found by a scan, before its contents have been
@@ -16,6 +17,10 @@ type SourceFile struct {
 	Path string
 	Mode uint16
 	Size uint64
+
+	// MTime is the file's modification time from the walk's lstat, clamped
+	// to the wire-representable range.
+	MTime time.Time
 }
 
 // Source is the result of scanning a directory to push: every entry the
@@ -54,7 +59,7 @@ func ScanSource(root string) (*Source, error) {
 	// nested entry can be replaced by the real directory when the walk reaches
 	// it. Being top-down, the walk always does — but the manifest must be
 	// complete either way, since a missing directory record loses a mode.
-	dirs := map[string]uint16{}
+	dirs := map[string]DirectoryEntry{}
 
 	err = filepath.WalkDir(walkRoot, func(abs string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -70,11 +75,11 @@ func ScanSource(root string) (*Source, error) {
 
 		switch {
 		case d.IsDir():
-			mode, err := entryMode(d)
+			info, err := d.Info()
 			if err != nil {
 				return err
 			}
-			dirs[rel] = mode
+			dirs[rel] = DirectoryEntry{Path: rel, Mode: entryMode(info), MTime: clampMTime(info.ModTime())}
 		case d.Type()&fs.ModeSymlink != 0:
 			target, err := os.Readlink(abs)
 			if err != nil {
@@ -83,20 +88,22 @@ func ScanSource(root string) (*Source, error) {
 			if target, err = NormalizeSymlinkTarget(target); err != nil {
 				return fmt.Errorf("symlink %s: %w", rel, err)
 			}
+			// The walk never follows links, so this Info is the link's own
+			// lstat and the recorded time is the link's, not the target's.
+			info, err := d.Info()
+			if err != nil {
+				return err
+			}
 			addAncestors(dirs, rel)
-			src.Symlinks = append(src.Symlinks, SymlinkEntry{Path: rel, Target: target, Mode: SymlinkMode})
+			src.Symlinks = append(src.Symlinks, SymlinkEntry{Path: rel, Target: target, Mode: SymlinkMode, MTime: clampMTime(info.ModTime())})
 		case d.Type().IsRegular():
 			info, err := d.Info()
 			if err != nil {
 				return err
 			}
-			mode, err := entryMode(d)
-			if err != nil {
-				return err
-			}
 			addAncestors(dirs, rel)
 			size := uint64(info.Size())
-			src.Files = append(src.Files, SourceFile{Path: rel, Mode: mode, Size: size})
+			src.Files = append(src.Files, SourceFile{Path: rel, Mode: entryMode(info), Size: size, MTime: clampMTime(info.ModTime())})
 			src.TotalBytes += size
 		default:
 			return fmt.Errorf("%s is a %s, which a volume cannot describe", rel, d.Type())
@@ -107,8 +114,8 @@ func ScanSource(root string) (*Source, error) {
 		return nil, fmt.Errorf("scan %s: %w", root, err)
 	}
 
-	for path, mode := range dirs {
-		src.Directories = append(src.Directories, DirectoryEntry{Path: path, Mode: mode})
+	for _, entry := range dirs {
+		src.Directories = append(src.Directories, entry)
 	}
 	// These sorts make the scanner's output deterministic — the directory set
 	// is collected in a map — and decide nothing about the wire: the manifest's
@@ -193,12 +200,8 @@ func relPath(root, abs string) (string, error) {
 
 // entryMode reads the permission bits a manifest records: the low twelve, so
 // setuid, setgid, and sticky survive a round trip.
-func entryMode(d fs.DirEntry) (uint16, error) {
-	info, err := d.Info()
-	if err != nil {
-		return 0, err
-	}
-	return uint16(info.Mode().Perm()) | uint16(specialBits(info.Mode())), nil
+func entryMode(info fs.FileInfo) uint16 {
+	return uint16(info.Mode().Perm()) | uint16(specialBits(info.Mode()))
 }
 
 // specialBits maps Go's portable setuid, setgid, and sticky flags back onto
@@ -217,12 +220,17 @@ func specialBits(mode fs.FileMode) uint16 {
 	return bits
 }
 
-// addAncestors seeds every directory above path with the default mode, unless
-// the walk has already recorded the directory itself.
-func addAncestors(dirs map[string]uint16, path string) {
+// addAncestors seeds every directory above path with the default mode and no
+// modification time, unless the walk has already recorded the directory
+// itself. Like the map's replacement rule above, the synthesized entry is a
+// guard rather than a live path — the walk is top-down, so it reaches every
+// real directory and records it before anything beneath it needs an ancestor
+// — and the zero time means the encoder would omit the key rather than
+// assert a time nothing measured.
+func addAncestors(dirs map[string]DirectoryEntry, path string) {
 	for _, parent := range parentPaths(path) {
 		if _, ok := dirs[parent]; !ok {
-			dirs[parent] = DefaultDirMode
+			dirs[parent] = DirectoryEntry{Path: parent, Mode: DefaultDirMode}
 		}
 	}
 }

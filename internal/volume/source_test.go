@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/basetenlabs/baseten-go/internal/require"
 )
@@ -198,18 +199,22 @@ func TestScanSourceRejectsBackslashName(t *testing.T) {
 }
 
 func TestScanSourceSynthesizesMissingAncestors(t *testing.T) {
-	dirs := map[string]uint16{}
+	dirs := map[string]DirectoryEntry{}
 	addAncestors(dirs, "a/b/c/file.txt")
 	require.Equal(t, 3, len(dirs))
 	for _, path := range []string{"a", "a/b", "a/b/c"} {
-		require.MapEqual(t, dirs, path, DefaultDirMode)
+		require.Equal(t, DirectoryEntry{Path: path, Mode: DefaultDirMode}, dirs[path])
+		// The synthesized guard entry carries no time: the encoder omits the
+		// key rather than asserting a time nothing measured.
+		require.True(t, dirs[path].MTime.IsZero(), "synthesized ancestor %s gained a time", path)
 	}
 
-	// A directory the walk already recorded keeps its real mode.
-	dirs = map[string]uint16{"a": 0o700}
+	// A directory the walk already recorded keeps its real mode and time.
+	recorded := time.Date(2024, 5, 6, 7, 8, 9, 0, time.UTC)
+	dirs = map[string]DirectoryEntry{"a": {Path: "a", Mode: 0o700, MTime: recorded}}
 	addAncestors(dirs, "a/b/file.txt")
-	require.MapEqual(t, dirs, "a", uint16(0o700))
-	require.MapEqual(t, dirs, "a/b", DefaultDirMode)
+	require.Equal(t, DirectoryEntry{Path: "a", Mode: 0o700, MTime: recorded}, dirs["a"])
+	require.Equal(t, DirectoryEntry{Path: "a/b", Mode: DefaultDirMode}, dirs["a/b"])
 }
 
 func TestSourceURIForDir(t *testing.T) {
@@ -312,4 +317,33 @@ func TestFileURIIsUnchangedForUnixPaths(t *testing.T) {
 	// The windows shape is the one that changes, and the drive moves out of
 	// the authority where it never belonged.
 	require.Equal(t, "file:///C:/data/v", fileURI("C:/data/v"))
+}
+
+// TestScanSourceRecordsModificationTimes pins where each entry's time comes
+// from: the walk's own lstat, so a symlink carries the link's time and never
+// the target's.
+func TestScanSourceRecordsModificationTimes(t *testing.T) {
+	root := writeTree(t, map[string]string{
+		"dir/file.txt": "content",
+		"link":         "->dir/file.txt",
+	})
+	fileTime := time.Date(2024, 5, 6, 7, 8, 9, 0, time.UTC)
+	dirTime := time.Date(2023, 1, 2, 3, 4, 5, 0, time.UTC)
+	require.NoError(t, os.Chtimes(filepath.Join(root, "dir", "file.txt"), fileTime, fileTime))
+	require.NoError(t, os.Chtimes(filepath.Join(root, "dir"), dirTime, dirTime))
+
+	src, err := ScanSource(root)
+	require.NoError(t, err)
+
+	got := fileByPath(t, src, "dir/file.txt").MTime
+	require.True(t, got.Equal(fileTime), "file mtime %v, want %v", got, fileTime)
+	got = dirByPath(t, src, "dir").MTime
+	require.True(t, got.Equal(dirTime), "dir mtime %v, want %v", got, dirTime)
+
+	linkInfo, err := os.Lstat(filepath.Join(root, "link"))
+	require.NoError(t, err)
+	require.Len(t, src.Symlinks, 1)
+	require.False(t, src.Symlinks[0].MTime.IsZero(), "the link's own time was not recorded")
+	require.True(t, src.Symlinks[0].MTime.Equal(clampMTime(linkInfo.ModTime())),
+		"link mtime %v, want the link's own lstat time %v", src.Symlinks[0].MTime, linkInfo.ModTime())
 }
