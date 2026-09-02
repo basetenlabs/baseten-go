@@ -11,13 +11,13 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/basetenlabs/baseten-go/client"
-	pubvolume "github.com/basetenlabs/baseten-go/client/volume"
 	"github.com/basetenlabs/baseten-go/internal/volume"
 )
 
@@ -81,15 +81,15 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	var phases []pubvolume.Phase
-	pushed, err := api.PushVolume(ctx, pubvolume.PushOptions{
+	var phases []client.VolumePhase
+	pushed, err := api.PushVolume(ctx, client.PushVolumeOptions{
 		Namespace: fakeNamespace,
 		Volume:    fakeVolume,
 		SourceDir: root,
 		SourceURI: "file:///fixture",
 		Tags:      []string{"prod"},
 		Hasher:    newBlake3,
-		Progress: func(p pubvolume.Progress) {
+		Progress: func(p client.VolumeProgress) {
 			if len(phases) == 0 || phases[len(phases)-1] != p.Phase {
 				phases = append(phases, p.Phase)
 			}
@@ -109,11 +109,11 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	}
 
 	dest := filepath.Join(t.TempDir(), "downloaded")
-	downloaded, err := api.DownloadVolume(ctx, pubvolume.DownloadOptions{
+	downloaded, err := api.DownloadVolume(ctx, client.DownloadVolumeOptions{
 		Ref:     fakeNamespace + "/" + fakeVolume + ":prod",
 		DestDir: dest,
 		Hasher:  newBlake3,
-		Store:   fakePublicStore{fake: fake, t: t},
+		Store:   fakePublicStore{download: fake.downloader()},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -175,7 +175,7 @@ func TestManagementClientReExchangesARejectedToken(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pushed, err := api.PushVolume(context.Background(), pubvolume.PushOptions{
+	pushed, err := api.PushVolume(context.Background(), client.PushVolumeOptions{
 		Namespace: fakeNamespace, Volume: fakeVolume, SourceDir: root,
 		SourceURI: "file:///fixture", Hasher: newBlake3,
 	})
@@ -247,16 +247,17 @@ func TestTokenFakeRefusesUnknownFields(t *testing.T) {
 	}
 }
 
-// fakePublicStore adapts the fake service's internal downloader to the
-// public seam, translating each request and result field by field the same
-// way the client boundary does in the other direction.
+// fakePublicStore adapts an internal downloader to the public seam,
+// translating each request and result field by field the same way the client
+// boundary does in the other direction. The round-trip tests build it over
+// the fake service's downloader; the completeness test builds it over a
+// recorder.
 type fakePublicStore struct {
-	fake *fakeService
-	t    *testing.T
+	download volume.ObjectDownloader
 }
 
-func (s fakePublicStore) DownloadObject(ctx context.Context, req pubvolume.ObjectDownload) (*pubvolume.ObjectResult, error) {
-	res, err := s.fake.downloader()(ctx, volume.ObjectDownload{
+func (s fakePublicStore) DownloadObject(ctx context.Context, req client.VolumeObjectDownload) (*client.VolumeObjectResult, error) {
+	res, err := s.download(ctx, volume.ObjectDownload{
 		Endpoint: req.Endpoint,
 		Region:   req.Region,
 		Bucket:   req.Bucket,
@@ -271,9 +272,87 @@ func (s fakePublicStore) DownloadObject(ctx context.Context, req pubvolume.Objec
 	if err != nil || res == nil {
 		return nil, err
 	}
-	return &pubvolume.ObjectResult{Body: res.Body, ContentType: res.ContentType, Size: res.Size}, nil
+	return &client.VolumeObjectResult{Body: res.Body, ContentType: res.ContentType, Size: res.Size}, nil
 }
 
 func (s fakePublicStore) Decompressor(r io.Reader) (io.ReadCloser, error) {
 	return newZstdReader(r)
+}
+
+// TestFakePublicStoreCopiesEveryField pins the fake adapter's hand-copy in
+// both directions: every field of the public request must arrive on the
+// internal side, and every field of the internal result must arrive on the
+// public side. Each struct is first checked to hold no zero field, so a
+// field added to either side fails here until it is populated and copied —
+// without that check a new field would ride through as an unnoticed zero
+// while real transfers carry data in it.
+func TestFakePublicStoreCopiesEveryField(t *testing.T) {
+	var got volume.ObjectDownload
+	store := fakePublicStore{download: func(_ context.Context, req volume.ObjectDownload) (*volume.ObjectResult, error) {
+		got = req
+		return &volume.ObjectResult{
+			Body:        io.NopCloser(strings.NewReader("body")),
+			ContentType: "application/zstd",
+			Size:        7,
+		}, nil
+	}}
+
+	sent := client.VolumeObjectDownload{
+		Endpoint: "https://storage.example",
+		Region:   "us-east-1",
+		Bucket:   "volumes",
+		Key:      "objects/b3/abc",
+		Credentials: client.VolumeObjectCredentials{
+			AccessKeyID:     "access-key",
+			SecretAccessKey: "secret-key",
+			SessionToken:    "session-token",
+		},
+		ExpectedSize: 42,
+	}
+	requireNoZeroField(t, reflect.ValueOf(sent), "public request")
+
+	res, err := store.DownloadObject(context.Background(), sent)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	requireNoZeroField(t, reflect.ValueOf(got), "internal request")
+	want := volume.ObjectDownload{
+		Endpoint: sent.Endpoint, Region: sent.Region, Bucket: sent.Bucket, Key: sent.Key,
+		Credentials: volume.Credentials{
+			AccessKeyID:     sent.Credentials.AccessKeyID,
+			SecretAccessKey: sent.Credentials.SecretAccessKey,
+			SessionToken:    sent.Credentials.SessionToken,
+		},
+		ExpectedSize: sent.ExpectedSize,
+	}
+	if got != want {
+		t.Errorf("the fake translated the request to %+v, want %+v", got, want)
+	}
+
+	requireNoZeroField(t, reflect.ValueOf(*res), "public result")
+	if res.ContentType != "application/zstd" || res.Size != 7 {
+		t.Errorf("result fields did not survive the copy: %+v", res)
+	}
+	body, err := io.ReadAll(res.Body)
+	if err != nil || string(body) != "body" {
+		t.Errorf("the body did not survive the copy: %q, %v", body, err)
+	}
+}
+
+// requireNoZeroField fails for any field of a struct, recursing into struct
+// fields, that is left at its zero value.
+func requireNoZeroField(t *testing.T, v reflect.Value, what string) {
+	t.Helper()
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		name := v.Type().Field(i).Name
+		if field.Kind() == reflect.Struct {
+			requireNoZeroField(t, field, what+"."+name)
+			continue
+		}
+		if field.IsZero() {
+			t.Errorf("%s.%s is zero — populate it in this test and make sure the fake copies it", what, name)
+		}
+	}
 }

@@ -1,4 +1,4 @@
-package volume
+package client
 
 import (
 	"context"
@@ -6,16 +6,21 @@ import (
 	"io"
 )
 
-// Digest names a stored object or a published version: the string "b3:"
-// followed by sixty-four lowercase hex digits — an unkeyed BLAKE3 hash with
-// a 32-byte output over the object's content bytes. A version's digest is
-// what to pin a download to in order to get that exact tree back.
-type Digest string
+// The volume vocabulary — options, results, progress, warnings, the
+// concurrency knobs, and the seam a caller fills in — is defined in this file,
+// fully and without aliases; the error type lives in volume_errors.go and the
+// operations are methods on ManagementClient in management_volume.go. The
+// translation between these types and the internal engines is deliberately
+// exhaustive and field-by-field, and the parity tests hold the two sides
+// together: a field added on either side without its twin is a red test.
+// The engines' mechanics — the limiter, its permit, its outcome — are never
+// public; their semantics changed twice in one review cycle, and neither
+// change would have been API-compatible had they been exported.
 
-// Concurrency is a transfer's concurrency limits. The zero value means
-// defaults: sixteen concurrent files, an adaptive number of in-flight object
-// operations, and two gibibytes of chunk data resident in memory.
-type Concurrency struct {
+// VolumeConcurrencyOptions is a transfer's concurrency limits. The zero value
+// means defaults: sixteen concurrent files, an adaptive number of in-flight
+// object operations, and two gibibytes of chunk data resident in memory.
+type VolumeConcurrencyOptions struct {
 	// FileJobs is how many files are processed concurrently on push. Zero
 	// means the default.
 	FileJobs int
@@ -32,22 +37,23 @@ type Concurrency struct {
 	MaxBytesInFlight int64
 }
 
-// Phase names the part of a transfer that progress is being reported for.
-type Phase string
+// VolumePhase names the part of a transfer that progress is being reported
+// for.
+type VolumePhase string
 
 const (
-	PhaseScan     Phase = "scan"
-	PhaseUpload   Phase = "upload"
-	PhaseCommit   Phase = "commit"
-	PhaseResolve  Phase = "resolve"
-	PhaseDownload Phase = "download"
-	PhasePublish  Phase = "publish"
+	VolumePhaseScan     VolumePhase = "scan"
+	VolumePhaseUpload   VolumePhase = "upload"
+	VolumePhaseCommit   VolumePhase = "commit"
+	VolumePhaseResolve  VolumePhase = "resolve"
+	VolumePhaseDownload VolumePhase = "download"
+	VolumePhasePublish  VolumePhase = "publish"
 )
 
-// Progress is a transfer's state at one moment. Counts within a phase only
-// ever increase.
-type Progress struct {
-	Phase Phase
+// VolumeProgress is a transfer's state at one moment. Counts within a phase
+// only ever increase.
+type VolumeProgress struct {
+	Phase VolumePhase
 
 	Files      int64
 	TotalFiles int64
@@ -56,16 +62,16 @@ type Progress struct {
 	TotalBytes int64
 }
 
-// Credentials are the short-lived read-only credentials the volume service
-// leases for reading a namespace's objects.
-type Credentials struct {
+// VolumeObjectCredentials are the short-lived read-only credentials the
+// volume service leases for reading a namespace's objects.
+type VolumeObjectCredentials struct {
 	AccessKeyID     string
 	SecretAccessKey string
 	SessionToken    string
 }
 
-// ObjectDownload names one object to read from the store.
-type ObjectDownload struct {
+// VolumeObjectDownload names one object to read from the store.
+type VolumeObjectDownload struct {
 	// Endpoint is empty for AWS itself and a base URL otherwise. The two
 	// address buckets differently, which is why the distinction is passed
 	// through rather than resolved here.
@@ -74,7 +80,7 @@ type ObjectDownload struct {
 	Bucket   string
 	Key      string
 
-	Credentials Credentials
+	Credentials VolumeObjectCredentials
 
 	// ExpectedSize is the object's size when it is known, and zero when it
 	// is not. A chunk's length comes from the manifest, so it is known; a
@@ -82,8 +88,8 @@ type ObjectDownload struct {
 	ExpectedSize int64
 }
 
-// ObjectResult is an open object.
-type ObjectResult struct {
+// VolumeObjectResult is an open object.
+type VolumeObjectResult struct {
 	Body io.ReadCloser
 
 	// ContentType is the stored media type, and is the only thing that says
@@ -97,60 +103,62 @@ type ObjectResult struct {
 	Size int64
 }
 
-// ObjectStore reads stored objects. The caller supplies it so this module
-// needs no cloud SDK or compression library of its own; the two methods are
-// one interface because they are only ever usable together — the service
-// decides per object whether to compress what it stores, so a reader that
-// can download but not decompress will fail on an arbitrary subset of
-// objects.
+// VolumeObjectStore reads stored objects. The caller supplies it so this
+// module needs no cloud SDK or compression library of its own; the two
+// methods are one interface because they are only ever usable together — the
+// service decides per object whether to compress what it stores, so a reader
+// that can download but not decompress will fail on an arbitrary subset of
+// objects. aws-sdk-go-v2's GetObject and github.com/klauspost/compress/zstd
+// fill the two methods.
 //
 // DownloadObject owns its own retrying: an error returned from it has
 // already exhausted whatever budget the implementation has, and ends the
 // operation that asked for the object.
-type ObjectStore interface {
+type VolumeObjectStore interface {
 	// DownloadObject opens one object for reading.
-	DownloadObject(ctx context.Context, req ObjectDownload) (*ObjectResult, error)
+	DownloadObject(ctx context.Context, req VolumeObjectDownload) (*VolumeObjectResult, error)
 
 	// Decompressor wraps a reader of zstd-compressed bytes in one that
 	// yields the original bytes.
 	Decompressor(r io.Reader) (io.ReadCloser, error)
 }
 
-// WarningKind names what a download's containment check found, so a caller
-// can branch without parsing prose.
-type WarningKind uint8
+// VolumeWarningKind names what a download's containment check found, so a
+// caller can branch without parsing prose.
+type VolumeWarningKind uint8
 
 const (
-	// WarningDanglingLink: a symlink's target resolves to a path the volume
-	// has nothing at.
-	WarningDanglingLink WarningKind = iota + 1
-	// WarningLinkThroughFile: a symlink resolves through an entry recorded
-	// as a file, which a real filesystem answers with ENOTDIR.
-	WarningLinkThroughFile
-	// WarningParentUnrecorded: an entry's ancestors up to the nearest
-	// recorded one are all implicit — nothing records the parent directory.
-	WarningParentUnrecorded
+	// VolumeWarningKindDanglingLink: a symlink's target resolves to a path
+	// the volume has nothing at.
+	VolumeWarningKindDanglingLink VolumeWarningKind = iota + 1
+	// VolumeWarningKindLinkThroughFile: a symlink resolves through an entry
+	// recorded as a file, which a real filesystem answers with ENOTDIR.
+	VolumeWarningKindLinkThroughFile
+	// VolumeWarningKindParentUnrecorded: an entry's ancestors up to the
+	// nearest recorded one are all implicit — nothing records the parent
+	// directory.
+	VolumeWarningKindParentUnrecorded
 )
 
-// Warning is a containment finding that did not stop a download: harmless
-// to write out, present in volumes published before the containment rule,
-// and worth telling the caller about.
-type Warning struct {
+// VolumeWarning is a containment finding that did not stop a download:
+// harmless to write out, present in volumes published before the containment
+// rule, and worth telling the caller about.
+type VolumeWarning struct {
 	// Path is the entry the finding is about.
 	Path string
 	// Kind is the finding, typed.
-	Kind WarningKind
+	Kind VolumeWarningKind
 	// Detail says what was found, in prose.
 	Detail string
 }
 
 // String renders the finding for a human; the typed fields are the API.
-func (w Warning) String() string {
+func (w VolumeWarning) String() string {
 	return w.Path + ": " + w.Detail
 }
 
-// PushOptions describes a push for ManagementClient.PushVolume.
-type PushOptions struct {
+// PushVolumeOptions configures [ManagementClient.PushVolume].
+type PushVolumeOptions struct {
 	// Namespace and Volume name where to publish. The volume is created if
 	// it does not exist; the namespace must already.
 	Namespace string
@@ -170,28 +178,38 @@ type PushOptions struct {
 	// Without it, such a push still publishes the version, and refs without
 	// a tag keep resolving to the previous one — reported as HeadMoveDenied.
 	//
-	// See PushResult.HeadMoveDenied: with a credential from this client's
-	// own exchange, the condition this guards against is not expected to
-	// arise.
+	// See [PushVolumeResult.HeadMoveDenied]: with a credential from this
+	// client's own exchange, the condition this guards against is not
+	// expected to arise.
 	RequireHeadMove bool
 
-	// Hasher returns an unkeyed BLAKE3 hash with a 32-byte digest. Required;
-	// see the package documentation for the exact constructors.
+	// Hasher returns an unkeyed BLAKE3 hash with a 32-byte digest. Required —
+	// the digest is the whole content-addressing scheme, so getting it wrong
+	// produces a volume no other client can read, and it is supplied here so
+	// this module carries no hashing library of its own. Both common
+	// libraries produce the right hash when told the size explicitly or by
+	// default:
+	//
+	//	github.com/zeebo/blake3:   func() hash.Hash { return blake3.New() }
+	//	lukechampine.com/blake3:   func() hash.Hash { return blake3.New(32, nil) }
+	//
+	// A 64-byte extended output is the mistake to watch for; the hasher is
+	// checked against the published test vectors before a transfer starts.
 	Hasher func() hash.Hash
 
 	// Store lets the push read the volume's previous version, so a file
 	// whose bytes have not changed is not uploaded again. Optional: without
 	// it the push uploads everything, which is slower and produces the same
 	// version.
-	Store ObjectStore
+	Store VolumeObjectStore
 
 	// Progress is called as the push proceeds, never concurrently with
 	// itself. It should return promptly.
-	Progress func(Progress)
+	Progress func(VolumeProgress)
 
 	// Concurrency overrides the transfer's concurrency limits. The zero
 	// value means defaults.
-	Concurrency Concurrency
+	Concurrency VolumeConcurrencyOptions
 
 	// SourceURI records where the tree came from, and is inside the bytes
 	// the version's digest covers: two pushes of identical trees from
@@ -202,11 +220,13 @@ type PushOptions struct {
 	SourceURI string
 }
 
-// PushResult is what a push published.
-type PushResult struct {
-	// ManifestDigest names the published version, and is what to pin a
+// PushVolumeResult is what a push published.
+type PushVolumeResult struct {
+	// ManifestDigest names the published version: the string "b3:" followed
+	// by sixty-four lowercase hex digits — an unkeyed BLAKE3 hash with a
+	// 32-byte output over the manifest's content bytes. It is what to pin a
 	// download to in order to get this exact tree back.
-	ManifestDigest Digest
+	ManifestDigest string
 
 	// Sequence is the volume's snapshot sequence at this publish.
 	Sequence int64
@@ -248,8 +268,8 @@ type PushResult struct {
 	Existing int64
 }
 
-// DownloadOptions describes a download for ManagementClient.DownloadVolume.
-type DownloadOptions struct {
+// DownloadVolumeOptions configures [ManagementClient.DownloadVolume].
+type DownloadVolumeOptions struct {
 	// Ref names what to download: "namespace/volume" for the current
 	// version, "namespace/volume:tag", or "namespace/volume@b3:..." for one
 	// exact version. Whatever it names is resolved once and pinned, so a tag
@@ -281,31 +301,42 @@ type DownloadOptions struct {
 	// Hasher returns an unkeyed BLAKE3 hash with a 32-byte digest. Required:
 	// every chunk is verified against the digest recorded for it, and
 	// continuing an interrupted download works by hashing what is already on
-	// disk. See the package documentation for the exact constructors.
+	// disk. It is supplied here so this module carries no hashing library of
+	// its own, and getting it wrong fails every verification. Both common
+	// libraries produce the right hash when told the size explicitly or by
+	// default:
+	//
+	//	github.com/zeebo/blake3:   func() hash.Hash { return blake3.New() }
+	//	lukechampine.com/blake3:   func() hash.Hash { return blake3.New(32, nil) }
+	//
+	// A 64-byte extended output is the mistake to watch for; the hasher is
+	// checked against the published test vectors before a transfer starts.
 	Hasher func() hash.Hash
 
 	// Store reads the volume's objects. Required: the service compresses
 	// what it stores at its own discretion, so a reader has to be able to
 	// download and decompress whatever comes back.
-	Store ObjectStore
+	Store VolumeObjectStore
 
 	// Progress is called as the download proceeds, never concurrently with
 	// itself.
-	Progress func(Progress)
+	Progress func(VolumeProgress)
 
 	// Concurrency overrides the transfer's concurrency limits. The zero
 	// value means defaults.
-	Concurrency Concurrency
+	Concurrency VolumeConcurrencyOptions
 }
 
-// DownloadResult is what a download produced.
-type DownloadResult struct {
+// DownloadVolumeResult is what a download produced.
+type DownloadVolumeResult struct {
 	// VersionRef is the ref pinned to the version that was downloaded, which
 	// is the form to quote to get this exact tree again.
 	VersionRef string
 
-	// ManifestDigest names that version.
-	ManifestDigest Digest
+	// ManifestDigest names the version that was downloaded: the string "b3:"
+	// followed by sixty-four lowercase hex digits — an unkeyed BLAKE3 hash
+	// with a 32-byte output over the manifest's content bytes.
+	ManifestDigest string
 
 	// Files and Bytes are what was written.
 	Files int64
@@ -326,5 +357,5 @@ type DownloadResult struct {
 	// record. Volumes published before the containment rule carry these;
 	// they are written out faithfully and reported here rather than
 	// silently.
-	Warnings []Warning
+	Warnings []VolumeWarning
 }

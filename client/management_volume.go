@@ -11,30 +11,22 @@ import (
 	"time"
 
 	"github.com/basetenlabs/baseten-go/client/managementapi"
-	pub "github.com/basetenlabs/baseten-go/client/volume"
 	"github.com/basetenlabs/baseten-go/internal/volume"
 	"github.com/basetenlabs/baseten-go/internal/volume/bdn"
 	"github.com/basetenlabs/baseten-go/internal/volume/transfer"
 )
 
-// The volume vocabulary — options, results, progress, warnings, errors, the
-// caller-supplied seam — lives in the client/volume package; the operations
-// live here as methods on ManagementClient. The translation between the
-// public types and the internal engines is deliberately exhaustive and
-// field-by-field, and client/volume's parity tests hold the two sides
-// together: a field added on either side without its twin is a red test.
-// The engines' mechanics — the limiter, its permit, its outcome — are never
-// public; their semantics changed twice in one review cycle, and neither
-// change would have been API-compatible had they been exported.
-
-// PushVolumeOptions configures [ManagementClient.PushVolume].
 // PushVolume uploads a directory and publishes it as a new version of a
-// volume.
+// volume. [PushVolumeOptions] configures it.
+//
+// A volume is a versioned directory tree stored by content, so pushing a
+// tree that mostly matches one already stored transfers only what differs,
+// and downloading the same version twice transfers nothing the second time.
 //
 // Nothing is visible until the whole tree has been uploaded, so an interrupted
 // push publishes nothing. What it uploaded is not wasted: the next push finds
 // those objects already stored and skips them.
-func (c *ManagementClient) PushVolume(ctx context.Context, opts pub.PushOptions) (*pub.PushResult, error) {
+func (c *ManagementClient) PushVolume(ctx context.Context, opts PushVolumeOptions) (*PushVolumeResult, error) {
 	push := pushOptions(opts)
 	if err := push.Validate(); err != nil {
 		return nil, err
@@ -54,8 +46,8 @@ func (c *ManagementClient) PushVolume(ctx context.Context, opts pub.PushOptions)
 	if err != nil {
 		return nil, volumeOpError(err)
 	}
-	return &pub.PushResult{
-		ManifestDigest: pub.Digest(result.ManifestDigest.String()),
+	return &PushVolumeResult{
+		ManifestDigest: result.ManifestDigest.String(),
 		Sequence:       result.Sequence,
 		HeadUpdated:    result.HeadUpdated,
 		HeadMoveDenied: result.HeadMoveDenied,
@@ -77,15 +69,15 @@ func (c *ManagementClient) PushVolume(ctx context.Context, opts pub.PushOptions)
 func volumeOpError(err error) error {
 	var se *volume.Error
 	if errors.As(err, &se) {
-		return &pub.Error{Reason: pub.Reason(se.Reason), Message: se.Message, Err: err}
+		return &VolumeError{Reason: VolumeErrorReason(se.Reason), Message: se.Message, Err: err}
 	}
 	return err
 }
 
 // pushOptions translates the public options into the engine's, exhaustively
-// and field by field — the form the parity tests in client/volume require,
-// because a struct-copy shortcut is exactly how a twin drifts silently.
-func pushOptions(o pub.PushOptions) transfer.PushOptions {
+// and field by field — the form the parity tests require, because a
+// struct-copy shortcut is exactly how a twin drifts silently.
+func pushOptions(o PushVolumeOptions) transfer.PushOptions {
 	opts := transfer.PushOptions{
 		Namespace:       o.Namespace,
 		Volume:          o.Volume,
@@ -104,7 +96,7 @@ func pushOptions(o pub.PushOptions) transfer.PushOptions {
 	return opts
 }
 
-func internalConcurrency(c pub.Concurrency) volume.Concurrency {
+func internalConcurrency(c VolumeConcurrencyOptions) volume.Concurrency {
 	return volume.Concurrency{
 		FileJobs:         c.FileJobs,
 		ChunkOperations:  c.ChunkOperations,
@@ -112,13 +104,13 @@ func internalConcurrency(c pub.Concurrency) volume.Concurrency {
 	}
 }
 
-func progressAdapter(fn func(pub.Progress)) volume.ProgressFunc {
+func progressAdapter(fn func(VolumeProgress)) volume.ProgressFunc {
 	if fn == nil {
 		return nil
 	}
 	return func(p volume.Progress) {
-		fn(pub.Progress{
-			Phase:      pub.Phase(p.Phase),
+		fn(VolumeProgress{
+			Phase:      VolumePhase(p.Phase),
 			Files:      p.Files,
 			TotalFiles: p.TotalFiles,
 			Bytes:      p.Bytes,
@@ -128,14 +120,14 @@ func progressAdapter(fn func(pub.Progress)) volume.ProgressFunc {
 }
 
 // storeDownloader adapts the public store to the engine's downloader seam.
-func storeDownloader(store pub.ObjectStore) volume.ObjectDownloader {
+func storeDownloader(store VolumeObjectStore) volume.ObjectDownloader {
 	return func(ctx context.Context, req volume.ObjectDownload) (*volume.ObjectResult, error) {
-		res, err := store.DownloadObject(ctx, pub.ObjectDownload{
+		res, err := store.DownloadObject(ctx, VolumeObjectDownload{
 			Endpoint: req.Endpoint,
 			Region:   req.Region,
 			Bucket:   req.Bucket,
 			Key:      req.Key,
-			Credentials: pub.Credentials{
+			Credentials: VolumeObjectCredentials{
 				AccessKeyID:     req.Credentials.AccessKeyID,
 				SecretAccessKey: req.Credentials.SecretAccessKey,
 				SessionToken:    req.Credentials.SessionToken,
@@ -149,14 +141,18 @@ func storeDownloader(store pub.ObjectStore) volume.ObjectDownloader {
 	}
 }
 
-// DownloadVolumeOptions configures [ManagementClient.DownloadVolume].
 // DownloadVolume downloads a version of a volume into a directory.
+// [DownloadVolumeOptions] configures it.
+//
+// A volume is a versioned directory tree stored by content, so pushing a
+// tree that mostly matches one already stored transfers only what differs,
+// and downloading the same version twice transfers nothing the second time.
 //
 // Every chunk is checked against its recorded digest before it is written, so
 // a corrupted or truncated read fails the download rather than producing a
 // file that merely looks complete. An interrupted download can be run again
 // and picks up where it stopped.
-func (c *ManagementClient) DownloadVolume(ctx context.Context, opts pub.DownloadOptions) (*pub.DownloadResult, error) {
+func (c *ManagementClient) DownloadVolume(ctx context.Context, opts DownloadVolumeOptions) (*DownloadVolumeResult, error) {
 	pull := pullOptions(opts)
 	if err := pull.Validate(); err != nil {
 		return nil, err
@@ -175,13 +171,13 @@ func (c *ManagementClient) DownloadVolume(ctx context.Context, opts pub.Download
 	if err != nil {
 		return nil, volumeOpError(err)
 	}
-	warnings := make([]pub.Warning, 0, len(result.Warnings))
+	warnings := make([]VolumeWarning, 0, len(result.Warnings))
 	for _, w := range result.Warnings {
-		warnings = append(warnings, pub.Warning{Path: w.Path, Kind: pub.WarningKind(w.Kind), Detail: w.Detail})
+		warnings = append(warnings, VolumeWarning{Path: w.Path, Kind: VolumeWarningKind(w.Kind), Detail: w.Detail})
 	}
-	return &pub.DownloadResult{
+	return &DownloadVolumeResult{
 		VersionRef:     result.VersionRef,
-		ManifestDigest: pub.Digest(result.ManifestDigest.String()),
+		ManifestDigest: result.ManifestDigest.String(),
 		Files:          result.Files,
 		Bytes:          result.Bytes,
 		SelectedFiles:  result.SelectedFiles,
@@ -194,7 +190,7 @@ func (c *ManagementClient) DownloadVolume(ctx context.Context, opts pub.Download
 
 // pullOptions translates the public options into the engine's, exhaustively
 // and field by field, like pushOptions.
-func pullOptions(o pub.DownloadOptions) transfer.PullOptions {
+func pullOptions(o DownloadVolumeOptions) transfer.PullOptions {
 	opts := transfer.PullOptions{
 		Ref:         o.Ref,
 		DestDir:     o.DestDir,
@@ -253,7 +249,7 @@ func (c *ManagementClient) volumeClient(
 // TAG is asked for only when tags are actually being applied, since applying
 // one at commit is gated like setting a tag directly. Moving head needs no
 // scope of its own beyond push.
-func pushScopes(opts pub.PushOptions) []string {
+func pushScopes(opts PushVolumeOptions) []string {
 	scopes := []string{volumeScopePush}
 	if len(opts.Tags) > 0 {
 		scopes = append(scopes, volumeScopeTag)

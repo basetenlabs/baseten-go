@@ -16,7 +16,6 @@ import (
 	"testing"
 	"time"
 
-	pub "github.com/basetenlabs/baseten-go/client/volume"
 	"github.com/basetenlabs/baseten-go/internal/require"
 	"github.com/basetenlabs/baseten-go/internal/volume/bdn"
 )
@@ -27,14 +26,14 @@ func stubHasher() hash.Hash { return sha256.New() }
 // translation and validation tests.
 type stubStore struct{}
 
-func (stubStore) DownloadObject(context.Context, pub.ObjectDownload) (*pub.ObjectResult, error) {
+func (stubStore) DownloadObject(context.Context, VolumeObjectDownload) (*VolumeObjectResult, error) {
 	return nil, nil
 }
 
 func (stubStore) Decompressor(io.Reader) (io.ReadCloser, error) { return nil, nil }
 
 func TestPushOptionsValidate(t *testing.T) {
-	valid := pub.PushOptions{
+	valid := PushVolumeOptions{
 		Namespace: "models", Volume: "gpt2", SourceDir: "/tmp/tree", Hasher: stubHasher,
 	}
 	require.NoError(t, pushOptions(valid).Validate())
@@ -47,12 +46,12 @@ func TestPushOptionsValidate(t *testing.T) {
 	withStore.Store = stubStore{}
 	require.NoError(t, pushOptions(withStore).Validate())
 
-	tests := map[string]func(*pub.PushOptions){
-		"no namespace": func(o *pub.PushOptions) { o.Namespace = "" },
-		"no volume":    func(o *pub.PushOptions) { o.Volume = "" },
-		"no source":    func(o *pub.PushOptions) { o.SourceDir = "" },
-		"no hasher":    func(o *pub.PushOptions) { o.Hasher = nil },
-		"reserved tag": func(o *pub.PushOptions) { o.Tags = []string{"head"} },
+	tests := map[string]func(*PushVolumeOptions){
+		"no namespace": func(o *PushVolumeOptions) { o.Namespace = "" },
+		"no volume":    func(o *PushVolumeOptions) { o.Volume = "" },
+		"no source":    func(o *PushVolumeOptions) { o.SourceDir = "" },
+		"no hasher":    func(o *PushVolumeOptions) { o.Hasher = nil },
+		"reserved tag": func(o *PushVolumeOptions) { o.Tags = []string{"head"} },
 	}
 	for name, break_ := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -64,7 +63,7 @@ func TestPushOptionsValidate(t *testing.T) {
 }
 
 func TestDownloadOptionsValidate(t *testing.T) {
-	valid := pub.DownloadOptions{
+	valid := DownloadVolumeOptions{
 		Ref: "models/gpt2", DestDir: "/tmp/out",
 		Hasher: stubHasher, Store: stubStore{},
 	}
@@ -78,16 +77,16 @@ func TestDownloadOptionsValidate(t *testing.T) {
 		})
 	}
 
-	tests := map[string]func(*pub.DownloadOptions){
-		"no ref":         func(o *pub.DownloadOptions) { o.Ref = "" },
-		"malformed ref":  func(o *pub.DownloadOptions) { o.Ref = "gpt2" },
-		"no destination": func(o *pub.DownloadOptions) { o.DestDir = "" },
-		"no hasher":      func(o *pub.DownloadOptions) { o.Hasher = nil },
-		"no store":       func(o *pub.DownloadOptions) { o.Store = nil },
+	tests := map[string]func(*DownloadVolumeOptions){
+		"no ref":         func(o *DownloadVolumeOptions) { o.Ref = "" },
+		"malformed ref":  func(o *DownloadVolumeOptions) { o.Ref = "gpt2" },
+		"no destination": func(o *DownloadVolumeOptions) { o.DestDir = "" },
+		"no hasher":      func(o *DownloadVolumeOptions) { o.Hasher = nil },
+		"no store":       func(o *DownloadVolumeOptions) { o.Store = nil },
 		// Restart discards a partly downloaded tree; in Overwrite mode that
 		// tree is the caller's own directory, including the files Overwrite
 		// promises to leave alone.
-		"restart while overwriting": func(o *pub.DownloadOptions) { o.Overwrite, o.Restart = true, true },
+		"restart while overwriting": func(o *DownloadVolumeOptions) { o.Overwrite, o.Restart = true, true },
 	}
 	for name, break_ := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -212,9 +211,9 @@ func TestVolumeTokenExchangeFailures(t *testing.T) {
 // TestVolumeOptionsReachTheEngine checks the translation into the internal
 // options, which is where a dropped field would silently change behavior.
 func TestVolumeOptionsReachTheEngine(t *testing.T) {
-	concurrency := pub.Concurrency{FileJobs: 3, ChunkOperations: 4, MaxBytesInFlight: 5}
+	concurrency := VolumeConcurrencyOptions{FileJobs: 3, ChunkOperations: 4, MaxBytesInFlight: 5}
 
-	push := pushOptions(pub.PushOptions{
+	push := pushOptions(PushVolumeOptions{
 		Namespace: "models", Volume: "gpt2", SourceDir: "/tmp/tree", SourceURI: "file:///fixed",
 		Tags: []string{"prod"}, RequireHeadMove: true, Hasher: stubHasher,
 		Store:       stubStore{},
@@ -230,7 +229,7 @@ func TestVolumeOptionsReachTheEngine(t *testing.T) {
 	require.NotNil(t, push.DownloadObject)
 	require.Equal(t, 3, push.Concurrency.FileJobs)
 
-	pull := pullOptions(pub.DownloadOptions{
+	pull := pullOptions(DownloadVolumeOptions{
 		Ref: "models/gpt2:prod", DestDir: "/tmp/out", Overwrite: true, Restart: true,
 		Include: []string{"weights"}, Hasher: stubHasher,
 		Store:       stubStore{},
@@ -246,7 +245,7 @@ func TestVolumeOptionsReachTheEngine(t *testing.T) {
 	// Leaving concurrency unset must not zero the engine's defaults: the
 	// zero value translates to the engine's zero value, whose meaning is
 	// already "defaults".
-	require.Equal(t, 0, pushOptions(pub.PushOptions{}).Concurrency.FileJobs)
+	require.Equal(t, 0, pushOptions(PushVolumeOptions{}).Concurrency.FileJobs)
 }
 
 // TestVolumeTransfersValidateBeforeExchangingAToken checks that bad options
@@ -260,10 +259,10 @@ func TestVolumeTransfersValidateBeforeExchangingAToken(t *testing.T) {
 	client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
 	require.NoError(t, err)
 
-	_, err = client.PushVolume(context.Background(), pub.PushOptions{Namespace: "models"})
+	_, err = client.PushVolume(context.Background(), PushVolumeOptions{Namespace: "models"})
 	require.Error(t, err)
 
-	_, err = client.DownloadVolume(context.Background(), pub.DownloadOptions{Ref: "models/gpt2"})
+	_, err = client.DownloadVolume(context.Background(), DownloadVolumeOptions{Ref: "models/gpt2"})
 	require.Error(t, err)
 }
 
@@ -363,26 +362,26 @@ func TestTokenRefreshesAheadOfExpiry(t *testing.T) {
 // scope the caller cannot have rather than granting a smaller set, so every
 // unnecessary scope is a way for the whole transfer to fail.
 func TestPushScopeSelection(t *testing.T) {
-	bare := pub.PushOptions{Namespace: "models", Volume: "gpt2", SourceDir: "/tmp/t", Hasher: stubHasher}
+	bare := PushVolumeOptions{Namespace: "models", Volume: "gpt2", SourceDir: "/tmp/t", Hasher: stubHasher}
 
 	tests := []struct {
 		name string
-		with func(*pub.PushOptions)
+		with func(*PushVolumeOptions)
 		want string
 	}{
 		// Moving head needs no scope beyond push.
-		{"plain push", func(*pub.PushOptions) {}, "PUSH"},
+		{"plain push", func(*PushVolumeOptions) {}, "PUSH"},
 		// Applying a tag at commit is gated like setting one directly.
-		{"with tags", func(o *pub.PushOptions) { o.Tags = []string{"prod"} }, "PUSH,TAG"},
+		{"with tags", func(o *PushVolumeOptions) { o.Tags = []string{"prod"} }, "PUSH,TAG"},
 		// Reading the previous version needs pull authority — and this is the
 		// condition that must not drift: without PULL the lookup is refused,
 		// the push reads that as "no previous version", and delta reuse stops
 		// with nothing to notice it by. The Store interface made the old
 		// one-seam-alone rows unrepresentable.
-		{"with the reuse store", func(o *pub.PushOptions) {
+		{"with the reuse store", func(o *PushVolumeOptions) {
 			o.Store = stubStore{}
 		}, "PUSH,PULL"},
-		{"tags and reuse", func(o *pub.PushOptions) {
+		{"tags and reuse", func(o *PushVolumeOptions) {
 			o.Tags = []string{"prod"}
 			o.Store = stubStore{}
 		}, "PUSH,TAG,PULL"},
