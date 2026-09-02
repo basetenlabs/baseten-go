@@ -110,8 +110,8 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	// fixture makes the counters discriminating: dup.txt repeats small.txt's
 	// bytes and this push runs without a reuse store, so the duplicate is
 	// sent and the service reports it already stored — Existing is exactly
-	// one, measured stable across repeated runs. Reused stays zero on this
-	// path, so its copy — like HeadMoveDenied's false — is one this test
+	// one, measured stable across repeated runs. Reused is pinned by the
+	// second push below; HeadMoveDenied's false is the one copy this test
 	// cannot discriminate.
 	if !strings.HasPrefix(pushed.ManifestDigest, "b3:") {
 		t.Errorf("manifest digest %q does not name a version", pushed.ManifestDigest)
@@ -155,8 +155,8 @@ func TestManagementClientRoundTrip(t *testing.T) {
 		t.Errorf("downloaded %s, pushed %s", downloaded.ManifestDigest, pushed.ManifestDigest)
 	}
 	// Every remaining download-result field, for the same reason as the push
-	// asserts above. ChunksReused is genuinely zero on a fresh download, so
-	// its copy is the one field this test cannot discriminate.
+	// asserts above; ChunksReused, genuinely zero on a fresh download, is
+	// pinned by the second download below.
 	if !strings.Contains(downloaded.VersionRef, "@b3:") {
 		t.Errorf("version ref %q is not pinned to a version", downloaded.VersionRef)
 	}
@@ -179,9 +179,88 @@ func TestManagementClientRoundTrip(t *testing.T) {
 		t.Errorf("the round trip changed the tree\n got:\n%s\nwant:\n%s", got, want)
 	}
 
+	// A second push of the identical tree, now with the reuse store, pins the
+	// Reused copy the first push cannot: reading the previous version lets
+	// every content chunk be reused rather than re-sent. The counters are
+	// pinned exactly, measured stable across repeated runs — the one
+	// duplicated chunk still lands in Existing, as on the first push.
+	repushed, err := api.PushVolume(ctx, client.PushVolumeOptions{
+		Namespace: fakeNamespace,
+		Volume:    fakeVolume,
+		SourceDir: root,
+		SourceURI: "file:///fixture",
+		Hasher:    newBlake3,
+		Store:     fakePublicStore{download: fake.downloader()},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if repushed.ManifestDigest != pushed.ManifestDigest {
+		t.Errorf("re-pushing the same tree published %s, want %s again", repushed.ManifestDigest, pushed.ManifestDigest)
+	}
+	if repushed.Sequence != 2 {
+		t.Errorf("sequence %d, want 2 for the second commit", repushed.Sequence)
+	}
+	// The fake echoes the requested head move; the real server's
+	// nothing-had-to-move false for an identical version is documented on
+	// the field, not enforced here.
+	if !repushed.HeadUpdated || repushed.HeadMoveDenied {
+		t.Errorf("head updated %v, denied %v", repushed.HeadUpdated, repushed.HeadMoveDenied)
+	}
+	if len(repushed.TagsApplied) != 0 {
+		t.Errorf("applied tags %v on an untagged push", repushed.TagsApplied)
+	}
+	if repushed.Files != 5 || repushed.Bytes != pushed.Bytes {
+		t.Errorf("re-push saw %d files and %d bytes, want 5 and %d", repushed.Files, repushed.Bytes, pushed.Bytes)
+	}
+	if repushed.Reused <= 0 {
+		t.Errorf("re-push reused %d chunks, want the previous version's", repushed.Reused)
+	}
+	if repushed.Unique != 0 || repushed.Existing != 1 || repushed.Chunks != pushed.Chunks {
+		t.Errorf("re-push accounting %d unique, %d existing, %d chunks; want 0, 1, %d",
+			repushed.Unique, repushed.Existing, repushed.Chunks, pushed.Chunks)
+	}
+	if repushed.Unique+repushed.Reused+repushed.Existing != repushed.Chunks {
+		t.Errorf("re-push partition %d+%d+%d does not cover %d",
+			repushed.Unique, repushed.Reused, repushed.Existing, repushed.Chunks)
+	}
+
+	// A second download into the same destination pins the ChunksReused
+	// copy the fresh download cannot: every content chunk is already on
+	// disk with the right bytes, so nothing is fetched.
+	redownloaded, err := api.DownloadVolume(ctx, client.DownloadVolumeOptions{
+		Ref:       fakeNamespace + "/" + fakeVolume + ":prod",
+		DestDir:   dest,
+		Overwrite: true,
+		Hasher:    newBlake3,
+		Store:     fakePublicStore{download: fake.downloader()},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if redownloaded.ManifestDigest != pushed.ManifestDigest || !strings.Contains(redownloaded.VersionRef, "@b3:") {
+		t.Errorf("re-download got %s at %q", redownloaded.ManifestDigest, redownloaded.VersionRef)
+	}
+	if redownloaded.Files != 5 || redownloaded.Bytes != pushed.Bytes {
+		t.Errorf("re-download wrote %d files and %d bytes, want 5 and %d", redownloaded.Files, redownloaded.Bytes, pushed.Bytes)
+	}
+	if redownloaded.TotalFiles != 5 || redownloaded.SelectedFiles != redownloaded.TotalFiles {
+		t.Errorf("re-download selection %d of %d, want the whole volume's 5", redownloaded.SelectedFiles, redownloaded.TotalFiles)
+	}
+	if redownloaded.ChunksReused <= 0 {
+		t.Errorf("re-download reused %d chunks with the whole tree on disk", redownloaded.ChunksReused)
+	}
+	if redownloaded.ChunksFetched != 0 {
+		t.Errorf("re-download fetched %d chunks it already had", redownloaded.ChunksFetched)
+	}
+	if len(redownloaded.Warnings) != 0 {
+		t.Errorf("unexpected warnings %v", redownloaded.Warnings)
+	}
+
 	// The API key is exchanged once per transfer and the resulting token is
-	// reused for every request that transfer makes.
-	if exchanges.Load() != 2 {
+	// reused for every request that transfer makes: four transfers, four
+	// exchanges.
+	if exchanges.Load() != 4 {
 		t.Errorf("exchanged %d tokens, want one per transfer", exchanges.Load())
 	}
 }
