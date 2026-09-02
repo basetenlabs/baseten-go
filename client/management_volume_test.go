@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -17,6 +18,7 @@ import (
 	"time"
 
 	"github.com/basetenlabs/baseten-go/internal/require"
+	"github.com/basetenlabs/baseten-go/internal/volume"
 	"github.com/basetenlabs/baseten-go/internal/volume/bdn"
 )
 
@@ -157,45 +159,83 @@ func TestVolumeTokenExchange(t *testing.T) {
 }
 
 func TestVolumeTokenExchangeFailures(t *testing.T) {
-	tests := map[string]http.HandlerFunc{
-		"rejected": func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusForbidden)
-			_, _ = io.WriteString(w, `{"detail":"no volume access"}`)
+	// Each row names the gate that must refuse it, so two rows cannot pass on
+	// one another's failure: a wrong content type must be caught before the
+	// body is decoded, a malformed body must reach the decoder and fail
+	// there, and so on down to the field checks.
+	tests := map[string]struct {
+		handler http.HandlerFunc
+		want    string
+	}{
+		"rejected": {
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusForbidden)
+				_, _ = io.WriteString(w, `{"detail":"no volume access"}`)
+			},
+			want: "HTTP 403",
 		},
-		"not json": func(w http.ResponseWriter, _ *http.Request) {
-			_, _ = io.WriteString(w, "<html>hello</html>")
+		// An HTML error page sniffs as text/html, and the generated client
+		// refuses a response that does not declare JSON before reading the
+		// body at all.
+		"wrong content type": {
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				_, _ = io.WriteString(w, "<html>hello</html>")
+			},
+			want: "unexpected content type",
 		},
-		// The fakes below declare the JSON content type the real service always
-		// sends; without it the generated client refuses the response before
-		// the condition under test is ever reached.
-		"no token": func(w http.ResponseWriter, _ *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			_, _ = io.WriteString(w, `{"bdn_endpoint":"https://volumes.example"}`)
+		// The companion shape: the declared type is right and the body is
+		// not JSON, so this row must fail in the decoder, past the
+		// content-type gate the row above stops at.
+		"malformed json body": {
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = io.WriteString(w, `{not json`)
+			},
+			want: "invalid character",
+		},
+		// The fakes below declare the JSON content type the real service
+		// always sends; without it the generated client would refuse the
+		// response before the condition under test is ever reached.
+		"no token": {
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = io.WriteString(w, `{"bdn_endpoint":"https://volumes.example"}`)
+			},
+			want: "carried no token",
 		},
 		// A null endpoint is the service saying this deployment does not serve
 		// volumes yet, which is a different thing from a malformed response
 		// and must not be mistaken for one later.
-		"null endpoint": func(w http.ResponseWriter, _ *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			_, _ = io.WriteString(w, `{"token":"capability-token","bdn_endpoint":null}`)
+		"null endpoint": {
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = io.WriteString(w, `{"token":"capability-token","bdn_endpoint":null}`)
+			},
+			want: "does not expose a volume API",
 		},
-		"unparseable expiry": func(w http.ResponseWriter, _ *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			_, _ = io.WriteString(w,
-				`{"token":"t","bdn_endpoint":"https://x","expires_at":"whenever"}`)
+		"unparseable expiry": {
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = io.WriteString(w,
+					`{"token":"t","bdn_endpoint":"https://x","expires_at":"whenever"}`)
+			},
+			want: "parsing time",
 		},
 		// An empty-string endpoint is not null: null is the deployment saying
 		// it has no volume API, an empty string is a response this client
 		// cannot use. The two shapes get different errors, tested here and in
 		// the sentinel test below.
-		"empty endpoint": func(w http.ResponseWriter, _ *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			_, _ = io.WriteString(w, `{"token":"capability-token","bdn_endpoint":""}`)
+		"empty endpoint": {
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = io.WriteString(w, `{"token":"capability-token","bdn_endpoint":""}`)
+			},
+			want: "empty volume endpoint",
 		},
 	}
-	for name, handler := range tests {
+	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			server := httptest.NewServer(handler)
+			server := httptest.NewServer(tc.handler)
 			defer server.Close()
 
 			client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
@@ -204,6 +244,7 @@ func TestVolumeTokenExchangeFailures(t *testing.T) {
 			_, _, err = client.volumeTokenSource("models", []string{"PULL"}, "").tokenSource()(context.Background(), "")
 			require.Error(t, err)
 			require.Contains(t, err.Error(), "exchange volume token")
+			require.Contains(t, err.Error(), tc.want)
 		})
 	}
 }
@@ -615,4 +656,42 @@ func TestEmptyEndpointIsNotMissingAPI(t *testing.T) {
 	require.Error(t, err)
 	require.False(t, errors.Is(err, ErrNoVolumeAPI), "an empty endpoint must not read as a missing volume API: %v", err)
 	require.True(t, errors.Is(err, ErrMalformedVolumeEndpoint), "the empty shape should carry its own sentinel: %v", err)
+}
+
+// TestConcurrencyOptionsReachBothEngines guards the two keyed copies of the
+// concurrency translation — one in volumePushOptions, one in
+// volumePullOptions. The parity tests hold the TYPES together but say
+// nothing about the copies: a field added to both types and to only one call
+// site would leave everything green while one path silently ignored the
+// option. Every field is populated, checked nonzero so a new field cannot
+// ride through unpopulated, and asserted to arrive — matched by name — in
+// the engine options on both paths.
+func TestConcurrencyOptionsReachBothEngines(t *testing.T) {
+	full := VolumeConcurrencyOptions{FileJobs: 3, ChunkOperations: 4, MaxBytesInFlight: 5}
+
+	want := reflect.ValueOf(full)
+	for i := 0; i < want.NumField(); i++ {
+		if want.Field(i).IsZero() {
+			t.Fatalf("field %s is zero — populate it here so its copies can be judged", want.Type().Field(i).Name)
+		}
+	}
+
+	engines := map[string]volume.Concurrency{
+		"push": volumePushOptions(PushVolumeOptions{Concurrency: full}).Concurrency,
+		"pull": volumePullOptions(DownloadVolumeOptions{Concurrency: full}).Concurrency,
+	}
+	for path, got := range engines {
+		g := reflect.ValueOf(got)
+		for i := 0; i < want.NumField(); i++ {
+			name := want.Type().Field(i).Name
+			engineField := g.FieldByName(name)
+			if !engineField.IsValid() {
+				t.Errorf("%s translation: the engine concurrency has no field %s", path, name)
+				continue
+			}
+			if !engineField.Equal(want.Field(i)) {
+				t.Errorf("%s translation dropped %s: got %v, want %v", path, name, engineField, want.Field(i))
+			}
+		}
+	}
 }

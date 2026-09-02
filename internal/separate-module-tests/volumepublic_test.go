@@ -105,6 +105,36 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	if len(pushed.TagsApplied) != 1 || pushed.TagsApplied[0] != "prod" {
 		t.Errorf("applied tags %v", pushed.TagsApplied)
 	}
+	// Every remaining result field, so a copy dropped from the result literal
+	// in PushVolume goes red here rather than shipping a permanent zero. The
+	// fixture makes the counters discriminating: dup.txt repeats small.txt's
+	// bytes and this push runs without a reuse store, so the duplicate is
+	// sent and the service reports it already stored — Existing is exactly
+	// one, measured stable across repeated runs. Reused stays zero on this
+	// path, so its copy — like HeadMoveDenied's false — is one this test
+	// cannot discriminate.
+	if !strings.HasPrefix(pushed.ManifestDigest, "b3:") {
+		t.Errorf("manifest digest %q does not name a version", pushed.ManifestDigest)
+	}
+	if pushed.Sequence != 1 {
+		t.Errorf("sequence %d, want 1 for the first commit", pushed.Sequence)
+	}
+	if pushed.HeadMoveDenied {
+		t.Error("head move reported denied with a credential that can move it")
+	}
+	if pushed.Bytes <= 0 {
+		t.Errorf("pushed %d bytes, want the tree's bytes", pushed.Bytes)
+	}
+	if pushed.Chunks <= 0 || pushed.Unique <= 0 {
+		t.Errorf("chunk accounting empty: %d chunks, %d unique", pushed.Chunks, pushed.Unique)
+	}
+	if pushed.Existing != 1 {
+		t.Errorf("existing %d, want the one duplicated chunk", pushed.Existing)
+	}
+	if pushed.Unique+pushed.Reused+pushed.Existing != pushed.Chunks {
+		t.Errorf("chunk partition %d+%d+%d does not cover %d",
+			pushed.Unique, pushed.Reused, pushed.Existing, pushed.Chunks)
+	}
 	if len(phases) < 3 {
 		t.Errorf("progress reported phases %v, expected a scan, an upload, and a commit", phases)
 	}
@@ -123,6 +153,27 @@ func TestManagementClientRoundTrip(t *testing.T) {
 
 	if downloaded.ManifestDigest != pushed.ManifestDigest {
 		t.Errorf("downloaded %s, pushed %s", downloaded.ManifestDigest, pushed.ManifestDigest)
+	}
+	// Every remaining download-result field, for the same reason as the push
+	// asserts above. ChunksReused is genuinely zero on a fresh download, so
+	// its copy is the one field this test cannot discriminate.
+	if !strings.Contains(downloaded.VersionRef, "@b3:") {
+		t.Errorf("version ref %q is not pinned to a version", downloaded.VersionRef)
+	}
+	if downloaded.Files != 5 || downloaded.Bytes != pushed.Bytes {
+		t.Errorf("downloaded %d files and %d bytes, pushed 5 and %d", downloaded.Files, downloaded.Bytes, pushed.Bytes)
+	}
+	if downloaded.TotalFiles != 5 || downloaded.SelectedFiles != downloaded.TotalFiles {
+		t.Errorf("selection %d of %d, want the whole volume's 5", downloaded.SelectedFiles, downloaded.TotalFiles)
+	}
+	if downloaded.ChunksFetched <= 0 {
+		t.Errorf("fetched %d chunks, want at least one", downloaded.ChunksFetched)
+	}
+	if downloaded.ChunksReused != 0 {
+		t.Errorf("reused %d chunks on a fresh download", downloaded.ChunksReused)
+	}
+	if len(downloaded.Warnings) != 0 {
+		t.Errorf("unexpected warnings %v", downloaded.Warnings)
 	}
 	if got, want := treeDescription(t, dest), treeDescription(t, root); got != want {
 		t.Errorf("the round trip changed the tree\n got:\n%s\nwant:\n%s", got, want)
@@ -442,5 +493,107 @@ func TestMixedCaseNamesAreLoweredForBothConsumers(t *testing.T) {
 	}
 	if !sawNames {
 		t.Errorf("no wire request addressed %s/%s: %v", fakeNamespace, fakeVolume, wirePaths)
+	}
+}
+
+// recordingPublicStore wraps a public store and records every request handed
+// to it, so a test can assert on what the production translation delivered.
+type recordingPublicStore struct {
+	inner client.VolumeObjectStore
+	mu    *sync.Mutex
+	got   *[]client.VolumeObjectDownload
+}
+
+func (s recordingPublicStore) DownloadObject(ctx context.Context, req client.VolumeObjectDownload) (*client.VolumeObjectResult, error) {
+	s.mu.Lock()
+	*s.got = append(*s.got, req)
+	s.mu.Unlock()
+	return s.inner.DownloadObject(ctx, req)
+}
+
+func (s recordingPublicStore) Decompressor(r io.Reader) (io.ReadCloser, error) {
+	return s.inner.Decompressor(r)
+}
+
+// TestDownloadDeliversResolvedOriginToTheStore pins the PRODUCTION
+// engine-to-public translation — the store adapter inside DownloadVolume —
+// which TestFakePublicStoreCopiesEveryField cannot: that test pins the test
+// adapter's own copy, in the opposite direction. The fake service leases
+// known credential values at resolve, and every request the caller's store
+// receives must carry all of them, along with the origin's endpoint, region,
+// and bucket, a key, and — for chunk reads — the size the manifest records.
+// A credential field dropped by the production copy arrives here as an empty
+// string against a known value, not as an unnoticed zero.
+func TestDownloadDeliversResolvedOriginToTheStore(t *testing.T) {
+	root := buildTree(t)
+	fake := newFakeService(t)
+	var exchanges atomic.Int64
+
+	api, err := client.NewManagementClient(client.ManagementClientOptions{
+		APIKey:  "api-key",
+		BaseURL: newManagementAPI(t, fake, &exchanges),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := context.Background()
+
+	if _, err := api.PushVolume(ctx, client.PushVolumeOptions{
+		Namespace: fakeNamespace, Volume: fakeVolume, SourceDir: root,
+		SourceURI: "file:///fixture", Hasher: newBlake3,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	var mu sync.Mutex
+	var got []client.VolumeObjectDownload
+	dest := filepath.Join(t.TempDir(), "out")
+	if _, err := api.DownloadVolume(ctx, client.DownloadVolumeOptions{
+		Ref:     fakeNamespace + "/" + fakeVolume,
+		DestDir: dest,
+		Hasher:  newBlake3,
+		Store: recordingPublicStore{
+			inner: fakePublicStore{download: fake.downloader()},
+			mu:    &mu,
+			got:   &got,
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(filepath.Join(dest, "assets"), 0o755) })
+
+	mu.Lock()
+	defer mu.Unlock()
+	if len(got) == 0 {
+		t.Fatal("the store saw no requests — nothing was asserted")
+	}
+	wantCredentials := client.VolumeObjectCredentials{
+		AccessKeyID:     "key",
+		SecretAccessKey: "secret",
+		SessionToken:    "session",
+	}
+	sized := 0
+	for _, req := range got {
+		if req.Credentials != wantCredentials {
+			t.Errorf("request for %q carried credentials %+v, want %+v", req.Key, req.Credentials, wantCredentials)
+		}
+		if req.Endpoint != fake.server.URL {
+			t.Errorf("request for %q addressed endpoint %q, want %q", req.Key, req.Endpoint, fake.server.URL)
+		}
+		if req.Region != "us-east-1" {
+			t.Errorf("request for %q carried region %q, want us-east-1", req.Key, req.Region)
+		}
+		if req.Bucket != fakeBucket {
+			t.Errorf("request for %q carried bucket %q, want %q", req.Key, req.Bucket, fakeBucket)
+		}
+		if req.Key == "" {
+			t.Error("a request carried no key")
+		}
+		if req.ExpectedSize > 0 {
+			sized++
+		}
+	}
+	if sized == 0 {
+		t.Error("no request carried an expected size — the manifest-recorded chunk lengths were dropped")
 	}
 }

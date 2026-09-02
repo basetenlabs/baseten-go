@@ -312,6 +312,9 @@ func (f *fakeService) handleResolve(w http.ResponseWriter, r *http.Request) {
 	origin := map[string]any{
 		"endpoint": f.server.URL, "region": "us-east-1", "bucket": fakeBucket,
 		"access_key_id": "key", "secret_access_key": "secret",
+		// A leased session token, like the real service's, so a test can tell
+		// a delivered credential set from a partially copied one.
+		"session_token": "session",
 	}
 	if f.leaseTTL > 0 {
 		origin["expires_at"] = time.Now().Add(f.leaseTTL).UTC().Format(time.RFC3339Nano)
