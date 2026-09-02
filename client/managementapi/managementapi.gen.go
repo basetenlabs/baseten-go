@@ -665,6 +665,7 @@ const (
 	GatewayProvider_OPENAI            GatewayProvider = "OPENAI"
 	GatewayProvider_OPENAI_COMPATIBLE GatewayProvider = "OPENAI_COMPATIBLE"
 	GatewayProvider_VERTEX            GatewayProvider = "VERTEX"
+	GatewayProvider_XAI               GatewayProvider = "XAI"
 )
 
 // Valid indicates whether the value is a known member of the GatewayProvider enum.
@@ -681,6 +682,8 @@ func (e GatewayProvider) Valid() bool {
 	case GatewayProvider_OPENAI_COMPATIBLE:
 		return true
 	case GatewayProvider_VERTEX:
+		return true
+	case GatewayProvider_XAI:
 		return true
 	default:
 		return false
@@ -1251,6 +1254,30 @@ func (e V1InteractiveSessionTrigger) Valid() bool {
 	case V1InteractiveSessionTrigger_on_failure:
 		return true
 	case V1InteractiveSessionTrigger_on_startup:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for VolumeTokenScope.
+const (
+	VolumeTokenScope_INSPECT VolumeTokenScope = "INSPECT"
+	VolumeTokenScope_PULL    VolumeTokenScope = "PULL"
+	VolumeTokenScope_PUSH    VolumeTokenScope = "PUSH"
+	VolumeTokenScope_TAG     VolumeTokenScope = "TAG"
+)
+
+// Valid indicates whether the value is a known member of the VolumeTokenScope enum.
+func (e VolumeTokenScope) Valid() bool {
+	switch e {
+	case VolumeTokenScope_INSPECT:
+		return true
+	case VolumeTokenScope_PULL:
+		return true
+	case VolumeTokenScope_PUSH:
+		return true
+	case VolumeTokenScope_TAG:
 		return true
 	default:
 		return false
@@ -2190,15 +2217,13 @@ type BasetenNamedCheckpointConfig struct {
 
 // BenchmarkSnapshot defines model for BenchmarkSnapshot.
 type BenchmarkSnapshot struct {
-	CostPer1mTokensUsd           *float32 `json:"cost_per_1m_tokens_usd,omitempty"`
-	MaxConcurrentUsersAt50msTpot *int     `json:"max_concurrent_users_at_50ms_tpot,omitempty"`
-	MeasuredAt                   string   `json:"measured_at"`
-	OutputTokensPerSecPerUserP50 *float32 `json:"output_tokens_per_sec_per_user_p50,omitempty"`
-	Profile                      *string  `json:"profile,omitempty"`
-	Replicas                     *int     `json:"replicas,omitempty"`
-	RequestsPerSecP50            *float32 `json:"requests_per_sec_p50,omitempty"`
-	RunId                        string   `json:"run_id"`
-	TtftMsP50                    *float32 `json:"ttft_ms_p50,omitempty"`
+	Embedding  *EmbeddingBenchmarkMetrics `json:"embedding,omitempty"`
+	Llm        *LLMBenchmarkMetrics       `json:"llm,omitempty"`
+	MeasuredAt string                     `json:"measured_at"`
+	Profile    *string                    `json:"profile,omitempty"`
+	Replicas   *int                       `json:"replicas,omitempty"`
+	RunId      string                     `json:"run_id"`
+	Tts        *TTSBenchmarkMetrics       `json:"tts,omitempty"`
 }
 
 // BillableResource defines model for BillableResource.
@@ -2218,6 +2243,9 @@ type BillableResource struct {
 	// IsDeleted Indicates if the resource has been deleted
 	IsDeleted bool         `json:"is_deleted"`
 	Kind      ResourceKind `json:"kind"`
+
+	// ModelId Unique identifier of the parent model for model deployments and chainlets
+	ModelId *string `json:"model_id,omitempty"`
 
 	// ModelName Name of the parent resource (e.g., model name for model deployments, training project name for training jobs)
 	ModelName *string `json:"model_name,omitempty"`
@@ -2733,7 +2761,7 @@ type CreateLoopsRunRequest struct {
 	// ReuseFromSessionId Optional ID of a prior Loops session whose trainer and/or sampler should be reused for this run. Deprecated in favor of reuse_from_run_id.
 	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
 
-	// ScaleDownDelaySeconds Seconds of inactivity before the run scales to zero. Must be between 1 and 3600 (1 hour). Defaults to 3600.
+	// ScaleDownDelaySeconds Seconds of inactivity before the run scales to zero. Must be between 1 and 3600 (1 hour). Defaults to 900 (15 minutes).
 	ScaleDownDelaySeconds *int `json:"scale_down_delay_seconds,omitempty"`
 
 	// Seed Random seed for reproducibility.
@@ -2949,6 +2977,36 @@ type CreateTrainingJobS3Artifact struct {
 
 	// S3Key S3 key for the uploaded runtime artifact.
 	S3Key string `json:"s3_key"`
+}
+
+// CreateVolumeTokenRequest defines model for CreateVolumeTokenRequest.
+type CreateVolumeTokenRequest struct {
+	// CorrelationId Optional client-chosen identifier, at most 128 printable ASCII characters. Echoed into server logs to link the issued token to a client operation.
+	CorrelationId *string `json:"correlation_id,omitempty"`
+
+	// Namespaces Volume namespaces the token is limited to, lowercase ASCII, at least one. Pass only the namespaces the operation needs.
+	Namespaces []string `json:"namespaces"`
+
+	// Scopes Capabilities the token grants, at least one. Requesting PUSH or TAG requires organization-level model management permission.
+	Scopes []VolumeTokenScope `json:"scopes"`
+}
+
+// CreateVolumeTokenResponse defines model for CreateVolumeTokenResponse.
+type CreateVolumeTokenResponse struct {
+	// BdnEndpoint Base URL of the volume API this token authenticates against. Null when the environment does not expose a public volume API yet.
+	BdnEndpoint *string `json:"bdn_endpoint"`
+
+	// ExpiresAt Token expiry in ISO 8601 format. Tokens cannot be renewed; exchange again for a fresh token.
+	ExpiresAt time.Time `json:"expires_at"`
+
+	// Namespaces Effective namespaces granted, in canonical lowercase form.
+	Namespaces []string `json:"namespaces"`
+
+	// Scopes Effective capabilities granted.
+	Scopes []VolumeTokenScope `json:"scopes"`
+
+	// Token Volume access token. Pass as a bearer token to the volume APIs.
+	Token string `json:"token"`
 }
 
 // CreatedModelDeployment A newly created deployment and its model.
@@ -3529,6 +3587,14 @@ type EffectiveUsageLimit struct {
 	Threshold int            `json:"threshold"`
 	Type      LimitType      `json:"type"`
 	Unit      UsageLimitUnit `json:"unit"`
+}
+
+// EmbeddingBenchmarkMetrics defines model for EmbeddingBenchmarkMetrics.
+type EmbeddingBenchmarkMetrics struct {
+	E2eLatencyMsP50   *float32 `json:"e2e_latency_ms_p50,omitempty"`
+	E2eLatencyMsP99   *float32 `json:"e2e_latency_ms_p99,omitempty"`
+	InputTokensPerSec *float32 `json:"input_tokens_per_sec,omitempty"`
+	RequestsPerSec    *float32 `json:"requests_per_sec,omitempty"`
 }
 
 // Endpoint A Gateway endpoint: a slug and its priority-ordered targets (index 0 tried first).
@@ -4320,6 +4386,15 @@ type KeysForGroupResponse struct {
 	Pagination PaginationResponse `json:"pagination"`
 }
 
+// LLMBenchmarkMetrics defines model for LLMBenchmarkMetrics.
+type LLMBenchmarkMetrics struct {
+	CostPer1mTokensUsd           *float32 `json:"cost_per_1m_tokens_usd,omitempty"`
+	MaxConcurrentUsersAt50msTpot *int     `json:"max_concurrent_users_at_50ms_tpot,omitempty"`
+	OutputTokensPerSecPerUserP50 *float32 `json:"output_tokens_per_sec_per_user_p50,omitempty"`
+	RequestsPerSecP50            *float32 `json:"requests_per_sec_p50,omitempty"`
+	TtftMsP50                    *float32 `json:"ttft_ms_p50,omitempty"`
+}
+
 // LLMModelHandle Handle for a BIS-LLM model deployment.
 type LLMModelHandle struct {
 	// Hostname Hostname used to invoke the model
@@ -4525,7 +4600,7 @@ type Log struct {
 	// Level Severity of the log line, if one was detected. null when unknown.
 	Level *LogLevel `json:"level,omitempty"`
 
-	// Message The contents of the log message.
+	// Message The contents of the log message. When the logger captured an exception, the traceback is appended after the message.
 	Message string `json:"message"`
 
 	// Replica The replica the log line was emitted from.
@@ -5021,7 +5096,7 @@ type ModelApisUsageResponse struct {
 
 // ModelApisUsageResult Usage totals for one combination of the requested dimensions, within one bucket.
 type ModelApisUsageResult struct {
-	// ApiKeyPrefix Prefix of the API key the usage is attributed to. Null when not grouping by api_key.
+	// ApiKeyPrefix Prefix of the API key the usage is attributed to. Null when not grouping by api_key or when the request was not authenticated with an API key.
 	ApiKeyPrefix *string `json:"api_key_prefix,omitempty"`
 
 	// CachedInputTokens Input tokens served from the prompt cache.
@@ -5256,10 +5331,10 @@ type PatchInteractiveSessionResponse struct {
 // accepting both would create two ways to spell the same intent.
 type PatchLoopsUserConfigRequest struct {
 	// SamplerAcceleratorPriority Ordered list of GPU types for sampler deployments, highest priority first. Send a list to set; send null to clear (inherit org allowlist); omit to leave unchanged. Empty list is rejected.
-	SamplerAcceleratorPriority *[]string `json:"sampler_accelerator_priority,omitempty"`
+	SamplerAcceleratorPriority Optional[[]string] `json:"sampler_accelerator_priority,omitzero"`
 
 	// TrainerAcceleratorPriority Ordered list of GPU types for trainer deployments, highest priority first. Send a list to set; send null to clear (inherit org allowlist); omit to leave unchanged. Empty list is rejected.
-	TrainerAcceleratorPriority *[]string `json:"trainer_accelerator_priority,omitempty"`
+	TrainerAcceleratorPriority Optional[[]string] `json:"trainer_accelerator_priority,omitzero"`
 }
 
 // PatchLoopsUserConfigResponse Response for “PATCH /v1/loops/user_config“.
@@ -5680,6 +5755,14 @@ type SyncDeploymentPatchesResponse struct {
 	NeedsFullDeployReason *string `json:"needs_full_deploy_reason,omitempty"`
 }
 
+// TTSBenchmarkMetrics defines model for TTSBenchmarkMetrics.
+type TTSBenchmarkMetrics struct {
+	CostPerAudioMinuteUsd      *float32 `json:"cost_per_audio_minute_usd,omitempty"`
+	MaxConcurrentStreamsAtRtf1 *int     `json:"max_concurrent_streams_at_rtf1,omitempty"`
+	TtftMsP50                  *float32 `json:"ttft_ms_p50,omitempty"`
+	TtftMsP50AtMaxConcurrency  *float32 `json:"ttft_ms_p50_at_max_concurrency,omitempty"`
+}
+
 // Team A team.
 type Team struct {
 	// CreatedAt Time the team was created in ISO 8601 format
@@ -6027,7 +6110,7 @@ type UpdateAutoscalingScheduleSettings struct {
 	Schedules *[]UpdateAutoscalingScheduleSettings_Schedules_Item `json:"schedules,omitempty"`
 
 	// Timezone IANA timezone shared by the resulting collection. Omission preserves the current timezone; null is allowed only when deleting every schedule.
-	Timezone *string `json:"timezone,omitempty"`
+	Timezone Optional[string] `json:"timezone,omitzero"`
 }
 
 // UpdateAutoscalingScheduleSettings_Schedules_Item defines model for UpdateAutoscalingScheduleSettings.schedules.Item.
@@ -6237,7 +6320,7 @@ type UpdatePromotionSettings struct {
 // UpdateRequestBackpressureSettings A request to update request backpressure settings.
 type UpdateRequestBackpressureSettings struct {
 	// Policy Backpressure policy to apply. Null indicates no policy (on update, clears an existing one).
-	Policy *RequestBackpressurePolicy `json:"policy,omitempty"`
+	Policy Optional[RequestBackpressurePolicy] `json:"policy,omitzero"`
 }
 
 // UpdateRollingDeployConfig Rolling deploy config for promoting chains and oracles
@@ -6259,9 +6342,15 @@ type UpdateRollingDeployConfig struct {
 }
 
 // UpdateTrainingJobRequest A request to update mutable fields on a training job.
+//
+// Every field is optional so a caller can patch one without the other, but at least
+// one must be provided: an empty body has nothing to apply.
 type UpdateTrainingJobRequest struct {
+	// AvailabilityModel New capacity guarantee for a PENDING training job. 'dedicated' runs on on-demand capacity that is not preempted. 'spot' runs on interruptible capacity that may be preempted; the user is responsible for checkpointing their own progress. Only jobs in the PENDING state can have their availability model changed.
+	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+
 	// Priority New queue priority for a PENDING training job. Higher values are dequeued first. Only jobs in the PENDING state can have their priority changed.
-	Priority int `json:"priority"`
+	Priority *int `json:"priority,omitempty"`
 }
 
 // UpdateTrainingJobResponse A response to updating a training job.
@@ -6385,6 +6474,14 @@ type VertexTargetConfig struct {
 	// ProjectId Google Cloud project ID or project number.
 	ProjectId string `json:"project_id"`
 }
+
+// VolumeTokenScope Capability a volume token grants.
+//
+// - “PULL“: read volume data.
+// - “INSPECT“: read volume metadata without data access.
+// - “PUSH“: upload and commit volume versions.
+// - “TAG“: move or remove tags.
+type VolumeTokenScope string
 
 // ApiKeyPrefix defines model for api_key_prefix.
 type ApiKeyPrefix = string
@@ -7135,6 +7232,9 @@ type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdSshSignJSONRequestB
 
 // PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody defines body for PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStop for application/json ContentType.
 type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody = StopTrainingJobRequest
+
+// PostV1VolumesTokenJSONRequestBody defines body for PostV1VolumesToken for application/json ContentType.
+type PostV1VolumesTokenJSONRequestBody = CreateVolumeTokenRequest
 
 // AsAuditLogEventModelDeployed returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeployed
 func (t AuditLogEntry_EventData) AsAuditLogEventModelDeployed() (AuditLogEventModelDeployed, error) {
@@ -9186,4 +9286,43 @@ func (t UpdateAutoscalingScheduleSettings_Schedules_Item) MarshalJSON() ([]byte,
 func (t *UpdateAutoscalingScheduleSettings_Schedules_Item) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
+}
+
+// Optional is a field whose explicit null differs from its omission. The zero
+// value is unset, which the omitzero tag omits from the request body entirely.
+// The API reads an omitted field as "leave unchanged" and a null as "clear".
+type Optional[T any] struct {
+	set   bool
+	value *T
+}
+
+// NewOptional returns an Optional holding value. A nil value encodes as JSON
+// null, clearing the field server-side.
+func NewOptional[T any](value *T) Optional[T] {
+	return Optional[T]{set: true, value: value}
+}
+
+// IsSet reports whether the field was set, to either a value or null.
+func (o Optional[T]) IsSet() bool { return o.set }
+
+// IsNull reports whether the field was set to null.
+func (o Optional[T]) IsNull() bool { return o.set && o.value == nil }
+
+// Get returns the value, or nil when the field is unset or null. Use IsSet to
+// tell those apart.
+func (o Optional[T]) Get() *T { return o.value }
+
+// IsZero reports whether the field is unset, which is how the omitzero tag
+// decides to omit it.
+func (o Optional[T]) IsZero() bool { return !o.set }
+
+func (o Optional[T]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(o.value)
+}
+
+func (o *Optional[T]) UnmarshalJSON(data []byte) error {
+	// Unmarshaling into the *T leaves it nil for null and allocates otherwise.
+	o.set = true
+	o.value = nil
+	return json.Unmarshal(data, &o.value)
 }

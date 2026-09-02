@@ -153,7 +153,7 @@ func generateAPI(apigenDir, specSource, clientDir, pkgName string) error {
 	if err != nil {
 		return fmt.Errorf("reading generated file: %w", err)
 	}
-	src, err = postProcess(src, specData.discriminatorValues, specData.discriminatorRequired)
+	src, err = postProcess(src, specData.discriminatorValues, specData.discriminatorRequired, specData.nullDistinct)
 	if err != nil {
 		return fmt.Errorf("post-processing: %w", err)
 	}
@@ -177,6 +177,7 @@ type resolvedSpec struct {
 	tmpFile               string // temp file path for oapi-codegen
 	discriminatorValues   map[string][]string
 	discriminatorRequired map[string]bool
+	nullDistinct          map[string][]string
 }
 
 // resolveSpec reads and preprocesses a spec file, returning the preprocessed
@@ -212,6 +213,7 @@ func resolveSpec(source string) (*resolvedSpec, func(), error) {
 		tmpFile:               tmp.Name(),
 		discriminatorValues:   pre.discriminatorValues,
 		discriminatorRequired: pre.discriminatorRequired,
+		nullDistinct:          pre.nullDistinct,
 	}, func() { os.Remove(tmp.Name()) }, nil
 }
 

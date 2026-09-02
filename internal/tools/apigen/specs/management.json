@@ -15,6 +15,45 @@
         }
     ],
     "paths": {
+        "/v1/volumes/token": {
+            "post": {
+                "summary": "Creates a volume access token",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/token \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"scopes\": null,\n  \"namespaces\": null,\n  \"correlation_id\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/token\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'scopes': None, 'namespaces': None, 'correlation_id': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Exchanges your API key for a short-lived token that authenticates against Baseten volume storage. A volume token is needed only to push and pull volume data; other volume operations use your API key directly. Tokens expire after one hour and cannot be renewed; exchange again for a fresh token. Push and tag capabilities require organization-level model management permission. Pass correlation_id to link the issued token to a client operation in server logs.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateVolumeTokenRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateVolumeTokenResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
         "/v1/secrets": {
             "get": {
                 "summary": "Gets all secrets (metadata only, no plain text keys)",
@@ -4817,14 +4856,14 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"priority\": 0\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"priority\": 0,\n  \"availability_model\": \"spot\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'priority': 0}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'priority': 0, 'availability_model': 'spot'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Updates mutable fields on a training job. Currently supports changing the queue priority of a PENDING job; higher priorities are dequeued first.",
+                "description": "Updates mutable fields on a PENDING training job: the queue priority (higher priorities are dequeued first) and the availability model (dedicated or spot capacity). Changes take effect on the next queue evaluation, which is triggered immediately.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -8680,6 +8719,113 @@
     "openapi": "3.1.0",
     "components": {
         "schemas": {
+            "VolumeTokenScopeV1": {
+                "description": "Capability a volume token grants.\n\n- ``PULL``: read volume data.\n- ``INSPECT``: read volume metadata without data access.\n- ``PUSH``: upload and commit volume versions.\n- ``TAG``: move or remove tags.",
+                "enum": [
+                    "PULL",
+                    "INSPECT",
+                    "PUSH",
+                    "TAG"
+                ],
+                "title": "VolumeTokenScopeV1",
+                "type": "string"
+            },
+            "CreateVolumeTokenRequestV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "scopes": {
+                        "description": "Capabilities the token grants, at least one. Requesting PUSH or TAG requires organization-level model management permission.",
+                        "items": {
+                            "$ref": "#/components/schemas/VolumeTokenScopeV1"
+                        },
+                        "minItems": 1,
+                        "title": "Scopes",
+                        "type": "array"
+                    },
+                    "namespaces": {
+                        "description": "Volume namespaces the token is limited to, lowercase ASCII, at least one. Pass only the namespaces the operation needs.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "minItems": 1,
+                        "title": "Namespaces",
+                        "type": "array"
+                    },
+                    "correlation_id": {
+                        "anyOf": [
+                            {
+                                "maxLength": 128,
+                                "pattern": "^[\\x21-\\x7e]+$",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional client-chosen identifier, at most 128 printable ASCII characters. Echoed into server logs to link the issued token to a client operation.",
+                        "title": "Correlation Id"
+                    }
+                },
+                "required": [
+                    "scopes",
+                    "namespaces"
+                ],
+                "title": "CreateVolumeTokenRequestV1",
+                "type": "object"
+            },
+            "CreateVolumeTokenResponseV1": {
+                "properties": {
+                    "token": {
+                        "description": "Volume access token. Pass as a bearer token to the volume APIs.",
+                        "title": "Token",
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "description": "Token expiry in ISO 8601 format. Tokens cannot be renewed; exchange again for a fresh token.",
+                        "format": "date-time",
+                        "title": "Expires At",
+                        "type": "string"
+                    },
+                    "scopes": {
+                        "description": "Effective capabilities granted.",
+                        "items": {
+                            "$ref": "#/components/schemas/VolumeTokenScopeV1"
+                        },
+                        "title": "Scopes",
+                        "type": "array"
+                    },
+                    "namespaces": {
+                        "description": "Effective namespaces granted, in canonical lowercase form.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Namespaces",
+                        "type": "array"
+                    },
+                    "bdn_endpoint": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Base URL of the volume API this token authenticates against. Null when the environment does not expose a public volume API yet.",
+                        "title": "Bdn Endpoint"
+                    }
+                },
+                "required": [
+                    "token",
+                    "expires_at",
+                    "scopes",
+                    "namespaces",
+                    "bdn_endpoint"
+                ],
+                "title": "CreateVolumeTokenResponseV1",
+                "type": "object"
+            },
             "SecretV1": {
                 "description": "A Baseten secret. Note that we do not support retrieving secret values.",
                 "properties": {
@@ -9255,7 +9401,8 @@
                                 "H200"
                             ]
                         ],
-                        "title": "Trainer Accelerator Priority"
+                        "title": "Trainer Accelerator Priority",
+                        "x-null-distinct": true
                     },
                     "sampler_accelerator_priority": {
                         "anyOf": [
@@ -9277,7 +9424,8 @@
                                 "H200"
                             ]
                         ],
-                        "title": "Sampler Accelerator Priority"
+                        "title": "Sampler Accelerator Priority",
+                        "x-null-distinct": true
                     }
                 },
                 "title": "PatchLoopsUserConfigRequestV1",
@@ -14001,7 +14149,8 @@
                         "description": "Backpressure policy to apply. Null indicates no policy (on update, clears an existing one).",
                         "examples": [
                             "REJECT_ON_FULL"
-                        ]
+                        ],
+                        "x-null-distinct": true
                     }
                 },
                 "title": "UpdateRequestBackpressureSettingsV1",
@@ -14180,7 +14329,7 @@
                         "type": "string"
                     },
                     "message": {
-                        "description": "The contents of the log message.",
+                        "description": "The contents of the log message. When the logger captured an exception, the traceback is appended after the message.",
                         "title": "Message",
                         "type": "string"
                     },
@@ -16371,7 +16520,8 @@
                         ],
                         "default": null,
                         "description": "IANA timezone shared by the resulting collection. Omission preserves the current timezone; null is allowed only when deleting every schedule.",
-                        "title": "Timezone"
+                        "title": "Timezone",
+                        "x-null-distinct": true
                     },
                     "schedules": {
                         "description": "Complete schedules to create or replace. Existing schedules omitted from this list are unchanged.",
@@ -19139,22 +19289,43 @@
                 "type": "object"
             },
             "UpdateTrainingJobRequestV1": {
-                "description": "A request to update mutable fields on a training job.",
+                "description": "A request to update mutable fields on a training job.\n\nEvery field is optional so a caller can patch one without the other, but at least\none must be provided: an empty body has nothing to apply.",
+                "minProperties": 1,
                 "properties": {
                     "priority": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
                         "description": "New queue priority for a PENDING training job. Higher values are dequeued first. Only jobs in the PENDING state can have their priority changed.",
                         "examples": [
                             0,
                             10,
                             100
                         ],
-                        "title": "Priority",
-                        "type": "integer"
+                        "title": "Priority"
+                    },
+                    "availability_model": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/V1AvailabilityModel"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "New capacity guarantee for a PENDING training job. 'dedicated' runs on on-demand capacity that is not preempted. 'spot' runs on interruptible capacity that may be preempted; the user is responsible for checkpointing their own progress. Only jobs in the PENDING state can have their availability model changed.",
+                        "examples": [
+                            "spot"
+                        ]
                     }
                 },
-                "required": [
-                    "priority"
-                ],
                 "title": "UpdateTrainingJobRequestV1",
                 "type": "object"
             },
@@ -20669,8 +20840,8 @@
                         "title": "Seed"
                     },
                     "scale_down_delay_seconds": {
-                        "default": 3600,
-                        "description": "Seconds of inactivity before the run scales to zero. Must be between 1 and 3600 (1 hour). Defaults to 3600.",
+                        "default": 900,
+                        "description": "Seconds of inactivity before the run scales to zero. Must be between 1 and 3600 (1 hour). Defaults to 900 (15 minutes).",
                         "exclusiveMinimum": 0,
                         "maximum": 3600,
                         "title": "Scale Down Delay Seconds",
@@ -22984,7 +23155,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Prefix of the API key the usage is attributed to. Null when not grouping by api_key.",
+                        "description": "Prefix of the API key the usage is attributed to. Null when not grouping by api_key or when the request was not authenticated with an API key.",
                         "title": "Api Key Prefix"
                     },
                     "user_id": {
@@ -23888,6 +24059,127 @@
                         "title": "Measured At",
                         "type": "string"
                     },
+                    "llm": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LLMBenchmarkMetricsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null
+                    },
+                    "tts": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/TTSBenchmarkMetricsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null
+                    },
+                    "embedding": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/EmbeddingBenchmarkMetricsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null
+                    },
+                    "replicas": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": 2,
+                        "title": "Replicas"
+                    },
+                    "profile": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": "512x256",
+                        "title": "Profile"
+                    }
+                },
+                "required": [
+                    "run_id",
+                    "measured_at"
+                ],
+                "title": "BenchmarkSnapshotV1",
+                "type": "object"
+            },
+            "EmbeddingBenchmarkMetricsV1": {
+                "properties": {
+                    "e2e_latency_ms_p50": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "E2E Latency Ms P50"
+                    },
+                    "e2e_latency_ms_p99": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "E2E Latency Ms P99"
+                    },
+                    "input_tokens_per_sec": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Input Tokens Per Sec"
+                    },
+                    "requests_per_sec": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Requests Per Sec"
+                    }
+                },
+                "title": "EmbeddingBenchmarkMetricsV1",
+                "type": "object"
+            },
+            "LLMBenchmarkMetricsV1": {
+                "properties": {
                     "ttft_ms_p50": {
                         "anyOf": [
                             {
@@ -23947,37 +24239,9 @@
                         ],
                         "default": null,
                         "title": "Cost Per 1M Tokens Usd"
-                    },
-                    "replicas": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": 2,
-                        "title": "Replicas"
-                    },
-                    "profile": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": "512x256",
-                        "title": "Profile"
                     }
                 },
-                "required": [
-                    "run_id",
-                    "measured_at"
-                ],
-                "title": "BenchmarkSnapshotV1",
+                "title": "LLMBenchmarkMetricsV1",
                 "type": "object"
             },
             "LibraryListingVersionV1": {
@@ -24037,6 +24301,60 @@
                     "modified_at"
                 ],
                 "title": "LibraryListingVersionV1",
+                "type": "object"
+            },
+            "TTSBenchmarkMetricsV1": {
+                "properties": {
+                    "ttft_ms_p50": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Ttft Ms P50"
+                    },
+                    "max_concurrent_streams_at_rtf1": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Max Concurrent Streams At Rtf1"
+                    },
+                    "ttft_ms_p50_at_max_concurrency": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Ttft Ms P50 At Max Concurrency"
+                    },
+                    "cost_per_audio_minute_usd": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Cost Per Audio Minute Usd"
+                    }
+                },
+                "title": "TTSBenchmarkMetricsV1",
                 "type": "object"
             },
             "LibraryListingVersionsV1": {
@@ -24197,6 +24515,19 @@
                         "default": null,
                         "description": "Name of the resource",
                         "title": "Name"
+                    },
+                    "model_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Unique identifier of the parent model for model deployments and chainlets",
+                        "title": "Model Id"
                     },
                     "model_name": {
                         "anyOf": [
@@ -25362,6 +25693,7 @@
                 "enum": [
                     "ANTHROPIC",
                     "OPENAI",
+                    "XAI",
                     "BASETEN",
                     "BASETEN_MODEL_API",
                     "VERTEX",

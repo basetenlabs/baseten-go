@@ -22,7 +22,16 @@ type preprocessedSpec struct {
 	// postProcess must assign the wire literal directly instead of taking its
 	// address.
 	discriminatorRequired map[string]bool
+	// nullDistinct maps a Go schema name (post V1 rename) to the Go field
+	// names on it that the spec marks `x-null-distinct`. postProcess retypes
+	// those fields to Optional[T] so callers can send an explicit null.
+	nullDistinct map[string][]string
 }
+
+// nullDistinctExtension marks a property whose explicit null differs from its
+// omission. Emitted by the Django REST layer's NULL_DISTINCT; see the comment
+// on that constant for when it applies.
+const nullDistinctExtension = "x-null-distinct"
 
 // preprocessSpec transforms an OpenAPI 3.1 spec to 3.0-compatible form so
 // that oapi-codegen can process it, and cleans up schema names.
@@ -52,6 +61,8 @@ func preprocessSpec(data []byte) (*preprocessedSpec, error) {
 	// so member $refs still resolve against the original schema names.
 	discriminatorRequired := harvestDiscriminatorRequired(doc, schemaRenames)
 
+	nullDistinct := harvestNullDistinct(doc, schemaRenames)
+
 	// Rename the schema keys themselves.
 	if schemas := componentSchemas(doc); schemas != nil {
 		for old, renamed := range schemaRenames {
@@ -64,7 +75,64 @@ func preprocessSpec(data []byte) (*preprocessedSpec, error) {
 	if err != nil {
 		return nil, fmt.Errorf("marshaling converted spec: %w", err)
 	}
-	return &preprocessedSpec{data: out, discriminatorValues: discriminatorValues, discriminatorRequired: discriminatorRequired}, nil
+	return &preprocessedSpec{
+		data:                  out,
+		discriminatorValues:   discriminatorValues,
+		discriminatorRequired: discriminatorRequired,
+		nullDistinct:          nullDistinct,
+	}, nil
+}
+
+// harvestNullDistinct records which properties carry the x-null-distinct
+// extension, keyed by Go schema name (post V1 rename) with Go field names as
+// values. oapi-codegen drops unknown extensions and renders every optional
+// property as a pointer with omitempty, which cannot encode an explicit null,
+// so postProcess retypes these fields afterwards.
+//
+// Only properties of named component schemas are read, since a Go field can
+// only be located by its containing type name.
+func harvestNullDistinct(doc map[string]any, schemaRenames map[string]string) map[string][]string {
+	marked := map[string][]string{}
+	schemas := componentSchemas(doc)
+	for schemaName, schema := range schemas {
+		schemaMap, _ := schema.(map[string]any)
+		props, _ := schemaMap["properties"].(map[string]any)
+		for propName, prop := range props {
+			propMap, _ := prop.(map[string]any)
+			if flag, _ := propMap[nullDistinctExtension].(bool); !flag {
+				continue
+			}
+			goName := schemaName
+			if renamed, ok := schemaRenames[schemaName]; ok {
+				goName = renamed
+			}
+			marked[goName] = append(marked[goName], propertyGoFieldName(propName))
+		}
+	}
+	for _, fields := range marked {
+		slices.Sort(fields)
+	}
+	return marked
+}
+
+// propertyGoFieldName converts a JSON property name to the exported Go field
+// name oapi-codegen generates for it (min_replica becomes MinReplica).
+func propertyGoFieldName(prop string) string {
+	var b strings.Builder
+	newWord := true
+	for _, r := range prop {
+		if r == '_' || r == '-' || r == '.' || r == ' ' {
+			newWord = true
+			continue
+		}
+		if newWord {
+			b.WriteString(strings.ToUpper(string(r)))
+			newWord = false
+			continue
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
 }
 
 // harvestDiscriminatorRequired records, for each discriminated-union member

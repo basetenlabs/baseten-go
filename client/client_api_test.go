@@ -127,6 +127,79 @@ func TestManagementPostBody(t *testing.T) {
 	require.MapEqual(t, body, "value", "s3cret")
 }
 
+// Fields the spec marks x-null-distinct generate as Optional[T], which encodes
+// three states on the wire. Omitting the field leaves the setting unchanged,
+// while an explicit null clears it; collapsing the two would make the policy
+// impossible to remove.
+func TestManagementOptionalNullDistinct(t *testing.T) {
+	policy := managementapi.RequestBackpressurePolicy_REJECT_ON_FULL
+	tests := []struct {
+		name string
+		body managementapi.UpdateRequestBackpressureSettings
+		want string
+	}{
+		{
+			name: "omitted",
+			body: managementapi.UpdateRequestBackpressureSettings{},
+			want: `{}`,
+		},
+		{
+			name: "null",
+			body: managementapi.UpdateRequestBackpressureSettings{
+				Policy: managementapi.NewOptional[managementapi.RequestBackpressurePolicy](nil),
+			},
+			want: `{"policy":null}`,
+		},
+		{
+			name: "value",
+			body: managementapi.UpdateRequestBackpressureSettings{
+				Policy: managementapi.NewOptional(&policy),
+			},
+			want: `{"policy":"REJECT_ON_FULL"}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var cap requestCapture
+			srv := newTestServer(t, 200, map[string]any{"policy": nil}, &cap)
+			api := newManagementClient(t, srv)
+
+			_, err := api.PatchModelsDeploymentsRequestBackpressureSettings(
+				t.Context(), "model-1", "deployment-1", tt.body)
+			require.NoError(t, err)
+			require.Equal(t, tt.want, strings.TrimSpace(cap.Body))
+		})
+	}
+}
+
+// An unmarshaled Optional keeps null distinct from absent, so a response can be
+// read back and resent without silently turning one into the other.
+func TestManagementOptionalUnmarshal(t *testing.T) {
+	tests := []struct {
+		name     string
+		body     string
+		wantSet  bool
+		wantNull bool
+	}{
+		{name: "absent", body: `{}`, wantSet: false, wantNull: false},
+		{name: "null", body: `{"policy":null}`, wantSet: true, wantNull: true},
+		{name: "value", body: `{"policy":"QUEUE_ON_FULL"}`, wantSet: true, wantNull: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var settings managementapi.UpdateRequestBackpressureSettings
+			require.NoError(t, json.Unmarshal([]byte(tt.body), &settings))
+			require.Equal(t, tt.wantSet, settings.Policy.IsSet())
+			require.Equal(t, tt.wantNull, settings.Policy.IsNull())
+			if !tt.wantSet || tt.wantNull {
+				require.True(t, settings.Policy.Get() == nil, "expected no value, got %v", settings.Policy.Get())
+				return
+			}
+			require.Equal(t, managementapi.RequestBackpressurePolicy_QUEUE_ON_FULL, *settings.Policy.Get())
+		})
+	}
+}
+
 func TestManagementGetAuditLogs(t *testing.T) {
 	var cap requestCapture
 	srv := newTestServer(t, 200, map[string]any{
