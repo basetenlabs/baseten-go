@@ -21,11 +21,14 @@ type fakeClock struct {
 }
 
 // cancelAtGrantContext becomes canceled on the second Err call, after Acquire
-// has selected a grant but before it returns the permit.
+// has selected a grant but before it returns the permit. From the second call
+// on it stays canceled: a Context's Err may be consulted any number of times,
+// so the fake must hold its answer rather than panic on a third look.
 type cancelAtGrantContext struct {
 	context.Context
-	done     chan struct{}
-	errCalls atomic.Int32
+	done      chan struct{}
+	errCalls  atomic.Int32
+	closeOnce sync.Once
 }
 
 func (c *cancelAtGrantContext) Done() <-chan struct{} { return c.done }
@@ -34,7 +37,7 @@ func (c *cancelAtGrantContext) Err() error {
 	if c.errCalls.Add(1) == 1 {
 		return nil
 	}
-	close(c.done)
+	c.closeOnce.Do(func() { close(c.done) })
 	return context.Canceled
 }
 
