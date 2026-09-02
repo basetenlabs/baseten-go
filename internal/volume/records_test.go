@@ -578,7 +578,10 @@ func TestDecodeNormalizesPreRulePaths(t *testing.T) {
 	require.Equal(t, "a/b", m.Files[0].Path)
 	require.Equal(t, "l", m.Symlinks[0].Path)
 	require.Len(t, m.NormalizedPaths, 4)
-	for i, want := range []string{"/a", "///deep", "/a/b", "/l"} {
+	for i, want := range []NormalizedPath{
+		{Raw: "/a", Path: "a"}, {Raw: "///deep", Path: "deep"},
+		{Raw: "/a/b", Path: "a/b"}, {Raw: "/l", Path: "l"},
+	} {
 		require.Equal(t, want, m.NormalizedPaths[i])
 	}
 

@@ -129,9 +129,18 @@ type Manifest struct {
 
 	// NormalizedPaths lists entry paths that decoding normalized from the
 	// root-anchored form manifests published before the containment rule can
-	// carry, spelled as the wire carried them. CheckManifestContainment
+	// carry — the raw spelling the wire carried and the normalized form the
+	// decoded entries use, recorded together at the one point the rule is
+	// applied so nothing downstream restates it. CheckManifestContainment
 	// reports each as a WarningPathNormalized finding.
-	NormalizedPaths []string
+	NormalizedPaths []NormalizedPath
+}
+
+// NormalizedPath is one decode-time path normalization: Raw as the wire
+// spelled it, Path as the decoded entry carries it.
+type NormalizedPath struct {
+	Raw  string
+	Path string
 }
 
 // EntryCount is the manifest header's entry_count: every directory, file, and
@@ -673,8 +682,9 @@ func (m *Manifest) normalizeEntryPath(path string) string {
 	if !strings.HasPrefix(path, "/") {
 		return path
 	}
-	m.NormalizedPaths = append(m.NormalizedPaths, path)
-	return strings.TrimLeft(path, "/")
+	normalized := strings.TrimLeft(path, "/")
+	m.NormalizedPaths = append(m.NormalizedPaths, NormalizedPath{Raw: path, Path: normalized})
+	return normalized
 }
 
 // ValidateObjectTarget mirrors the checks the service applies to a
