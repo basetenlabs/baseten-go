@@ -211,7 +211,9 @@ const (
 	// narrow pool starves both. Measured on a many-small-files push, every
 	// narrower setting left this pool, not the limiter, as the binding
 	// constraint; wider settings bought almost nothing while multiplying
-	// open descriptors past common process limits.
+	// open descriptors past common process limits. The public concurrency
+	// options doc in the client package states this number in prose — the
+	// two move together.
 	DefaultFileJobs         = 256
 	DefaultMaxBytesInFlight = 2 << 30
 )

@@ -640,6 +640,13 @@ func decodeFile(line []byte) (FileEntry, error) {
 	if err != nil {
 		return FileEntry{}, err
 	}
+	// Target is copied for every kind, but for FileKindChunk it is inert, and
+	// the inertness is load-bearing: the encoder never emits a file-level
+	// target for chunk entries and no read path consults it — the inline
+	// chunk's own validated target is what a read follows. The switch below
+	// validates the field only for the kinds that use it, so an encoder that
+	// ever starts emitting it for chunk entries must add its validation here
+	// in the same change.
 	f := FileEntry{Path: w.Path, Mode: mode, Kind: FileKind(w.Kind), Size: w.Size, Target: w.Target}
 	switch f.Kind {
 	case FileKindChunk:
