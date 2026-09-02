@@ -72,6 +72,21 @@ func TestContainmentVerdicts(t *testing.T) {
 			entries: []string{"d usr", "d usr/lib", "f usr/lib/x", "l libfoo.so -> /usr/lib/x"},
 		},
 		{
+			name: "doubled-slash absolute target resolving in the volume",
+			// "//usr/lib/x" reads windows-ish, but only a backslash marks a
+			// target windows-shaped: the doubled slash is an empty component,
+			// and the target is absolute — anchored at the volume root
+			// exactly like "/usr/lib/x".
+			entries: []string{"d usr", "d usr/lib", "f usr/lib/x", "l libfoo.so -> //usr/lib/x"},
+		},
+		{
+			name: "colon-bearing relative target",
+			// "c:data" is a legal unix filename with a colon in it, not a
+			// drive: the format records the bytes and resolution finds the
+			// sibling entry of that name.
+			entries: []string{"f c:data", "l l -> c:data"},
+		},
+		{
 			name:    "absolute target escaping through dot-dot",
 			entries: []string{"d x", "l a -> /x/../../y"},
 			fatal:   "steps outside the volume root",

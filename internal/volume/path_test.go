@@ -77,8 +77,14 @@ func TestValidateSourceURI(t *testing.T) {
 
 func TestNormalizeSymlinkTarget(t *testing.T) {
 	// Targets are stored verbatim, absolute ones included: the format allows
-	// them, and a target is whatever readlink returned.
-	for _, target := range []string{"sibling", "../up/two", "/absolute/target", "./here"} {
+	// them, and a target is whatever readlink returned. That includes names
+	// that merely look windows-ish — "c:data" is a legal unix filename with a
+	// colon in it, and "//usr/lib/x" is an absolute target with a doubled
+	// slash — because only a backslash marks a target as windows-shaped.
+	for _, target := range []string{
+		"sibling", "../up/two", "/absolute/target", "./here",
+		"c:data", "D:/data", "//usr/lib/x", "//server/share/file",
+	} {
 		t.Run("kept/"+target, func(t *testing.T) {
 			got, err := NormalizeSymlinkTarget(target)
 			require.NoError(t, err)
@@ -89,9 +95,7 @@ func TestNormalizeSymlinkTarget(t *testing.T) {
 	rejected := map[string]string{
 		"empty":           "",
 		"drive letter":    `C:\Windows`,
-		"drive forward":   "D:/data",
 		"unc":             `\\server\share\file`,
-		"unc forward":     "//server/share/file",
 		"extended length": `\\?\C:\long`,
 		"nul byte":        "a\x00b",
 		"invalid utf-8":   "a\xffb",
@@ -157,4 +161,20 @@ func TestParentPaths(t *testing.T) {
 			require.Equal(t, strings.Join(want, ","), strings.Join(got, ","))
 		})
 	}
+}
+
+// TestWindowsLookingTargetsRoundTrip pins that targets the format accepts —
+// a colon-bearing relative name, a doubled-slash absolute — survive encode
+// and decode verbatim. Only a backslash marks a target as windows-shaped;
+// these are ordinary unix bytes.
+func TestWindowsLookingTargetsRoundTrip(t *testing.T) {
+	m := &Manifest{Symlinks: []SymlinkEntry{
+		{Path: "colon", Target: "c:data", Mode: SymlinkMode},
+		{Path: "doubled", Target: "//usr/lib/x", Mode: SymlinkMode},
+	}}
+	decoded, err := DecodeManifest(EncodeManifest(m))
+	require.NoError(t, err)
+	require.Len(t, decoded.Symlinks, 2)
+	require.Equal(t, "c:data", decoded.Symlinks[0].Target)
+	require.Equal(t, "//usr/lib/x", decoded.Symlinks[1].Target)
 }
