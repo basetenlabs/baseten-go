@@ -177,8 +177,18 @@ func (g *ByteGate) Release(n int64) {
 
 // Concurrency tunes how much of a transfer runs at once. A zero field takes
 // the default.
+//
+// A wide fan-out is served best by an injected HTTPClient whose transport
+// raises MaxIdleConnsPerHost toward the operation ceiling: the default
+// transport parks only two idle connections per host, so most requests in a
+// wide wave open a fresh connection instead of reusing one.
 type Concurrency struct {
-	// FileJobs is how many files are processed concurrently on push.
+	// FileJobs is how many files are processed concurrently. Zero means the
+	// default rule: follow ChunkOperations when it is pinned — a caller who
+	// pinned the in-flight ceiling has said what the origin should bear, and
+	// a wider file fan-out than that only queues — and otherwise a fan-out
+	// wide enough that the object-operation limiter, not this outer pool,
+	// governs the transfer's concurrency.
 	FileJobs int
 
 	// ChunkOperations pins how many object operations may be in flight. Zero
@@ -194,7 +204,15 @@ type Concurrency struct {
 
 // Concurrency defaults.
 const (
-	DefaultFileJobs         = 16
+	// DefaultFileJobs is the file fan-out when neither FileJobs nor
+	// ChunkOperations is set. It is wide on purpose: the fan-out is an outer
+	// pool, not the thing that decides load — the adaptive limiter bounds
+	// in-flight object operations and the byte gate bounds memory — and a
+	// narrow pool starves both. Measured on a many-small-files push, every
+	// narrower setting left this pool, not the limiter, as the binding
+	// constraint; wider settings bought almost nothing while multiplying
+	// open descriptors past common process limits.
+	DefaultFileJobs         = 256
 	DefaultMaxBytesInFlight = 2 << 30
 )
 
@@ -207,7 +225,13 @@ const (
 // distinction the caller was making.
 func (c Concurrency) WithDefaults() Concurrency {
 	if c.FileJobs <= 0 {
+		// A pinned operation ceiling also bounds the useful file fan-out:
+		// files wider than the operations they can have in flight only
+		// queue, so the pin is the better default when the caller set one.
 		c.FileJobs = DefaultFileJobs
+		if c.ChunkOperations > 0 {
+			c.FileJobs = c.ChunkOperations
+		}
 	}
 	if c.MaxBytesInFlight <= 0 {
 		c.MaxBytesInFlight = DefaultMaxBytesInFlight
