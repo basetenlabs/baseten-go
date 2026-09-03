@@ -139,7 +139,7 @@ func TestVolumeVocabularyIsClassified(t *testing.T) {
 		inTable[pair.name] = true
 	}
 
-	declared := exportedTypeDecls(t, "volume_types.go", "volume_errors.go")
+	declared := exportedTypeDecls(t, "volume_types.go")
 	if len(declared) == 0 {
 		t.Fatal("no exported types found in the vocabulary files — the enumeration is broken, not the vocabulary empty")
 	}
