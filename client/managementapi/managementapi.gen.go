@@ -723,54 +723,30 @@ func (e InProgressPromotionStatus) Valid() bool {
 	}
 }
 
-// Defines values for LibraryListingMetadataInputModalities.
+// Defines values for LibraryListingModality.
 const (
-	LibraryListingMetadataInputModalities_audio     LibraryListingMetadataInputModalities = "audio"
-	LibraryListingMetadataInputModalities_embedding LibraryListingMetadataInputModalities = "embedding"
-	LibraryListingMetadataInputModalities_image     LibraryListingMetadataInputModalities = "image"
-	LibraryListingMetadataInputModalities_text      LibraryListingMetadataInputModalities = "text"
-	LibraryListingMetadataInputModalities_video     LibraryListingMetadataInputModalities = "video"
+	LibraryListingModality_audio     LibraryListingModality = "audio"
+	LibraryListingModality_embedding LibraryListingModality = "embedding"
+	LibraryListingModality_image     LibraryListingModality = "image"
+	LibraryListingModality_rerank    LibraryListingModality = "rerank"
+	LibraryListingModality_text      LibraryListingModality = "text"
+	LibraryListingModality_video     LibraryListingModality = "video"
 )
 
-// Valid indicates whether the value is a known member of the LibraryListingMetadataInputModalities enum.
-func (e LibraryListingMetadataInputModalities) Valid() bool {
+// Valid indicates whether the value is a known member of the LibraryListingModality enum.
+func (e LibraryListingModality) Valid() bool {
 	switch e {
-	case LibraryListingMetadataInputModalities_audio:
+	case LibraryListingModality_audio:
 		return true
-	case LibraryListingMetadataInputModalities_embedding:
+	case LibraryListingModality_embedding:
 		return true
-	case LibraryListingMetadataInputModalities_image:
+	case LibraryListingModality_image:
 		return true
-	case LibraryListingMetadataInputModalities_text:
+	case LibraryListingModality_rerank:
 		return true
-	case LibraryListingMetadataInputModalities_video:
+	case LibraryListingModality_text:
 		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for LibraryListingMetadataOutputModalities.
-const (
-	LibraryListingMetadataOutputModalities_audio     LibraryListingMetadataOutputModalities = "audio"
-	LibraryListingMetadataOutputModalities_embedding LibraryListingMetadataOutputModalities = "embedding"
-	LibraryListingMetadataOutputModalities_image     LibraryListingMetadataOutputModalities = "image"
-	LibraryListingMetadataOutputModalities_text      LibraryListingMetadataOutputModalities = "text"
-	LibraryListingMetadataOutputModalities_video     LibraryListingMetadataOutputModalities = "video"
-)
-
-// Valid indicates whether the value is a known member of the LibraryListingMetadataOutputModalities enum.
-func (e LibraryListingMetadataOutputModalities) Valid() bool {
-	switch e {
-	case LibraryListingMetadataOutputModalities_audio:
-		return true
-	case LibraryListingMetadataOutputModalities_embedding:
-		return true
-	case LibraryListingMetadataOutputModalities_image:
-		return true
-	case LibraryListingMetadataOutputModalities_text:
-		return true
-	case LibraryListingMetadataOutputModalities_video:
+	case LibraryListingModality_video:
 		return true
 	default:
 		return false
@@ -1352,6 +1328,9 @@ type AWSCredentials struct {
 
 // ActivateResponse The response to a request to activate a deployment.
 type ActivateResponse struct {
+	// NoOp Whether the request did nothing because the deployment was already active or on its way to becoming active
+	NoOp *bool `json:"no_op,omitempty"`
+
 	// Success Whether the deployment was successfully activated
 	Success *bool `json:"success,omitempty"`
 }
@@ -2166,6 +2145,15 @@ type AutoscalingSettings struct {
 
 	// TargetUtilizationPercentage Target utilization percentage for scaling up/down.
 	TargetUtilizationPercentage *int `json:"target_utilization_percentage"`
+}
+
+// AwsAssumeRole AWS AssumeRole trust-policy inputs for the organization.
+type AwsAssumeRole struct {
+	// BasetenRoleArn Baseten role ARN to allow in an IAM role's trust policy
+	BasetenRoleArn string `json:"baseten_role_arn"`
+
+	// ExternalId sts:ExternalId Baseten presents when assuming the role
+	ExternalId string `json:"external_id"`
 }
 
 // AwsAssumeRoleDockerAuth AWS assume-role details for the registry.
@@ -2989,6 +2977,9 @@ type CreateVolumeTokenRequest struct {
 
 	// Scopes Capabilities the token grants, at least one. Requesting PUSH or TAG requires organization-level model management permission.
 	Scopes []VolumeTokenScope `json:"scopes"`
+
+	// Volumes Volume names the token is limited to, lowercase ASCII, exact names only, at least one. The limit applies to every requested scope in every requested namespace.
+	Volumes []string `json:"volumes"`
 }
 
 // CreateVolumeTokenResponse defines model for CreateVolumeTokenResponse.
@@ -3007,6 +2998,9 @@ type CreateVolumeTokenResponse struct {
 
 	// Token Volume access token. Pass as a bearer token to the volume APIs.
 	Token string `json:"token"`
+
+	// Volumes Effective volume names granted, in canonical lowercase form.
+	Volumes []string `json:"volumes"`
 }
 
 // CreatedModelDeployment A newly created deployment and its model.
@@ -3150,6 +3144,9 @@ type DeactivateLoopsRunResponse struct {
 
 // DeactivateResponse The response to a request to deactivate a deployment.
 type DeactivateResponse struct {
+	// NoOp Whether the request did nothing because the deployment was already inactive
+	NoOp *bool `json:"no_op,omitempty"`
+
 	// Success Whether the deployment was successfully deactivated
 	Success *bool `json:"success,omitempty"`
 }
@@ -4439,22 +4436,19 @@ type LibraryListing struct {
 
 // LibraryListingMetadata defines model for LibraryListingMetadata.
 type LibraryListingMetadata struct {
-	ContextLength    *int                                      `json:"context_length,omitempty"`
-	InputModalities  *[]LibraryListingMetadataInputModalities  `json:"input_modalities,omitempty"`
-	License          string                                    `json:"license"`
-	ModelApiSlug     *string                                   `json:"model_api_slug,omitempty"`
-	OutputModalities *[]LibraryListingMetadataOutputModalities `json:"output_modalities,omitempty"`
-	ParameterCount   *int                                      `json:"parameter_count,omitempty"`
-	Publisher        *string                                   `json:"publisher,omitempty"`
-	ReleaseDate      *string                                   `json:"release_date,omitempty"`
-	Variant          *string                                   `json:"variant,omitempty"`
+	ContextLength    *int                      `json:"context_length,omitempty"`
+	InputModalities  *[]LibraryListingModality `json:"input_modalities,omitempty"`
+	License          string                    `json:"license"`
+	ModelApiSlug     *string                   `json:"model_api_slug,omitempty"`
+	OutputModalities *[]LibraryListingModality `json:"output_modalities,omitempty"`
+	ParameterCount   *int                      `json:"parameter_count,omitempty"`
+	Publisher        *string                   `json:"publisher,omitempty"`
+	ReleaseDate      *string                   `json:"release_date,omitempty"`
+	Variant          *string                   `json:"variant,omitempty"`
 }
 
-// LibraryListingMetadataInputModalities defines model for LibraryListingMetadata.InputModalities.
-type LibraryListingMetadataInputModalities string
-
-// LibraryListingMetadataOutputModalities defines model for LibraryListingMetadata.OutputModalities.
-type LibraryListingMetadataOutputModalities string
+// LibraryListingModality defines model for LibraryListingModality.
+type LibraryListingModality string
 
 // LibraryListingSource Create a model by forking a library listing accessible to the caller's organization.
 type LibraryListingSource struct {
@@ -4576,6 +4570,30 @@ type ListTrainingJobsResponse struct {
 type ListTrainingProjectsResponse struct {
 	// TrainingProjects List of training projects.
 	TrainingProjects []TrainingProject `json:"training_projects"`
+}
+
+// ListVolumeNamespacesResponse A page of namespaces the caller can read.
+type ListVolumeNamespacesResponse struct {
+	// Items Items in this page.
+	Items      []string           `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
+// ListVolumeVersionsResponse Every version of a volume, newest first.
+//
+// Unpaginated: `limit` and `cursor` are absent rather than accepted and
+// ignored, so adding them once the volume service pages this listing is a
+// purely additive change.
+type ListVolumeVersionsResponse struct {
+	// Versions Versions of the volume, newest first.
+	Versions []VolumeVersion `json:"versions"`
+}
+
+// ListVolumesResponse A page of volumes in one namespace.
+type ListVolumesResponse struct {
+	// Items Items in this page.
+	Items      []Volume           `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 // LoadCheckpointConfig defines model for LoadCheckpointConfig.
@@ -5291,6 +5309,21 @@ type OrderBy struct {
 
 	// Order The direction to order by.
 	Order string `json:"order"`
+}
+
+// OrganizationInfo The caller's organization.
+type OrganizationInfo struct {
+	// AwsAssumeRole AWS AssumeRole trust-policy inputs; null while the method is not enabled for the organization
+	AwsAssumeRole *AwsAssumeRole `json:"aws_assume_role,omitempty"`
+
+	// CreatedAt Time the organization was created in ISO 8601 format
+	CreatedAt time.Time `json:"created_at"`
+
+	// Name Display name of the organization
+	Name *string `json:"name,omitempty"`
+
+	// OrgId Unique identifier for the organization
+	OrgId string `json:"org_id"`
 }
 
 // PaginationResponse defines model for PaginationResponse.
@@ -6475,6 +6508,51 @@ type VertexTargetConfig struct {
 	ProjectId string `json:"project_id"`
 }
 
+// Volume defines model for Volume.
+type Volume struct {
+	// Head Version that the reserved `head` tag points at, which a reference with no tag or digest resolves to. Null when the volume has no head, or when your API key cannot read it.
+	Head *VolumeVersionSummary `json:"head"`
+
+	// Name Name of the volume, in lowercase.
+	Name string `json:"name"`
+
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
+
+	// Sequence Revision counter for the volume, incremented on every commit and tag change. Use it to detect that a volume changed.
+	Sequence int `json:"sequence"`
+
+	// TagCount Total number of tags on the volume, which can exceed the length of `tags` when your API key cannot read all of them.
+	TagCount int `json:"tag_count"`
+
+	// Tags Tags on the volume that your API key can read.
+	Tags []VolumeTag `json:"tags"`
+
+	// UpdatedAt When the volume last changed, in ISO 8601 format.
+	UpdatedAt time.Time `json:"updated_at"`
+
+	// VersionRef Full address of the volume, as `bdn://<namespace>/<volume>`. Paste this into the `bdn.mounts` section of a config.yaml.
+	VersionRef string `json:"version_ref"`
+
+	// VersionsAlive Number of versions that have not been deleted.
+	VersionsAlive int `json:"versions_alive"`
+
+	// VersionsTombstoned Number of versions that have been deleted.
+	VersionsTombstoned int `json:"versions_tombstoned"`
+
+	// VersionsUntagged Number of versions that no tag points at.
+	VersionsUntagged int `json:"versions_untagged"`
+}
+
+// VolumeTag defines model for VolumeTag.
+type VolumeTag struct {
+	// Digest Digest of the version the tag points at, as `b3:<hex>`.
+	Digest string `json:"digest"`
+
+	// Name Tag name. Tags are case-sensitive.
+	Name string `json:"name"`
+}
+
 // VolumeTokenScope Capability a volume token grants.
 //
 // - “PULL“: read volume data.
@@ -6483,71 +6561,50 @@ type VertexTargetConfig struct {
 // - “TAG“: move or remove tags.
 type VolumeTokenScope string
 
-// ApiKeyPrefix defines model for api_key_prefix.
-type ApiKeyPrefix = string
+// VolumeVersion defines model for VolumeVersion.
+type VolumeVersion struct {
+	// CreatedAt When the version was committed, in ISO 8601 format.
+	CreatedAt time.Time `json:"created_at"`
 
-// ChainDeploymentId defines model for chain_deployment_id.
-type ChainDeploymentId = string
+	// Digest Content digest of the version, as `b3:<hex>`.
+	Digest string `json:"digest"`
 
-// ChainId defines model for chain_id.
-type ChainId = string
+	// IsHead Whether the reserved `head` tag points at this version.
+	IsHead bool `json:"is_head"`
 
-// ChainletId defines model for chainlet_id.
-type ChainletId = string
+	// Lifecycle Lifecycle state of the version, for example ALIVE or TOMBSTONED.
+	Lifecycle string `json:"lifecycle"`
 
-// CheckpointId defines model for checkpoint_id.
-type CheckpointId = string
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
 
-// DeploymentId defines model for deployment_id.
-type DeploymentId = string
+	// Sequence Revision the version was committed at. Null for versions committed before the volume service recorded it.
+	Sequence *int `json:"sequence"`
 
-// EndpointId defines model for endpoint_id.
-type EndpointId = string
+	// Tags Tags pointing at this version that your API key can read.
+	Tags []string `json:"tags"`
 
-// EnvName defines model for env_name.
-type EnvName = string
+	// TotalSizeBytes Total size of the version's files in bytes. Null when not recorded.
+	TotalSizeBytes *int `json:"total_size_bytes"`
 
-// GroupId defines model for group_id.
-type GroupId = string
+	// VersionRef Full address of this version, as `bdn://<namespace>/<volume>@<digest>`. Paste this into the `bdn.mounts` section of a config.yaml to pin to it.
+	VersionRef string `json:"version_ref"`
 
-// ModelApiName defines model for model_api_name.
-type ModelApiName = string
+	// Volume Name of the volume, in lowercase.
+	Volume string `json:"volume"`
+}
 
-// ModelId defines model for model_id.
-type ModelId = string
+// VolumeVersionSummary defines model for VolumeVersionSummary.
+type VolumeVersionSummary struct {
+	// CreatedAt When the version was committed, in ISO 8601 format.
+	CreatedAt time.Time `json:"created_at"`
 
-// ReplicaId defines model for replica_id.
-type ReplicaId = string
+	// Digest Content digest of the version, as `b3:<hex>`.
+	Digest string `json:"digest"`
 
-// RunId defines model for run_id.
-type RunId = string
-
-// SamplerId defines model for sampler_id.
-type SamplerId = string
-
-// SecretName defines model for secret_name.
-type SecretName = string
-
-// SessionId defines model for session_id.
-type SessionId = string
-
-// TeamId defines model for team_id.
-type TeamId = string
-
-// TrainingJobId defines model for training_job_id.
-type TrainingJobId = string
-
-// TrainingProjectId defines model for training_project_id.
-type TrainingProjectId = string
-
-// UserDefinedListingId defines model for user_defined_listing_id.
-type UserDefinedListingId = string
-
-// UserId defines model for user_id.
-type UserId = string
-
-// VersionTag defines model for version_tag.
-type VersionTag = string
+	// TotalSizeBytes Total size of the version's files in bytes.
+	TotalSizeBytes int `json:"total_size_bytes"`
+}
 
 // GetV1AuditLogsParams defines parameters for GetV1AuditLogs.
 type GetV1AuditLogsParams struct {
@@ -7045,6 +7102,27 @@ type GetV1UsersParams struct {
 
 	// Email When set, returns only users with this exact email, if any.
 	Email *string `form:"email,omitempty" json:"email,omitempty"`
+}
+
+// GetV1VolumesParams defines parameters for GetV1Volumes.
+type GetV1VolumesParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of volumes to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Namespace Namespace to list volumes in. Required, because the volume service has no cross-namespace inventory.
+	Namespace string `form:"namespace" json:"namespace"`
+}
+
+// GetV1VolumesNamespacesParams defines parameters for GetV1VolumesNamespaces.
+type GetV1VolumesNamespacesParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of namespaces to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // PostV1ApiKeysJSONRequestBody defines body for PostV1ApiKeys for application/json ContentType.

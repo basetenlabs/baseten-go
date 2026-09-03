@@ -45,6 +45,10 @@ func preprocessSpec(data []byte) (*preprocessedSpec, error) {
 		doc["openapi"] = "3.0.3"
 	}
 
+	if err := inlineComponentParameters(doc); err != nil {
+		return nil, err
+	}
+
 	// Build V1-suffix rename map from schema names before walking.
 	schemaRenames := buildSchemaRenames(doc)
 
@@ -208,6 +212,69 @@ func propertyRequired(schema map[string]any, prop string) bool {
 		}
 	}
 	return false
+}
+
+// inlineComponentParameters replaces every `$ref` to components/parameters
+// with a copy of the parameter it names and drops the section. oapi-codegen
+// emits a Go type alias per component parameter, named after the parameter, and
+// clientgen resolves parameters itself so those aliases are never used. They
+// also collide with schema type names (a `volume` parameter against the
+// `VolumeV1` schema), which oapi-codegen reports as an unrecoverable duplicate.
+func inlineComponentParameters(doc map[string]any) error {
+	components, _ := doc["components"].(map[string]any)
+	params, _ := components["parameters"].(map[string]any)
+	if len(params) == 0 {
+		return nil
+	}
+	paths, _ := doc["paths"].(map[string]any)
+	for path, item := range paths {
+		itemMap, _ := item.(map[string]any)
+		// Parameters are declared on the path item itself and on each operation.
+		for key, node := range itemMap {
+			target := itemMap
+			if key != "parameters" {
+				opMap, _ := node.(map[string]any)
+				if opMap == nil {
+					continue
+				}
+				target = opMap
+			}
+			list, _ := target["parameters"].([]any)
+			for i, entry := range list {
+				entryMap, _ := entry.(map[string]any)
+				ref, _ := entryMap["$ref"].(string)
+				name, ok := strings.CutPrefix(ref, "#/components/parameters/")
+				if !ok {
+					continue
+				}
+				param, ok := params[name]
+				if !ok {
+					return fmt.Errorf("%s references unknown parameter %q", path, name)
+				}
+				// Copy, since one parameter is referenced by many paths and the
+				// later walk mutates parameter schemas in place.
+				cloned, err := clone(param)
+				if err != nil {
+					return fmt.Errorf("copying parameter %q: %w", name, err)
+				}
+				list[i] = cloned
+			}
+		}
+	}
+	delete(components, "parameters")
+	return nil
+}
+
+func clone(node any) (any, error) {
+	data, err := json.Marshal(node)
+	if err != nil {
+		return nil, err
+	}
+	var out any
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func componentSchemas(doc map[string]any) map[string]any {

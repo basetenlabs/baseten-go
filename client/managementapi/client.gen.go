@@ -955,6 +955,18 @@ func (c *Client) GetModelsModelId(ctx context.Context, modelId string) (*Model, 
 	})
 }
 
+// GetOrganizationsMe: Gets the authenticated organization
+func (c *Client) GetOrganizationsMe(ctx context.Context) (*OrganizationInfo, error) {
+	return doJSON[OrganizationInfo](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/organizations/me",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetRegions: Lists regions available to the organization
 func (c *Client) GetRegions(ctx context.Context) (*Regions, error) {
 	return doJSON[Regions](c, ctx, apiRequest{
@@ -1281,6 +1293,68 @@ func (c *Client) GetUsersUserId(ctx context.Context, userId string) (*UserInfo, 
 		method:      "GET",
 		pathFmt:     "/v1/users/%s",
 		pathArgs:    []any{userId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetVolumes: Gets the volumes in a namespace
+func (c *Client) GetVolumes(ctx context.Context, params GetV1VolumesParams) (*ListVolumesResponse, error) {
+	return doJSON[ListVolumesResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/volumes",
+		pathArgs:    nil,
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetVolumesNamespaces: Gets the volume namespaces in your workspace
+func (c *Client) GetVolumesNamespaces(ctx context.Context, params GetV1VolumesNamespacesParams) (*ListVolumeNamespacesResponse, error) {
+	return doJSON[ListVolumeNamespacesResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/volumes/namespaces",
+		pathArgs:    nil,
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetVolumesVersions: Gets the versions of a volume
+func (c *Client) GetVolumesVersions(ctx context.Context, volumeNamespace string, volumeName string) (*ListVolumeVersionsResponse, error) {
+	return doJSON[ListVolumeVersionsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/volumes/%s/%s/versions",
+		pathArgs:    []any{volumeNamespace, volumeName},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetVolumesVersionsVolumeVersion: Gets one version of a volume
+func (c *Client) GetVolumesVersionsVolumeVersion(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string) (*VolumeVersion, error) {
+	return doJSON[VolumeVersion](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/volumes/%s/%s/versions/%s",
+		pathArgs:    []any{volumeNamespace, volumeName, volumeVersion},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetVolumesVolumeName: Gets a volume
+func (c *Client) GetVolumesVolumeName(ctx context.Context, volumeNamespace string, volumeName string) (*Volume, error) {
+	return doJSON[Volume](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/volumes/%s/%s",
+		pathArgs:    []any{volumeNamespace, volumeName},
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
