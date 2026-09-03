@@ -106,13 +106,15 @@ func TestManagementClientRoundTrip(t *testing.T) {
 		t.Errorf("applied tags %v", pushed.TagsApplied)
 	}
 	// Every remaining result field, so a copy dropped from the result literal
-	// in PushVolume goes red here rather than shipping a permanent zero. The
-	// fixture makes the counters discriminating: dup.txt repeats small.txt's
-	// bytes and this push runs without a reuse store, so the duplicate is
-	// sent and the service reports it already stored — Existing is exactly
-	// one, measured stable across repeated runs. Reused is pinned by the
-	// second push below; HeadMoveDenied's false is the one copy this test
-	// cannot discriminate.
+	// in PushVolume goes red here rather than shipping a permanent zero.
+	// dup.txt repeats small.txt's bytes, and how that duplicate is ACCOUNTED
+	// is scheduling-dependent under the wide fan-out: the two identical
+	// uploads can run concurrently, and whichever lands second is reported
+	// already stored — or neither is, when both were in flight together — so
+	// no exact Existing value is pinned here (CI measured the race that a
+	// long local run did not). What is deterministic is the partition and
+	// the store itself, asserted below. Reused is pinned by the second push;
+	// HeadMoveDenied's false is the one copy this test cannot discriminate.
 	if !strings.HasPrefix(pushed.ManifestDigest, "b3:") {
 		t.Errorf("manifest digest %q does not name a version", pushed.ManifestDigest)
 	}
@@ -128,12 +130,20 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	if pushed.Chunks <= 0 || pushed.Unique <= 0 {
 		t.Errorf("chunk accounting empty: %d chunks, %d unique", pushed.Chunks, pushed.Unique)
 	}
-	if pushed.Existing != 1 {
-		t.Errorf("existing %d, want the one duplicated chunk", pushed.Existing)
-	}
 	if pushed.Unique+pushed.Reused+pushed.Existing != pushed.Chunks {
 		t.Errorf("chunk partition %d+%d+%d does not cover %d",
 			pushed.Unique, pushed.Reused, pushed.Existing, pushed.Chunks)
+	}
+	// The store-level pair invariant is what the race cannot move: content
+	// addressing keeps exactly one object for the duplicated bytes however
+	// the uploads interleave. Eight distinct objects: six distinct content
+	// chunks (the two duplicate files share one), the chunkmap, and the
+	// manifest.
+	fake.mu.Lock()
+	stored := len(fake.objects)
+	fake.mu.Unlock()
+	if stored != 8 {
+		t.Errorf("the store holds %d distinct objects, want 8 — the duplicated chunk must be one object however the race lands", stored)
 	}
 	if len(phases) < 3 {
 		t.Errorf("progress reported phases %v, expected a scan, an upload, and a commit", phases)
