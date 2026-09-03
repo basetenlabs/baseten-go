@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -616,4 +617,112 @@ func TestRePushAfterTouchRecordsTheNewTime(t *testing.T) {
 		return
 	}
 	t.Fatal("small.txt not found in the re-pushed manifest")
+}
+
+// mutateOnPriorFetch wraps the fake's downloader to run mutate exactly once,
+// on the first prior-version fetch — which the push makes after the scan and
+// before any file opens. That is the scan-to-open window the read-time
+// stability check covers, reached deterministically rather than by racing.
+func mutateOnPriorFetch(f *fakeService, mutate func()) volume.ObjectDownloader {
+	inner := f.downloader()
+	var once sync.Once
+	return func(ctx context.Context, req volume.ObjectDownload) (*volume.ObjectResult, error) {
+		once.Do(mutate)
+		return inner(ctx, req)
+	}
+}
+
+// TestPushRefusesAFileThatChangedSize pins the one mechanism over its three
+// faces: the chunk plan is cut from the scanned size, so a file that grew,
+// shrank, or was empty at scan and gained content would publish a truncated,
+// stale-shaped, or empty object silently. The push re-checks at open and
+// fails loud, naming the file.
+func TestPushRefusesAFileThatChangedSize(t *testing.T) {
+	rows := map[string]struct {
+		path   string
+		mutate func(t *testing.T, abs string)
+	}{
+		"grew": {"small.txt", func(t *testing.T, abs string) {
+			f, err := os.OpenFile(abs, os.O_APPEND|os.O_WRONLY, 0)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer f.Close()
+			if _, err := f.WriteString("grown past the scan"); err != nil {
+				t.Fatal(err)
+			}
+		}},
+		"shrank": {"nested/deep/data.bin", func(t *testing.T, abs string) {
+			if err := os.Truncate(abs, 1024); err != nil {
+				t.Fatal(err)
+			}
+		}},
+		"empty gained content": {"empty.txt", func(t *testing.T, abs string) {
+			if err := os.WriteFile(abs, []byte("no longer empty"), 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}},
+	}
+	for name, row := range rows {
+		t.Run(name, func(t *testing.T) {
+			root := buildTree(t)
+			fake := newFakeService(t)
+			ctx := context.Background()
+			if _, err := transfer.Push(ctx, fake.client(t), pushOptions(root, fake)); err != nil {
+				t.Fatal(err)
+			}
+
+			opts := pushOptions(root, fake)
+			opts.DownloadObject = mutateOnPriorFetch(fake, func() {
+				row.mutate(t, filepath.Join(root, filepath.FromSlash(row.path)))
+			})
+			_, err := transfer.Push(ctx, fake.client(t), opts)
+			if err == nil {
+				t.Fatal("the push published a file whose size moved between scan and read")
+			}
+			if !strings.Contains(err.Error(), "changed size during push") {
+				t.Errorf("the failure does not name the mechanism: %v", err)
+			}
+			if !strings.Contains(err.Error(), row.path) {
+				t.Errorf("the failure does not name the file: %v", err)
+			}
+		})
+	}
+}
+
+// TestPushRefusesASwappedDirectoryComponent pins the containment half: every
+// file opens through one per-push root, so a directory component swapped for
+// an out-of-tree symlink between scan and open is refused instead of
+// followed — without it, foreign bytes would be read and published under the
+// scanned tree's paths.
+func TestPushRefusesASwappedDirectoryComponent(t *testing.T) {
+	root := buildTree(t)
+	fake := newFakeService(t)
+	ctx := context.Background()
+	if _, err := transfer.Push(ctx, fake.client(t), pushOptions(root, fake)); err != nil {
+		t.Fatal(err)
+	}
+
+	outside := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(outside, "deep"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	opts := pushOptions(root, fake)
+	opts.DownloadObject = mutateOnPriorFetch(fake, func() {
+		nested := filepath.Join(root, "nested")
+		if err := os.RemoveAll(nested); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Symlink(outside, nested); err != nil {
+			t.Skipf("symlinks unavailable: %v", err)
+		}
+	})
+	_, err := transfer.Push(ctx, fake.client(t), opts)
+	if err == nil {
+		t.Fatal("the push followed a swapped directory component out of the tree")
+	}
+	if !strings.Contains(err.Error(), "escapes") {
+		t.Errorf("the failure does not name the escape: %v", err)
+	}
 }

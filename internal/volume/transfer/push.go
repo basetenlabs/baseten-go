@@ -144,7 +144,18 @@ func Push(ctx context.Context, client *bdn.Client, opts PushOptions) (*PushResul
 		return nil, err
 	}
 
-	p, source, err := startPush(ctx, client, opts)
+	// The source is opened as a root once per push, and every file opens
+	// through it: a directory component swapped for an out-of-tree symlink
+	// between scan and open is refused instead of followed, the same
+	// containment the pull side already applies to its destination. One
+	// root, transfer-scoped, closed on every exit below.
+	root, err := os.OpenRoot(opts.SourceDir)
+	if err != nil {
+		return nil, err
+	}
+	defer root.Close()
+
+	p, source, err := startPush(ctx, client, opts, root)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +196,7 @@ func pushSourceURI(opts PushOptions) (string, error) {
 // startPush does everything that has to happen before the first byte is
 // uploaded: check what the token allows, scan the tree, open a session, and
 // look up the version whose chunks can be reused.
-func startPush(ctx context.Context, client *bdn.Client, opts PushOptions) (*pusher, *volume.Source, error) {
+func startPush(ctx context.Context, client *bdn.Client, opts PushOptions, root *os.Root) (*pusher, *volume.Source, error) {
 	// The token says what it may do, so a push that could never move head can
 	// say so before it uploads anything rather than after. The answer comes
 	// from the token's own claims and not from the scope list the exchange
@@ -242,7 +253,7 @@ func startPush(ctx context.Context, client *bdn.Client, opts PushOptions) (*push
 		limiter:     limiter,
 		bytes:       volume.NewByteGate(limits.MaxBytesInFlight),
 		progress:    progress,
-		sourceDir:   opts.SourceDir,
+		root:        root,
 	}
 
 	// The previous version is an optimization: knowing which chunks a file
@@ -284,7 +295,7 @@ type pusher struct {
 	limiter     volume.Limiter
 	bytes       *volume.ByteGate
 	progress    *volume.ProgressReporter
-	sourceDir   string
+	root        *os.Root
 
 	// prior is the previous version, for chunk reuse. Nil when there is none
 	// or it could not be read.
@@ -465,11 +476,40 @@ func allReused(chunks []pushedChunk, prior []volume.ChunkRef) bool {
 // runs at once, so a limiter that learns the origin can serve more is free to
 // let it.
 func (p *pusher) pushChunks(ctx context.Context, file volume.SourceFile, prior []volume.ChunkRef) ([]pushedChunk, error) {
-	handle, err := os.Open(filepath.Join(p.sourceDir, filepath.FromSlash(file.Path)))
+	handle, err := p.root.Open(filepath.FromSlash(file.Path))
 	if err != nil {
 		return nil, err
 	}
 	defer handle.Close()
+
+	// The second read of this file's metadata, on purpose: the scan's fresh
+	// Lstat recorded the tree as it was — that is the truth being published —
+	// and this Stat proves the file about to be read is still that file. The
+	// chunk plan was cut from the scanned size, so a moved size would
+	// otherwise publish a truncated or stale-shaped object silently; one
+	// mechanism covers an empty file that gained content, a grown file, and
+	// a shrunk one, because all three are the same staleness.
+	info, err := handle.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if uint64(info.Size()) != file.Size {
+		return nil, fmt.Errorf("%s changed size during push: was %d bytes, now %d", file.Path, file.Size, info.Size())
+	}
+	// Identity, for files big enough to be read across many chunk tasks: a
+	// single-chunk file is read whole from this one open and cannot mix
+	// generations, but a multi-chunk file swapped for a same-sized one
+	// between scan and open would pass the size check and publish mixed
+	// spans. The pin is unix-only and soft — where the platform gave the
+	// scan no identity, the size check alone holds. Every span read below
+	// goes through this one retained handle, so replacement AFTER this
+	// point is irrelevant: reads follow the opened inode, not the path. The
+	// window covered is exactly scan to open.
+	if file.Size > volume.ChunkSize && (file.Dev != 0 || file.Ino != 0) {
+		if dev, ino, ok := volume.FileIdentity(info); ok && (dev != file.Dev || ino != file.Ino) {
+			return nil, fmt.Errorf("%s was replaced during push", file.Path)
+		}
+	}
 
 	ranges := volume.ChunkRanges(file.Size)
 	chunks := make([]pushedChunk, volume.ChunkCount(file.Size))
