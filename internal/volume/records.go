@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Wire constants. The vendor media types and the schema string are matched
@@ -61,6 +62,10 @@ type ChunkRef struct {
 type DirectoryEntry struct {
 	Path string
 	Mode uint16
+
+	// MTime is the directory's modification time from the scan. Zero means
+	// unknown, and the encoder omits the key for it.
+	MTime time.Time
 }
 
 // SymlinkEntry is a symbolic link. Its target is stored verbatim as readlink
@@ -70,6 +75,11 @@ type SymlinkEntry struct {
 	Path   string
 	Target string
 	Mode   uint16
+
+	// MTime is the link's own modification time from the scan — the link's,
+	// never the target's, because the walk records links without following
+	// them. Zero means unknown, and the encoder omits the key for it.
+	MTime time.Time
 }
 
 // FileEntry is a regular file. Which of the trailing fields carry meaning
@@ -94,6 +104,10 @@ type FileEntry struct {
 	// FileDigest is the whole-file digest a FileKindSlabmap entry carries for
 	// per-file integrity, since its chunk is shared with other files.
 	FileDigest Digest
+
+	// MTime is the file's modification time from the scan. Zero means
+	// unknown, and the encoder omits the key for it.
+	MTime time.Time
 }
 
 // Provenance records where a manifest's bytes came from. A local push writes
@@ -115,9 +129,18 @@ type Manifest struct {
 
 	// NormalizedPaths lists entry paths that decoding normalized from the
 	// root-anchored form manifests published before the containment rule can
-	// carry, spelled as the wire carried them. CheckManifestContainment
+	// carry — the raw spelling the wire carried and the normalized form the
+	// decoded entries use, recorded together at the one point the rule is
+	// applied so nothing downstream restates it. CheckManifestContainment
 	// reports each as a WarningPathNormalized finding.
-	NormalizedPaths []string
+	NormalizedPaths []NormalizedPath
+}
+
+// NormalizedPath is one decode-time path normalization: Raw as the wire
+// spelled it, Path as the decoded entry carries it.
+type NormalizedPath struct {
+	Raw  string
+	Path string
 }
 
 // EntryCount is the manifest header's entry_count: every directory, file, and
@@ -140,6 +163,34 @@ func (m *Manifest) TotalSize() uint64 {
 type Chunkmap struct {
 	FileSize uint64
 	Chunks   []ChunkRef
+}
+
+// mtimeFloor and mtimeCap bound the modification times a manifest carries:
+// the RFC 3339 wire form holds exactly four year digits, and Go's formatter
+// silently renders a time outside them into a string its own parser rejects
+// — Format never errors — so an out-of-range time from a user-supplied tree
+// would put unreadable bytes under the digest. Out-of-range times are
+// clamped rather than refused, which is what the format's producers do: a
+// push should not fail because one inode carries a corrupt timestamp.
+var (
+	mtimeFloor = time.Date(0, time.January, 1, 0, 0, 0, 0, time.UTC)
+	mtimeCap   = time.Date(9999, time.December, 31, 23, 59, 59, 999999999, time.UTC)
+)
+
+// clampMTime bounds t to the wire-representable range. The zero time is kept
+// as is: it means unknown, and the encoder omits the key for it. The floor is
+// year zero, which is below the zero time's year one, so no clamped value can
+// collide with the omit sentinel.
+func clampMTime(t time.Time) time.Time {
+	switch {
+	case t.IsZero():
+		return t
+	case t.Before(mtimeFloor):
+		return mtimeFloor
+	case t.After(mtimeCap):
+		return mtimeCap
+	}
+	return t
 }
 
 // pathComponentCompare orders manifest entry paths canonically: each byte
@@ -219,6 +270,7 @@ func EncodeManifest(m *Manifest) []byte {
 			d := m.Directories[ref.index]
 			out = appendType(out, "directory")
 			out = appendMode(out, d.Mode)
+			out = appendMTime(out, d.MTime)
 			out = appendString(out, "path", d.Path)
 			out = endRecord(out)
 		case 1:
@@ -227,6 +279,7 @@ func EncodeManifest(m *Manifest) []byte {
 			s := m.Symlinks[ref.index]
 			out = appendType(out, "symlink")
 			out = appendMode(out, s.Mode)
+			out = appendMTime(out, s.MTime)
 			out = appendString(out, "path", s.Path)
 			out = appendString(out, "target", s.Target)
 			out = endRecord(out)
@@ -247,10 +300,12 @@ func appendFileRecord(out []byte, f FileEntry) []byte {
 		out = append(out, `,"chunk":`...)
 		out = appendChunkObject(out, f.Chunk)
 		out = appendMode(out, f.Mode)
+		out = appendMTime(out, f.MTime)
 		out = appendString(out, "path", f.Path)
 	case FileKindChunkmap:
 		out = appendString(out, "digest", f.Digest.String())
 		out = appendMode(out, f.Mode)
+		out = appendMTime(out, f.MTime)
 		out = appendString(out, "path", f.Path)
 		out = appendUint(out, "size", f.Size)
 		out = appendTarget(out, f.Target)
@@ -258,6 +313,7 @@ func appendFileRecord(out []byte, f FileEntry) []byte {
 		out = appendString(out, "digest", f.Digest.String())
 		out = appendString(out, "file_digest", f.FileDigest.String())
 		out = appendMode(out, f.Mode)
+		out = appendMTime(out, f.MTime)
 		out = appendString(out, "path", f.Path)
 		out = appendUint(out, "size", f.Size)
 		out = appendTarget(out, f.Target)
@@ -382,6 +438,26 @@ func appendMode(out []byte, mode uint16) []byte {
 	return append(out, '"')
 }
 
+// appendMTime writes the mtime key for a non-zero time and nothing for a
+// zero one: absent means unknown, and an epoch key would assert 1970 as
+// fact. The key sorts between mode and path, which is where every record
+// writer above places it.
+//
+// The time is clamped here as well as at the scan, because this is where the
+// invariant lives: no unreadable bytes under a digest is a property of the
+// bytes, and a manifest built without a scan — by hand, from decoded pieces
+// — reaches this writer with whatever time its builder set. The scan-site
+// clamps stay for a different job, keeping the in-memory entries truthful.
+// clampMTime is idempotent — clamping a clamped time changes nothing — so
+// the second application cannot drift from the first; there is one clamp
+// function and one pair of bounds, applied twice.
+func appendMTime(out []byte, t time.Time) []byte {
+	if t.IsZero() {
+		return out
+	}
+	return appendString(out, "mtime", clampMTime(t).UTC().Format(time.RFC3339Nano))
+}
+
 func appendTarget(out []byte, t Target) []byte {
 	out = appendComma(out, "target")
 	return appendTargetObject(out, t)
@@ -471,12 +547,14 @@ type wireProvenance struct {
 }
 
 type wireDirectory struct {
-	Mode string `json:"mode"`
-	Path string `json:"path"`
+	Mode  string `json:"mode"`
+	MTime string `json:"mtime"`
+	Path  string `json:"path"`
 }
 
 type wireSymlink struct {
 	Mode   string `json:"mode"`
+	MTime  string `json:"mtime"`
 	Path   string `json:"path"`
 	Target string `json:"target"`
 }
@@ -499,6 +577,7 @@ type wireFile struct {
 	Digest     string     `json:"digest"`
 	FileDigest string     `json:"file_digest"`
 	Mode       string     `json:"mode"`
+	MTime      string     `json:"mtime"`
 	Path       string     `json:"path"`
 	Size       uint64     `json:"size"`
 	Target     Target     `json:"target"`
@@ -543,7 +622,11 @@ func DecodeManifest(body []byte) (*Manifest, error) {
 			if err != nil {
 				return err
 			}
-			m.Directories = append(m.Directories, DirectoryEntry{Path: m.normalizeEntryPath(w.Path), Mode: mode})
+			mtime, err := parseMTime(w.MTime)
+			if err != nil {
+				return fmt.Errorf("directory %q: %w", w.Path, err)
+			}
+			m.Directories = append(m.Directories, DirectoryEntry{Path: m.normalizeEntryPath(w.Path), Mode: mode, MTime: mtime})
 			return nil
 		case "symlink":
 			var w wireSymlink
@@ -554,7 +637,11 @@ func DecodeManifest(body []byte) (*Manifest, error) {
 			if err != nil {
 				return err
 			}
-			m.Symlinks = append(m.Symlinks, SymlinkEntry{Path: m.normalizeEntryPath(w.Path), Target: w.Target, Mode: mode})
+			mtime, err := parseMTime(w.MTime)
+			if err != nil {
+				return fmt.Errorf("symlink %q: %w", w.Path, err)
+			}
+			m.Symlinks = append(m.Symlinks, SymlinkEntry{Path: m.normalizeEntryPath(w.Path), Target: w.Target, Mode: mode, MTime: mtime})
 			return nil
 		case "file":
 			f, err := decodeFile(line)
@@ -604,8 +691,9 @@ func (m *Manifest) normalizeEntryPath(path string) string {
 	if !strings.HasPrefix(path, "/") {
 		return path
 	}
-	m.NormalizedPaths = append(m.NormalizedPaths, path)
-	return strings.TrimLeft(path, "/")
+	normalized := strings.TrimLeft(path, "/")
+	m.NormalizedPaths = append(m.NormalizedPaths, NormalizedPath{Raw: path, Path: normalized})
+	return normalized
 }
 
 // ValidateObjectTarget mirrors the checks the service applies to a
@@ -640,6 +728,10 @@ func decodeFile(line []byte) (FileEntry, error) {
 	if err != nil {
 		return FileEntry{}, err
 	}
+	mtime, err := parseMTime(w.MTime)
+	if err != nil {
+		return FileEntry{}, fmt.Errorf("file %q: %w", w.Path, err)
+	}
 	// Target is copied for every kind, but for FileKindChunk it is inert, and
 	// the inertness is load-bearing: the encoder never emits a file-level
 	// target for chunk entries and no read path consults it — the inline
@@ -647,7 +739,7 @@ func decodeFile(line []byte) (FileEntry, error) {
 	// validates the field only for the kinds that use it, so an encoder that
 	// ever starts emitting it for chunk entries must add its validation here
 	// in the same change.
-	f := FileEntry{Path: w.Path, Mode: mode, Kind: FileKind(w.Kind), Size: w.Size, Target: w.Target}
+	f := FileEntry{Path: w.Path, Mode: mode, Kind: FileKind(w.Kind), Size: w.Size, Target: w.Target, MTime: mtime}
 	switch f.Kind {
 	case FileKindChunk:
 		if w.Chunk == nil {
@@ -728,6 +820,23 @@ func DecodeChunkmap(body []byte) (*Chunkmap, error) {
 		return nil, fmt.Errorf("decode chunkmap: %w", err)
 	}
 	return c, nil
+}
+
+// parseMTime reads a record's mtime. Absent is fine — manifests written
+// before the key existed omit it, and so does an entry whose time was
+// unknown — but a key that is present and malformed is refused, the same
+// judgment every other checked field gets: believing it would materialize a
+// tree with an invented time, and re-encoding it would put unreadable bytes
+// under a digest.
+func parseMTime(s string) (time.Time, error) {
+	if s == "" {
+		return time.Time{}, nil
+	}
+	t, err := time.Parse(time.RFC3339Nano, s)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("mtime: %w", err)
+	}
+	return t, nil
 }
 
 // eachRecord splits JSONL bytes into records and hands each to fn with its

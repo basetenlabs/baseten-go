@@ -128,11 +128,11 @@ func CheckManifestContainment(m *Manifest) ([]ContainmentWarning, error) {
 	// Paths the decoder normalized are reported through the same channel as
 	// the other pre-rule findings: they write out harmlessly, and a caller
 	// deciding whether to trust a legacy volume can branch on the kind.
-	for _, raw := range m.NormalizedPaths {
+	for _, np := range m.NormalizedPaths {
 		warnings = append(warnings, ContainmentWarning{
-			Path:   strings.TrimLeft(raw, "/"),
+			Path:   np.Path,
 			Kind:   WarningPathNormalized,
-			Detail: fmt.Sprintf("recorded as %q, a root-anchored path from before the containment rule; materialized relative to the volume root", raw),
+			Detail: fmt.Sprintf("recorded as %q, a root-anchored path from before the containment rule; materialized relative to the volume root", np.Raw),
 		})
 	}
 	for _, issue := range ns.parentIssues() {
