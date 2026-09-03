@@ -488,7 +488,10 @@ func (p *puller) writeFile(ctx context.Context, entry volume.FileEntry) error {
 	}
 	// The recorded modification time comes back after the mode, for files
 	// that carry one; an entry without a recorded time keeps its write time
-	// rather than gaining an invented one.
+	// rather than gaining an invented one. The guard states that intent;
+	// os.Chtimes itself also treats a zero time as leave-unchanged, so the
+	// two agree — measured when a mutation dropping the guard changed
+	// nothing observable.
 	if !entry.MTime.IsZero() {
 		if err := p.root.Chtimes(name, entry.MTime, entry.MTime); err != nil {
 			return err
