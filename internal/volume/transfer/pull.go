@@ -326,10 +326,13 @@ func (p *puller) publish(
 type puller struct {
 	// madeDirs remembers directories known to exist under the root: "." and
 	// every recorded directory once materialize creates them, plus each
-	// implicit parent on its first successful create — so the FileJobs-wide
-	// writer loop does not repeat a MkdirAll walk per file. Only SUCCESSES
-	// are remembered; a failed create must retry, not be remembered as done.
-	// sync.Map because the writers run concurrently.
+	// implicit parent — so the FileJobs-wide writer loop does not repeat a
+	// MkdirAll walk per file. Each entry is a *dirWalk whose Once is what
+	// makes "once" true under concurrency: writers that arrive together
+	// share one create instead of all missing a not-yet-stored result. Only
+	// SUCCESSES stay remembered; a failed create is dropped so a later call
+	// retries rather than reading the failure as done. sync.Map because the
+	// writers run concurrently.
 	madeDirs sync.Map
 
 	opts     PullOptions
@@ -352,13 +355,13 @@ func (p *puller) materialize(ctx context.Context, manifest *volume.Manifest) err
 	// Directories are created permissive and given their recorded modes at the
 	// very end. A directory recorded read-only is a real thing — a frozen
 	// asset tree — and applying that mode now would lock out its own contents.
-	p.madeDirs.Store(".", struct{}{})
+	p.rememberDir(".")
 	for _, dir := range manifest.Directories {
 		name := filepath.FromSlash(dir.Path)
 		if err := p.root.MkdirAll(name, 0o755); err != nil {
 			return err
 		}
-		p.madeDirs.Store(name, struct{}{})
+		p.rememberDir(name)
 		// A directory left over from a previous attempt already carries its
 		// recorded mode, which may forbid writing into it. Its real mode goes
 		// back on at the end, along with everything else's.
@@ -681,22 +684,43 @@ func (p *puller) writeChunk(
 	return nil
 }
 
-// ensureParent creates name's parent directory unless a previous success is
-// already remembered. Materialize creates every RECORDED directory before the
-// writers run, so this fires only for implicit parents — directories the
-// manifest never recorded — and each of those is walked once instead of once
-// per file beneath it. The honest arithmetic: the common file path drops
-// from five root walks to four when a time is recorded (four to three when
-// not) — OpenFile is still a walk and there is no handle form of Chtimes.
+// dirWalk is one directory's create under the memo: the Once holds the one
+// MkdirAll walk, and err is what that walk returned, read by every caller
+// that shared the entry.
+type dirWalk struct {
+	once sync.Once
+	err  error
+}
+
+// rememberDir marks dir as known to exist, so ensureParent never walks it.
+func (p *puller) rememberDir(dir string) {
+	done := &dirWalk{}
+	done.once.Do(func() {})
+	p.madeDirs.Store(dir, done)
+}
+
+// ensureParent creates name's parent directory unless the memo already knows
+// it exists. Materialize creates every RECORDED directory before the writers
+// run, so this fires only for implicit parents — directories the manifest
+// never recorded — and each of those is walked once instead of once per file
+// beneath it: concurrent first-files under one parent share a single create
+// through the entry's Once, the waiters reading the one walk's error rather
+// than each walking on their own. A failed create is dropped from the memo —
+// by entry, so a retry's fresh entry is never knocked out with it — because
+// a failure must be retried, not remembered as done.
+//
+// The honest arithmetic: the common file path drops from five root walks to
+// four when a time is recorded (four to three when not) — OpenFile is still
+// a walk and there is no handle form of Chtimes.
 func (p *puller) ensureParent(name string) error {
 	dir := filepath.Dir(name)
-	if _, ok := p.madeDirs.Load(dir); ok {
-		return nil
+	entry, _ := p.madeDirs.LoadOrStore(dir, &dirWalk{})
+	walk := entry.(*dirWalk)
+	walk.once.Do(func() { walk.err = p.root.MkdirAll(dir, 0o755) })
+	if walk.err != nil {
+		p.madeDirs.CompareAndDelete(dir, entry)
+		return walk.err
 	}
-	if err := p.root.MkdirAll(dir, 0o755); err != nil {
-		return err
-	}
-	p.madeDirs.Store(dir, struct{}{})
 	return nil
 }
 

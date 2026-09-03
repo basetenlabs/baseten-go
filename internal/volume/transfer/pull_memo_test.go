@@ -1,8 +1,10 @@
 package transfer
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 )
 
@@ -17,7 +19,7 @@ func TestEnsureParentMemoizesSuccessesOnly(t *testing.T) {
 	}
 	defer root.Close()
 	p := &puller{root: root}
-	p.madeDirs.Store(".", struct{}{})
+	p.rememberDir(".")
 
 	// A top-level file's parent is ".", seeded: no create happens and none
 	// is needed.
@@ -63,5 +65,59 @@ func TestEnsureParentMemoizesSuccessesOnly(t *testing.T) {
 	}
 	if err := p.ensureParent(blocked); err != nil {
 		t.Fatalf("the retry after the obstacle was removed still failed: %v", err)
+	}
+}
+
+// TestEnsureParentSharesOneWalkAcrossWaiters pins the memo's concurrency
+// contract: callers that arrive together share one MkdirAll through the
+// entry's Once, and every one of them reads that single walk's outcome. The
+// proof uses the error side, where sharing is observable: a consumed entry
+// carrying an error is handed back verbatim, without a walk of its own —
+// shown by the directory staying absent even though a walk would create it.
+func TestEnsureParentSharesOneWalkAcrossWaiters(t *testing.T) {
+	dir := t.TempDir()
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer root.Close()
+	p := &puller{root: root}
+
+	sentinel := errors.New("the one shared walk's outcome")
+	consumed := &dirWalk{}
+	consumed.once.Do(func() { consumed.err = sentinel })
+	p.madeDirs.Store("a", consumed)
+
+	if err := p.ensureParent(filepath.Join("a", "file.bin")); !errors.Is(err, sentinel) {
+		t.Fatalf("a waiter got %v, want the stored walk's own error", err)
+	}
+	if _, err := os.Lstat(filepath.Join(dir, "a")); !os.IsNotExist(err) {
+		t.Fatal("the waiter walked anyway: the directory exists")
+	}
+
+	// The failed entry was dropped, so the next caller is a fresh walk that
+	// succeeds — the failure was propagated, never remembered as done.
+	if err := p.ensureParent(filepath.Join("a", "file.bin")); err != nil {
+		t.Fatalf("the retry after the dropped failure still failed: %v", err)
+	}
+	if _, err := os.Lstat(filepath.Join(dir, "a")); err != nil {
+		t.Fatalf("the retry did not create the directory: %v", err)
+	}
+
+	// And under real concurrency: many first-files under one new parent all
+	// succeed, exercising the LoadOrStore/Once pair under the race detector.
+	var wg sync.WaitGroup
+	for i := 0; i < 16; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := p.ensureParent(filepath.Join("b", "c", "file.bin")); err != nil {
+				t.Errorf("concurrent ensureParent failed: %v", err)
+			}
+		}()
+	}
+	wg.Wait()
+	if _, err := os.Lstat(filepath.Join(dir, "b", "c")); err != nil {
+		t.Fatalf("the shared parent was not created: %v", err)
 	}
 }
