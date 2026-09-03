@@ -20,6 +20,11 @@ type ManagementClientOptions struct {
 
 	// HTTPClient overrides the default HTTP client. If nil, http.DefaultClient
 	// is used.
+	//
+	// Volume transfers use this client too, and lean on http.Client's
+	// contract that Do closes the request body even on error: an
+	// implementation that never closes it hangs an upload rather than
+	// leaking the buffer behind it. Any real transport already complies.
 	HTTPClient interface {
 		Do(*http.Request) (*http.Response, error)
 	}
