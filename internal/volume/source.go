@@ -75,7 +75,7 @@ func ScanSource(root string) (*Source, error) {
 
 		switch {
 		case d.IsDir():
-			info, err := d.Info()
+			info, err := entryInfo(abs)
 			if err != nil {
 				return err
 			}
@@ -88,16 +88,16 @@ func ScanSource(root string) (*Source, error) {
 			if target, err = NormalizeSymlinkTarget(target); err != nil {
 				return fmt.Errorf("symlink %s: %w", rel, err)
 			}
-			// The walk never follows links, so this Info is the link's own
-			// lstat and the recorded time is the link's, not the target's.
-			info, err := d.Info()
+			// The walk never follows links and neither does Lstat, so the
+			// recorded time is the link's own, not the target's.
+			info, err := entryInfo(abs)
 			if err != nil {
 				return err
 			}
 			addAncestors(dirs, rel)
 			src.Symlinks = append(src.Symlinks, SymlinkEntry{Path: rel, Target: target, Mode: SymlinkMode, MTime: clampMTime(info.ModTime())})
 		case d.Type().IsRegular():
-			info, err := d.Info()
+			info, err := entryInfo(abs)
 			if err != nil {
 				return err
 			}
@@ -196,6 +196,19 @@ func relPath(root, abs string) (string, error) {
 		return "", nil
 	}
 	return filepath.ToSlash(rel), nil
+}
+
+// entryInfo reads an entry's metadata with a fresh Lstat rather than through
+// the walk's own DirEntry.Info. On unix the two are the same call — Info is
+// a lazy lstat — but on Windows Info returns the directory enumeration's
+// cached copy of the entry's metadata, and Windows documents that copy as
+// lazily updated: two scans of an untouched tree can read two different
+// modification times from it as the cache settles, and a time-bearing
+// manifest digest changes with them. The direct query reads the entry's own
+// live record on every platform, which is what makes an unchanged tree scan
+// to unchanged bytes.
+func entryInfo(abs string) (fs.FileInfo, error) {
+	return os.Lstat(abs)
 }
 
 // entryMode reads the permission bits a manifest records: the low twelve, so
