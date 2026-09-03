@@ -616,28 +616,31 @@ func (p *puller) writeChunk(
 ) error {
 	// One buffer serves this chunk end to end: the resume re-hash reads into
 	// it and the download refills it. Full-size chunks take a pooled buffer;
-	// short ones — only ever a file's final chunk — keep exact allocations
-	// and never touch the pool, by construction. The deferred release runs
-	// only when this function exits, which is after the hash and the WriteAt
-	// below have both finished with the bytes — on every path, error and
-	// cancellation included.
+	// short ones — only ever a file's final chunk — keep an exact allocation
+	// of their own and never touch the pool, by construction, but that one
+	// allocation is likewise the whole chunk's: the resume check fills it and
+	// a mismatch refetches into the same storage rather than allocating a
+	// second, nearly-chunk-sized buffer. It carries the same one spare byte
+	// the pooled buffers do, keeping an exactly-expected body off the read's
+	// growth fallback. The deferred release runs only when this function
+	// exits, which is after the hash and the WriteAt below have both finished
+	// with the bytes — on every path, error and cancellation included.
 	fullSize := chunk.Length == volume.ChunkSize
 	var pooled *[]byte
+	var buffer []byte
 	if fullSize {
 		pooled = volume.AcquireChunkBuffer()
 		defer volume.ReleaseChunkBuffer(pooled)
+		buffer = (*pooled)[:0]
+	} else {
+		buffer = make([]byte, 0, chunk.Length+1)
 	}
 	if resumable {
 		// The check fills the buffer from what is already on disk; a fresh
 		// download reuses the same storage rather than allocating again.
-		var buffer []byte
-		if fullSize {
-			buffer = (*pooled)[:chunk.Length]
-		} else {
-			buffer = make([]byte, chunk.Length)
-		}
-		if _, err := handle.ReadAt(buffer, int64(chunk.Offset)); err == nil {
-			digest, err := volume.HashBytes(p.opts.NewHasher, buffer)
+		resume := buffer[:chunk.Length]
+		if _, err := handle.ReadAt(resume, int64(chunk.Offset)); err == nil {
+			digest, err := volume.HashBytes(p.opts.NewHasher, resume)
 			if err == nil && digest == chunk.Digest {
 				permit.CompleteUntimed(volume.Neutral)
 				p.stats.reused.Add(1)
@@ -651,12 +654,7 @@ func (p *puller) writeChunk(
 		permit.CompleteUntimed(volume.Neutral)
 		return err
 	}
-	var body []byte
-	if fullSize {
-		body, err = volume.FetchObjectInto(ctx, p.opts.DownloadObject, p.opts.Decompress, req, int64(chunk.Length), (*pooled)[:0])
-	} else {
-		body, err = volume.FetchObject(ctx, p.opts.DownloadObject, p.opts.Decompress, req, int64(chunk.Length))
-	}
+	body, err := volume.FetchObjectInto(ctx, p.opts.DownloadObject, p.opts.Decompress, req, int64(chunk.Length), buffer)
 	if err != nil {
 		permit.CompleteUntimed(failureOutcome(ctx, err))
 		return err
