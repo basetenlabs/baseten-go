@@ -191,9 +191,11 @@ func TestManagementClientRoundTrip(t *testing.T) {
 
 	// A second push of the identical tree, now with the reuse store, pins the
 	// Reused copy the first push cannot: reading the previous version lets
-	// every content chunk be reused rather than re-sent. The counters are
-	// pinned exactly, measured stable across repeated runs — the one
-	// duplicated chunk still lands in Existing, as on the first push.
+	// every content chunk be reused rather than re-sent — the duplicated
+	// chunk included, which the prior-version match absorbs like everything
+	// else. The counters are pinned exactly because this path has nothing to
+	// race: the only upload is the manifest, and the 1 in Existing is that
+	// re-sent manifest alone, reported by the service as already stored.
 	repushed, err := api.PushVolume(ctx, client.PushVolumeOptions{
 		Namespace: fakeNamespace,
 		Volume:    fakeVolume,
