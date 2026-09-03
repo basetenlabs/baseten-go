@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -724,5 +725,69 @@ func TestPushRefusesASwappedDirectoryComponent(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "escapes") {
 		t.Errorf("the failure does not name the escape: %v", err)
+	}
+}
+
+// TestPushScansTheTreeItOpened pins WHERE the push's scan reads from: the
+// root handle the push already holds, not the source pathname. The whole
+// directory is swapped for an impostor after the root is opened and before
+// the walk starts — the scan-phase progress callback fires exactly in that
+// window — and the published manifest must describe the tree that was
+// opened. A pathname scan here describes the impostor instead, and the push
+// then reads files through the handle that the scan never saw, or fails to
+// find the impostor's files there at all.
+func TestPushScansTheTreeItOpened(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("a directory with an open handle cannot be renamed on Windows")
+	}
+	base := t.TempDir()
+	source := filepath.Join(base, "tree")
+	mkdir(t, source, "sub")
+	writeFile(t, source, "sub/original.txt", []byte("the opened tree's bytes"), 0o644)
+
+	fake := newFakeService(t)
+	opts := pushOptions(source, fake)
+	var swapErr error
+	swapped := false
+	opts.Progress = func(p volume.Progress) {
+		if p.Phase != volume.PhaseScan || swapped {
+			return
+		}
+		swapped = true
+		// The swap: the opened tree moves aside, a different one takes its
+		// pathname. The progress callback runs on the push's own goroutine,
+		// so the scan has not started yet.
+		if err := os.Rename(source, filepath.Join(base, "moved")); err != nil {
+			swapErr = err
+			return
+		}
+		if err := os.MkdirAll(source, 0o755); err != nil {
+			swapErr = err
+			return
+		}
+		swapErr = os.WriteFile(filepath.Join(source, "impostor.txt"), []byte("other bytes"), 0o644)
+	}
+
+	result, err := transfer.Push(context.Background(), fake.client(t), opts)
+	if swapErr != nil {
+		t.Fatalf("staging the swap failed: %v", swapErr)
+	}
+	if !swapped {
+		t.Fatal("the scan-phase progress callback never fired; the swap was not staged")
+	}
+	if err != nil {
+		t.Fatalf("push failed: %v", err)
+	}
+
+	manifest, err := volume.DecodeManifest(fake.manifestBytes(t, result.ManifestDigest.String()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var paths []string
+	for _, f := range manifest.Files {
+		paths = append(paths, f.Path)
+	}
+	if got := strings.Join(paths, ","); got != "sub/original.txt" {
+		t.Errorf("the manifest describes %q, want the opened tree's own %q", got, "sub/original.txt")
 	}
 }
