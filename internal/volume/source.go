@@ -21,6 +21,14 @@ type SourceFile struct {
 	// MTime is the file's modification time from the walk's lstat, clamped
 	// to the wire-representable range.
 	MTime time.Time
+
+	// Dev and Ino identify the inode the scan described, from the SAME
+	// Lstat that recorded MTime — one stat, one consistent snapshot. They
+	// are the baseline the push compares its post-open Stat against, so a
+	// path that came to name a DIFFERENT file between scan and open is told
+	// apart from a file that changed in place. Unix-only; zero elsewhere,
+	// where the size re-check alone holds.
+	Dev, Ino uint64
 }
 
 // Source is the result of scanning a directory to push: every entry the
@@ -103,7 +111,8 @@ func ScanSource(root string) (*Source, error) {
 			}
 			addAncestors(dirs, rel)
 			size := uint64(info.Size())
-			src.Files = append(src.Files, SourceFile{Path: rel, Mode: entryMode(info), Size: size, MTime: clampMTime(info.ModTime())})
+			dev, ino, _ := FileIdentity(info)
+			src.Files = append(src.Files, SourceFile{Path: rel, Mode: entryMode(info), Size: size, MTime: clampMTime(info.ModTime()), Dev: dev, Ino: ino})
 			src.TotalBytes += size
 		default:
 			return fmt.Errorf("%s is a %s, which a volume cannot describe", rel, d.Type())
