@@ -831,10 +831,16 @@ func DecodeChunkmap(body []byte) (*Chunkmap, error) {
 // an empty Go string and would otherwise pass as absent — present-and-
 // malformed accepted, against this comment's own claim.
 //
-// The zero instant is refused too: "0001-01-01T00:00:00Z" parses to exactly
-// the value that means "no time recorded" here, so carrying it would vanish
-// silently on re-encode — the key dropped, the digest changed. Refusing
-// names the collision instead of quietly erasing a value the producer wrote.
+// The zero instant is refused too — as a SENTINEL COLLISION, not as
+// malformed, so the rule above stays exact: "0001-01-01T00:00:00Z" is a
+// well-formed time that parses to exactly the value meaning "no time
+// recorded" here, and carrying it would vanish silently on re-encode — the
+// key dropped, the digest changed. Refusing names the collision instead of
+// quietly erasing a value the producer wrote. Revisit trigger: if a real
+// producer is ever measured emitting this instant, or any production path
+// gains re-encode-of-decoded-entries (the re-push test is the standing
+// guard on that), the acceptance shape is a presence-carrying time field —
+// never document-only, which would leave the silent erasure in place.
 func parseMTime(raw json.RawMessage) (time.Time, error) {
 	if len(raw) == 0 {
 		return time.Time{}, nil
