@@ -324,6 +324,14 @@ func (p *puller) publish(
 
 // puller holds the state one download shares across its files.
 type puller struct {
+	// madeDirs remembers directories known to exist under the root: "." and
+	// every recorded directory once materialize creates them, plus each
+	// implicit parent on its first successful create — so the FileJobs-wide
+	// writer loop does not repeat a MkdirAll walk per file. Only SUCCESSES
+	// are remembered; a failed create must retry, not be remembered as done.
+	// sync.Map because the writers run concurrently.
+	madeDirs sync.Map
+
 	opts     PullOptions
 	origin   *origin
 	root     *os.Root
@@ -344,11 +352,13 @@ func (p *puller) materialize(ctx context.Context, manifest *volume.Manifest) err
 	// Directories are created permissive and given their recorded modes at the
 	// very end. A directory recorded read-only is a real thing — a frozen
 	// asset tree — and applying that mode now would lock out its own contents.
+	p.madeDirs.Store(".", struct{}{})
 	for _, dir := range manifest.Directories {
 		name := filepath.FromSlash(dir.Path)
 		if err := p.root.MkdirAll(name, 0o755); err != nil {
 			return err
 		}
+		p.madeDirs.Store(name, struct{}{})
 		// A directory left over from a previous attempt already carries its
 		// recorded mode, which may forbid writing into it. Its real mode goes
 		// back on at the end, along with everything else's.
@@ -381,7 +391,7 @@ func (p *puller) writeSymlink(link volume.SymlinkEntry) error {
 	if strings.HasPrefix(target, "/") {
 		target = volume.RelativeLinkTarget(link.Path, target)
 	}
-	if err := p.root.MkdirAll(filepath.Dir(name), 0o755); err != nil {
+	if err := p.ensureParent(name); err != nil {
 		return err
 	}
 	if existing, err := p.root.Readlink(name); err == nil && existing == target {
@@ -419,7 +429,7 @@ func (p *puller) writeFile(ctx context.Context, entry volume.FileEntry) error {
 	}
 
 	name := filepath.FromSlash(entry.Path)
-	if err := p.root.MkdirAll(filepath.Dir(name), 0o755); err != nil {
+	if err := p.ensureParent(name); err != nil {
 		return err
 	}
 
@@ -670,6 +680,25 @@ func (p *puller) writeChunk(
 		return err
 	}
 	p.stats.fetched.Add(1)
+	return nil
+}
+
+// ensureParent creates name's parent directory unless a previous success is
+// already remembered. Materialize creates every RECORDED directory before the
+// writers run, so this fires only for implicit parents — directories the
+// manifest never recorded — and each of those is walked once instead of once
+// per file beneath it. The honest arithmetic: the common file path drops
+// from five root walks to four when a time is recorded (four to three when
+// not) — OpenFile is still a walk and there is no handle form of Chtimes.
+func (p *puller) ensureParent(name string) error {
+	dir := filepath.Dir(name)
+	if _, ok := p.madeDirs.Load(dir); ok {
+		return nil
+	}
+	if err := p.root.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	p.madeDirs.Store(dir, struct{}{})
 	return nil
 }
 
