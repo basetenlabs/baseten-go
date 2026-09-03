@@ -319,6 +319,43 @@ func TestFileURIIsUnchangedForUnixPaths(t *testing.T) {
 	require.Equal(t, "file:///C:/data/v", fileURI("C:/data/v"))
 }
 
+// TestModeFromManifestRoundTripsTheSpecialBits is the primary evidence for
+// the translation, and it is deliberately a pure one: it depends on no
+// filesystem, so it cannot be skipped or flake on a mount with opinions.
+//
+// The asymmetry it covers is why the bug it guards was invisible: the encode
+// side had a test pinning all three bits, and the decode side had none.
+func TestModeFromManifestRoundTripsTheSpecialBits(t *testing.T) {
+	for _, tc := range []struct {
+		recorded uint16
+		want     fs.FileMode
+	}{
+		{0o644, 0o644},
+		{0o755, 0o755},
+		{0o4755, 0o755 | fs.ModeSetuid},
+		{0o2755, 0o755 | fs.ModeSetgid},
+		{0o1777, 0o777 | fs.ModeSticky},
+		{0o7000, fs.ModeSetuid | fs.ModeSetgid | fs.ModeSticky},
+	} {
+		require.Equal(t, tc.want, ModeFromManifest(tc.recorded))
+	}
+
+	// Every mode the scanner records must survive the trip back unchanged,
+	// which is the property the two halves together are supposed to have.
+	for _, mode := range []fs.FileMode{
+		0o644, 0o755, 0o600, 0o444,
+		0o755 | fs.ModeSetuid, 0o755 | fs.ModeSetgid, 0o777 | fs.ModeSticky,
+		0o770 | fs.ModeSetuid | fs.ModeSetgid | fs.ModeSticky,
+	} {
+		recorded := uint16(mode.Perm()) | specialBits(mode)
+		require.Equal(t, mode, ModeFromManifest(recorded))
+	}
+
+	// Anything above the recorded set is dropped, so a mode can never become
+	// a file type.
+	require.Equal(t, fs.FileMode(0o755), ModeFromManifest(0o40755))
+}
+
 // TestScanSourceRecordsModificationTimes pins where each entry's time comes
 // from: the walk's own lstat, so a symlink carries the link's time and never
 // the target's.

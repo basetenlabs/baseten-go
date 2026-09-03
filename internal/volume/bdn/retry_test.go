@@ -188,7 +188,10 @@ func TestClassifyTransport(t *testing.T) {
 		{"wrapped eof", fmt.Errorf("read response: %w", io.EOF), volume.Neutral},
 		{"unexpected eof", io.ErrUnexpectedEOF, volume.Neutral},
 		{"idle close", errors.New("http: server closed idle connection"), volume.Neutral},
-		// These say the origin, or the path to it, cannot keep up.
+		// These say the origin, or the path to it, cannot keep up. The reset
+		// is here on purpose: a peer that RSTs mid-exchange is not the clean
+		// idle-connection close above, and it lands in the default arm.
+		{"connection reset", errors.New("read tcp 127.0.0.1:2->127.0.0.1:1: read: connection reset by peer"), volume.Stall},
 		{"connection refused", errors.New("dial tcp 127.0.0.1:1: connect: connection refused"), volume.Stall},
 		{"timeout", errors.New("context deadline exceeded (Client.Timeout exceeded)"), volume.Stall},
 		{"no buffer space", errors.New("write tcp: no buffer space available"), volume.Stall},
@@ -208,8 +211,14 @@ func TestClassifyTransport(t *testing.T) {
 func TestRetryPastAClosedConnectionIsNeutral(t *testing.T) {
 	digest := volume.Digest{0xaa}
 	var calls atomic.Int64
-	client, _ := newTestClient(t, func(w http.ResponseWriter, _ *http.Request) {
+	client, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if calls.Add(1) == 1 {
+			// The body is drained BEFORE the close so the peer sees a clean
+			// FIN — an EOF, the closed-connection shape this test pins.
+			// Closing with the body still in the socket buffer sends a RESET
+			// instead, and a reset is a different error with a different
+			// classification, not a flakier spelling of this one.
+			_, _ = io.Copy(io.Discard, r.Body)
 			hijacked, _, err := w.(http.Hijacker).Hijack()
 			require.NoError(t, err)
 			_ = hijacked.Close()
@@ -232,9 +241,13 @@ func TestRetryPastAClosedConnectionIsNeutral(t *testing.T) {
 func TestAStallOutranksAClosedConnection(t *testing.T) {
 	digest := volume.Digest{0xaa}
 	var calls atomic.Int64
-	client, _ := newTestClient(t, func(w http.ResponseWriter, _ *http.Request) {
+	client, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		switch calls.Add(1) {
 		case 1:
+			// Drained before closing for the same reason as above: this leg
+			// must read as a clean close, so the stall it outranks is the 503
+			// below and nothing else.
+			_, _ = io.Copy(io.Discard, r.Body)
 			hijacked, _, err := w.(http.Hijacker).Hijack()
 			require.NoError(t, err)
 			_ = hijacked.Close()

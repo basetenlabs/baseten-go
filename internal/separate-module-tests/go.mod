@@ -7,6 +7,7 @@ replace github.com/basetenlabs/baseten-go => ../..
 require github.com/basetenlabs/baseten-go v0.0.0-00010101000000-000000000000
 
 require (
+	github.com/klauspost/compress v1.17.11
 	github.com/zeebo/blake3 v0.2.4
 	gopkg.in/yaml.v3 v3.0.1
 )
