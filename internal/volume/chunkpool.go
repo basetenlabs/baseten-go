@@ -49,6 +49,13 @@ func AcquireChunkBuffer() *[]byte {
 // has returned (its request body fully consumed and closed) for a push — and
 // on EVERY exit path, which the call sites get structurally from defer.
 func ReleaseChunkBuffer(buf *[]byte) {
+	// The full-size-only rule, structurally rather than by convention at the
+	// call sites: a buffer of any other capacity is dropped for the
+	// collector, never pooled where a later Acquire would hand it out as
+	// full-size.
+	if cap(*buf) != ChunkSize+1 {
+		return
+	}
 	*buf = (*buf)[:0]
 	select {
 	case chunkBuffers <- buf:

@@ -22,6 +22,14 @@ func TestChunkBufferPoolBoundsIdleMemory(t *testing.T) {
 	drainChunkBuffers()
 	t.Cleanup(drainChunkBuffers)
 
+	// The full-size-only rule is structural: a buffer of any other capacity
+	// is dropped at release, never handed out later as full-size.
+	odd := make([]byte, 0, ChunkSize)
+	ReleaseChunkBuffer(&odd)
+	if got := len(chunkBuffers); got != 0 {
+		t.Fatalf("a %d-capacity buffer was pooled; only ChunkSize+1 belongs here", cap(odd))
+	}
+
 	buffers := make([]*[]byte, 2*maxIdleChunkBuffers)
 	for i := range buffers {
 		buffers[i] = AcquireChunkBuffer()
