@@ -391,7 +391,9 @@ func TestScanSourceRecordsModificationTimes(t *testing.T) {
 // guards against was two scans reading different times for files nothing
 // touched, from the directory enumeration's lazily-updated metadata copy on
 // Windows, and a test that set its own times would never look at the cache
-// this test exists to bypass.
+// this test exists to bypass. On Windows this is a CANARY, not a proof: it
+// passes deterministically with the fix, while a revert to the cached read
+// fails only when the lazy update happens to land between its scans.
 func TestScanIsStableAcrossReads(t *testing.T) {
 	root := writeTree(t, map[string]string{
 		"dir/file.txt": "content",
