@@ -963,10 +963,11 @@ func TestPullWithoutRecordedTimesLeavesWriteTimes(t *testing.T) {
 // pool is primed with poisoned buffers — every byte a non-zero sentinel —
 // and a full push and pull must still move exact bytes. Any sentinel
 // escaping into an uploaded object or a written file fails the digest checks
-// or the tree comparison. sync.Pool may drop primed buffers at its own
-// discretion, so the control is best-effort by nature; the property it
-// probes is also held by construction, since every pooled read is
-// length-bounded and fully overwrites the range it hands out.
+// or the tree comparison. The pool holds released buffers up to its stated
+// bound and the priming stays under it, so every primed buffer is really
+// there to be reused; the property this probes is also held by construction,
+// since every pooled read is length-bounded and fully overwrites the range
+// it hands out.
 func TestPooledBuffersLeakNothingBetweenUses(t *testing.T) {
 	poison := func() {
 		buffers := make([]*[]byte, 8)
