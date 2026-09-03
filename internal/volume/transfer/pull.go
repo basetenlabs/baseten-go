@@ -604,10 +604,28 @@ func (p *puller) writeChunk(
 	resumable bool,
 	permit *volume.Permit,
 ) error {
+	// One buffer serves this chunk end to end: the resume re-hash reads into
+	// it and the download refills it. Full-size chunks take a pooled buffer;
+	// short ones — only ever a file's final chunk — keep exact allocations
+	// and never touch the pool, by construction. The deferred release runs
+	// only when this function exits, which is after the hash and the WriteAt
+	// below have both finished with the bytes — on every path, error and
+	// cancellation included.
+	fullSize := chunk.Length == volume.ChunkSize
+	var pooled *[]byte
+	if fullSize {
+		pooled = volume.AcquireChunkBuffer()
+		defer volume.ReleaseChunkBuffer(pooled)
+	}
 	if resumable {
-		// The check's own buffer: filled from what is already on disk, dead
-		// after the rehash. A fresh download allocates nothing here.
-		buffer := make([]byte, chunk.Length)
+		// The check fills the buffer from what is already on disk; a fresh
+		// download reuses the same storage rather than allocating again.
+		var buffer []byte
+		if fullSize {
+			buffer = (*pooled)[:chunk.Length]
+		} else {
+			buffer = make([]byte, chunk.Length)
+		}
 		if _, err := handle.ReadAt(buffer, int64(chunk.Offset)); err == nil {
 			digest, err := volume.HashBytes(p.opts.NewHasher, buffer)
 			if err == nil && digest == chunk.Digest {
@@ -623,7 +641,12 @@ func (p *puller) writeChunk(
 		permit.CompleteUntimed(volume.Neutral)
 		return err
 	}
-	body, err := volume.FetchObject(ctx, p.opts.DownloadObject, p.opts.Decompress, req, int64(chunk.Length))
+	var body []byte
+	if fullSize {
+		body, err = volume.FetchObjectInto(ctx, p.opts.DownloadObject, p.opts.Decompress, req, int64(chunk.Length), (*pooled)[:0])
+	} else {
+		body, err = volume.FetchObject(ctx, p.opts.DownloadObject, p.opts.Decompress, req, int64(chunk.Length))
+	}
 	if err != nil {
 		permit.CompleteUntimed(failureOutcome(ctx, err))
 		return err

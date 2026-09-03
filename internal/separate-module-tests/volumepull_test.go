@@ -958,3 +958,47 @@ func TestPullWithoutRecordedTimesLeavesWriteTimes(t *testing.T) {
 		}
 	}
 }
+
+// TestPooledBuffersLeakNothingBetweenUses is the dirty-reuse control: the
+// pool is primed with poisoned buffers — every byte a non-zero sentinel —
+// and a full push and pull must still move exact bytes. Any sentinel
+// escaping into an uploaded object or a written file fails the digest checks
+// or the tree comparison. sync.Pool may drop primed buffers at its own
+// discretion, so the control is best-effort by nature; the property it
+// probes is also held by construction, since every pooled read is
+// length-bounded and fully overwrites the range it hands out.
+func TestPooledBuffersLeakNothingBetweenUses(t *testing.T) {
+	poison := func() {
+		buffers := make([]*[]byte, 8)
+		for i := range buffers {
+			buffers[i] = volume.AcquireChunkBuffer()
+			full := (*buffers[i])[:cap(*buffers[i])]
+			for j := range full {
+				full[j] = 0xA5
+			}
+		}
+		for _, buf := range buffers {
+			volume.ReleaseChunkBuffer(buf)
+		}
+	}
+
+	root := buildTree(t)
+	fake := newFakeService(t)
+	ctx := context.Background()
+
+	poison()
+	if _, err := transfer.Push(ctx, fake.client(t), pushOptions(root, fake)); err != nil {
+		t.Fatal(err)
+	}
+
+	poison()
+	dest := filepath.Join(t.TempDir(), "downloaded")
+	if _, err := transfer.Pull(ctx, fake.client(t), pullOptions(dest, fake)); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(filepath.Join(dest, "assets"), 0o755) })
+
+	if got, want := treeDescription(t, dest), treeDescription(t, root); got != want {
+		t.Errorf("poisoned pool buffers reached the tree\n got:\n%s\nwant:\n%s", got, want)
+	}
+}

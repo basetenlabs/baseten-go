@@ -84,6 +84,28 @@ func FetchObject(
 	req ObjectDownload,
 	maxSize int64,
 ) ([]byte, error) {
+	return FetchObjectInto(ctx, download, decompress, req, maxSize, nil)
+}
+
+// FetchObjectInto is FetchObject reading into the caller's buffer: buf must
+// have length zero, and its capacity is what the read fills before falling
+// back to growth. The buffer is CALLER-OWNED throughout, and that ownership
+// is structural rather than polite: in the overrun fallback, the append
+// reallocates (length has met capacity), so the returned slice is NOT the
+// caller's array — a caller that released "what it got back" would pool a
+// foreign array and lose its own. The caller therefore releases exactly the
+// buffer it supplied, never the returned slice, and only after it has
+// finished with the bytes. A nil buf allocates per call, sized to
+// ExpectedSize, which is the non-pooled path every short or metadata read
+// takes.
+func FetchObjectInto(
+	ctx context.Context,
+	download ObjectDownloader,
+	decompress Decompressor,
+	req ObjectDownload,
+	maxSize int64,
+	buf []byte,
+) ([]byte, error) {
 	result, err := download(ctx, req)
 	if err != nil {
 		return nil, err
@@ -120,8 +142,14 @@ func FetchObject(
 		body = io.LimitReader(body, maxSize+1)
 	}
 
-	data, err := readAllSized(body, req.ExpectedSize)
-	if err != nil {
+	var data []byte
+	var err2 error
+	if buf != nil {
+		data, err2 = readAllSizedInto(body, buf)
+	} else {
+		data, err2 = readAllSized(body, req.ExpectedSize)
+	}
+	if err := err2; err != nil {
 		return nil, fmt.Errorf("read %s: %w", req.Key, err)
 	}
 	if maxSize > 0 && int64(len(data)) > maxSize {
@@ -144,7 +172,16 @@ func readAllSized(r io.Reader, size int64) ([]byte, error) {
 	if size <= 0 {
 		return io.ReadAll(r)
 	}
-	data := make([]byte, 0, size+1)
+	return readAllSizedInto(r, make([]byte, 0, size+1))
+}
+
+// readAllSizedInto is readAllSized filling the caller's storage: buf must
+// have length zero and the intended capacity. On the fallback branch the
+// append reallocates — length has met capacity — so the returned slice stops
+// aliasing buf there, which is why buffer ownership stays with the caller
+// (see FetchObjectInto).
+func readAllSizedInto(r io.Reader, buf []byte) ([]byte, error) {
+	data := buf
 	for {
 		n, err := r.Read(data[len(data):cap(data)])
 		data = data[:len(data)+n]

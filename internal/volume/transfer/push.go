@@ -602,7 +602,20 @@ func (p *pusher) pushChunk(
 	prior *volume.ChunkRef,
 	permit *volume.Permit,
 ) (pushedChunk, error) {
-	buffer := make([]byte, span.Length)
+	// Full-size spans read into a pooled buffer; short spans — only ever a
+	// file's final one — keep the exact allocation and never touch the pool,
+	// by construction. The deferred release runs when this function returns,
+	// and by then the upload call below has fully consumed the request body
+	// and nothing else references the bytes: the chunk ref carries only the
+	// digest.
+	var buffer []byte
+	if span.Length == volume.ChunkSize {
+		pooled := volume.AcquireChunkBuffer()
+		defer volume.ReleaseChunkBuffer(pooled)
+		buffer = (*pooled)[:span.Length]
+	} else {
+		buffer = make([]byte, span.Length)
+	}
 	if span.Length > 0 {
 		// Reading at an offset rather than seeking lets many tasks read
 		// disjoint parts of one large file at once, so a single big file is
