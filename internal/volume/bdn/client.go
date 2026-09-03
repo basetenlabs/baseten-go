@@ -30,6 +30,12 @@ import (
 )
 
 // HTTPClient is the subset of http.Client the protocol needs.
+//
+// http.Client's body-close contract is load-bearing here: Do must see the
+// request body closed — even on error, possibly on another goroutine — the
+// way any real transport does. The client waits on that close before letting
+// go of the buffer behind an upload's body, so an implementation that never
+// closes it hangs the upload rather than leaking the bytes.
 type HTTPClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
