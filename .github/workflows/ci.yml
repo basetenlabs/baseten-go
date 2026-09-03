@@ -43,3 +43,11 @@ jobs:
         run: |
           go test ./...
           (cd internal/separate-module-tests && go test ./...)
+      # PROBE BRANCH ONLY, removed with the branch: the probe arms log what
+      # their outcome MEANS, and go test without -v suppresses a passing
+      # test's logs — so the null reading ("both arms green = UNMEASURED")
+      # would vanish from the log exactly when it matters most. This step
+      # runs the probe verbosely so the reading lands beside the result
+      # whichever way it goes.
+      - name: Probe (verbose readings)
+        run: go test -run TestProbe -v ./internal/volume/

@@ -39,7 +39,8 @@ package volume
 // rounds. The symlink is optional: its creation failing (likely on Windows
 // without Developer Mode) drops it from the tree WITH A LOG and the probe
 // runs on — mtime stability of files and directories is the subject, and a
-// skipped probe is a non-measurement wearing green. The tree's shape is
+// skipped probe is a non-measurement wearing green: a canary that never
+// entered the mine reads identically to one that came back fine. The tree's shape is
 // guarded by exact entry counts so a tree that is not what the probe thinks
 // fails loudly instead of quietly measuring less.
 
