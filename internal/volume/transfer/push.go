@@ -144,10 +144,12 @@ func Push(ctx context.Context, client *bdn.Client, opts PushOptions) (*PushResul
 		return nil, err
 	}
 
-	// The source is opened as a root once per push, and every file opens
-	// through it: a directory component swapped for an out-of-tree symlink
-	// between scan and open is refused instead of followed, the same
-	// containment the pull side already applies to its destination. One
+	// The source is opened as a root once per push. The scan walks through
+	// it and every file opens through it, so the tree being described and
+	// the tree being read are the one this handle holds: a directory swapped
+	// in at the same pathname after this open is never seen, and a component
+	// swapped for an out-of-tree symlink is refused instead of followed, the
+	// same containment the pull side already applies to its destination. One
 	// root, transfer-scoped, closed on every exit below.
 	root, err := os.OpenRoot(opts.SourceDir)
 	if err != nil {
@@ -213,7 +215,11 @@ func startPush(ctx context.Context, client *bdn.Client, opts PushOptions, root *
 
 	progress := volume.NewProgressReporter(opts.Progress)
 	progress.SetPhase(volume.PhaseScan, 0, 0)
-	source, err := volume.ScanSource(opts.SourceDir)
+	// Through the retained root, not by pathname: the identity checks at
+	// open time compare against what THIS scan recorded, and that baseline
+	// only means something if the scan looked at the same tree the opens
+	// will read.
+	source, err := volume.ScanRoot(root)
 	if err != nil {
 		return nil, nil, err
 	}
