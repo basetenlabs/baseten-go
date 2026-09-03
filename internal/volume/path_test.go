@@ -96,6 +96,7 @@ func TestNormalizeSymlinkTarget(t *testing.T) {
 		"empty":           "",
 		"drive letter":    `C:\Windows`,
 		"unc":             `\\server\share\file`,
+		"mixed unc":       `//server\share`,
 		"extended length": `\\?\C:\long`,
 		"nul byte":        "a\x00b",
 		"invalid utf-8":   "a\xffb",
@@ -106,6 +107,12 @@ func TestNormalizeSymlinkTarget(t *testing.T) {
 			require.Error(t, err)
 		})
 	}
+
+	// The mixed spelling — a doubled forward slash with a backslash later —
+	// is UNC in windows's other spelling, and the refusal must say so.
+	_, err := NormalizeSymlinkTarget(`//server\share`)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "UNC")
 }
 
 // TestNormalizeSymlinkTargetSeparators pins the one platform-dependent piece

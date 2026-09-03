@@ -745,18 +745,28 @@ func TestDecodeMTimeMixedAndMalformed(t *testing.T) {
 	require.False(t, m.Directories[0].MTime.IsZero(), "the present mtime was dropped")
 	require.True(t, m.Files[0].MTime.IsZero(), "the absent mtime was invented")
 
+	// Presence is judged on the raw key, not the decoded string: an explicit
+	// "" and an explicit null both decode into Go's empty string, and a
+	// decoder that tested only the string would accept present-and-malformed
+	// as absent. The zero-instant row pins the sentinel collision: that value
+	// IS this decoder's "no time recorded", so carrying it would silently
+	// drop the key on re-encode — refused by choice, naming the collision.
 	malformed := map[string]string{
-		"not a time":      "whenever",
-		"wrong shape":     "2024-05-06 07:08:09",
-		"five-digit year": "10000-01-01T00:00:00Z",
+		"not a time":      `"whenever"`,
+		"wrong shape":     `"2024-05-06 07:08:09"`,
+		"five-digit year": `"10000-01-01T00:00:00Z"`,
+		"explicit empty":  `""`,
+		"explicit null":   `null`,
+		"zero instant":    `"0001-01-01T00:00:00Z"`,
 	}
 	for name, mt := range malformed {
 		t.Run(name, func(t *testing.T) {
 			body := `{"_type":"manifest_header","entry_count":1,"manifest_schema":"v1","total_size":0}` + "\n" +
-				`{"_type":"directory","mode":"0755","mtime":"` + mt + `","path":"dir"}` + "\n"
+				`{"_type":"directory","mode":"0755","mtime":` + mt + `,"path":"dir"}` + "\n"
 			_, err := DecodeManifest([]byte(body))
 			require.Error(t, err)
 			require.Contains(t, err.Error(), "mtime")
+			require.Contains(t, err.Error(), `"dir"`)
 		})
 	}
 }
