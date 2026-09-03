@@ -1,12 +1,14 @@
 package bdn
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -279,4 +281,82 @@ func TestResolveWithoutCredentialExpiry(t *testing.T) {
 	result, err := client.Resolve(context.Background(), "ns/vol")
 	require.NoError(t, err)
 	require.True(t, result.Origin.ExpiresAt.IsZero(), "expiry should be absent, got %v", result.Origin.ExpiresAt)
+}
+
+// asyncCloseClient answers every request immediately but keeps reading the
+// request body on another goroutine, closing it only after a delay — which
+// the RoundTripper contract explicitly permits ("may do so in a separate
+// goroutine even after RoundTrip returns"). It records what it read and when
+// the body was closed relative to the caller's return.
+type asyncCloseClient struct {
+	response func() *http.Response
+	delay    time.Duration
+
+	mu     sync.Mutex
+	closed bool
+	read   []byte
+}
+
+func (c *asyncCloseClient) Do(req *http.Request) (*http.Response, error) {
+	body := req.Body
+	go func() {
+		time.Sleep(c.delay)
+		read, _ := io.ReadAll(body)
+		_ = body.Close()
+		c.mu.Lock()
+		c.closed = true
+		c.read = read
+		c.mu.Unlock()
+	}()
+	return c.response(), nil
+}
+
+// TestUploadObjectWaitsForTheTransportToReleaseTheBody pins the property the
+// push's buffer pooling stands on: when UploadObject returns, the transport
+// has closed the request body and can no longer be reading the caller's
+// buffer. Without the wait, the caller's return races the transport's
+// deferred close, this test's overwrite below plays the role of the pool
+// handing the buffer to the next chunk, and the transport reads the next
+// chunk's bytes into this chunk's upload.
+func TestUploadObjectWaitsForTheTransportToReleaseTheBody(t *testing.T) {
+	payload := []byte("the chunk's own bytes")
+	digest := volume.Digest{0x42}
+
+	respBody, err := json.Marshal(map[string]any{
+		"digest": digest.String(), "target": volume.TargetForDigest(digest), "created": true,
+	})
+	require.NoError(t, err)
+	fake := &asyncCloseClient{
+		delay: 30 * time.Millisecond,
+		response: func() *http.Response {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": []string{"application/json"}},
+				Body:       io.NopCloser(bytes.NewReader(respBody)),
+			}
+		},
+	}
+	client, err := New(Options{
+		HTTPClient: fake,
+		Tokens:     func(context.Context, string) (string, string, error) { return "t", "http://origin", nil },
+	})
+	require.NoError(t, err)
+
+	buffer := append([]byte(nil), payload...)
+	_, err = client.UploadObject(context.Background(),
+		testSession("/objects/{digest}"), ContentTypeChunk, digest, buffer)
+	require.NoError(t, err)
+
+	// The pool's next user, in miniature. If UploadObject returned while the
+	// transport was still draining the body, these bytes are what it reads.
+	for i := range buffer {
+		buffer[i] = 0xA5
+	}
+
+	fake.mu.Lock()
+	defer fake.mu.Unlock()
+	require.True(t, fake.closed, "UploadObject returned before the transport closed the request body")
+	if got := string(fake.read); got != string(payload) {
+		t.Errorf("the transport read %q — bytes written after UploadObject returned", got)
+	}
 }

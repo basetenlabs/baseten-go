@@ -208,8 +208,14 @@ func TestClassifyTransport(t *testing.T) {
 func TestRetryPastAClosedConnectionIsNeutral(t *testing.T) {
 	digest := volume.Digest{0xaa}
 	var calls atomic.Int64
-	client, _ := newTestClient(t, func(w http.ResponseWriter, _ *http.Request) {
+	client, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if calls.Add(1) == 1 {
+			// The body is drained BEFORE the close so the peer sees a clean
+			// FIN — an EOF, the closed-connection shape this test pins.
+			// Closing with the body still in the socket buffer sends a RESET
+			// instead, and a reset is a different error with a different
+			// classification, not a flakier spelling of this one.
+			_, _ = io.Copy(io.Discard, r.Body)
 			hijacked, _, err := w.(http.Hijacker).Hijack()
 			require.NoError(t, err)
 			_ = hijacked.Close()
@@ -232,9 +238,13 @@ func TestRetryPastAClosedConnectionIsNeutral(t *testing.T) {
 func TestAStallOutranksAClosedConnection(t *testing.T) {
 	digest := volume.Digest{0xaa}
 	var calls atomic.Int64
-	client, _ := newTestClient(t, func(w http.ResponseWriter, _ *http.Request) {
+	client, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		switch calls.Add(1) {
 		case 1:
+			// Drained before closing for the same reason as above: this leg
+			// must read as a clean close, so the stall it outranks is the 503
+			// below and nothing else.
+			_, _ = io.Copy(io.Discard, r.Body)
 			hijacked, _, err := w.(http.Hijacker).Hijack()
 			require.NoError(t, err)
 			_ = hijacked.Close()

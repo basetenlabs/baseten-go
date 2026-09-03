@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/basetenlabs/baseten-go/internal/volume"
@@ -557,11 +558,63 @@ func (c *Client) send(ctx context.Context, req request) (*rawResponse, volume.Ou
 	}
 }
 
+// trackedBody is one attempt's request body over the caller's bytes. The
+// transport owns it once Do is called, and the transport's contract is that
+// it closes the body — possibly on another goroutine after Do has already
+// returned. The Close is therefore the only event that says the transport
+// can no longer be reading the bytes, and the WaitGroup carries it back to
+// the attempt.
+type trackedBody struct {
+	*bytes.Reader
+	once   sync.Once
+	bodies *sync.WaitGroup
+}
+
+func (b *trackedBody) Close() error {
+	b.once.Do(b.bodies.Done)
+	return nil
+}
+
 // attempt sends the request once and reads the whole response.
+//
+// It does not return until the transport has closed every request body it
+// was handed. The caller's buffer may be pooled — a push reuses its chunk
+// buffers the moment UploadObject returns — and a transport that closes the
+// body asynchronously would otherwise still be reading bytes the pool has
+// already handed to another writer.
 func (c *Client) attempt(ctx context.Context, host, token string, req request) (*rawResponse, error) {
-	httpReq, err := http.NewRequestWithContext(ctx, req.method, strings.TrimRight(host, "/")+req.path, bytes.NewReader(req.body))
+	// The wrapping has one wire-visible cost: net/http flushes the headers
+	// before the body for any reader it does not recognize as in-memory
+	// (issue 22088's exception is a closed list of stdlib types), so a
+	// request now crosses in two writes where a bare bytes.Reader crossed in
+	// one. That is the price of knowing when the transport is done with the
+	// bytes, and nothing here reads response timing off packet boundaries.
+	var bodies sync.WaitGroup
+	tracked := func() io.ReadCloser {
+		bodies.Add(1)
+		return &trackedBody{Reader: bytes.NewReader(req.body), bodies: &bodies}
+	}
+	// The service requires a length on object uploads. A body of a type
+	// net/http does not recognize means no inferred length, so the length is
+	// set explicitly below, and the empty body — an empty chunk has one — is
+	// spelled http.NoBody, the one value net/http reads as "zero length"
+	// rather than "unknown". NoBody holds no caller bytes, so it needs no
+	// tracking.
+	var body io.ReadCloser = http.NoBody
+	if len(req.body) > 0 {
+		body = tracked()
+	}
+	httpReq, err := http.NewRequestWithContext(ctx, req.method, strings.TrimRight(host, "/")+req.path, body)
 	if err != nil {
+		// The transport never saw this body; nothing will close it but us.
+		_ = body.Close()
 		return nil, err
+	}
+	if len(req.body) > 0 {
+		// Replays inside one Do — a redirect, a retry on a dead reused
+		// connection — each get their own reader over the same bytes, and
+		// each is the transport's to close like the original.
+		httpReq.GetBody = func() (io.ReadCloser, error) { return tracked(), nil }
 	}
 	if token != "" {
 		httpReq.Header.Set("Authorization", "Bearer "+token)
@@ -572,22 +625,25 @@ func (c *Client) attempt(ctx context.Context, host, token string, req request) (
 	for name, value := range req.headers {
 		httpReq.Header.Set(name, value)
 	}
-	// The service requires a length on object uploads, and a bytes.Reader body
-	// gives net/http one for free — but only if the body is non-nil, which it
-	// is even for an empty chunk.
 	httpReq.ContentLength = int64(len(req.body))
 
 	resp, err := c.http.Do(httpReq)
 	if err != nil {
+		// The transport closes the body even on error, so this wait ends.
+		bodies.Wait()
 		return nil, err
 	}
-	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+	respBody, readErr := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	// The response is consumed and closed BEFORE waiting on the request
+	// body: a transport may hold the request write open until the response
+	// side is finished with, and waiting first could deadlock against it.
+	bodies.Wait()
+	if readErr != nil {
+		return nil, readErr
 	}
-	return &rawResponse{status: resp.StatusCode, header: resp.Header, body: body}, nil
+	return &rawResponse{status: resp.StatusCode, header: resp.Header, body: respBody}, nil
 }
 
 func sleep(ctx context.Context, d time.Duration) error {
