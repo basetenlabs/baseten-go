@@ -2172,7 +2172,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/development/activate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Activates an inactive development deployment and returns the activation status.",
+                "description": "Activates a development deployment if not already activated.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -2205,7 +2205,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/production/activate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Activates an inactive production deployment and returns the activation status.",
+                "description": "Activates a production deployment if not already activated.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -2238,7 +2238,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/activate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Activates an inactive deployment and returns the activation status.",
+                "description": "Activates a deployment if not already activated.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -2274,7 +2274,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/development/deactivate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Deactivates a development deployment and returns the deactivation status.",
+                "description": "Deactivates a development deployment if not already deactivated.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -2307,7 +2307,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/production/deactivate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Deactivates a production deployment and returns the deactivation status.",
+                "description": "Deactivates a production deployment if not already deactivated.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -2340,7 +2340,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/deactivate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Deactivates a deployment and returns the deactivation status.",
+                "description": "Deactivates a deployment if not already deactivated.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -3643,7 +3643,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/activate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Activates an inactive deployment associated with an environment and returns the activation status.",
+                "description": "Activates a deployment associated with an environment if not already activated.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -3679,7 +3679,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/deactivate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Deactivates a deployment associated with an environment and returns the deactivation status.",
+                "description": "Deactivates a deployment associated with an environment if not already deactivated.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -8398,6 +8398,35 @@
                     "$ref": "#/components/parameters/user_id"
                 }
             ]
+        },
+        "/v1/organizations/me": {
+            "get": {
+                "summary": "Gets the authenticated organization",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/organizations/me \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/organizations/me\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns info about the organization of the user making the request.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrganizationInfoV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
         },
         "/v1/gateway/events": {
             "get": {
@@ -14799,6 +14828,12 @@
                         "description": "Whether the deployment was successfully activated",
                         "title": "Success",
                         "type": "boolean"
+                    },
+                    "no_op": {
+                        "default": false,
+                        "description": "Whether the request did nothing because the deployment was already active or on its way to becoming active",
+                        "title": "No Op",
+                        "type": "boolean"
                     }
                 },
                 "title": "ActivateResponseV1",
@@ -14811,6 +14846,12 @@
                         "default": true,
                         "description": "Whether the deployment was successfully deactivated",
                         "title": "Success",
+                        "type": "boolean"
+                    },
+                    "no_op": {
+                        "default": false,
+                        "description": "Whether the request did nothing because the deployment was already inactive",
+                        "title": "No Op",
                         "type": "boolean"
                     }
                 },
@@ -24368,14 +24409,7 @@
                             "text"
                         ],
                         "items": {
-                            "enum": [
-                                "text",
-                                "image",
-                                "audio",
-                                "video",
-                                "embedding"
-                            ],
-                            "type": "string"
+                            "$ref": "#/components/schemas/LibraryListingModality"
                         },
                         "title": "Input Modalities",
                         "type": "array"
@@ -24385,14 +24419,7 @@
                             "text"
                         ],
                         "items": {
-                            "enum": [
-                                "text",
-                                "image",
-                                "audio",
-                                "video",
-                                "embedding"
-                            ],
-                            "type": "string"
+                            "$ref": "#/components/schemas/LibraryListingModality"
                         },
                         "title": "Output Modalities",
                         "type": "array"
@@ -24456,6 +24483,18 @@
                 ],
                 "title": "LibraryListingMetadataV1",
                 "type": "object"
+            },
+            "LibraryListingModality": {
+                "enum": [
+                    "text",
+                    "image",
+                    "audio",
+                    "video",
+                    "embedding",
+                    "rerank"
+                ],
+                "title": "LibraryListingModality",
+                "type": "string"
             },
             "LibraryListingV1": {
                 "description": "A library listing.",
@@ -25973,6 +26012,74 @@
                     }
                 },
                 "title": "UsersRequestV1",
+                "type": "object"
+            },
+            "AwsAssumeRoleV1": {
+                "description": "AWS AssumeRole trust-policy inputs for the organization.",
+                "properties": {
+                    "baseten_role_arn": {
+                        "description": "Baseten role ARN to allow in an IAM role's trust policy",
+                        "title": "Baseten Role Arn",
+                        "type": "string"
+                    },
+                    "external_id": {
+                        "description": "sts:ExternalId Baseten presents when assuming the role",
+                        "title": "External Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "baseten_role_arn",
+                    "external_id"
+                ],
+                "title": "AwsAssumeRoleV1",
+                "type": "object"
+            },
+            "OrganizationInfoV1": {
+                "description": "The caller's organization.",
+                "properties": {
+                    "org_id": {
+                        "description": "Unique identifier for the organization",
+                        "title": "Org Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Display name of the organization",
+                        "title": "Name"
+                    },
+                    "created_at": {
+                        "description": "Time the organization was created in ISO 8601 format",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    },
+                    "aws_assume_role": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AwsAssumeRoleV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "AWS AssumeRole trust-policy inputs; null while the method is not enabled for the organization"
+                    }
+                },
+                "required": [
+                    "org_id",
+                    "created_at"
+                ],
+                "title": "OrganizationInfoV1",
                 "type": "object"
             },
             "GatewayEventTokensV1": {

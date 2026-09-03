@@ -955,6 +955,18 @@ func (c *Client) GetModelsModelId(ctx context.Context, modelId string) (*Model, 
 	})
 }
 
+// GetOrganizationsMe: Gets the authenticated organization
+func (c *Client) GetOrganizationsMe(ctx context.Context) (*OrganizationInfo, error) {
+	return doJSON[OrganizationInfo](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/organizations/me",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetRegions: Lists regions available to the organization
 func (c *Client) GetRegions(ctx context.Context) (*Regions, error) {
 	return doJSON[Regions](c, ctx, apiRequest{

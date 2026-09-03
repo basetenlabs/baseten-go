@@ -723,54 +723,30 @@ func (e InProgressPromotionStatus) Valid() bool {
 	}
 }
 
-// Defines values for LibraryListingMetadataInputModalities.
+// Defines values for LibraryListingModality.
 const (
-	LibraryListingMetadataInputModalities_audio     LibraryListingMetadataInputModalities = "audio"
-	LibraryListingMetadataInputModalities_embedding LibraryListingMetadataInputModalities = "embedding"
-	LibraryListingMetadataInputModalities_image     LibraryListingMetadataInputModalities = "image"
-	LibraryListingMetadataInputModalities_text      LibraryListingMetadataInputModalities = "text"
-	LibraryListingMetadataInputModalities_video     LibraryListingMetadataInputModalities = "video"
+	LibraryListingModality_audio     LibraryListingModality = "audio"
+	LibraryListingModality_embedding LibraryListingModality = "embedding"
+	LibraryListingModality_image     LibraryListingModality = "image"
+	LibraryListingModality_rerank    LibraryListingModality = "rerank"
+	LibraryListingModality_text      LibraryListingModality = "text"
+	LibraryListingModality_video     LibraryListingModality = "video"
 )
 
-// Valid indicates whether the value is a known member of the LibraryListingMetadataInputModalities enum.
-func (e LibraryListingMetadataInputModalities) Valid() bool {
+// Valid indicates whether the value is a known member of the LibraryListingModality enum.
+func (e LibraryListingModality) Valid() bool {
 	switch e {
-	case LibraryListingMetadataInputModalities_audio:
+	case LibraryListingModality_audio:
 		return true
-	case LibraryListingMetadataInputModalities_embedding:
+	case LibraryListingModality_embedding:
 		return true
-	case LibraryListingMetadataInputModalities_image:
+	case LibraryListingModality_image:
 		return true
-	case LibraryListingMetadataInputModalities_text:
+	case LibraryListingModality_rerank:
 		return true
-	case LibraryListingMetadataInputModalities_video:
+	case LibraryListingModality_text:
 		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for LibraryListingMetadataOutputModalities.
-const (
-	LibraryListingMetadataOutputModalities_audio     LibraryListingMetadataOutputModalities = "audio"
-	LibraryListingMetadataOutputModalities_embedding LibraryListingMetadataOutputModalities = "embedding"
-	LibraryListingMetadataOutputModalities_image     LibraryListingMetadataOutputModalities = "image"
-	LibraryListingMetadataOutputModalities_text      LibraryListingMetadataOutputModalities = "text"
-	LibraryListingMetadataOutputModalities_video     LibraryListingMetadataOutputModalities = "video"
-)
-
-// Valid indicates whether the value is a known member of the LibraryListingMetadataOutputModalities enum.
-func (e LibraryListingMetadataOutputModalities) Valid() bool {
-	switch e {
-	case LibraryListingMetadataOutputModalities_audio:
-		return true
-	case LibraryListingMetadataOutputModalities_embedding:
-		return true
-	case LibraryListingMetadataOutputModalities_image:
-		return true
-	case LibraryListingMetadataOutputModalities_text:
-		return true
-	case LibraryListingMetadataOutputModalities_video:
+	case LibraryListingModality_video:
 		return true
 	default:
 		return false
@@ -1352,6 +1328,9 @@ type AWSCredentials struct {
 
 // ActivateResponse The response to a request to activate a deployment.
 type ActivateResponse struct {
+	// NoOp Whether the request did nothing because the deployment was already active or on its way to becoming active
+	NoOp *bool `json:"no_op,omitempty"`
+
 	// Success Whether the deployment was successfully activated
 	Success *bool `json:"success,omitempty"`
 }
@@ -2166,6 +2145,15 @@ type AutoscalingSettings struct {
 
 	// TargetUtilizationPercentage Target utilization percentage for scaling up/down.
 	TargetUtilizationPercentage *int `json:"target_utilization_percentage"`
+}
+
+// AwsAssumeRole AWS AssumeRole trust-policy inputs for the organization.
+type AwsAssumeRole struct {
+	// BasetenRoleArn Baseten role ARN to allow in an IAM role's trust policy
+	BasetenRoleArn string `json:"baseten_role_arn"`
+
+	// ExternalId sts:ExternalId Baseten presents when assuming the role
+	ExternalId string `json:"external_id"`
 }
 
 // AwsAssumeRoleDockerAuth AWS assume-role details for the registry.
@@ -3156,6 +3144,9 @@ type DeactivateLoopsRunResponse struct {
 
 // DeactivateResponse The response to a request to deactivate a deployment.
 type DeactivateResponse struct {
+	// NoOp Whether the request did nothing because the deployment was already inactive
+	NoOp *bool `json:"no_op,omitempty"`
+
 	// Success Whether the deployment was successfully deactivated
 	Success *bool `json:"success,omitempty"`
 }
@@ -4445,22 +4436,19 @@ type LibraryListing struct {
 
 // LibraryListingMetadata defines model for LibraryListingMetadata.
 type LibraryListingMetadata struct {
-	ContextLength    *int                                      `json:"context_length,omitempty"`
-	InputModalities  *[]LibraryListingMetadataInputModalities  `json:"input_modalities,omitempty"`
-	License          string                                    `json:"license"`
-	ModelApiSlug     *string                                   `json:"model_api_slug,omitempty"`
-	OutputModalities *[]LibraryListingMetadataOutputModalities `json:"output_modalities,omitempty"`
-	ParameterCount   *int                                      `json:"parameter_count,omitempty"`
-	Publisher        *string                                   `json:"publisher,omitempty"`
-	ReleaseDate      *string                                   `json:"release_date,omitempty"`
-	Variant          *string                                   `json:"variant,omitempty"`
+	ContextLength    *int                      `json:"context_length,omitempty"`
+	InputModalities  *[]LibraryListingModality `json:"input_modalities,omitempty"`
+	License          string                    `json:"license"`
+	ModelApiSlug     *string                   `json:"model_api_slug,omitempty"`
+	OutputModalities *[]LibraryListingModality `json:"output_modalities,omitempty"`
+	ParameterCount   *int                      `json:"parameter_count,omitempty"`
+	Publisher        *string                   `json:"publisher,omitempty"`
+	ReleaseDate      *string                   `json:"release_date,omitempty"`
+	Variant          *string                   `json:"variant,omitempty"`
 }
 
-// LibraryListingMetadataInputModalities defines model for LibraryListingMetadata.InputModalities.
-type LibraryListingMetadataInputModalities string
-
-// LibraryListingMetadataOutputModalities defines model for LibraryListingMetadata.OutputModalities.
-type LibraryListingMetadataOutputModalities string
+// LibraryListingModality defines model for LibraryListingModality.
+type LibraryListingModality string
 
 // LibraryListingSource Create a model by forking a library listing accessible to the caller's organization.
 type LibraryListingSource struct {
@@ -5321,6 +5309,21 @@ type OrderBy struct {
 
 	// Order The direction to order by.
 	Order string `json:"order"`
+}
+
+// OrganizationInfo The caller's organization.
+type OrganizationInfo struct {
+	// AwsAssumeRole AWS AssumeRole trust-policy inputs; null while the method is not enabled for the organization
+	AwsAssumeRole *AwsAssumeRole `json:"aws_assume_role,omitempty"`
+
+	// CreatedAt Time the organization was created in ISO 8601 format
+	CreatedAt time.Time `json:"created_at"`
+
+	// Name Display name of the organization
+	Name *string `json:"name,omitempty"`
+
+	// OrgId Unique identifier for the organization
+	OrgId string `json:"org_id"`
 }
 
 // PaginationResponse defines model for PaginationResponse.

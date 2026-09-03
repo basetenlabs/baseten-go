@@ -37,7 +37,8 @@ func (c *ManagementClient) PushVolume(ctx context.Context, opts PushVolumeOption
 	// than folding the caller's value a second time: one fold, in the
 	// translation, so the namespace the capability token is scoped to and
 	// the one the transfer addresses cannot drift apart.
-	client, _, err := c.volumeClient(push.Namespace, volumePushScopes(opts), newVolumeCorrelationID())
+	client, _, err := c.volumeClient(
+		push.Namespace, push.Volume, volumePushScopes(opts), newVolumeCorrelationID())
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +166,8 @@ func (c *ManagementClient) DownloadVolume(ctx context.Context, opts DownloadVolu
 		return nil, err
 	}
 
-	client, _, err := c.volumeClient(ref.Namespace, []string{volumeScopePull}, newVolumeCorrelationID())
+	client, _, err := c.volumeClient(
+		ref.Namespace, ref.Volume, []string{volumeScopePull}, newVolumeCorrelationID())
 	if err != nil {
 		return nil, err
 	}
@@ -218,13 +220,13 @@ func volumePullOptions(o DownloadVolumeOptions) transfer.PullOptions {
 }
 
 // volumeClient builds a protocol client whose credentials come from exchanging
-// the API key for a capability token over a namespace.
+// the API key for a capability token over a namespace and a volume.
 //
-// The token covers a namespace and a set of scopes, not a single volume, so
-// the scopes asked for are what distinguishes one transfer's credentials from
-// another's.
+// The token is narrowed to the one volume the transfer addresses and carries
+// only the scopes asked for, so credentials are not reusable across volumes.
 func (c *ManagementClient) volumeClient(
 	namespace string,
+	volume string,
 	scopes []string,
 	correlationID string,
 ) (*bdn.Client, *volumeTokenSource, error) {
@@ -232,7 +234,7 @@ func (c *ManagementClient) volumeClient(
 	// override is gone — a program that needs a different transport
 	// configures it once, where every other call already gets it.
 	httpClient := c.api.HTTPClient
-	tokens := c.volumeTokenSource(namespace, scopes, correlationID)
+	tokens := c.volumeTokenSource(namespace, volume, scopes, correlationID)
 	client, err := bdn.New(bdn.Options{
 		HTTPClient: httpClient,
 		Tokens:     tokens.tokenSource(),
@@ -350,10 +352,13 @@ type volumeToken struct {
 // collapse is not only an efficiency: the exchange endpoint is rate limited
 // per API key, and a transfer's worth of simultaneous exchanges would spend
 // that budget on a single expiry.
-func (c *ManagementClient) volumeTokenSource(namespace string, scopes []string, correlationID string) *volumeTokenSource {
+func (c *ManagementClient) volumeTokenSource(
+	namespace string, volume string, scopes []string, correlationID string,
+) *volumeTokenSource {
 	return &volumeTokenSource{
 		client:        c,
 		namespace:     namespace,
+		volume:        volume,
 		scopes:        scopes,
 		correlationID: correlationID,
 		proactive:     true,
@@ -363,6 +368,7 @@ func (c *ManagementClient) volumeTokenSource(namespace string, scopes []string, 
 type volumeTokenSource struct {
 	client        *ManagementClient
 	namespace     string
+	volume        string
 	scopes        []string
 	correlationID string
 
@@ -405,7 +411,8 @@ func (s *volumeTokenSource) get(ctx context.Context, rejected string) (*volumeTo
 	// tokenExchangeTimeout.
 	exchangeCtx, cancel := context.WithTimeout(ctx, tokenExchangeTimeout)
 	defer cancel()
-	exchanged, err := s.client.exchangeVolumeToken(exchangeCtx, s.namespace, s.scopes, s.correlationID)
+	exchanged, err := s.client.exchangeVolumeToken(
+		exchangeCtx, s.namespace, s.volume, s.scopes, s.correlationID)
 	if err != nil {
 		return nil, err
 	}
@@ -447,18 +454,21 @@ func (s *volumeTokenSource) granted() *volumeToken {
 }
 
 // exchangeVolumeToken trades the API key for a capability token over a
-// namespace. The call goes through the generated management API client, so
+// namespace, narrowed to a single volume, which the endpoint requires. The
+// call goes through the generated management API client, so
 // the base URL, transport, authentication, and user agent behave the same as
 // every other management call.
 func (c *ManagementClient) exchangeVolumeToken(
 	ctx context.Context,
 	namespace string,
+	volume string,
 	scopes []string,
 	correlationID string,
 ) (*volumeToken, error) {
 	req := managementapi.CreateVolumeTokenRequest{
 		Scopes:     make([]managementapi.VolumeTokenScope, 0, len(scopes)),
 		Namespaces: []string{namespace},
+		Volumes:    []string{volume},
 	}
 	for _, scope := range scopes {
 		req.Scopes = append(req.Scopes, managementapi.VolumeTokenScope(scope))
