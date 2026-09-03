@@ -436,6 +436,40 @@ func TestScanIsStableAcrossReads(t *testing.T) {
 	}
 }
 
+// TestScanRootReadsThroughTheHandle pins what ScanRoot exists for: every read
+// goes through the retained handle, so a scan started on one tree keeps
+// describing that tree even when the path it was opened by has come to name a
+// different one. A pathname-based scan here would describe the impostor, and
+// a push holding the original handle would then read files the scan never
+// looked at.
+func TestScanRootReadsThroughTheHandle(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("a directory with an open handle cannot be renamed on Windows")
+	}
+	base := t.TempDir()
+	original := filepath.Join(base, "tree")
+	require.NoError(t, os.MkdirAll(filepath.Join(original, "sub"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(original, "sub", "a.txt"), []byte("original"), 0o644))
+
+	root, err := os.OpenRoot(original)
+	require.NoError(t, err)
+	defer root.Close()
+
+	// The swap: the opened tree moves aside and a different one takes its
+	// pathname, the shape of the race between opening a source and scanning
+	// it.
+	require.NoError(t, os.Rename(original, filepath.Join(base, "moved")))
+	impostor := filepath.Join(base, "tree")
+	require.NoError(t, os.MkdirAll(impostor, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(impostor, "impostor.txt"), []byte("other bytes"), 0o644))
+
+	src, err := ScanRoot(root)
+	require.NoError(t, err)
+	require.Equal(t, "sub/a.txt", joinFiles(src.Files))
+	require.Equal(t, "sub", joinDirs(src.Directories))
+	require.Equal(t, uint64(8), src.TotalBytes)
+}
+
 // TestScanRecordsFileIdentity pins that the identity baseline comes from the
 // scan itself — the same Lstat that records the time — and matches what a
 // direct Lstat of the file reports.

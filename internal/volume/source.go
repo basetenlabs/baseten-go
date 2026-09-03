@@ -45,9 +45,41 @@ type Source struct {
 	TotalBytes uint64
 }
 
-// ScanSource walks root and collects the entries of a push. Symlinks are
-// recorded but never followed, so the scan sees exactly the tree as it is
-// rather than whatever it points at.
+// ScanSource walks root and collects the entries of a push. It opens the
+// directory as an os.Root and scans through the handle — see ScanRoot, which
+// is the scan itself; this wrapper only resolves the name to a handle for
+// callers that do not hold one.
+func ScanSource(root string) (*Source, error) {
+	resolved, err := scanRoot(root)
+	if err != nil {
+		return nil, err
+	}
+	handle, err := os.OpenRoot(resolved)
+	if err != nil {
+		return nil, fmt.Errorf("scan %s: %w", root, err)
+	}
+	defer handle.Close()
+
+	src, err := ScanRoot(handle)
+	if err != nil {
+		return nil, err
+	}
+	// As the caller named it, which for a root reached through a symlink is
+	// the link rather than what it resolved to.
+	src.Root = root
+	return src, nil
+}
+
+// ScanRoot walks the tree beneath an open root handle and collects the
+// entries of a push. Every read the scan makes — the directory listings,
+// each entry's Lstat, each link's target — goes through the handle, so the
+// scan describes the directory the caller opened even if the path it was
+// opened by has since come to name a different tree. A caller that keeps
+// reading through the same handle afterwards is therefore reading the tree
+// the scan described.
+//
+// Symlinks are recorded but never followed, so the scan sees exactly the
+// tree as it is rather than whatever it points at.
 //
 // Anything that is not a directory, a regular file, or a symlink — a socket,
 // a device node, a named pipe — fails the scan. The format cannot describe
@@ -56,26 +88,24 @@ type Source struct {
 //
 // Refusing is the same choice made for a path that cannot round-trip — say what cannot be
 // done rather than quietly do something else.
-func ScanSource(root string) (*Source, error) {
-	walkRoot, err := scanRoot(root)
-	if err != nil {
-		return nil, err
-	}
-
-	src := &Source{Root: root}
+func ScanRoot(root *os.Root) (*Source, error) {
+	src := &Source{Root: root.Name()}
 	// Directories are collected by path so that an ancestor synthesized for a
 	// nested entry can be replaced by the real directory when the walk reaches
 	// it. Being top-down, the walk always does — but the manifest must be
 	// complete either way, since a missing directory record loses a mode.
 	dirs := map[string]DirectoryEntry{}
 
-	err = filepath.WalkDir(walkRoot, func(abs string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(root.FS(), ".", func(rel string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		rel, err := relPath(walkRoot, abs)
-		if err != nil || rel == "" {
-			return err
+		// The walk hands entries back already relative to the handle and
+		// slash-separated on every platform, so a backslash in a name — an
+		// ordinary character on unix — survives intact for ValidatePath to
+		// reject.
+		if rel == "." {
+			return nil
 		}
 		if err := ValidatePath(rel); err != nil {
 			return err
@@ -83,29 +113,29 @@ func ScanSource(root string) (*Source, error) {
 
 		switch {
 		case d.IsDir():
-			info, err := entryInfo(abs)
+			info, err := entryInfo(root, rel)
 			if err != nil {
 				return err
 			}
 			dirs[rel] = DirectoryEntry{Path: rel, Mode: entryMode(info), MTime: clampMTime(info.ModTime())}
 		case d.Type()&fs.ModeSymlink != 0:
-			target, err := os.Readlink(abs)
+			target, err := root.Readlink(rel)
 			if err != nil {
-				return fmt.Errorf("read symlink %s: %w", abs, err)
+				return fmt.Errorf("read symlink %s: %w", rel, err)
 			}
 			if target, err = NormalizeSymlinkTarget(target); err != nil {
 				return fmt.Errorf("symlink %s: %w", rel, err)
 			}
 			// The walk never follows links and neither does Lstat, so the
 			// recorded time is the link's own, not the target's.
-			info, err := entryInfo(abs)
+			info, err := entryInfo(root, rel)
 			if err != nil {
 				return err
 			}
 			addAncestors(dirs, rel)
 			src.Symlinks = append(src.Symlinks, SymlinkEntry{Path: rel, Target: target, Mode: SymlinkMode, MTime: clampMTime(info.ModTime())})
 		case d.Type().IsRegular():
-			info, err := entryInfo(abs)
+			info, err := entryInfo(root, rel)
 			if err != nil {
 				return err
 			}
@@ -120,7 +150,7 @@ func ScanSource(root string) (*Source, error) {
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("scan %s: %w", root, err)
+		return nil, fmt.Errorf("scan %s: %w", root.Name(), err)
 	}
 
 	for _, entry := range dirs {
@@ -134,15 +164,15 @@ func ScanSource(root string) (*Source, error) {
 	slices.SortFunc(src.Symlinks, func(a, b SymlinkEntry) int { return strings.Compare(a.Path, b.Path) })
 
 	if err := src.checkPaths(); err != nil {
-		return nil, fmt.Errorf("scan %s: %w", root, err)
+		return nil, fmt.Errorf("scan %s: %w", root.Name(), err)
 	}
 	return src, nil
 }
 
-// scanRoot resolves the directory to walk. A source directory reached through
-// a symlink is a normal arrangement, and filepath.WalkDir will not descend
-// into one, so the link is resolved here rather than producing a push of
-// nothing.
+// scanRoot resolves the directory to open. A source directory reached through
+// a symlink is a normal arrangement, so the link is resolved here; resolving
+// it before os.OpenRoot also keeps the refusals — a missing root, a root that
+// is a file — phrased the same way on every platform.
 func scanRoot(root string) (string, error) {
 	info, err := os.Stat(root)
 	if err != nil {
@@ -193,37 +223,19 @@ func (s *Source) checkPaths() error {
 	return nil
 }
 
-// relPath returns abs as a slash-separated path relative to root. On Windows
-// this is where the separator changes; on unix it is a no-op, which is what
-// leaves a backslash in a file's name intact for ValidatePath to reject.
-func relPath(root, abs string) (string, error) {
-	rel, err := filepath.Rel(root, abs)
-	if err != nil {
-		return "", err
-	}
-	if rel == "." {
-		return "", nil
-	}
-	return filepath.ToSlash(rel), nil
-}
-
-// entryInfo reads an entry's metadata with a fresh Lstat rather than through
-// the walk's own DirEntry.Info. On unix the two are the same call FOR THIS
-// WALK — Info is a lazy lstat only while the directory was opened outside an
-// os.Root and the dirent's type was known; Go fills it eagerly otherwise, at
-// enumeration time, in its own words because "we cannot use a lazy lstat".
-// This scan is a plain WalkDir with known types, so the lazy path holds
-// here, and the condition needs restating if the scan ever moves under
-// os.Root — the pull side already lives there. On Windows, by contrast,
-// Info returns the directory enumeration's
-// cached copy of the entry's metadata, and Windows documents that copy as
-// lazily updated: two scans of an untouched tree can read two different
-// modification times from it as the cache settles, and a time-bearing
-// manifest digest changes with them. The direct query reads the entry's own
-// live record on every platform, which is what makes an unchanged tree scan
-// to unchanged bytes.
-func entryInfo(abs string) (fs.FileInfo, error) {
-	return os.Lstat(abs)
+// entryInfo reads an entry's metadata with a fresh Lstat through the root
+// handle rather than through the walk's own DirEntry.Info. Under an os.Root
+// the walk's Info is filled eagerly at enumeration time — Go's own words:
+// "we cannot use a lazy lstat" there — so on unix the difference is when the
+// stat happens rather than whether. On Windows it is which record is read:
+// Info returns the directory enumeration's cached copy of the entry's
+// metadata, and Windows documents that copy as lazily updated, so two scans
+// of an untouched tree can read two different modification times from it as
+// the cache settles, and a time-bearing manifest digest changes with them.
+// The direct query reads the entry's own live record on every platform,
+// which is what makes an unchanged tree scan to unchanged bytes.
+func entryInfo(root *os.Root, rel string) (fs.FileInfo, error) {
+	return root.Lstat(rel)
 }
 
 // entryMode reads the permission bits a manifest records: the low twelve, so
