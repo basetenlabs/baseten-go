@@ -139,7 +139,7 @@ func TestVolumeVocabularyIsClassified(t *testing.T) {
 		inTable[pair.name] = true
 	}
 
-	declared := exportedTypeDecls(t, "volume_types.go")
+	declared := exportedTypeDecls(t, "management_volume.go")
 	if len(declared) == 0 {
 		t.Fatal("no exported types found in the vocabulary files — the enumeration is broken, not the vocabulary empty")
 	}
@@ -220,7 +220,7 @@ func TestVolumeWarningKindCastIsValueExact(t *testing.T) {
 		}
 	}
 
-	publicCount := declaredConstCount(t, "volume_types.go", "VolumeWarningKind")
+	publicCount := declaredConstCount(t, "management_volume.go", "VolumeWarningKind")
 	internalCount := declaredConstCount(t, filepath.Join("..", "internal", "volume", "containment.go"), "ContainmentWarningKind")
 	if publicCount == 0 || internalCount == 0 {
 		t.Fatalf("enumeration found %d public and %d internal declared kinds — the guard is measuring nothing", publicCount, internalCount)
