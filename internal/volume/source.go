@@ -199,8 +199,14 @@ func relPath(root, abs string) (string, error) {
 }
 
 // entryInfo reads an entry's metadata with a fresh Lstat rather than through
-// the walk's own DirEntry.Info. On unix the two are the same call — Info is
-// a lazy lstat — but on Windows Info returns the directory enumeration's
+// the walk's own DirEntry.Info. On unix the two are the same call FOR THIS
+// WALK — Info is a lazy lstat only while the directory was opened outside an
+// os.Root and the dirent's type was known; Go fills it eagerly otherwise, at
+// enumeration time, in its own words because "we cannot use a lazy lstat".
+// This scan is a plain WalkDir with known types, so the lazy path holds
+// here, and the condition needs restating if the scan ever moves under
+// os.Root — the pull side already lives there. On Windows, by contrast,
+// Info returns the directory enumeration's
 // cached copy of the entry's metadata, and Windows documents that copy as
 // lazily updated: two scans of an untouched tree can read two different
 // modification times from it as the cache settles, and a time-bearing
