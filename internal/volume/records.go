@@ -547,16 +547,16 @@ type wireProvenance struct {
 }
 
 type wireDirectory struct {
-	Mode  string `json:"mode"`
-	MTime string `json:"mtime"`
-	Path  string `json:"path"`
+	Mode  string          `json:"mode"`
+	MTime json.RawMessage `json:"mtime"`
+	Path  string          `json:"path"`
 }
 
 type wireSymlink struct {
-	Mode   string `json:"mode"`
-	MTime  string `json:"mtime"`
-	Path   string `json:"path"`
-	Target string `json:"target"`
+	Mode   string          `json:"mode"`
+	MTime  json.RawMessage `json:"mtime"`
+	Path   string          `json:"path"`
+	Target string          `json:"target"`
 }
 
 type wireChunkmapHeader struct {
@@ -572,15 +572,15 @@ type wireChunk struct {
 }
 
 type wireFile struct {
-	Kind       string     `json:"_kind"`
-	Chunk      *wireChunk `json:"chunk"`
-	Digest     string     `json:"digest"`
-	FileDigest string     `json:"file_digest"`
-	Mode       string     `json:"mode"`
-	MTime      string     `json:"mtime"`
-	Path       string     `json:"path"`
-	Size       uint64     `json:"size"`
-	Target     Target     `json:"target"`
+	Kind       string          `json:"_kind"`
+	Chunk      *wireChunk      `json:"chunk"`
+	Digest     string          `json:"digest"`
+	FileDigest string          `json:"file_digest"`
+	Mode       string          `json:"mode"`
+	MTime      json.RawMessage `json:"mtime"`
+	Path       string          `json:"path"`
+	Size       uint64          `json:"size"`
+	Target     Target          `json:"target"`
 }
 
 // DecodeManifest parses canonical JSONL manifest bytes.
@@ -822,19 +822,42 @@ func DecodeChunkmap(body []byte) (*Chunkmap, error) {
 	return c, nil
 }
 
-// parseMTime reads a record's mtime. Absent is fine — manifests written
-// before the key existed omit it, and so does an entry whose time was
-// unknown — but a key that is present and malformed is refused, the same
-// judgment every other checked field gets: believing it would materialize a
-// tree with an invented time, and re-encoding it would put unreadable bytes
-// under a digest.
-func parseMTime(s string) (time.Time, error) {
-	if s == "" {
+// parseMTime reads a record's mtime. An ABSENT key is fine — manifests
+// written before the key existed omit it, and so does an entry whose time
+// was unknown — but a key that is PRESENT and not a parseable time string is
+// refused, the same judgment every other checked field gets: believing it
+// would materialize a tree with an invented time. Presence is judged on the
+// raw message, because an explicit "" and an explicit null both decode into
+// an empty Go string and would otherwise pass as absent — present-and-
+// malformed accepted, against this comment's own claim.
+//
+// The zero instant is refused too — as a SENTINEL COLLISION, not as
+// malformed, so the rule above stays exact: "0001-01-01T00:00:00Z" is a
+// well-formed time that parses to exactly the value meaning "no time
+// recorded" here, and carrying it would vanish silently on re-encode — the
+// key dropped, the digest changed. Refusing names the collision instead of
+// quietly erasing a value the producer wrote. Revisit trigger: if a real
+// producer is ever measured emitting this instant, or any production path
+// gains re-encode-of-decoded-entries (the re-push test is the standing
+// guard on that), the acceptance shape is a presence-carrying time field —
+// never document-only, which would leave the silent erasure in place.
+func parseMTime(raw json.RawMessage) (time.Time, error) {
+	if len(raw) == 0 {
 		return time.Time{}, nil
+	}
+	var s string
+	if err := json.Unmarshal(raw, &s); err != nil || string(raw) == "null" {
+		return time.Time{}, fmt.Errorf("mtime: present but not a time string: %s", raw)
+	}
+	if s == "" {
+		return time.Time{}, fmt.Errorf("mtime: present but empty; the format's omitted form is an absent key")
 	}
 	t, err := time.Parse(time.RFC3339Nano, s)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("mtime: %w", err)
+	}
+	if t.IsZero() {
+		return time.Time{}, fmt.Errorf("mtime: %q is this decoder's omitted-time sentinel and would be dropped on re-encode; refused rather than silently erased", s)
 	}
 	return t, nil
 }

@@ -113,7 +113,13 @@ func rejectVolumeTarget(target string) error {
 	if !strings.ContainsRune(target, '\\') {
 		return nil
 	}
-	if strings.HasPrefix(target, `\\`) {
+	// Either doubled-separator spelling is UNC once a backslash marks the
+	// target windows-shaped: "\\server\share" is the native form and
+	// "//server\share" the forward-slash spelling of the same name. A
+	// doubled leading slash WITHOUT a backslash anywhere never reaches this
+	// check — the gate above already passed it — and stays what it is on
+	// unix: an absolute target, resolved from the volume root.
+	if strings.HasPrefix(target, `\\`) || strings.HasPrefix(target, "//") {
 		return fmt.Errorf("symlink target %q names a UNC path", target)
 	}
 	if len(target) >= 2 && target[1] == ':' {
