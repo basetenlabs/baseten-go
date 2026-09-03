@@ -370,6 +370,11 @@ func (p *puller) materialize(ctx context.Context, manifest *volume.Manifest) err
 // recorded target may be volume-root-absolute; what is created on disk is
 // the relative rendering, because relative is the only encoding a kernel
 // resolves inside the tree wherever the tree ends up.
+//
+// A link's recorded modification time is not restored: os.Root has no
+// lutimes, and Chtimes on the link's path would follow it and stamp the
+// target instead. The time stays in the manifest for readers that can use
+// it; the link on disk keeps its creation time.
 func (p *puller) writeSymlink(link volume.SymlinkEntry) error {
 	name := filepath.FromSlash(link.Path)
 	target := link.Target
@@ -480,6 +485,14 @@ func (p *puller) writeFile(ctx context.Context, entry volume.FileEntry) error {
 	// or sticky bits at all.
 	if err := p.root.Chmod(name, volume.ModeFromManifest(entry.Mode)); err != nil {
 		return err
+	}
+	// The recorded modification time comes back after the mode, for files
+	// that carry one; an entry without a recorded time keeps its write time
+	// rather than gaining an invented one.
+	if !entry.MTime.IsZero() {
+		if err := p.root.Chtimes(name, entry.MTime, entry.MTime); err != nil {
+			return err
+		}
 	}
 	p.progress.Add(1, int64(entry.Size))
 	return nil
@@ -634,12 +647,15 @@ func (p *puller) writeChunk(
 	return nil
 }
 
-// applyDirectoryModes sets the recorded mode on every directory, deepest
-// first.
+// applyDirectoryModes sets the recorded mode — and, when one was recorded,
+// the modification time — on every directory, deepest first.
 //
 // Depth order matters twice over: a parent made read-only before its children
 // would stop them being touched at all, and changing a child's mode needs
-// search permission on every directory above it.
+// search permission on every directory above it. The times ride the same
+// loop for a reason of their own: it runs after every write into the tree,
+// and writing an entry into a directory is what moves the directory's
+// mtime — a time stamped before the contents would be stamped over.
 func (p *puller) applyDirectoryModes(manifest *volume.Manifest) error {
 	dirs := slices.Clone(manifest.Directories)
 	// Reverse path order puts a child before its parent, since a child's path
@@ -649,6 +665,11 @@ func (p *puller) applyDirectoryModes(manifest *volume.Manifest) error {
 	for _, dir := range dirs {
 		if err := p.root.Chmod(filepath.FromSlash(dir.Path), volume.ModeFromManifest(dir.Mode)); err != nil {
 			return err
+		}
+		if !dir.MTime.IsZero() {
+			if err := p.root.Chtimes(filepath.FromSlash(dir.Path), dir.MTime, dir.MTime); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

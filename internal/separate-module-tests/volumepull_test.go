@@ -858,3 +858,103 @@ func TestPullJudgesContainmentOnTheWholeManifest(t *testing.T) {
 		t.Error("a refused download published its destination")
 	}
 }
+
+// TestPullRestoresModificationTimes pins the pull side of the recorded
+// times: files carry theirs back after contents and mode, and directories
+// after every write into them. nested/deep is non-empty on purpose — its
+// file is written during materialization, and writing an entry into a
+// directory is what moves the directory's mtime, so the restoration order
+// has to run after that write or the child stamps over the parent's time.
+func TestPullRestoresModificationTimes(t *testing.T) {
+	root := buildTree(t)
+	fileTime := time.Date(2027, 1, 2, 3, 4, 5, 0, time.UTC)
+	dirTime := time.Date(2026, 6, 7, 8, 9, 10, 0, time.UTC)
+	if err := os.Chtimes(filepath.Join(root, "nested", "deep", "data.bin"), fileTime, fileTime); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chtimes(filepath.Join(root, "nested", "deep"), dirTime, dirTime); err != nil {
+		t.Fatal(err)
+	}
+
+	fake := newFakeService(t)
+	if _, err := transfer.Push(context.Background(), fake.client(t), pushOptions(root, fake)); err != nil {
+		t.Fatal(err)
+	}
+	dest := filepath.Join(t.TempDir(), "downloaded")
+	if _, err := transfer.Pull(context.Background(), fake.client(t), pullOptions(dest, fake)); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(filepath.Join(dest, "assets"), 0o755) })
+
+	info, err := os.Lstat(filepath.Join(dest, "nested", "deep", "data.bin"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !info.ModTime().Equal(fileTime) {
+		t.Errorf("pulled file carries mtime %v, want the recorded %v", info.ModTime(), fileTime)
+	}
+	info, err = os.Lstat(filepath.Join(dest, "nested", "deep"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !info.ModTime().Equal(dirTime) {
+		t.Errorf("pulled directory carries mtime %v, want the recorded %v — its child's write must not be the last word", info.ModTime(), dirTime)
+	}
+}
+
+// TestPullWithoutRecordedTimesLeavesWriteTimes covers manifests from before
+// the mtime key: nothing is recorded, so nothing is restored, and the pulled
+// entries keep the times of their own writing rather than gaining invented
+// ones.
+func TestPullWithoutRecordedTimesLeavesWriteTimes(t *testing.T) {
+	root := buildTree(t)
+	fake := newFakeService(t)
+	pushed, err := transfer.Push(context.Background(), fake.client(t), pushOptions(root, fake))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Rewrite the committed manifest with every mtime removed, the shape a
+	// manifest written before the key carries, and point head at it. The
+	// chunk objects stay shared with the original push.
+	m, err := volume.DecodeManifest(fake.manifestBytes(t, pushed.ManifestDigest.String()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := range m.Directories {
+		m.Directories[i].MTime = time.Time{}
+	}
+	for i := range m.Files {
+		m.Files[i].MTime = time.Time{}
+	}
+	for i := range m.Symlinks {
+		m.Symlinks[i].MTime = time.Time{}
+	}
+	bare := volume.EncodeManifest(m)
+	digest, err := volume.HashBytes(newBlake3, bare)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fake.mu.Lock()
+	original := fake.objects[pushed.ManifestDigest.String()]
+	fake.objects[digest.String()] = storedObject{body: zstdCompress(t, bare), contentType: original.contentType}
+	fake.head = digest.String()
+	fake.mu.Unlock()
+
+	before := time.Now().Add(-2 * time.Second)
+	dest := filepath.Join(t.TempDir(), "downloaded")
+	if _, err := transfer.Pull(context.Background(), fake.client(t), pullOptions(dest, fake)); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(filepath.Join(dest, "assets"), 0o755) })
+
+	for _, path := range []string{filepath.Join("small.txt"), filepath.Join("nested", "deep")} {
+		info, err := os.Lstat(filepath.Join(dest, path))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if info.ModTime().Before(before) {
+			t.Errorf("%s carries mtime %v with none recorded — the pull invented a time", path, info.ModTime())
+		}
+	}
+}
