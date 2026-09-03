@@ -384,3 +384,52 @@ func TestScanSourceRecordsModificationTimes(t *testing.T) {
 	require.True(t, src.Symlinks[0].MTime.Equal(clampMTime(linkInfo.ModTime())),
 		"link mtime %v, want the link's own lstat time %v", src.Symlinks[0].MTime, linkInfo.ModTime())
 }
+
+// TestScanIsStableAcrossReads pins that two scans of an untouched tree record
+// identical modification times — the property a time-bearing manifest digest
+// stands on. The tree's times are natural, deliberately: the instability this
+// guards against was two scans reading different times for files nothing
+// touched, from the directory enumeration's lazily-updated metadata copy on
+// Windows, and a test that set its own times would never look at the cache
+// this test exists to bypass.
+func TestScanIsStableAcrossReads(t *testing.T) {
+	root := writeTree(t, map[string]string{
+		"dir/file.txt": "content",
+		"dir/sub/a":    "aaa",
+		"link":         "->dir/file.txt",
+	})
+
+	first, err := ScanSource(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := ScanSource(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := range first.Files {
+		if !first.Files[i].MTime.Equal(second.Files[i].MTime) {
+			t.Errorf("file %s recorded %v then %v across two scans of an untouched tree",
+				first.Files[i].Path, first.Files[i].MTime, second.Files[i].MTime)
+		}
+	}
+	for i := range first.Directories {
+		if !first.Directories[i].MTime.Equal(second.Directories[i].MTime) {
+			t.Errorf("directory %s recorded %v then %v across two scans of an untouched tree",
+				first.Directories[i].Path, first.Directories[i].MTime, second.Directories[i].MTime)
+		}
+	}
+	for i := range first.Symlinks {
+		if !first.Symlinks[i].MTime.Equal(second.Symlinks[i].MTime) {
+			t.Errorf("symlink %s recorded %v then %v across two scans of an untouched tree",
+				first.Symlinks[i].Path, first.Symlinks[i].MTime, second.Symlinks[i].MTime)
+		}
+	}
+	// The encoded form is the property callers actually depend on.
+	m1 := NewManifest(first, "file:///pin", nil)
+	m2 := NewManifest(second, "file:///pin", nil)
+	if string(EncodeManifest(m1)) != string(EncodeManifest(m2)) {
+		t.Error("two scans of an untouched tree encoded to different bytes")
+	}
+}
