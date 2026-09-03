@@ -1,0 +1,111 @@
+{
+  "source_uri": "file:///tmp/bdn-volume-fixture/tree",
+  "manifest_digest": "b3:330b0aaece775acbad5f03f4daa367bd56f95f713836f423cc0211ead4914843",
+  "chunkmap_path": "nested/deep/data.bin",
+  "chunkmap_digest": "b3:aa44ddcf5377d7a595a3ba0b439a4fc9a3b1a5898adb68b483ca5396010b76e4",
+  "entries": [
+    {
+      "kind": "dir",
+      "path": "a",
+      "mode": "0755",
+      "mtime": "2026-01-02T03:04:05Z",
+      "uid": 0,
+      "gid": 0
+    },
+    {
+      "kind": "dir",
+      "path": "assets",
+      "mode": "0555",
+      "mtime": "2026-01-02T03:04:05Z",
+      "uid": 0,
+      "gid": 0
+    },
+    {
+      "kind": "dir",
+      "path": "nested",
+      "mode": "0755",
+      "mtime": "2026-01-02T03:04:05Z",
+      "uid": 0,
+      "gid": 0
+    },
+    {
+      "kind": "dir",
+      "path": "nested/deep",
+      "mode": "0755",
+      "mtime": "2026-01-02T03:04:05Z",
+      "uid": 0,
+      "gid": 0
+    },
+    {
+      "kind": "file",
+      "path": "a/b",
+      "mode": "0644",
+      "mtime": "2026-01-02T03:04:05Z",
+      "content": "text:b",
+      "uid": 0,
+      "gid": 0
+    },
+    {
+      "kind": "file",
+      "path": "a.txt",
+      "mode": "0644",
+      "mtime": "2026-03-04T16:50:15.123456789Z",
+      "content": "text:a",
+      "uid": 0,
+      "gid": 0
+    },
+    {
+      "kind": "file",
+      "path": "assets/frozen.txt",
+      "mode": "0444",
+      "mtime": "2026-01-02T03:04:05Z",
+      "content": "text:frozen\n",
+      "uid": 0,
+      "gid": 0
+    },
+    {
+      "kind": "file",
+      "path": "empty.txt",
+      "mode": "0644",
+      "mtime": "2026-01-02T03:04:05Z",
+      "content": "text:",
+      "uid": 0,
+      "gid": 0
+    },
+    {
+      "kind": "file",
+      "path": "nested/deep/data.bin",
+      "mode": "0644",
+      "mtime": "2026-01-02T03:04:05Z",
+      "content": "pattern:16778240",
+      "uid": 0,
+      "gid": 0
+    },
+    {
+      "kind": "file",
+      "path": "nested/dup.txt",
+      "mode": "0644",
+      "mtime": "2026-03-04T16:50:15.5Z",
+      "content": "text:hello volume\n",
+      "uid": 0,
+      "gid": 0
+    },
+    {
+      "kind": "file",
+      "path": "small.txt",
+      "mode": "0600",
+      "mtime": "2026-03-04T16:50:15Z",
+      "content": "text:hello volume\n",
+      "uid": 0,
+      "gid": 0
+    },
+    {
+      "kind": "symlink",
+      "path": "nested/link",
+      "mtime": "2026-01-02T03:04:05Z",
+      "target": "../small.txt",
+      "uid": 0,
+      "gid": 0
+    }
+  ]
+}

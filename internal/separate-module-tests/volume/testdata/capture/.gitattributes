@@ -1,0 +1,8 @@
+# These are captured artifacts: bytes read off a live service, pinned by
+# digests the tests verify. Any line-ending conversion is corruption — a
+# CRLF checkout rewrote the JSONL files on Windows and every byte-identity
+# test failed on bytes git had changed, not bytes the code produced.
+# -text disables conversion in BOTH directions (checkout and checkin),
+# where eol=lf would still normalize on checkin; captured bytes must pass
+# through untouched whatever they contain.
+* -text
