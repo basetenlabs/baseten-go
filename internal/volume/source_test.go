@@ -398,3 +398,33 @@ func TestScanIsStableAcrossReads(t *testing.T) {
 		t.Error("two scans of an untouched tree encoded to different bytes")
 	}
 }
+
+// TestScanRecordsFileIdentity pins that the identity baseline comes from the
+// scan itself — the same Lstat that records the time — and matches what a
+// direct Lstat of the file reports.
+func TestScanRecordsFileIdentity(t *testing.T) {
+	root := writeTree(t, map[string]string{"dir/file.txt": "content"})
+	src, err := ScanSource(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	file := fileByPath(t, src, "dir/file.txt")
+
+	info, err := os.Lstat(filepath.Join(root, "dir", "file.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	dev, ino, ok := FileIdentity(info)
+	if !ok {
+		if file.Dev != 0 || file.Ino != 0 {
+			t.Fatalf("no identity on this platform, yet the scan recorded dev=%d ino=%d", file.Dev, file.Ino)
+		}
+		t.Skip("platform exposes no inode identity; the size re-check alone holds here")
+	}
+	if file.Dev != dev || file.Ino != ino {
+		t.Errorf("scan recorded dev=%d ino=%d, a direct Lstat reports dev=%d ino=%d", file.Dev, file.Ino, dev, ino)
+	}
+	if file.Ino == 0 {
+		t.Error("the recorded inode is zero on a platform that has one")
+	}
+}
