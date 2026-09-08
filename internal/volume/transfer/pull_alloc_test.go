@@ -54,7 +54,7 @@ func TestResumedShortChunkRefetchReusesItsBuffer(t *testing.T) {
 				}, nil
 			},
 		},
-		origin: newOrigin(nil, bdn.Ref{Namespace: "ns"}, "org", bdn.Origin{}),
+		origin: newOrigin(nil, bdn.ResolveRequest{Namespace: "ns"}, "org", bdn.Origin{}),
 	}
 	limiter := volume.NewSemaphoreLimiter(1)
 	chunk := volume.ChunkRef{

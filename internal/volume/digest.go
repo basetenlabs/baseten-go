@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"hash"
+	"io"
 	"strings"
 )
 
@@ -125,6 +126,21 @@ func HashBytes(newHasher func() hash.Hash, b []byte) (Digest, error) {
 	}
 	h.Write(b)
 	return sumDigest(h)
+}
+
+// HashReader wraps r so that everything read through the returned reader is
+// hashed, and returns a sum function reporting the digest of what has been
+// read so far. It is HashBytes for content that is never held whole.
+//
+// The sum is only the object's digest once the reader has been read to EOF,
+// which is the caller's obligation: a decode that stops early leaves the
+// digest of a prefix, and a prefix's digest matches nothing.
+func HashReader(newHasher func() hash.Hash, r io.Reader) (io.Reader, func() (Digest, error), error) {
+	h := newHasher()
+	if h == nil {
+		return nil, nil, fmt.Errorf("%w: NewHasher returned nil", ErrHasher)
+	}
+	return io.TeeReader(r, h), func() (Digest, error) { return sumDigest(h) }, nil
 }
 
 // sumDigest reads a completed hash into a Digest, rejecting any hasher whose

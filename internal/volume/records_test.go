@@ -1,11 +1,15 @@
 package volume
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"slices"
 	"strconv"
 	"strings"
 	"testing"
+	"testing/iotest"
 	"time"
 
 	"github.com/basetenlabs/baseten-go/internal/require"
@@ -379,6 +383,162 @@ func TestManifestRoundTrip(t *testing.T) {
 	require.Len(t, got.Symlinks, 1)
 	require.Equal(t, uint64(110), got.TotalSize())
 	require.Equal(t, uint64(7), got.EntryCount())
+}
+
+// TestDecodeManifestStreamMatchesTheWholeDocumentDecode is the equivalence the
+// two decoders have to keep: same records, same manifest, whatever the reader
+// underneath. Only the framing differs, so anything that drifts between them
+// is a bug in the shared record dispatch.
+func TestDecodeManifestStreamMatchesTheWholeDocumentDecode(t *testing.T) {
+	chunk, chunkmap := testDigest(0x11), testDigest(0x22)
+	source := &Manifest{
+		Provenance:  Provenance{SourceURI: "file:///tmp/tree"},
+		Directories: []DirectoryEntry{{Path: "dir", Mode: 0o755}},
+		Files: []FileEntry{
+			{Path: "dir/small", Mode: 0o644, Kind: FileKindChunk, Size: 4,
+				Chunk: ChunkRef{Digest: chunk, Length: 4, Target: TargetForDigest(chunk)}},
+			{Path: "dir/large", Mode: 0o755, Kind: FileKindChunkmap, Size: 99,
+				Digest: chunkmap, Target: TargetForDigest(chunkmap)},
+		},
+		Symlinks: []SymlinkEntry{{Path: "dir/link", Target: "../elsewhere", Mode: 0o777}},
+	}
+	encoded := EncodeManifest(source)
+
+	whole, err := DecodeManifest(encoded)
+	require.NoError(t, err)
+
+	streamed, totals, err := DecodeManifestStream(bytes.NewReader(encoded), nil)
+	require.NoError(t, err)
+	require.Equal(t, string(EncodeManifest(whole)), string(EncodeManifest(streamed)))
+	require.Equal(t, whole.Provenance, streamed.Provenance)
+	require.Equal(t, entryLines(whole.Entries()), entryLines(streamed.Entries()))
+
+	// With nothing filtered the header's numbers and the entries' own agree,
+	// which is what the accounting check compares on every decode.
+	require.Equal(t, ManifestTotals{EntryCount: 4, TotalSize: 103}, totals)
+	require.Equal(t, streamed.EntryCount(), totals.EntryCount)
+	require.Equal(t, streamed.TotalSize(), totals.TotalSize)
+}
+
+// TestDecodeManifestStreamFilters pins what the filter does and does not
+// change: it decides what is kept, never what the document is measured as.
+func TestDecodeManifestStreamFilters(t *testing.T) {
+	chunk := testDigest(0x11)
+	file := func(path string, size uint64) FileEntry {
+		return FileEntry{Path: path, Mode: 0o644, Kind: FileKindChunk, Size: size,
+			Chunk: ChunkRef{Digest: chunk, Length: size, Target: TargetForDigest(chunk)}}
+	}
+	encoded := EncodeManifest(&Manifest{
+		Directories: []DirectoryEntry{{Path: "keep", Mode: 0o755}, {Path: "drop", Mode: 0o755}},
+		Files:       []FileEntry{file("keep/a", 3), file("drop/b", 5)},
+		Symlinks:    []SymlinkEntry{{Path: "keep/link", Target: "a", Mode: 0o777}},
+	})
+
+	var offered []string
+	kept, totals, err := DecodeManifestStream(bytes.NewReader(encoded), func(entry Entry) bool {
+		offered = append(offered, entry.Path)
+		return strings.HasPrefix(entry.Path, "keep")
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, "keep keep/a keep/link", entryPaths(kept.Entries()))
+	// Every entry was offered, in the order the records arrived, which for a
+	// canonically encoded document is the order they come back in.
+	require.Equal(t, "drop drop/b keep keep/a keep/link", strings.Join(offered, " "))
+
+	// The header's numbers, which is the whole point of returning them: what
+	// survived cannot be counted back up to them.
+	require.Equal(t, ManifestTotals{EntryCount: 5, TotalSize: 8}, totals)
+	require.Equal(t, uint64(3), kept.EntryCount())
+	require.Equal(t, uint64(3), kept.TotalSize())
+}
+
+// TestDecodeManifestStreamSkipsUnknownRecordShapes is the cost of parsing a
+// record once and dispatching afterwards: a record type this client does not
+// read may spell a shared key as another JSON type, and it still has to be
+// skipped rather than failing the decode. The two here are the records
+// upstream already writes and this decoder drops.
+func TestDecodeManifestStreamSkipsUnknownRecordShapes(t *testing.T) {
+	body := `{"_type":"manifest_header","entry_count":1,"manifest_schema":"v1","total_size":0}` + "\n" +
+		// "path" as an array and "mode" as a number, both of which the known
+		// records spell as strings.
+		`{"_type":"path_provenance","path":["a","b"],"source_uri":"u"}` + "\n" +
+		`{"_type":"prefix_provenance","prefix":"d/","mode":493}` + "\n" +
+		`{"_type":"directory","mode":"0755","path":"d"}` + "\n"
+
+	for _, tc := range []struct {
+		name   string
+		decode func() (*Manifest, error)
+	}{
+		{"whole", func() (*Manifest, error) { return DecodeManifest([]byte(body)) }},
+		{"stream", func() (*Manifest, error) {
+			m, _, err := DecodeManifestStream(strings.NewReader(body), nil)
+			return m, err
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m, err := tc.decode()
+			require.NoError(t, err)
+			require.Equal(t, "d", entryPaths(m.Entries()))
+		})
+	}
+
+	// A KNOWN record type that will not parse is still an error, which is
+	// what keeps the skip above from swallowing real corruption.
+	broken := strings.Replace(body, `"mode":"0755"`, `"mode":493`, 1)
+	_, _, err := DecodeManifestStream(strings.NewReader(broken), nil)
+	require.Error(t, err)
+}
+
+// TestDecodeManifestStreamReadsToEOF is what makes hashing the stream
+// meaningful: a caller hashes what it feeds the decoder and compares the sum
+// against the digest that named the document, so every byte has to be read
+// even when the records are exhausted or nothing is kept.
+func TestDecodeManifestStreamReadsToEOF(t *testing.T) {
+	encoded := EncodeManifest(&Manifest{Directories: []DirectoryEntry{{Path: "d", Mode: 0o755}}})
+	// Trailing whitespace beyond the last record, which the record loop has
+	// no reason to consume and the digest still covers.
+	body := append(append([]byte{}, encoded...), "\n\n"...)
+
+	// One byte per Read, so the decoder cannot have buffered the tail as a
+	// side effect of reading in blocks: with a whole document in its buffer
+	// the count would reach the end whether or not anything drained the
+	// reader, and the test would pass without measuring the drain at all.
+	reader := &countingTestReader{r: iotest.OneByteReader(bytes.NewReader(body))}
+	_, _, err := DecodeManifestStream(reader, func(Entry) bool { return false })
+	require.NoError(t, err)
+	require.Equal(t, len(body), reader.n)
+}
+
+// countingTestReader counts what a decode actually pulled through it.
+type countingTestReader struct {
+	r io.Reader
+	n int
+}
+
+func (c *countingTestReader) Read(p []byte) (int, error) {
+	n, err := c.r.Read(p)
+	c.n += n
+	return n, err
+}
+
+// entryPaths and entryLines render entries for comparison, since the require
+// helpers compare comparable values rather than slices.
+func entryPaths(entries []Entry) string {
+	paths := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		paths = append(paths, entry.Path)
+	}
+	return strings.Join(paths, " ")
+}
+
+func entryLines(entries []Entry) string {
+	lines := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		lines = append(lines, fmt.Sprintf("%d %s %d %04o %s %s",
+			entry.Kind, entry.Path, entry.Size, entry.Mode, entry.MTime, entry.Target))
+	}
+	return strings.Join(lines, "\n")
 }
 
 func TestChunkmapRoundTrip(t *testing.T) {

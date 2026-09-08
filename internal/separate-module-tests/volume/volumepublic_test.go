@@ -1,4 +1,4 @@
-package separatemoduletests_test
+package volume_test
 
 // The public surface, end to end: an API key exchanged for a capability token,
 // a tree pushed through ManagementClient, and the same tree downloaded back.
@@ -88,8 +88,7 @@ func TestManagementClientRoundTrip(t *testing.T) {
 
 	var phases []client.VolumePhase
 	pushed, err := api.PushVolume(ctx, client.PushVolumeOptions{
-		Namespace: fakeNamespace,
-		Volume:    fakeVolume,
+		Ref:       client.VolumeRef{Namespace: fakeNamespace, Volume: fakeVolume},
 		SourceDir: root,
 		SourceURI: "file:///fixture",
 		Tags:      []string{"prod"},
@@ -119,8 +118,9 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	// long local run did not). What is deterministic is the partition and
 	// the store itself, asserted below. Reused is pinned by the second push;
 	// HeadMoveDenied's false is the one copy this test cannot discriminate.
-	if !strings.HasPrefix(pushed.ManifestDigest, "b3:") {
-		t.Errorf("manifest digest %q does not name a version", pushed.ManifestDigest)
+	if pushed.VersionRef.Level() != client.VolumeRefLevelPoint ||
+		len(pushed.VersionRef.Digest) != len("b3:")+64 {
+		t.Errorf("published ref %s does not name one version by complete digest", pushed.VersionRef)
 	}
 	if pushed.Sequence != 1 {
 		t.Errorf("sequence %d, want 1 for the first commit", pushed.Sequence)
@@ -154,8 +154,8 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	}
 
 	dest := filepath.Join(t.TempDir(), "downloaded")
-	downloaded, err := api.DownloadVolume(ctx, client.DownloadVolumeOptions{
-		Ref:     fakeNamespace + "/" + fakeVolume + ":prod",
+	downloaded, err := api.PullVolume(ctx, client.PullVolumeOptions{
+		Ref:     client.VolumeRef{Namespace: fakeNamespace, Volume: fakeVolume, Tag: "prod"},
 		DestDir: dest,
 		Hasher:  newBlake3,
 		Store:   fakePublicStore{download: fake.downloader()},
@@ -165,15 +165,15 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.Chmod(filepath.Join(dest, "assets"), 0o755) })
 
-	if downloaded.ManifestDigest != pushed.ManifestDigest {
-		t.Errorf("downloaded %s, pushed %s", downloaded.ManifestDigest, pushed.ManifestDigest)
+	// The download names the version the push published, ref and all: same
+	// namespace, same volume, same digest, and no selector left over from
+	// whatever the caller asked for.
+	if downloaded.VersionRef != pushed.VersionRef {
+		t.Errorf("downloaded %s, pushed %s", downloaded.VersionRef, pushed.VersionRef)
 	}
 	// Every remaining download-result field, for the same reason as the push
 	// asserts above; ChunksReused, genuinely zero on a fresh download, is
 	// pinned by the second download below.
-	if !strings.Contains(downloaded.VersionRef, "@b3:") {
-		t.Errorf("version ref %q is not pinned to a version", downloaded.VersionRef)
-	}
 	if downloaded.Files != 5 || downloaded.Bytes != pushed.Bytes {
 		t.Errorf("downloaded %d files and %d bytes, pushed 5 and %d", downloaded.Files, downloaded.Bytes, pushed.Bytes)
 	}
@@ -201,8 +201,7 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	// race: the only upload is the manifest, and the 1 in Existing is that
 	// re-sent manifest alone, reported by the service as already stored.
 	repushed, err := api.PushVolume(ctx, client.PushVolumeOptions{
-		Namespace: fakeNamespace,
-		Volume:    fakeVolume,
+		Ref:       client.VolumeRef{Namespace: fakeNamespace, Volume: fakeVolume},
 		SourceDir: root,
 		SourceURI: "file:///fixture",
 		Hasher:    newBlake3,
@@ -211,8 +210,8 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if repushed.ManifestDigest != pushed.ManifestDigest {
-		t.Errorf("re-pushing the same tree published %s, want %s again", repushed.ManifestDigest, pushed.ManifestDigest)
+	if repushed.VersionRef != pushed.VersionRef {
+		t.Errorf("re-pushing the same tree published %s, want %s again", repushed.VersionRef, pushed.VersionRef)
 	}
 	if repushed.Sequence != 2 {
 		t.Errorf("sequence %d, want 2 for the second commit", repushed.Sequence)
@@ -244,8 +243,8 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	// A second download into the same destination pins the ChunksReused
 	// copy the fresh download cannot: every content chunk is already on
 	// disk with the right bytes, so nothing is fetched.
-	redownloaded, err := api.DownloadVolume(ctx, client.DownloadVolumeOptions{
-		Ref:       fakeNamespace + "/" + fakeVolume + ":prod",
+	redownloaded, err := api.PullVolume(ctx, client.PullVolumeOptions{
+		Ref:       client.VolumeRef{Namespace: fakeNamespace, Volume: fakeVolume, Tag: "prod"},
 		DestDir:   dest,
 		Overwrite: true,
 		Hasher:    newBlake3,
@@ -254,8 +253,8 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if redownloaded.ManifestDigest != pushed.ManifestDigest || !strings.Contains(redownloaded.VersionRef, "@b3:") {
-		t.Errorf("re-download got %s at %q", redownloaded.ManifestDigest, redownloaded.VersionRef)
+	if redownloaded.VersionRef != pushed.VersionRef {
+		t.Errorf("re-download got %s, want %s", redownloaded.VersionRef, pushed.VersionRef)
 	}
 	if redownloaded.Files != 5 || redownloaded.Bytes != pushed.Bytes {
 		t.Errorf("re-download wrote %d files and %d bytes, want 5 and %d", redownloaded.Files, redownloaded.Bytes, pushed.Bytes)
@@ -323,7 +322,7 @@ func TestManagementClientReExchangesARejectedToken(t *testing.T) {
 	}
 
 	pushed, err := api.PushVolume(context.Background(), client.PushVolumeOptions{
-		Namespace: fakeNamespace, Volume: fakeVolume, SourceDir: root,
+		Ref: client.VolumeRef{Namespace: fakeNamespace, Volume: fakeVolume}, SourceDir: root,
 		SourceURI: "file:///fixture", Hasher: newBlake3,
 	})
 	if err != nil {
@@ -557,7 +556,7 @@ func TestMixedCaseNamesAreLoweredForBothConsumers(t *testing.T) {
 	}
 
 	if _, err := api.PushVolume(context.Background(), client.PushVolumeOptions{
-		Namespace: "MoDeLs", Volume: "GPT2", SourceDir: root,
+		Ref: client.VolumeRef{Namespace: "MoDeLs", Volume: "GPT2"}, SourceDir: root,
 		SourceURI: "file:///fixture", Hasher: newBlake3,
 	}); err != nil {
 		t.Fatal(err)
@@ -628,7 +627,7 @@ func (s recordingPublicStore) Decompressor(r io.Reader) (io.ReadCloser, error) {
 }
 
 // TestDownloadDeliversResolvedOriginToTheStore pins the PRODUCTION
-// engine-to-public translation — the store adapter inside DownloadVolume —
+// engine-to-public translation, the store adapter inside PullVolume,
 // which TestFakePublicStoreCopiesEveryField cannot: that test pins the test
 // adapter's own copy, in the opposite direction. The fake service leases
 // known credential values at resolve, and every request the caller's store
@@ -651,7 +650,7 @@ func TestDownloadDeliversResolvedOriginToTheStore(t *testing.T) {
 	ctx := context.Background()
 
 	if _, err := api.PushVolume(ctx, client.PushVolumeOptions{
-		Namespace: fakeNamespace, Volume: fakeVolume, SourceDir: root,
+		Ref: client.VolumeRef{Namespace: fakeNamespace, Volume: fakeVolume}, SourceDir: root,
 		SourceURI: "file:///fixture", Hasher: newBlake3,
 	}); err != nil {
 		t.Fatal(err)
@@ -660,8 +659,8 @@ func TestDownloadDeliversResolvedOriginToTheStore(t *testing.T) {
 	var mu sync.Mutex
 	var got []client.VolumeObjectDownload
 	dest := filepath.Join(t.TempDir(), "out")
-	if _, err := api.DownloadVolume(ctx, client.DownloadVolumeOptions{
-		Ref:     fakeNamespace + "/" + fakeVolume,
+	if _, err := api.PullVolume(ctx, client.PullVolumeOptions{
+		Ref:     client.VolumeRef{Namespace: fakeNamespace, Volume: fakeVolume},
 		DestDir: dest,
 		Hasher:  newBlake3,
 		Store: recordingPublicStore{

@@ -254,10 +254,14 @@ func TestResolve(t *testing.T) {
 		})
 	})
 
-	result, err := client.Resolve(context.Background(), "ns/vol:tag with space")
+	// The tag is spelled with a space to prove the ref is query-escaped. This
+	// package renders whatever it is handed; the grammar was applied by
+	// whoever parsed the caller's ref.
+	result, err := client.Resolve(context.Background(),
+		ResolveRequest{Namespace: "ns", Volume: "vol", Tag: "tag with space"})
 	require.NoError(t, err)
 	require.Equal(t, http.MethodPost, gotMethod)
-	require.Equal(t, "ref=ns%2Fvol%3Atag+with+space", gotQuery)
+	require.Equal(t, "ref=bdn%3Ans%2Fvol%3Atag+with+space", gotQuery)
 	require.Equal(t, digest, result.Resolved.OriginDigest)
 	require.Equal(t, int64(42), result.Resolved.Sequence)
 	require.Equal(t, "head", result.Resolved.ResolvedFrom)
@@ -278,7 +282,7 @@ func TestResolveWithoutCredentialExpiry(t *testing.T) {
 		})
 	})
 
-	result, err := client.Resolve(context.Background(), "ns/vol")
+	result, err := client.Resolve(context.Background(), ResolveRequest{Namespace: "ns", Volume: "vol"})
 	require.NoError(t, err)
 	require.True(t, result.Origin.ExpiresAt.IsZero(), "expiry should be absent, got %v", result.Origin.ExpiresAt)
 }

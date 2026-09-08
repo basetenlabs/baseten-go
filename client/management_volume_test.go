@@ -36,7 +36,8 @@ func (stubStore) Decompressor(io.Reader) (io.ReadCloser, error) { return nil, ni
 
 func TestPushOptionsValidate(t *testing.T) {
 	valid := PushVolumeOptions{
-		Namespace: "models", Volume: "gpt2", SourceDir: "/tmp/tree", Hasher: stubHasher,
+		Ref:       VolumeRef{Namespace: "models", Volume: "gpt2"},
+		SourceDir: "/tmp/tree", Hasher: stubHasher,
 	}
 	require.NoError(t, volumePushOptions(valid).Validate())
 
@@ -49,8 +50,8 @@ func TestPushOptionsValidate(t *testing.T) {
 	require.NoError(t, volumePushOptions(withStore).Validate())
 
 	tests := map[string]func(*PushVolumeOptions){
-		"no namespace": func(o *PushVolumeOptions) { o.Namespace = "" },
-		"no volume":    func(o *PushVolumeOptions) { o.Volume = "" },
+		"no namespace": func(o *PushVolumeOptions) { o.Ref.Namespace = "" },
+		"no volume":    func(o *PushVolumeOptions) { o.Ref.Volume = "" },
 		"no source":    func(o *PushVolumeOptions) { o.SourceDir = "" },
 		"no hasher":    func(o *PushVolumeOptions) { o.Hasher = nil },
 		"reserved tag": func(o *PushVolumeOptions) { o.Tags = []string{"head"} },
@@ -64,31 +65,41 @@ func TestPushOptionsValidate(t *testing.T) {
 	}
 }
 
-func TestDownloadOptionsValidate(t *testing.T) {
-	valid := DownloadVolumeOptions{
-		Ref: "models/gpt2", DestDir: "/tmp/out",
+func TestPullOptionsValidate(t *testing.T) {
+	valid := PullVolumeOptions{
+		Ref: VolumeRef{Namespace: "models", Volume: "gpt2"}, DestDir: "/tmp/out",
 		Hasher: stubHasher, Store: stubStore{},
 	}
 	require.NoError(t, volumePullOptions(valid).Validate())
 
-	for _, ref := range []string{"models/gpt2:prod", "models/gpt2@b3:abc123abc123", "bdn://models/gpt2"} {
+	// Every ref level a pull accepts: a bare volume, a tag, a digest, and a
+	// path, which narrows rather than changing what is addressed.
+	for _, ref := range []string{
+		"bdn:models/gpt2",
+		"bdn:models/gpt2:prod",
+		"bdn:models/gpt2@b3:abc123abc123",
+		"bdn:models/gpt2/config",
+		"bdn:models/gpt2:prod/config/model.json",
+	} {
 		t.Run(ref, func(t *testing.T) {
+			parsed, err := ParseVolumeRef(ref)
+			require.NoError(t, err)
 			opts := valid
-			opts.Ref = ref
+			opts.Ref = parsed
 			require.NoError(t, volumePullOptions(opts).Validate())
 		})
 	}
 
-	tests := map[string]func(*DownloadVolumeOptions){
-		"no ref":         func(o *DownloadVolumeOptions) { o.Ref = "" },
-		"malformed ref":  func(o *DownloadVolumeOptions) { o.Ref = "gpt2" },
-		"no destination": func(o *DownloadVolumeOptions) { o.DestDir = "" },
-		"no hasher":      func(o *DownloadVolumeOptions) { o.Hasher = nil },
-		"no store":       func(o *DownloadVolumeOptions) { o.Store = nil },
+	tests := map[string]func(*PullVolumeOptions){
+		"no namespace":   func(o *PullVolumeOptions) { o.Ref.Namespace = "" },
+		"no volume":      func(o *PullVolumeOptions) { o.Ref.Volume = "" },
+		"no destination": func(o *PullVolumeOptions) { o.DestDir = "" },
+		"no hasher":      func(o *PullVolumeOptions) { o.Hasher = nil },
+		"no store":       func(o *PullVolumeOptions) { o.Store = nil },
 		// Restart discards a partly downloaded tree; in Overwrite mode that
 		// tree is the caller's own directory, including the files Overwrite
 		// promises to leave alone.
-		"restart while overwriting": func(o *DownloadVolumeOptions) { o.Overwrite, o.Restart = true, true },
+		"restart while overwriting": func(o *PullVolumeOptions) { o.Overwrite, o.Restart = true, true },
 	}
 	for name, break_ := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -259,7 +270,8 @@ func TestVolumeOptionsReachTheEngine(t *testing.T) {
 	concurrency := VolumeConcurrencyOptions{FileJobs: 3, ChunkOperations: 4, MaxBytesInFlight: 5}
 
 	push := volumePushOptions(PushVolumeOptions{
-		Namespace: "models", Volume: "gpt2", SourceDir: "/tmp/tree", SourceURI: "file:///fixed",
+		Ref:       VolumeRef{Namespace: "models", Volume: "gpt2"},
+		SourceDir: "/tmp/tree", SourceURI: "file:///fixed",
 		Tags: []string{"prod"}, RequireHeadMove: true, Hasher: stubHasher,
 		Store:       stubStore{},
 		Concurrency: concurrency,
@@ -274,17 +286,23 @@ func TestVolumeOptionsReachTheEngine(t *testing.T) {
 	require.NotNil(t, push.DownloadObject)
 	require.Equal(t, 3, push.Concurrency.FileJobs)
 
-	pull := volumePullOptions(DownloadVolumeOptions{
-		Ref: "models/gpt2:prod", DestDir: "/tmp/out", Overwrite: true, Restart: true,
+	pull := volumePullOptions(PullVolumeOptions{
+		Ref:     VolumeRef{Namespace: "models", Volume: "gpt2", Tag: "prod", Path: "/config"},
+		DestDir: "/tmp/out", Overwrite: true, Restart: true,
 		Include: []string{"weights"}, Hasher: stubHasher,
 		Store:       stubStore{},
 		Concurrency: concurrency,
 	})
-	require.Equal(t, "models/gpt2:prod", pull.Ref)
+	require.Equal(t, "models", pull.Ref.Namespace)
+	require.Equal(t, "gpt2", pull.Ref.Volume)
+	require.Equal(t, "prod", pull.Ref.Tag)
 	require.Equal(t, "/tmp/out", pull.DestDir)
 	require.True(t, pull.Overwrite, "Overwrite was dropped")
 	require.True(t, pull.Restart, "Restart was dropped")
-	require.Len(t, pull.Include, 1)
+	// The caller's own Include, plus the ref's path lowered onto the end of it.
+	require.Len(t, pull.Include, 2)
+	require.Equal(t, "weights", pull.Include[0])
+	require.Equal(t, "config", pull.Include[1])
 	require.Equal(t, int64(5), pull.Concurrency.MaxBytesInFlight)
 
 	// Leaving concurrency unset must not zero the engine's defaults: the
@@ -298,9 +316,17 @@ func TestVolumeOptionsReachTheEngine(t *testing.T) {
 	// half of this pin — the exchange body actually carrying the lowered
 	// namespace — lives in the nested test module, where a whole push can
 	// run.
-	lowered := volumePushOptions(PushVolumeOptions{Namespace: "MoDeLs", Volume: "GPT2"})
+	lowered := volumePushOptions(PushVolumeOptions{
+		Ref: VolumeRef{Namespace: "MoDeLs", Volume: "GPT2"}})
 	require.Equal(t, "models", lowered.Namespace)
 	require.Equal(t, "gpt2", lowered.Volume)
+
+	// A hand-built ref skips ParseVolumeRef, which is the only other place
+	// names fold, so the pull translation has to fold for itself too.
+	loweredPull := volumePullOptions(PullVolumeOptions{
+		Ref: VolumeRef{Namespace: "MoDeLs", Volume: "GPT2"}})
+	require.Equal(t, "models", loweredPull.Ref.Namespace)
+	require.Equal(t, "gpt2", loweredPull.Ref.Volume)
 }
 
 // TestVolumeTransfersValidateBeforeExchangingAToken checks that bad options
@@ -314,10 +340,12 @@ func TestVolumeTransfersValidateBeforeExchangingAToken(t *testing.T) {
 	client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
 	require.NoError(t, err)
 
-	_, err = client.PushVolume(context.Background(), PushVolumeOptions{Namespace: "models"})
+	_, err = client.PushVolume(context.Background(),
+		PushVolumeOptions{Ref: VolumeRef{Namespace: "models"}})
 	require.Error(t, err)
 
-	_, err = client.DownloadVolume(context.Background(), DownloadVolumeOptions{Ref: "models/gpt2"})
+	_, err = client.PullVolume(context.Background(),
+		PullVolumeOptions{Ref: VolumeRef{Namespace: "models", Volume: "gpt2"}})
 	require.Error(t, err)
 }
 
@@ -417,7 +445,10 @@ func TestTokenRefreshesAheadOfExpiry(t *testing.T) {
 // scope the caller cannot have rather than granting a smaller set, so every
 // unnecessary scope is a way for the whole transfer to fail.
 func TestPushScopeSelection(t *testing.T) {
-	bare := PushVolumeOptions{Namespace: "models", Volume: "gpt2", SourceDir: "/tmp/t", Hasher: stubHasher}
+	bare := PushVolumeOptions{
+		Ref:       VolumeRef{Namespace: "models", Volume: "gpt2"},
+		SourceDir: "/tmp/t", Hasher: stubHasher,
+	}
 
 	tests := []struct {
 		name string
@@ -682,7 +713,7 @@ func TestConcurrencyOptionsReachBothEngines(t *testing.T) {
 
 	engines := map[string]volume.Concurrency{
 		"push": volumePushOptions(PushVolumeOptions{Concurrency: full}).Concurrency,
-		"pull": volumePullOptions(DownloadVolumeOptions{Concurrency: full}).Concurrency,
+		"pull": volumePullOptions(PullVolumeOptions{Concurrency: full}).Concurrency,
 	}
 	for path, got := range engines {
 		g := reflect.ValueOf(got)

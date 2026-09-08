@@ -383,9 +383,50 @@ type resolveResponse struct {
 	} `json:"origin"`
 }
 
+// ResolveRequest names what to resolve. It carries the pieces rather than a
+// written ref so that this package is the only one that spells a ref, which
+// keeps the grammar in one place: the caller has already parsed and validated
+// whatever the user wrote.
+type ResolveRequest struct {
+	Namespace string
+	Volume    string
+
+	// Tag and Digest are the selector, and at most one is set. Neither set
+	// means the volume's head, which moves; a digest names one fixed version,
+	// which is why a transfer resolves once and then works from the pin.
+	//
+	// Digest carries the "b3:" prefix, which the service accepts and which is
+	// how a digest is spelled everywhere it is read or written. It may be a
+	// prefix of one rather than a whole digest.
+	Tag    string
+	Digest string
+}
+
+// String writes the ref this request names. Only a bare volume, a tag, or a
+// digest is ever produced here: a path is not something the service resolves,
+// and it never reaches this package.
+func (r ResolveRequest) String() string {
+	ref := "bdn:" + r.Namespace + "/" + r.Volume
+	switch {
+	case r.Digest != "":
+		return ref + "@" + r.Digest
+	case r.Tag != "":
+		return ref + ":" + r.Tag
+	default:
+		return ref
+	}
+}
+
+// Pinned returns the same volume pinned to a digest, which names one version
+// that cannot change underneath a transfer.
+func (r ResolveRequest) Pinned(digest string) ResolveRequest {
+	return ResolveRequest{Namespace: r.Namespace, Volume: r.Volume, Digest: digest}
+}
+
 // Resolve turns a ref into a pinned version and credentials to read it.
-func (c *Client) Resolve(ctx context.Context, ref string) (*ResolveResult, error) {
+func (c *Client) Resolve(ctx context.Context, req ResolveRequest) (*ResolveResult, error) {
 	var out resolveResponse
+	ref := req.String()
 	path := "/v1/volumes/resolve?ref=" + url.QueryEscape(ref)
 	if _, err := c.call(ctx, request{method: http.MethodPost, path: path}, &out); err != nil {
 		return nil, fmt.Errorf("resolve %s: %w", ref, err)

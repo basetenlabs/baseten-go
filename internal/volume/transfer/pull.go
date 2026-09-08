@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"hash"
+	"io"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -19,14 +21,40 @@ import (
 
 // PullOptions describes a download.
 type PullOptions struct {
-	// Ref names what to download: "namespace/volume", optionally with ":tag"
-	// or "@digest". Whatever it names is resolved once and pinned, so a tag
-	// that moves partway through cannot produce a tree assembled from two
-	// versions.
-	Ref string
+	// Ref names what to download. The caller has already parsed and validated
+	// whatever the user wrote, so no ref grammar is applied here. Whatever it
+	// names is resolved once and pinned, so a tag that moves partway through
+	// cannot produce a tree assembled from two versions.
+	Ref bdn.ResolveRequest
 
-	// DestDir is where the tree ends up.
+	// DestDir is where the tree ends up. Exactly one of DestDir and
+	// EntryHandler is set.
 	DestDir string
+
+	// EntryHandler receives every selected entry rather than any of them being
+	// written to disk. Set instead of DestDir.
+	//
+	// Entries arrive one at a time in canonical path order, so a parent always
+	// precedes what is under it and a subtree is contiguous, which is what
+	// lets a handler reproduce the tree somewhere that is not a filesystem.
+	// Directories and symlinks are included, and a symlink's target is on the
+	// entry. Their readers are never nil and report EOF on the first read, so
+	// a handler that copies before switching on the kind produces nothing
+	// rather than dereferencing nil.
+	//
+	// Nothing is staged and nothing resumes, both of which need a file on disk
+	// to compare against, and a file's chunks arrive in order rather than in
+	// parallel, since a sequential reader has nowhere to put a chunk that
+	// arrives before the one in front of it.
+	//
+	// The reader is valid only for the duration of the call: its buffer and
+	// its share of the in-flight byte budget are handed back as soon as the
+	// handler returns, so a retained reader reads freed memory. There is
+	// nothing for the handler to close.
+	//
+	// ctx is the one driving the transfer, so it carries the caller's values
+	// and cancels with the pull.
+	EntryHandler func(ctx context.Context, entry volume.Entry, r io.Reader) error
 
 	// Overwrite writes into DestDir in place rather than staging the tree
 	// beside it and moving it into position when it is complete. In place, a
@@ -43,6 +71,15 @@ type PullOptions struct {
 	// Restart discards a partly downloaded tree from an earlier attempt
 	// instead of continuing it.
 	Restart bool
+
+	// StripPrefix is a directory path within the volume that the destination
+	// stands for, so its contents land at the destination root rather than
+	// under the chain of directories that led to them. Empty keeps every
+	// entry at its own path.
+	//
+	// Every selected entry must be under it, checked before anything is
+	// created. The manifest is not rewritten; see destName.
+	StripPrefix string
 
 	// NewHasher returns a fresh unkeyed BLAKE3 hash with a 32-byte digest.
 	// Required: every chunk is verified against the digest the manifest
@@ -68,10 +105,22 @@ type PullOptions struct {
 // attempted.
 func (o PullOptions) Validate() error {
 	switch {
-	case o.Ref == "":
-		return errors.New("Ref is required")
-	case o.DestDir == "":
-		return errors.New("DestDir is required")
+	case o.Ref.Namespace == "":
+		return errors.New("Ref.Namespace is required")
+	case o.Ref.Volume == "":
+		return errors.New("Ref.Volume is required")
+	case o.DestDir == "" && o.EntryHandler == nil:
+		return errors.New("one of DestDir and EntryHandler is required")
+	case o.DestDir != "" && o.EntryHandler != nil:
+		return errors.New("DestDir and EntryHandler are mutually exclusive")
+	case o.EntryHandler != nil && o.Overwrite:
+		return errors.New("Overwrite applies to a destination directory, which EntryHandler replaces")
+	case o.EntryHandler != nil && o.Restart:
+		return errors.New("Restart applies to a destination directory, which EntryHandler replaces")
+	case o.EntryHandler != nil && o.StripPrefix != "":
+		// A handler sees entry paths as the volume records them, and can
+		// shorten them itself if that is what it wants.
+		return errors.New("StripPrefix applies to a destination directory, which EntryHandler replaces")
 	case o.NewHasher == nil:
 		return errors.New("NewHasher is required")
 	case o.Decompress == nil:
@@ -87,17 +136,14 @@ func (o PullOptions) Validate() error {
 		// starting over would achieve.
 		return errors.New("Restart applies to staged downloads; Overwrite already refetches whatever does not verify")
 	}
-	if _, err := bdn.ParseRef(o.Ref); err != nil {
-		return err
-	}
 	return nil
 }
 
 // PullResult is what a download produced.
 type PullResult struct {
-	// VersionRef is the ref pinned to the digest that was downloaded, which is
-	// the form to quote to get this exact tree again.
-	VersionRef     string
+	// ManifestDigest is the version that was downloaded. The caller pairs it
+	// with the ref it asked for to name that version again; rendering a ref is
+	// not this layer's job.
 	ManifestDigest volume.Digest
 
 	Files int64
@@ -143,16 +189,21 @@ func Pull(ctx context.Context, client *bdn.Client, opts PullOptions) (*PullResul
 		return nil, err
 	}
 
-	dest := filepath.Clean(opts.DestDir)
-	workDir, staged, err := prepareDestination(dest, plan.digest, opts)
-	if err != nil {
-		return nil, err
+	// A handler has no destination to prepare, no root to contain writes
+	// within, and nothing to publish once it is done.
+	var dest, workDir string
+	var staged bool
+	var root *os.Root
+	if opts.EntryHandler == nil {
+		dest = filepath.Clean(opts.DestDir)
+		if workDir, staged, err = prepareDestination(dest, plan.digest, opts); err != nil {
+			return nil, err
+		}
+		if root, err = os.OpenRoot(workDir); err != nil {
+			return nil, err
+		}
+		defer root.Close()
 	}
-	root, err := os.OpenRoot(workDir)
-	if err != nil {
-		return nil, err
-	}
-	defer root.Close()
 
 	limits := opts.Concurrency.WithDefaults()
 	limiter := opts.Limiter
@@ -186,13 +237,14 @@ func Pull(ctx context.Context, client *bdn.Client, opts PullOptions) (*PullResul
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	if err := p.publish(plan.manifest, root, workDir, dest, plan.digest, staged); err != nil {
-		return nil, err
+	if opts.EntryHandler == nil {
+		if err := p.publish(plan.manifest, root, workDir, dest, plan.digest, staged); err != nil {
+			return nil, err
+		}
 	}
 
 	return &PullResult{
 		Warnings:       plan.warnings,
-		VersionRef:     plan.pinned.String(),
 		ManifestDigest: plan.digest,
 		Files:          int64(len(plan.manifest.Files)),
 		Bytes:          int64(plan.manifest.TotalSize()),
@@ -207,7 +259,7 @@ func Pull(ctx context.Context, client *bdn.Client, opts PullOptions) (*PullResul
 // where to read it from, and which of its entries this download covers.
 type pullPlan struct {
 	digest   volume.Digest
-	pinned   bdn.Ref
+	pinned   bdn.ResolveRequest
 	origin   *origin
 	manifest *volume.Manifest
 
@@ -228,18 +280,14 @@ func resolvePlan(
 	opts PullOptions,
 	progress *volume.ProgressReporter,
 ) (*pullPlan, error) {
-	ref, err := bdn.ParseRef(opts.Ref)
-	if err != nil {
-		return nil, err
-	}
 	progress.SetPhase(volume.PhaseResolve, 0, 0)
 
-	resolved, err := client.Resolve(ctx, ref.String())
+	resolved, err := client.Resolve(ctx, opts.Ref)
 	if err != nil {
 		return nil, err
 	}
 	plan := &pullPlan{digest: resolved.Resolved.OriginDigest}
-	plan.pinned = ref.Pinned(plan.digest.String())
+	plan.pinned = opts.Ref.Pinned(plan.digest.String())
 	plan.origin = newOrigin(client, plan.pinned, resolved.Resolved.OrgID, resolved.Origin)
 
 	body, err := plan.origin.fetch(ctx, opts.DownloadObject, opts.Decompress,
@@ -274,6 +322,12 @@ func resolvePlan(
 
 	plan.totalFiles = int64(len(manifest.Files))
 	if plan.manifest, err = volume.SelectEntries(manifest, opts.Include); err != nil {
+		return nil, err
+	}
+	// Judged on the selection rather than the whole manifest: the prefix is
+	// about where the selected entries land, and a volume is free to hold
+	// entries outside a prefix nobody asked for.
+	if err := checkStripPrefix(plan.manifest, opts.StripPrefix); err != nil {
 		return nil, err
 	}
 	// Checked before anything is created, so a tree that cannot be reproduced
@@ -352,12 +406,19 @@ type pullStats struct {
 
 // materialize writes the tree: directories, then symlinks and files.
 func (p *puller) materialize(ctx context.Context, manifest *volume.Manifest) error {
+	if p.opts.EntryHandler != nil {
+		return p.streamEntries(ctx, manifest)
+	}
+
 	// Directories are created permissive and given their recorded modes at the
 	// very end. A directory recorded read-only is a real thing — a frozen
 	// asset tree — and applying that mode now would lock out its own contents.
 	p.rememberDir(".")
 	for _, dir := range manifest.Directories {
-		name := filepath.FromSlash(dir.Path)
+		name, ok := p.destName(dir.Path)
+		if !ok {
+			continue
+		}
 		if err := p.root.MkdirAll(name, 0o755); err != nil {
 			return err
 		}
@@ -389,10 +450,29 @@ func (p *puller) materialize(ctx context.Context, manifest *volume.Manifest) err
 // target instead. The time stays in the manifest for readers that can use
 // it; the link on disk keeps its creation time.
 func (p *puller) writeSymlink(link volume.SymlinkEntry) error {
-	name := filepath.FromSlash(link.Path)
+	name, ok := p.destName(link.Path)
+	if !ok {
+		return nil
+	}
 	target := link.Target
 	if strings.HasPrefix(target, "/") {
 		target = volume.RelativeLinkTarget(link.Path, target)
+	}
+	// Stripping a prefix makes the destination a subtree of the volume, and a
+	// link that stayed inside the volume can still point above that subtree:
+	// containment was judged against the whole manifest, not against an
+	// arbitrary part of it. Resolving the target back to a volume path is what
+	// tells the difference, and it is refused rather than written, because a
+	// link reaching out of the destination is not the link the volume records.
+	if p.opts.StripPrefix != "" {
+		resolved := path.Join(path.Dir(link.Path), target)
+		prefix := strings.Trim(p.opts.StripPrefix, "/")
+		if resolved != prefix && !strings.HasPrefix(resolved, prefix+"/") {
+			return fmt.Errorf(
+				"symlink %s points at %s, which is outside %q and so has no place under the destination",
+				link.Path, resolved, prefix)
+		}
+		target = volume.RelativeLinkTarget(filepath.ToSlash(name), "/"+strings.TrimPrefix(resolved, prefix+"/"))
 	}
 	if err := p.ensureParent(name); err != nil {
 		return err
@@ -431,7 +511,10 @@ func (p *puller) writeFile(ctx context.Context, entry volume.FileEntry) error {
 		return err
 	}
 
-	name := filepath.FromSlash(entry.Path)
+	name, ok := p.destName(entry.Path)
+	if !ok {
+		return nil
+	}
 	if err := p.ensureParent(name); err != nil {
 		return err
 	}
@@ -684,6 +767,56 @@ func (p *puller) writeChunk(
 	return nil
 }
 
+// destName maps an entry's path within the volume to its name under the
+// destination root, which differ only when StripPrefix is set. The manifest
+// is never rewritten: it stays the record of what the volume holds, which is
+// what the containment findings, the warnings, and every error message are
+// about, so the two path spaces meet here and only here.
+//
+// The second result is false for an entry the destination has no place for:
+// the prefix's own directory, which the destination itself now stands for,
+// and the directories above it, which selection pulls in as needed ancestors
+// and which stripping is exactly what elides. Anything else outside the
+// prefix was already refused by checkStripPrefix.
+func (p *puller) destName(volumePath string) (string, bool) {
+	if p.opts.StripPrefix == "" {
+		return filepath.FromSlash(volumePath), true
+	}
+	prefix := strings.Trim(p.opts.StripPrefix, "/")
+	if !strings.HasPrefix(volumePath, prefix+"/") {
+		return "", false
+	}
+	return filepath.FromSlash(strings.TrimPrefix(volumePath, prefix+"/")), true
+}
+
+// checkStripPrefix refuses a selection the prefix cannot be applied to,
+// before anything is created. An entry outside the prefix would have to climb
+// out of the destination to reach its place, and dropping it instead would
+// hand back less than was asked for.
+func checkStripPrefix(m *volume.Manifest, prefix string) error {
+	prefix = strings.Trim(prefix, "/")
+	if prefix == "" {
+		return nil
+	}
+	under := 0
+	for _, entry := range m.Entries() {
+		switch {
+		case strings.HasPrefix(entry.Path, prefix+"/"):
+			under++
+		// The prefix itself, and the directories above it, which selection
+		// adds as the ancestors a tree needs. Stripping is what elides them,
+		// so their presence is expected rather than a conflict.
+		case entry.Path == prefix, strings.HasPrefix(prefix, entry.Path+"/"):
+		default:
+			return fmt.Errorf("%q is not under %q", entry.Path, prefix)
+		}
+	}
+	if under == 0 {
+		return fmt.Errorf("nothing in the volume is under %q", prefix)
+	}
+	return nil
+}
+
 // dirWalk is one directory's create under the memo: the Once holds the one
 // MkdirAll walk, and err is what that walk returned, read by every caller
 // that shared the entry.
@@ -740,11 +873,17 @@ func (p *puller) applyDirectoryModes(manifest *volume.Manifest) error {
 	slices.SortFunc(dirs, func(a, b volume.DirectoryEntry) int { return strings.Compare(b.Path, a.Path) })
 
 	for _, dir := range dirs {
-		if err := p.root.Chmod(filepath.FromSlash(dir.Path), volume.ModeFromManifest(dir.Mode)); err != nil {
+		// The prefix's own directory is the destination, whose mode is the
+		// caller's rather than the volume's.
+		name, ok := p.destName(dir.Path)
+		if !ok {
+			continue
+		}
+		if err := p.root.Chmod(name, volume.ModeFromManifest(dir.Mode)); err != nil {
 			return err
 		}
 		if !dir.MTime.IsZero() {
-			if err := p.root.Chtimes(filepath.FromSlash(dir.Path), dir.MTime, dir.MTime); err != nil {
+			if err := p.root.Chtimes(name, dir.MTime, dir.MTime); err != nil {
 				return err
 			}
 		}
@@ -758,15 +897,12 @@ func (p *puller) applyDirectoryModes(manifest *volume.Manifest) error {
 // were asked for, so an interrupted download of the whole volume leaves a
 // stage that a later download of one directory would otherwise publish whole.
 func (p *puller) prune(manifest *volume.Manifest) error {
+	// Keyed by destination name, since that is what the walk below reports.
 	planned := map[string]bool{".": true}
-	for _, dir := range manifest.Directories {
-		planned[dir.Path] = true
-	}
-	for _, file := range manifest.Files {
-		planned[file.Path] = true
-	}
-	for _, link := range manifest.Symlinks {
-		planned[link.Path] = true
+	for _, entry := range manifest.Entries() {
+		if name, ok := p.destName(entry.Path); ok {
+			planned[filepath.ToSlash(name)] = true
+		}
 	}
 
 	var unplanned []string

@@ -1,4 +1,4 @@
-package separatemoduletests_test
+package volume_test
 
 // A fake volume service, backed by an in-memory object store, that the push
 // and pull tests run against end to end with a real BLAKE3 and a real zstd.
@@ -279,12 +279,12 @@ func (f *fakeService) handleResolve(w http.ResponseWriter, r *http.Request) {
 	// "namespace/volume" would otherwise pass every test here and fail
 	// silently against the real service — which is exactly what happened to
 	// the delta-reuse path.
-	if !strings.HasPrefix(ref, "bdn://") {
+	if !strings.HasPrefix(ref, "bdn:") {
 		writeServiceError(w, http.StatusBadRequest, "INVALID_ARGUMENT", "INVALID_REF",
-			"ref must start with bdn://")
+			"ref must start with bdn:")
 		return
 	}
-	ref = strings.TrimPrefix(ref, "bdn://")
+	ref = strings.TrimPrefix(ref, "bdn:")
 
 	f.mu.Lock()
 	digest := f.head
@@ -323,7 +323,7 @@ func (f *fakeService) handleResolve(w http.ResponseWriter, r *http.Request) {
 
 	writeJSONResponse(w, http.StatusOK, map[string]any{
 		"resolved": map[string]any{
-			"reference": "bdn://" + fakeNamespace + "/" + fakeVolume,
+			"reference": "bdn:" + fakeNamespace + "/" + fakeVolume,
 			"org_id":    fakeOrg, "origin_digest": digest, "kind": "manifest",
 			"target": volume.TargetForDigest(parsed), "sequence": 1, "resolved_from": resolvedFrom,
 		},
@@ -385,6 +385,23 @@ func (f *fakeService) manifestBytes(t *testing.T, digest string) []byte {
 		t.Fatal(err)
 	}
 	return body
+}
+
+// rewriteManifest replaces the stored bytes of the head version's manifest,
+// leaving the object under the digest of what it used to be. That is a
+// doctored document rather than a corrupt one: it decodes, and only hashing
+// it says anything is wrong.
+func (f *fakeService) rewriteManifest(t *testing.T, rewrite func(body []byte) []byte) {
+	t.Helper()
+	f.mu.Lock()
+	digest := f.head
+	f.mu.Unlock()
+
+	body := rewrite(f.manifestBytes(t, digest))
+
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.objects[digest] = f.store(bdn.ContentTypeManifest, body)
 }
 
 // uploadedBytes totals the bytes of chunk objects the fake received, including
