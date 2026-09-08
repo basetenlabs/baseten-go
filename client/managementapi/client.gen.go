@@ -213,6 +213,30 @@ func (c *Client) DeleteTrainingProjectsJobs(ctx context.Context, trainingProject
 	})
 }
 
+// DeleteVolumes: Deletes a volume
+func (c *Client) DeleteVolumes(ctx context.Context, volumeNamespace string, volumeName string, body DeleteVolumeRequest) (*DeleteVolumeResponse, error) {
+	return doJSON[DeleteVolumeResponse](c, ctx, apiRequest{
+		method:      "DELETE",
+		pathFmt:     "/v1/volumes/%s/%s",
+		pathArgs:    []any{volumeNamespace, volumeName},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// DeleteVolumesVersions: Deletes one version of a volume
+func (c *Client) DeleteVolumesVersions(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string, body DeleteVolumeVersionRequest) (*DeleteVolumeVersionResponse, error) {
+	return doJSON[DeleteVolumeVersionResponse](c, ctx, apiRequest{
+		method:      "DELETE",
+		pathFmt:     "/v1/volumes/%s/%s/versions/%s",
+		pathArgs:    []any{volumeNamespace, volumeName, volumeVersion},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetApiKeys: Lists API keys (metadata only, no plain text keys)
 func (c *Client) GetApiKeys(ctx context.Context) (*APIKeys, error) {
 	return doJSON[APIKeys](c, ctx, apiRequest{
@@ -1326,11 +1350,12 @@ func (c *Client) GetVolumesNamespaces(ctx context.Context, params GetV1VolumesNa
 }
 
 // GetVolumesVersions: Gets the versions of a volume
-func (c *Client) GetVolumesVersions(ctx context.Context, volumeNamespace string, volumeName string) (*ListVolumeVersionsResponse, error) {
+func (c *Client) GetVolumesVersions(ctx context.Context, volumeNamespace string, volumeName string, params GetV1VolumesVolumeNamespaceVolumeNameVersionsParams) (*ListVolumeVersionsResponse, error) {
 	return doJSON[ListVolumeVersionsResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/volumes/%s/%s/versions",
 		pathArgs:    []any{volumeNamespace, volumeName},
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1338,8 +1363,8 @@ func (c *Client) GetVolumesVersions(ctx context.Context, volumeNamespace string,
 }
 
 // GetVolumesVersionsVolumeVersion: Gets one version of a volume
-func (c *Client) GetVolumesVersionsVolumeVersion(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string) (*VolumeVersion, error) {
-	return doJSON[VolumeVersion](c, ctx, apiRequest{
+func (c *Client) GetVolumesVersionsVolumeVersion(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string) (*VolumeVersionDetail, error) {
+	return doJSON[VolumeVersionDetail](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/volumes/%s/%s/versions/%s",
 		pathArgs:    []any{volumeNamespace, volumeName, volumeVersion},
@@ -2375,6 +2400,18 @@ func (c *Client) PostVolumesToken(ctx context.Context, body CreateVolumeTokenReq
 		method:      "POST",
 		pathFmt:     "/v1/volumes/token",
 		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostVolumesVersionsRestore: Restores a deleted version of a volume
+func (c *Client) PostVolumesVersionsRestore(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string, body RestoreVolumeVersionRequest) (*RestoreVolumeVersionResponse, error) {
+	return doJSON[RestoreVolumeVersionResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/volumes/%s/%s/versions/%s/restore",
+		pathArgs:    []any{volumeNamespace, volumeName, volumeVersion},
 		body:        body,
 		successCode: 200,
 		errorCodes:  nil,

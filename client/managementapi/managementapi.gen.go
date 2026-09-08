@@ -174,6 +174,9 @@ const (
 	AuditLogEventType_USER_REMOVED                                           AuditLogEventType = "USER_REMOVED"
 	AuditLogEventType_USER_ROLE_UPDATED                                      AuditLogEventType = "USER_ROLE_UPDATED"
 	AuditLogEventType_USER_TEAM_ROLE_UPDATED                                 AuditLogEventType = "USER_TEAM_ROLE_UPDATED"
+	AuditLogEventType_VOLUME_DELETED                                         AuditLogEventType = "VOLUME_DELETED"
+	AuditLogEventType_VOLUME_VERSION_DELETED                                 AuditLogEventType = "VOLUME_VERSION_DELETED"
+	AuditLogEventType_VOLUME_VERSION_RESTORED                                AuditLogEventType = "VOLUME_VERSION_RESTORED"
 	AuditLogEventType_WEBHOOK_SIGNING_SECRET_CREATED                         AuditLogEventType = "WEBHOOK_SIGNING_SECRET_CREATED"
 	AuditLogEventType_WEBHOOK_SIGNING_SECRET_DELETED                         AuditLogEventType = "WEBHOOK_SIGNING_SECRET_DELETED"
 	AuditLogEventType_WEBHOOK_SIGNING_SECRET_ROTATED                         AuditLogEventType = "WEBHOOK_SIGNING_SECRET_ROTATED"
@@ -261,6 +264,12 @@ func (e AuditLogEventType) Valid() bool {
 	case AuditLogEventType_USER_ROLE_UPDATED:
 		return true
 	case AuditLogEventType_USER_TEAM_ROLE_UPDATED:
+		return true
+	case AuditLogEventType_VOLUME_DELETED:
+		return true
+	case AuditLogEventType_VOLUME_VERSION_DELETED:
+		return true
+	case AuditLogEventType_VOLUME_VERSION_RESTORED:
 		return true
 	case AuditLogEventType_WEBHOOK_SIGNING_SECRET_CREATED:
 		return true
@@ -1014,6 +1023,8 @@ func (e RequestBackpressurePolicy) Valid() bool {
 // Defines values for ResourceKind.
 const (
 	ResourceKind_CHAINLET         ResourceKind = "CHAINLET"
+	ResourceKind_LOOPS_SAMPLER    ResourceKind = "LOOPS_SAMPLER"
+	ResourceKind_LOOPS_TRAINER    ResourceKind = "LOOPS_TRAINER"
 	ResourceKind_MODEL_DEPLOYMENT ResourceKind = "MODEL_DEPLOYMENT"
 	ResourceKind_TRAINING_JOB     ResourceKind = "TRAINING_JOB"
 )
@@ -1022,6 +1033,10 @@ const (
 func (e ResourceKind) Valid() bool {
 	switch e {
 	case ResourceKind_CHAINLET:
+		return true
+	case ResourceKind_LOOPS_SAMPLER:
+		return true
+	case ResourceKind_LOOPS_TRAINER:
 		return true
 	case ResourceKind_MODEL_DEPLOYMENT:
 		return true
@@ -1929,6 +1944,35 @@ type AuditLogEventUserTeamRoleUpdated struct {
 	UserId      string `json:"user_id"`
 }
 
+// AuditLogEventVolumeDeleted A volume was deleted, tombstoning every version it still held.
+type AuditLogEventVolumeDeleted struct {
+	EventType       string `json:"event_type"`
+	Namespace       string `json:"namespace"`
+	VersionsDeleted int    `json:"versions_deleted"`
+	VolumeName      string `json:"volume_name"`
+	VolumeRef       string `json:"volume_ref"`
+}
+
+// AuditLogEventVolumeVersionDeleted One version of a volume was deleted.
+type AuditLogEventVolumeVersionDeleted struct {
+	Digest     string `json:"digest"`
+	EventType  string `json:"event_type"`
+	Namespace  string `json:"namespace"`
+	Version    string `json:"version"`
+	VolumeName string `json:"volume_name"`
+	VolumeRef  string `json:"volume_ref"`
+}
+
+// AuditLogEventVolumeVersionRestored A deleted version of a volume was restored.
+type AuditLogEventVolumeVersionRestored struct {
+	Digest     string `json:"digest"`
+	EventType  string `json:"event_type"`
+	Namespace  string `json:"namespace"`
+	Version    string `json:"version"`
+	VolumeName string `json:"volume_name"`
+	VolumeRef  string `json:"volume_ref"`
+}
+
 // AuditLogEventWebhookSigningSecretCreated A webhook signing secret was created.
 type AuditLogEventWebhookSigningSecretCreated struct {
 	EventType              string `json:"event_type"`
@@ -2216,6 +2260,9 @@ type BenchmarkSnapshot struct {
 
 // BillableResource defines model for BillableResource.
 type BillableResource struct {
+	// BaseModel Base model used by this Loops trainer or sampler
+	BaseModel *string `json:"base_model,omitempty"`
+
 	// ChainMetadata Chain metadata if this is a chainlet deployment
 	ChainMetadata *ChainMetadata `json:"chain_metadata,omitempty"`
 
@@ -3256,6 +3303,57 @@ type DedicatedUsageTotal1 = string
 // DedicatedUsage_Total Total cost in dollars
 type DedicatedUsage_Total struct {
 	union json.RawMessage
+}
+
+// DeleteVolumeRequest defines model for DeleteVolumeRequest.
+type DeleteVolumeRequest struct {
+	// ExpectedSequence Revision the volume is expected to be at. When set, the delete fails with a conflict if the volume has changed since, so it cannot act on a volume someone else has pushed to. Take the value from a volume's sequence, or from volume_sequence.
+	ExpectedSequence *int `json:"expected_sequence,omitempty"`
+}
+
+// DeleteVolumeResponse defines model for DeleteVolumeResponse.
+type DeleteVolumeResponse struct {
+	// Name Name of the volume, in lowercase.
+	Name string `json:"name"`
+
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
+
+	// VersionsDeleted Number of versions this request deleted. Zero when the volume had no live versions left, which is not an error.
+	VersionsDeleted int `json:"versions_deleted"`
+
+	// VolumeSequence Revision of the volume after the delete.
+	VolumeSequence int `json:"volume_sequence"`
+}
+
+// DeleteVolumeVersionRequest defines model for DeleteVolumeVersionRequest.
+type DeleteVolumeVersionRequest struct {
+	// ExpectedSequence Revision the volume is expected to be at. When set, the delete fails with a conflict if the volume has changed since, so a read followed by a delete cannot act on a version a tag has since been moved off. Take the value from volume_sequence.
+	ExpectedSequence *int `json:"expected_sequence,omitempty"`
+}
+
+// DeleteVolumeVersionResponse defines model for DeleteVolumeVersionResponse.
+type DeleteVolumeVersionResponse struct {
+	// DeleteAfter When the version stops being restorable, in ISO 8601 format. Until then it can be returned to service.
+	DeleteAfter time.Time `json:"delete_after"`
+
+	// Digest Content digest of the deleted version, as `b3:<hex>`.
+	Digest string `json:"digest"`
+
+	// Lifecycle Lifecycle state of the version after the delete.
+	Lifecycle string `json:"lifecycle"`
+
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
+
+	// VersionRef Full address of the deleted version, as `bdn://<namespace>/<volume>@<digest>`.
+	VersionRef string `json:"version_ref"`
+
+	// Volume Name of the volume, in lowercase.
+	Volume string `json:"volume"`
+
+	// VolumeSequence Revision of the volume after the delete.
+	VolumeSequence int `json:"volume_sequence"`
 }
 
 // Deployment A deployment of a model.
@@ -4437,6 +4535,7 @@ type LibraryListing struct {
 // LibraryListingMetadata defines model for LibraryListingMetadata.
 type LibraryListingMetadata struct {
 	ContextLength    *int                      `json:"context_length,omitempty"`
+	Description      *string                   `json:"description,omitempty"`
 	InputModalities  *[]LibraryListingModality `json:"input_modalities,omitempty"`
 	License          string                    `json:"license"`
 	ModelApiSlug     *string                   `json:"model_api_slug,omitempty"`
@@ -4587,6 +4686,9 @@ type ListVolumeNamespacesResponse struct {
 type ListVolumeVersionsResponse struct {
 	// Versions Versions of the volume, newest first.
 	Versions []VolumeVersion `json:"versions"`
+
+	// VolumeSequence Revision of the volume as a whole when the versions were read. Pass it as expected_sequence on a later delete to make that delete conditional on the volume not having changed since. Distinct from the per-version sequence, which is the revision a version was committed at.
+	VolumeSequence int `json:"volume_sequence"`
 }
 
 // ListVolumesResponse A page of volumes in one namespace.
@@ -5623,6 +5725,33 @@ type ResponseTimeDatapoint struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
+// RestoreVolumeVersionRequest defines model for RestoreVolumeVersionRequest.
+type RestoreVolumeVersionRequest struct {
+	// ExpectedSequence Revision the volume is expected to be at. When set, the restore fails with a conflict if the volume has changed since. Take the value from volume_sequence.
+	ExpectedSequence *int `json:"expected_sequence,omitempty"`
+}
+
+// RestoreVolumeVersionResponse defines model for RestoreVolumeVersionResponse.
+type RestoreVolumeVersionResponse struct {
+	// Digest Content digest of the restored version, as `b3:<hex>`.
+	Digest string `json:"digest"`
+
+	// Lifecycle Lifecycle state of the version after the restore.
+	Lifecycle string `json:"lifecycle"`
+
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
+
+	// VersionRef Full address of the restored version, as `bdn://<namespace>/<volume>@<digest>`.
+	VersionRef string `json:"version_ref"`
+
+	// Volume Name of the volume, in lowercase.
+	Volume string `json:"volume"`
+
+	// VolumeSequence Revision of the volume after the restore.
+	VolumeSequence int `json:"volume_sequence"`
+}
+
 // RetryDeploymentResponse The response to a request to retry a deployment.
 type RetryDeploymentResponse struct {
 	// Deployment A deployment of a model.
@@ -6566,6 +6695,9 @@ type VolumeVersion struct {
 	// CreatedAt When the version was committed, in ISO 8601 format.
 	CreatedAt time.Time `json:"created_at"`
 
+	// DeleteAfter When the version stops being restorable, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.
+	DeleteAfter *time.Time `json:"delete_after"`
+
 	// Digest Content digest of the version, as `b3:<hex>`.
 	Digest string `json:"digest"`
 
@@ -6584,6 +6716,9 @@ type VolumeVersion struct {
 	// Tags Tags pointing at this version that your API key can read.
 	Tags []string `json:"tags"`
 
+	// TombstonedAt When the version was deleted, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.
+	TombstonedAt *time.Time `json:"tombstoned_at"`
+
 	// TotalSizeBytes Total size of the version's files in bytes. Null when not recorded.
 	TotalSizeBytes *int `json:"total_size_bytes"`
 
@@ -6592,6 +6727,51 @@ type VolumeVersion struct {
 
 	// Volume Name of the volume, in lowercase.
 	Volume string `json:"volume"`
+}
+
+// VolumeVersionDetail One version, with the fields only a single-version read reports.
+type VolumeVersionDetail struct {
+	// CreatedAt When the version was committed, in ISO 8601 format.
+	CreatedAt time.Time `json:"created_at"`
+
+	// DeleteAfter When the version stops being restorable, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.
+	DeleteAfter *time.Time `json:"delete_after"`
+
+	// Digest Content digest of the version, as `b3:<hex>`.
+	Digest string `json:"digest"`
+
+	// EntryCount Number of files in the version. Null when not recorded.
+	EntryCount *int `json:"entry_count"`
+
+	// IsHead Whether the reserved `head` tag points at this version.
+	IsHead bool `json:"is_head"`
+
+	// Lifecycle Lifecycle state of the version, for example ALIVE or TOMBSTONED.
+	Lifecycle string `json:"lifecycle"`
+
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
+
+	// Sequence Revision the version was committed at. Null for versions committed before the volume service recorded it.
+	Sequence *int `json:"sequence"`
+
+	// Tags Tags pointing at this version that your API key can read.
+	Tags []string `json:"tags"`
+
+	// TombstonedAt When the version was deleted, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.
+	TombstonedAt *time.Time `json:"tombstoned_at"`
+
+	// TotalSizeBytes Total size of the version's files in bytes. Null when not recorded.
+	TotalSizeBytes *int `json:"total_size_bytes"`
+
+	// VersionRef Full address of this version, as `bdn://<namespace>/<volume>@<digest>`. Paste this into the `bdn.mounts` section of a config.yaml to pin to it.
+	VersionRef string `json:"version_ref"`
+
+	// Volume Name of the volume, in lowercase.
+	Volume string `json:"volume"`
+
+	// VolumeSequence Revision of the volume as a whole when this version was read. Pass it as expected_sequence on a later delete to make that delete conditional on the volume not having changed since.
+	VolumeSequence int `json:"volume_sequence"`
 }
 
 // VolumeVersionSummary defines model for VolumeVersionSummary.
@@ -7125,6 +7305,12 @@ type GetV1VolumesNamespacesParams struct {
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// GetV1VolumesVolumeNamespaceVolumeNameVersionsParams defines parameters for GetV1VolumesVolumeNamespaceVolumeNameVersions.
+type GetV1VolumesVolumeNamespaceVolumeNameVersionsParams struct {
+	// IncludeTombstoned Whether to include deleted versions. A deleted version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.
+	IncludeTombstoned *bool `form:"include_tombstoned,omitempty" json:"include_tombstoned,omitempty"`
+}
+
 // PostV1ApiKeysJSONRequestBody defines body for PostV1ApiKeys for application/json ContentType.
 type PostV1ApiKeysJSONRequestBody = CreateAPIKeyRequest
 
@@ -7313,6 +7499,15 @@ type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody
 
 // PostV1VolumesTokenJSONRequestBody defines body for PostV1VolumesToken for application/json ContentType.
 type PostV1VolumesTokenJSONRequestBody = CreateVolumeTokenRequest
+
+// DeleteV1VolumesVolumeNamespaceVolumeNameJSONRequestBody defines body for DeleteV1VolumesVolumeNamespaceVolumeName for application/json ContentType.
+type DeleteV1VolumesVolumeNamespaceVolumeNameJSONRequestBody = DeleteVolumeRequest
+
+// DeleteV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersionJSONRequestBody defines body for DeleteV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersion for application/json ContentType.
+type DeleteV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersionJSONRequestBody = DeleteVolumeVersionRequest
+
+// PostV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersionRestoreJSONRequestBody defines body for PostV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersionRestore for application/json ContentType.
+type PostV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersionRestoreJSONRequestBody = RestoreVolumeVersionRequest
 
 // AsAuditLogEventModelDeployed returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelDeployed
 func (t AuditLogEntry_EventData) AsAuditLogEventModelDeployed() (AuditLogEventModelDeployed, error) {
@@ -7959,6 +8154,51 @@ func (t *AuditLogEntry_EventData) FromAuditLogEventSshCertificateSigned(v AuditL
 	return err
 }
 
+// AsAuditLogEventVolumeDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventVolumeDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventVolumeDeleted() (AuditLogEventVolumeDeleted, error) {
+	var body AuditLogEventVolumeDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventVolumeDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventVolumeDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeDeleted(v AuditLogEventVolumeDeleted) error {
+	v.EventType = "VOLUME_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventVolumeVersionDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventVolumeVersionDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventVolumeVersionDeleted() (AuditLogEventVolumeVersionDeleted, error) {
+	var body AuditLogEventVolumeVersionDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventVolumeVersionDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventVolumeVersionDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeVersionDeleted(v AuditLogEventVolumeVersionDeleted) error {
+	v.EventType = "VOLUME_VERSION_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventVolumeVersionRestored returns the union data inside the AuditLogEntry_EventData as a AuditLogEventVolumeVersionRestored
+func (t AuditLogEntry_EventData) AsAuditLogEventVolumeVersionRestored() (AuditLogEventVolumeVersionRestored, error) {
+	var body AuditLogEventVolumeVersionRestored
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventVolumeVersionRestored overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventVolumeVersionRestored
+func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeVersionRestored(v AuditLogEventVolumeVersionRestored) error {
+	v.EventType = "VOLUME_VERSION_RESTORED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t AuditLogEntry_EventData) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"event_type"`
@@ -8053,6 +8293,12 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventUserRoleUpdated()
 	case "USER_TEAM_ROLE_UPDATED":
 		return t.AsAuditLogEventUserTeamRoleUpdated()
+	case "VOLUME_DELETED":
+		return t.AsAuditLogEventVolumeDeleted()
+	case "VOLUME_VERSION_DELETED":
+		return t.AsAuditLogEventVolumeVersionDeleted()
+	case "VOLUME_VERSION_RESTORED":
+		return t.AsAuditLogEventVolumeVersionRestored()
 	case "WEBHOOK_SIGNING_SECRET_CREATED":
 		return t.AsAuditLogEventWebhookSigningSecretCreated()
 	case "WEBHOOK_SIGNING_SECRET_DELETED":

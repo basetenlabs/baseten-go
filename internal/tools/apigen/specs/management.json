@@ -189,6 +189,51 @@
             }
         },
         "/v1/volumes/{volume_namespace}/{volume_name}": {
+            "delete": {
+                "summary": "Deletes a volume",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"expected_sequence\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={'expected_sequence': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Deletes every live version of the volume, after which the volume stops appearing in listings. The data is not erased: each version stays restorable until its recovery deadline passes, and the versions sub-resource still reports them when you pass include_tombstoned. Deleting a volume that has no live versions left succeeds and reports zero versions deleted.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteVolumeRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeleteVolumeResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/volume_namespace"
+                },
+                {
+                    "$ref": "#/components/parameters/volume_name"
+                }
+            ],
             "get": {
                 "summary": "Gets a volume",
                 "x-codeSamples": [
@@ -215,15 +260,7 @@
                     }
                 },
                 "x-stability": "unstable"
-            },
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/volume_namespace"
-                },
-                {
-                    "$ref": "#/components/parameters/volume_name"
-                }
-            ]
+            }
         },
         "/v1/volumes/{volume_namespace}/{volume_name}/versions": {
             "get": {
@@ -235,10 +272,23 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns every version of the volume, newest first, each with its digest, size, lifecycle, and the tags pointing at it. Deleted versions are included and carry a tombstoned lifecycle, so filter on lifecycle to list only live versions.",
+                "description": "Returns every live version of the volume, newest first, each with its digest, size, lifecycle, and the tags pointing at it. Pass include_tombstoned to list deleted versions alongside them.",
+                "parameters": [
+                    {
+                        "name": "include_tombstoned",
+                        "in": "query",
+                        "required": false,
+                        "description": "Whether to include deleted versions. A deleted version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.",
+                        "schema": {
+                            "default": false,
+                            "title": "Include Tombstoned",
+                            "type": "boolean"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -263,6 +313,54 @@
             ]
         },
         "/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}": {
+            "delete": {
+                "summary": "Deletes one version of a volume",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"expected_sequence\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={'expected_sequence': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Deletes the version the address names, along with every tag pointing at it. Addressing the version by tag deletes the version the tag points at, not the tag. The data is not erased: the version stays restorable until the recovery deadline in the response passes. Deleting a version that is already deleted is a conflict, not a repeat success.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteVolumeVersionRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeleteVolumeVersionResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/volume_namespace"
+                },
+                {
+                    "$ref": "#/components/parameters/volume_name"
+                },
+                {
+                    "$ref": "#/components/parameters/volume_version"
+                }
+            ],
             "get": {
                 "summary": "Gets one version of a volume",
                 "x-codeSamples": [
@@ -275,14 +373,53 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns a single version of the volume. Address it with `:<tag>` for a tag, `@<digest>` for a content digest of at least 12 hexadecimal characters, or `head` for the version a reference with no tag or digest resolves to. A digest that matches more than one version is rejected: supply more characters.",
+                "description": "Returns a single version of the volume. Address it with `:<tag>` for a tag, `@<digest>` for a full content digest or a prefix of at least 12 hexadecimal characters, or `head` for the version a reference with no tag or digest resolves to. A digest prefix that matches more than one version is rejected: supply more characters.",
                 "responses": {
                     "200": {
                         "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/VolumeVersionV1"
+                                    "$ref": "#/components/schemas/VolumeVersionDetailV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}/restore": {
+            "post": {
+                "summary": "Restores a deleted version of a volume",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}/restore \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"expected_sequence\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}/restore\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'expected_sequence': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns a deleted version to service, provided its recovery deadline has not passed. The tags the version carried when it was deleted are not restored with it, so re-tag it if anything depended on those. Address the version by digest: a deleted version has no tags left to name it by.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RestoreVolumeVersionRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RestoreVolumeVersionResponseV1"
                                 }
                             }
                         }
@@ -9388,6 +9525,57 @@
                 "title": "ListVolumeNamespacesRequestV1",
                 "type": "object"
             },
+            "DeleteVolumeRequestV1": {
+                "properties": {
+                    "expected_sequence": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Revision the volume is expected to be at. When set, the delete fails with a conflict if the volume has changed since, so it cannot act on a volume someone else has pushed to. Take the value from a volume's sequence, or from volume_sequence.",
+                        "title": "Expected Sequence"
+                    }
+                },
+                "title": "DeleteVolumeRequestV1",
+                "type": "object"
+            },
+            "DeleteVolumeResponseV1": {
+                "properties": {
+                    "namespace": {
+                        "description": "Namespace the volume belongs to, in lowercase.",
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name of the volume, in lowercase.",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "versions_deleted": {
+                        "description": "Number of versions this request deleted. Zero when the volume had no live versions left, which is not an error.",
+                        "title": "Versions Deleted",
+                        "type": "integer"
+                    },
+                    "volume_sequence": {
+                        "description": "Revision of the volume after the delete.",
+                        "title": "Volume Sequence",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "name",
+                    "versions_deleted",
+                    "volume_sequence"
+                ],
+                "title": "DeleteVolumeResponseV1",
+                "type": "object"
+            },
             "VolumeVersionV1": {
                 "properties": {
                     "namespace": {
@@ -9457,6 +9645,32 @@
                         "format": "date-time",
                         "title": "Created At",
                         "type": "string"
+                    },
+                    "tombstoned_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "When the version was deleted, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.",
+                        "title": "Tombstoned At"
+                    },
+                    "delete_after": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "When the version stops being restorable, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.",
+                        "title": "Delete After"
                     }
                 },
                 "required": [
@@ -9469,7 +9683,9 @@
                     "is_head",
                     "tags",
                     "total_size_bytes",
-                    "created_at"
+                    "created_at",
+                    "tombstoned_at",
+                    "delete_after"
                 ],
                 "title": "VolumeVersionV1",
                 "type": "object"
@@ -9484,12 +9700,297 @@
                         },
                         "title": "Versions",
                         "type": "array"
+                    },
+                    "volume_sequence": {
+                        "description": "Revision of the volume as a whole when the versions were read. Pass it as expected_sequence on a later delete to make that delete conditional on the volume not having changed since. Distinct from the per-version sequence, which is the revision a version was committed at.",
+                        "title": "Volume Sequence",
+                        "type": "integer"
                     }
                 },
                 "required": [
-                    "versions"
+                    "versions",
+                    "volume_sequence"
                 ],
                 "title": "ListVolumeVersionsResponseV1",
+                "type": "object"
+            },
+            "ListVolumeVersionsRequestV1": {
+                "properties": {
+                    "include_tombstoned": {
+                        "default": false,
+                        "description": "Whether to include deleted versions. A deleted version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.",
+                        "title": "Include Tombstoned",
+                        "type": "boolean"
+                    }
+                },
+                "title": "ListVolumeVersionsRequestV1",
+                "type": "object"
+            },
+            "DeleteVolumeVersionRequestV1": {
+                "properties": {
+                    "expected_sequence": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Revision the volume is expected to be at. When set, the delete fails with a conflict if the volume has changed since, so a read followed by a delete cannot act on a version a tag has since been moved off. Take the value from volume_sequence.",
+                        "title": "Expected Sequence"
+                    }
+                },
+                "title": "DeleteVolumeVersionRequestV1",
+                "type": "object"
+            },
+            "DeleteVolumeVersionResponseV1": {
+                "properties": {
+                    "namespace": {
+                        "description": "Namespace the volume belongs to, in lowercase.",
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume": {
+                        "description": "Name of the volume, in lowercase.",
+                        "title": "Volume",
+                        "type": "string"
+                    },
+                    "version_ref": {
+                        "description": "Full address of the deleted version, as `bdn://<namespace>/<volume>@<digest>`.",
+                        "title": "Version Ref",
+                        "type": "string"
+                    },
+                    "digest": {
+                        "description": "Content digest of the deleted version, as `b3:<hex>`.",
+                        "title": "Digest",
+                        "type": "string"
+                    },
+                    "lifecycle": {
+                        "description": "Lifecycle state of the version after the delete.",
+                        "title": "Lifecycle",
+                        "type": "string"
+                    },
+                    "delete_after": {
+                        "description": "When the version stops being restorable, in ISO 8601 format. Until then it can be returned to service.",
+                        "format": "date-time",
+                        "title": "Delete After",
+                        "type": "string"
+                    },
+                    "volume_sequence": {
+                        "description": "Revision of the volume after the delete.",
+                        "title": "Volume Sequence",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "volume",
+                    "version_ref",
+                    "digest",
+                    "lifecycle",
+                    "delete_after",
+                    "volume_sequence"
+                ],
+                "title": "DeleteVolumeVersionResponseV1",
+                "type": "object"
+            },
+            "VolumeVersionDetailV1": {
+                "description": "One version, with the fields only a single-version read reports.",
+                "properties": {
+                    "namespace": {
+                        "description": "Namespace the volume belongs to, in lowercase.",
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume": {
+                        "description": "Name of the volume, in lowercase.",
+                        "title": "Volume",
+                        "type": "string"
+                    },
+                    "version_ref": {
+                        "description": "Full address of this version, as `bdn://<namespace>/<volume>@<digest>`. Paste this into the `bdn.mounts` section of a config.yaml to pin to it.",
+                        "title": "Version Ref",
+                        "type": "string"
+                    },
+                    "digest": {
+                        "description": "Content digest of the version, as `b3:<hex>`.",
+                        "title": "Digest",
+                        "type": "string"
+                    },
+                    "sequence": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Revision the version was committed at. Null for versions committed before the volume service recorded it.",
+                        "title": "Sequence"
+                    },
+                    "lifecycle": {
+                        "description": "Lifecycle state of the version, for example ALIVE or TOMBSTONED.",
+                        "title": "Lifecycle",
+                        "type": "string"
+                    },
+                    "is_head": {
+                        "description": "Whether the reserved `head` tag points at this version.",
+                        "title": "Is Head",
+                        "type": "boolean"
+                    },
+                    "tags": {
+                        "description": "Tags pointing at this version that your API key can read.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Tags",
+                        "type": "array"
+                    },
+                    "total_size_bytes": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Total size of the version's files in bytes. Null when not recorded.",
+                        "title": "Total Size Bytes"
+                    },
+                    "created_at": {
+                        "description": "When the version was committed, in ISO 8601 format.",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    },
+                    "tombstoned_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "When the version was deleted, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.",
+                        "title": "Tombstoned At"
+                    },
+                    "delete_after": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "When the version stops being restorable, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.",
+                        "title": "Delete After"
+                    },
+                    "entry_count": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Number of files in the version. Null when not recorded.",
+                        "title": "Entry Count"
+                    },
+                    "volume_sequence": {
+                        "description": "Revision of the volume as a whole when this version was read. Pass it as expected_sequence on a later delete to make that delete conditional on the volume not having changed since.",
+                        "title": "Volume Sequence",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "volume",
+                    "version_ref",
+                    "digest",
+                    "sequence",
+                    "lifecycle",
+                    "is_head",
+                    "tags",
+                    "total_size_bytes",
+                    "created_at",
+                    "tombstoned_at",
+                    "delete_after",
+                    "entry_count",
+                    "volume_sequence"
+                ],
+                "title": "VolumeVersionDetailV1",
+                "type": "object"
+            },
+            "RestoreVolumeVersionRequestV1": {
+                "properties": {
+                    "expected_sequence": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Revision the volume is expected to be at. When set, the restore fails with a conflict if the volume has changed since. Take the value from volume_sequence.",
+                        "title": "Expected Sequence"
+                    }
+                },
+                "title": "RestoreVolumeVersionRequestV1",
+                "type": "object"
+            },
+            "RestoreVolumeVersionResponseV1": {
+                "properties": {
+                    "namespace": {
+                        "description": "Namespace the volume belongs to, in lowercase.",
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume": {
+                        "description": "Name of the volume, in lowercase.",
+                        "title": "Volume",
+                        "type": "string"
+                    },
+                    "version_ref": {
+                        "description": "Full address of the restored version, as `bdn://<namespace>/<volume>@<digest>`.",
+                        "title": "Version Ref",
+                        "type": "string"
+                    },
+                    "digest": {
+                        "description": "Content digest of the restored version, as `b3:<hex>`.",
+                        "title": "Digest",
+                        "type": "string"
+                    },
+                    "lifecycle": {
+                        "description": "Lifecycle state of the version after the restore.",
+                        "title": "Lifecycle",
+                        "type": "string"
+                    },
+                    "volume_sequence": {
+                        "description": "Revision of the volume after the restore.",
+                        "title": "Volume Sequence",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "volume",
+                    "version_ref",
+                    "digest",
+                    "lifecycle",
+                    "volume_sequence"
+                ],
+                "title": "RestoreVolumeVersionResponseV1",
                 "type": "object"
             },
             "SecretV1": {
@@ -10529,6 +11030,9 @@
                                 "USER_REMOVED": "#/components/schemas/AuditLogEventUserRemovedV1",
                                 "USER_ROLE_UPDATED": "#/components/schemas/AuditLogEventUserRoleUpdatedV1",
                                 "USER_TEAM_ROLE_UPDATED": "#/components/schemas/AuditLogEventUserTeamRoleUpdatedV1",
+                                "VOLUME_DELETED": "#/components/schemas/AuditLogEventVolumeDeletedV1",
+                                "VOLUME_VERSION_DELETED": "#/components/schemas/AuditLogEventVolumeVersionDeletedV1",
+                                "VOLUME_VERSION_RESTORED": "#/components/schemas/AuditLogEventVolumeVersionRestoredV1",
                                 "WEBHOOK_SIGNING_SECRET_CREATED": "#/components/schemas/AuditLogEventWebhookSigningSecretCreatedV1",
                                 "WEBHOOK_SIGNING_SECRET_DELETED": "#/components/schemas/AuditLogEventWebhookSigningSecretDeletedV1",
                                 "WEBHOOK_SIGNING_SECRET_ROTATED": "#/components/schemas/AuditLogEventWebhookSigningSecretRotatedV1"
@@ -10664,6 +11168,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventSshCertificateSignedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventVolumeDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventVolumeVersionDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventVolumeVersionRestoredV1"
                             }
                         ],
                         "title": "Event Data"
@@ -13513,7 +14026,10 @@
                     "ENVIRONMENT_DELETED",
                     "REPLICA_TERMINATED",
                     "MODEL_PROMOTION_CONTROL_ACTION",
-                    "SSH_CERTIFICATE_SIGNED"
+                    "SSH_CERTIFICATE_SIGNED",
+                    "VOLUME_DELETED",
+                    "VOLUME_VERSION_DELETED",
+                    "VOLUME_VERSION_RESTORED"
                 ],
                 "title": "AuditLogEventTypeV1",
                 "type": "string"
@@ -13661,6 +14177,124 @@
                     "new_role_name"
                 ],
                 "title": "AuditLogEventUserTeamRoleUpdatedV1",
+                "type": "object"
+            },
+            "AuditLogEventVolumeDeletedV1": {
+                "additionalProperties": false,
+                "description": "A volume was deleted, tombstoning every version it still held.",
+                "properties": {
+                    "event_type": {
+                        "const": "VOLUME_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "namespace": {
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume_name": {
+                        "title": "Volume Name",
+                        "type": "string"
+                    },
+                    "versions_deleted": {
+                        "title": "Versions Deleted",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "volume_ref",
+                    "namespace",
+                    "volume_name",
+                    "versions_deleted"
+                ],
+                "title": "AuditLogEventVolumeDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventVolumeVersionDeletedV1": {
+                "additionalProperties": false,
+                "description": "One version of a volume was deleted.",
+                "properties": {
+                    "event_type": {
+                        "const": "VOLUME_VERSION_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "namespace": {
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume_name": {
+                        "title": "Volume Name",
+                        "type": "string"
+                    },
+                    "version": {
+                        "title": "Version",
+                        "type": "string"
+                    },
+                    "digest": {
+                        "title": "Digest",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "volume_ref",
+                    "namespace",
+                    "volume_name",
+                    "version",
+                    "digest"
+                ],
+                "title": "AuditLogEventVolumeVersionDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventVolumeVersionRestoredV1": {
+                "additionalProperties": false,
+                "description": "A deleted version of a volume was restored.",
+                "properties": {
+                    "event_type": {
+                        "const": "VOLUME_VERSION_RESTORED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "namespace": {
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume_name": {
+                        "title": "Volume Name",
+                        "type": "string"
+                    },
+                    "version": {
+                        "title": "Version",
+                        "type": "string"
+                    },
+                    "digest": {
+                        "title": "Digest",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "volume_ref",
+                    "namespace",
+                    "volume_name",
+                    "version",
+                    "digest"
+                ],
+                "title": "AuditLogEventVolumeVersionRestoredV1",
                 "type": "object"
             },
             "AuditLogEventWebhookSigningSecretCreatedV1": {
@@ -24476,6 +25110,18 @@
                         ],
                         "default": null,
                         "title": "Release Date"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Description"
                     }
                 },
                 "required": [
@@ -25150,7 +25796,7 @@
                     },
                     "kind": {
                         "$ref": "#/components/schemas/ResourceKind",
-                        "description": "Resource kind (MODEL_DEPLOYMENT, TRAINING_JOB, or CHAINLET)"
+                        "description": "Resource kind (MODEL_DEPLOYMENT, CHAINLET, TRAINING_JOB, LOOPS_TRAINER, or LOOPS_SAMPLER)"
                     },
                     "name": {
                         "anyOf": [
@@ -25208,6 +25854,19 @@
                         "default": null,
                         "description": "Instance type used",
                         "title": "Instance Type"
+                    },
+                    "base_model": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Base model used by this Loops trainer or sampler",
+                        "title": "Base Model"
                     },
                     "environment_name": {
                         "anyOf": [
@@ -25719,6 +26378,8 @@
             },
             "ResourceKind": {
                 "enum": [
+                    "LOOPS_SAMPLER",
+                    "LOOPS_TRAINER",
                     "MODEL_DEPLOYMENT",
                     "TRAINING_JOB",
                     "CHAINLET"

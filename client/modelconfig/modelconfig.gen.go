@@ -734,6 +734,22 @@ type ModelTRTLLMRuntimeConfiguration struct {
 	// "kv_cache_host_memory_bytes".
 	KvCacheHostMemoryBytes *int `json:"kv_cache_host_memory_bytes,omitempty,omitzero" yaml:"kv_cache_host_memory_bytes,omitempty"`
 
+	// LoraCacheGpuMemoryFraction corresponds to the JSON schema field
+	// "lora_cache_gpu_memory_fraction".
+	LoraCacheGpuMemoryFraction *float64 `json:"lora_cache_gpu_memory_fraction,omitempty,omitzero" yaml:"lora_cache_gpu_memory_fraction,omitempty"`
+
+	// LoraCacheHostMemoryBytes corresponds to the JSON schema field
+	// "lora_cache_host_memory_bytes".
+	LoraCacheHostMemoryBytes *int `json:"lora_cache_host_memory_bytes,omitempty,omitzero" yaml:"lora_cache_host_memory_bytes,omitempty"`
+
+	// LoraCacheMaxAdapterSize corresponds to the JSON schema field
+	// "lora_cache_max_adapter_size".
+	LoraCacheMaxAdapterSize *int `json:"lora_cache_max_adapter_size,omitempty,omitzero" yaml:"lora_cache_max_adapter_size,omitempty"`
+
+	// LoraCacheOptimalAdapterSize corresponds to the JSON schema field
+	// "lora_cache_optimal_adapter_size".
+	LoraCacheOptimalAdapterSize *int `json:"lora_cache_optimal_adapter_size,omitempty,omitzero" yaml:"lora_cache_optimal_adapter_size,omitempty"`
+
 	// RequestDefaultMaxTokens corresponds to the JSON schema field
 	// "request_default_max_tokens".
 	RequestDefaultMaxTokens *int `json:"request_default_max_tokens,omitempty,omitzero" yaml:"request_default_max_tokens,omitempty"`
