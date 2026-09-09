@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"cmp"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"slices"
 	"strconv"
 	"strings"
@@ -530,48 +532,33 @@ func appendJSONString(out []byte, s string) []byte {
 // this client. What is checked is what a wrong answer would corrupt, namely
 // the digests, the modes, and the header's accounting of the entries.
 
-// wireDiscriminator reads just enough of a record to dispatch it.
+// wireDiscriminator reads just enough of a record to dispatch it. It is only
+// for a record that would not parse in its document's combined shape; see
+// skippableRecord.
 type wireDiscriminator struct {
 	Type string `json:"_type"`
 }
 
-type wireManifestHeader struct {
+// wireRecord is every manifest record in one shape: the header's accounting,
+// the provenance, and the three entry kinds. A record is parsed ONCE and
+// dispatched on Type afterwards, rather than being parsed to find its type
+// and then parsed again to read it. A manifest is one record per entry, so on
+// a large volume that second pass is the decode's largest cost and it reads
+// bytes already in hand.
+//
+// Which fields carry meaning depends on Type, and the dispatch is what says
+// so. A key two record types spell differently has to stay raw, which is why
+// Target is: a symlink's is a string and a file's is an object.
+type wireRecord struct {
+	Type string `json:"_type"`
+
 	EntryCount uint64 `json:"entry_count"`
 	TotalSize  uint64 `json:"total_size"`
-}
 
-type wireProvenance struct {
 	SourceFingerprint     string `json:"source_fingerprint"`
 	SourceFingerprintType string `json:"source_fingerprint_type"`
 	SourceURI             string `json:"source_uri"`
-}
 
-type wireDirectory struct {
-	Mode  string          `json:"mode"`
-	MTime json.RawMessage `json:"mtime"`
-	Path  string          `json:"path"`
-}
-
-type wireSymlink struct {
-	Mode   string          `json:"mode"`
-	MTime  json.RawMessage `json:"mtime"`
-	Path   string          `json:"path"`
-	Target string          `json:"target"`
-}
-
-type wireChunkmapHeader struct {
-	ChunkCount uint64 `json:"chunk_count"`
-	FileSize   uint64 `json:"file_size"`
-}
-
-type wireChunk struct {
-	Digest string `json:"digest"`
-	Length uint64 `json:"length"`
-	Offset uint64 `json:"offset"`
-	Target Target `json:"target"`
-}
-
-type wireFile struct {
 	Kind       string          `json:"_kind"`
 	Chunk      *wireChunk      `json:"chunk"`
 	Digest     string          `json:"digest"`
@@ -580,96 +567,239 @@ type wireFile struct {
 	MTime      json.RawMessage `json:"mtime"`
 	Path       string          `json:"path"`
 	Size       uint64          `json:"size"`
-	Target     Target          `json:"target"`
+	Target     json.RawMessage `json:"target"`
+}
+
+// manifestRecordTypes are the record types the manifest decoder reads. A type
+// outside this set is skipped, and skipping it is what lets it carry keys
+// these shapes spell differently.
+var manifestRecordTypes = map[string]bool{
+	"manifest_header": true,
+	"provenance":      true,
+	"directory":       true,
+	"symlink":         true,
+	"file":            true,
+}
+
+// wireChunk is one chunk, whether inline in a file record or standing as a
+// chunkmap's own record.
+type wireChunk struct {
+	Digest string `json:"digest"`
+	Length uint64 `json:"length"`
+	Offset uint64 `json:"offset"`
+	Target Target `json:"target"`
+}
+
+// wireChunkmapRecord is every chunkmap record in one shape, parsed once and
+// dispatched like wireRecord. A chunkmap is one record per chunk of one file,
+// which is the read a download does most.
+type wireChunkmapRecord struct {
+	Type       string `json:"_type"`
+	ChunkCount uint64 `json:"chunk_count"`
+	FileSize   uint64 `json:"file_size"`
+	wireChunk
+}
+
+var chunkmapRecordTypes = map[string]bool{
+	"chunkmap_header": true,
+	"chunk":           true,
+}
+
+// skippableRecord decides what a record that would not parse in its
+// document's combined shape means: nothing when it is a type the decoder does
+// not read, and the parse error when it is one it does.
+//
+// Parsing once is what makes this necessary. A record type this client does
+// not know yet can spell a key these shapes also use with another JSON type,
+// and ignoring it outright is what parsing the type first bought for free.
+func skippableRecord(line []byte, known map[string]bool) bool {
+	var d wireDiscriminator
+	if err := json.Unmarshal(line, &d); err != nil {
+		return false
+	}
+	return !known[d.Type]
 }
 
 // DecodeManifest parses canonical JSONL manifest bytes.
 func DecodeManifest(body []byte) (*Manifest, error) {
-	m := &Manifest{}
-	var header *wireManifestHeader
-	var seenProvenance bool
-	err := eachRecord(body, func(line []byte, typ string) error {
-		switch typ {
-		case "manifest_header":
-			if header != nil {
-				return fmt.Errorf("more than one manifest_header record")
-			}
-			header = &wireManifestHeader{}
-			return json.Unmarshal(line, header)
-		case "provenance":
-			// The format allows exactly one. Two would mean the manifest
-			// disagrees with itself about where it came from, and taking
-			// either would be a guess. Zero is tolerated: provenance describes
-			// the manifest rather than its contents, so a manifest without it
-			// still materializes correctly.
-			if seenProvenance {
-				return fmt.Errorf("more than one provenance record")
-			}
-			seenProvenance = true
-
-			var w wireProvenance
-			if err := json.Unmarshal(line, &w); err != nil {
-				return err
-			}
-			m.Provenance = Provenance(w)
-			return nil
-		case "directory":
-			var w wireDirectory
-			if err := json.Unmarshal(line, &w); err != nil {
-				return err
-			}
-			mode, err := parseMode(w.Mode)
-			if err != nil {
-				return err
-			}
-			mtime, err := parseMTime(w.MTime)
-			if err != nil {
-				return fmt.Errorf("directory %q: %w", w.Path, err)
-			}
-			m.Directories = append(m.Directories, DirectoryEntry{Path: m.normalizeEntryPath(w.Path), Mode: mode, MTime: mtime})
-			return nil
-		case "symlink":
-			var w wireSymlink
-			if err := json.Unmarshal(line, &w); err != nil {
-				return err
-			}
-			mode, err := parseMode(w.Mode)
-			if err != nil {
-				return err
-			}
-			mtime, err := parseMTime(w.MTime)
-			if err != nil {
-				return fmt.Errorf("symlink %q: %w", w.Path, err)
-			}
-			m.Symlinks = append(m.Symlinks, SymlinkEntry{Path: m.normalizeEntryPath(w.Path), Target: w.Target, Mode: mode, MTime: mtime})
-			return nil
-		case "file":
-			f, err := decodeFile(line)
-			if err != nil {
-				return err
-			}
-			f.Path = m.normalizeEntryPath(f.Path)
-			m.Files = append(m.Files, f)
-			return nil
-		default:
-			// An unknown record type is a field this client does not need
-			// yet, not a corrupt manifest.
-			return nil
-		}
-	})
-	if err != nil {
+	d := &manifestDecoder{m: &Manifest{}}
+	if err := eachRecord(body, d.record); err != nil {
 		return nil, fmt.Errorf("decode manifest: %w", err)
 	}
-	if header == nil {
-		return nil, fmt.Errorf("decode manifest: no manifest_header record")
+	if err := d.finish(); err != nil {
+		return nil, err
 	}
-	if got := m.EntryCount(); got != header.EntryCount {
-		return nil, fmt.Errorf("decode manifest: header claims %d entries, found %d", header.EntryCount, got)
+	return d.m, nil
+}
+
+// ManifestTotals is a manifest header's own accounting of the version: every
+// entry the document carried and the sum of the file sizes. They are the
+// numbers BEFORE any filter, which is why a filtered decode returns them
+// rather than leaving the caller to sum what it kept.
+//
+// Returned beside the manifest rather than carried on it. A Manifest is also
+// built by a scan and by SelectEntries, neither of which has read a header,
+// so on those the fields would read as zero totals rather than absent ones,
+// and EncodeManifest derives the header it writes from the entries: a
+// decoded manifest re-encoded after any edit would carry a claim that
+// disagrees with its own bytes. What the entries add up to is
+// Manifest.EntryCount and Manifest.TotalSize; this is what the document said.
+type ManifestTotals struct {
+	EntryCount uint64
+	TotalSize  uint64
+}
+
+// DecodeManifestStream decodes a manifest from a reader, keeping only the
+// entries keep returns true for. A nil keep keeps everything, which makes
+// this DecodeManifest reading a stream.
+//
+// keep is called once per entry, in the order the records arrive rather than
+// canonical order, so it must not depend on entries it has not seen; the
+// entries in the returned manifest are canonically ordered as always. It
+// saves memory and nothing else: the whole stream is read either way, since a
+// manifest's digest covers all of it and a prefix's digest matches nothing.
+//
+// The reader is read to EOF even when nothing is kept, so a caller hashing
+// what it feeds in ends up with the digest of the whole object.
+func DecodeManifestStream(r io.Reader, keep func(Entry) bool) (*Manifest, ManifestTotals, error) {
+	d := &manifestDecoder{m: &Manifest{}, keep: keep}
+	if err := eachRecordStream(r, d.record); err != nil {
+		return nil, ManifestTotals{}, fmt.Errorf("decode manifest: %w", err)
 	}
-	if got := m.TotalSize(); got != header.TotalSize {
-		return nil, fmt.Errorf("decode manifest: header claims %d total bytes, files sum to %d", header.TotalSize, got)
+	if err := d.finish(); err != nil {
+		return nil, ManifestTotals{}, err
 	}
-	return m, nil
+	return d.m, ManifestTotals{EntryCount: d.entryCount, TotalSize: d.totalSize}, nil
+}
+
+// manifestDecoder accumulates a manifest one record at a time, so the byte
+// and stream decoders parse identically rather than each carrying a copy of
+// the same switch.
+//
+// entryCount and totalSize are tracked over every entry the records carried,
+// not over the ones kept, which is what lets the header's accounting be
+// checked even when keep discarded most of the manifest.
+type manifestDecoder struct {
+	m    *Manifest
+	keep func(Entry) bool
+
+	header         *wireRecord
+	seenProvenance bool
+	entryCount     uint64
+	totalSize      uint64
+}
+
+func (d *manifestDecoder) record(line []byte) error {
+	var w wireRecord
+	if err := json.Unmarshal(line, &w); err != nil {
+		if skippableRecord(line, manifestRecordTypes) {
+			return nil
+		}
+		return err
+	}
+
+	switch w.Type {
+	case "manifest_header":
+		if d.header != nil {
+			return fmt.Errorf("more than one manifest_header record")
+		}
+		header := w
+		d.header = &header
+		return nil
+	case "provenance":
+		// The format allows exactly one. Two would mean the manifest
+		// disagrees with itself about where it came from, and taking
+		// either would be a guess. Zero is tolerated: provenance describes
+		// the manifest rather than its contents, so a manifest without it
+		// still materializes correctly.
+		if d.seenProvenance {
+			return fmt.Errorf("more than one provenance record")
+		}
+		d.seenProvenance = true
+		d.m.Provenance = Provenance{
+			SourceFingerprint:     w.SourceFingerprint,
+			SourceFingerprintType: w.SourceFingerprintType,
+			SourceURI:             w.SourceURI,
+		}
+		return nil
+	case "directory":
+		mode, err := parseMode(w.Mode)
+		if err != nil {
+			return err
+		}
+		mtime, err := parseMTime(w.MTime)
+		if err != nil {
+			return fmt.Errorf("directory %q: %w", w.Path, err)
+		}
+		entry := DirectoryEntry{Path: d.normalizeEntryPath(w.Path), Mode: mode, MTime: mtime}
+		d.entryCount++
+		if d.kept(DirectoryEntryOf(entry)) {
+			d.m.Directories = append(d.m.Directories, entry)
+		}
+		return nil
+	case "symlink":
+		mode, err := parseMode(w.Mode)
+		if err != nil {
+			return err
+		}
+		mtime, err := parseMTime(w.MTime)
+		if err != nil {
+			return fmt.Errorf("symlink %q: %w", w.Path, err)
+		}
+		target, err := decodeSymlinkTarget(w.Target)
+		if err != nil {
+			return fmt.Errorf("symlink %q: %w", w.Path, err)
+		}
+		entry := SymlinkEntry{Path: d.normalizeEntryPath(w.Path), Target: target, Mode: mode, MTime: mtime}
+		d.entryCount++
+		if d.kept(SymlinkEntryOf(entry)) {
+			d.m.Symlinks = append(d.m.Symlinks, entry)
+		}
+		return nil
+	case "file":
+		f, err := decodeFile(w)
+		if err != nil {
+			return err
+		}
+		f.Path = d.normalizeEntryPath(f.Path)
+		d.entryCount++
+		d.totalSize += f.Size
+		if d.kept(FileEntryOf(f)) {
+			d.m.Files = append(d.m.Files, f)
+		}
+		return nil
+	default:
+		// An unknown record type is a field this client does not need
+		// yet, not a corrupt manifest.
+		return nil
+	}
+}
+
+// kept asks the filter, if there is one.
+func (d *manifestDecoder) kept(entry Entry) bool {
+	return d.keep == nil || d.keep(entry)
+}
+
+// normalizeEntryPath is the manifest's own normalization, recorded on the
+// manifest whether or not the entry survives the filter: what the wire
+// spelled is a property of the document, and a caller filtering to one
+// subtree should still hear that the version carries pre-rule paths.
+func (d *manifestDecoder) normalizeEntryPath(path string) string {
+	return d.m.normalizeEntryPath(path)
+}
+
+// finish checks what only a complete document can be checked against.
+func (d *manifestDecoder) finish() error {
+	if d.header == nil {
+		return fmt.Errorf("decode manifest: no manifest_header record")
+	}
+	if d.entryCount != d.header.EntryCount {
+		return fmt.Errorf("decode manifest: header claims %d entries, found %d", d.header.EntryCount, d.entryCount)
+	}
+	if d.totalSize != d.header.TotalSize {
+		return fmt.Errorf("decode manifest: header claims %d total bytes, files sum to %d", d.header.TotalSize, d.totalSize)
+	}
+	return nil
 }
 
 // normalizeEntryPath strips the leading slashes an entry path can carry in a
@@ -719,11 +849,22 @@ func ValidateObjectTarget(t Target) error {
 	return nil
 }
 
-func decodeFile(line []byte) (FileEntry, error) {
-	var w wireFile
-	if err := json.Unmarshal(line, &w); err != nil {
-		return FileEntry{}, err
+// decodeSymlinkTarget reads a symlink's target, which the wire spells as a
+// string where a file record spells its target as an object, which is why the
+// combined record holds the field raw. An absent target is the empty string,
+// as it was when the field was typed.
+func decodeSymlinkTarget(raw json.RawMessage) (string, error) {
+	if len(raw) == 0 {
+		return "", nil
 	}
+	var target string
+	if err := json.Unmarshal(raw, &target); err != nil {
+		return "", err
+	}
+	return target, nil
+}
+
+func decodeFile(w wireRecord) (FileEntry, error) {
 	mode, err := parseMode(w.Mode)
 	if err != nil {
 		return FileEntry{}, err
@@ -732,14 +873,13 @@ func decodeFile(line []byte) (FileEntry, error) {
 	if err != nil {
 		return FileEntry{}, fmt.Errorf("file %q: %w", w.Path, err)
 	}
-	// Target is copied for every kind, but for FileKindChunk it is inert, and
-	// the inertness is load-bearing: the encoder never emits a file-level
-	// target for chunk entries and no read path consults it — the inline
-	// chunk's own validated target is what a read follows. The switch below
-	// validates the field only for the kinds that use it, so an encoder that
-	// ever starts emitting it for chunk entries must add its validation here
-	// in the same change.
-	f := FileEntry{Path: w.Path, Mode: mode, Kind: FileKind(w.Kind), Size: w.Size, Target: w.Target, MTime: mtime}
+	// The file-level target is read only for the kinds that name an object
+	// with it, and that is load-bearing rather than an economy: the encoder
+	// never emits one for a FileKindChunk entry and no read path consults it,
+	// since the inline chunk's own validated target is what a read follows. So an
+	// encoder that ever starts emitting it for chunk entries has to add both
+	// the read and its validation here in the same change.
+	f := FileEntry{Path: w.Path, Mode: mode, Kind: FileKind(w.Kind), Size: w.Size, MTime: mtime}
 	switch f.Kind {
 	case FileKindChunk:
 		if w.Chunk == nil {
@@ -752,6 +892,11 @@ func decodeFile(line []byte) (FileEntry, error) {
 	case FileKindChunkmap, FileKindSlabmap:
 		if f.Digest, err = ParseDigest(w.Digest); err != nil {
 			return FileEntry{}, fmt.Errorf("file %q: %w", w.Path, err)
+		}
+		if len(w.Target) > 0 {
+			if err := json.Unmarshal(w.Target, &f.Target); err != nil {
+				return FileEntry{}, fmt.Errorf("file %q: target: %w", w.Path, err)
+			}
 		}
 		if err := ValidateObjectTarget(f.Target); err != nil {
 			return FileEntry{}, fmt.Errorf("file %q: %w", w.Path, err)
@@ -782,21 +927,25 @@ func decodeChunkRef(w wireChunk) (ChunkRef, error) {
 // chunks tile the file.
 func DecodeChunkmap(body []byte) (*Chunkmap, error) {
 	c := &Chunkmap{}
-	var header *wireChunkmapHeader
-	err := eachRecord(body, func(line []byte, typ string) error {
-		switch typ {
+	var header *wireChunkmapRecord
+	err := eachRecord(body, func(line []byte) error {
+		var w wireChunkmapRecord
+		if err := json.Unmarshal(line, &w); err != nil {
+			if skippableRecord(line, chunkmapRecordTypes) {
+				return nil
+			}
+			return err
+		}
+		switch w.Type {
 		case "chunkmap_header":
 			if header != nil {
 				return fmt.Errorf("more than one chunkmap_header record")
 			}
-			header = &wireChunkmapHeader{}
-			return json.Unmarshal(line, header)
+			record := w
+			header = &record
+			return nil
 		case "chunk":
-			var w wireChunk
-			if err := json.Unmarshal(line, &w); err != nil {
-				return err
-			}
-			ref, err := decodeChunkRef(w)
+			ref, err := decodeChunkRef(w.wireChunk)
 			if err != nil {
 				return err
 			}
@@ -862,10 +1011,10 @@ func parseMTime(raw json.RawMessage) (time.Time, error) {
 	return t, nil
 }
 
-// eachRecord splits JSONL bytes into records and hands each to fn with its
-// _type already read. Empty lines are skipped, so a trailing newline is
-// accepted and so is its absence.
-func eachRecord(body []byte, fn func(line []byte, typ string) error) error {
+// eachRecord splits JSONL bytes into records and hands each to fn, which
+// parses it. Empty lines are skipped, so a trailing newline is accepted and so
+// is its absence.
+func eachRecord(body []byte, fn func(line []byte) error) error {
 	for n := 0; len(body) > 0; n++ {
 		line := body
 		if i := bytes.IndexByte(body, '\n'); i >= 0 {
@@ -876,14 +1025,42 @@ func eachRecord(body []byte, fn func(line []byte, typ string) error) error {
 		if len(line) == 0 {
 			continue
 		}
-		var d wireDiscriminator
-		if err := json.Unmarshal(line, &d); err != nil {
-			return fmt.Errorf("record %d: %w", n, err)
-		}
-		if err := fn(line, d.Type); err != nil {
+		if err := fn(line); err != nil {
 			return fmt.Errorf("record %d: %w", n, err)
 		}
 	}
+	return nil
+}
+
+// eachRecordStream is eachRecord over a reader, for a document too large to
+// hold: it hands fn each record as the read reaches it, and reads to EOF.
+//
+// Records are taken as a stream of JSON values rather than split on newlines,
+// which is what avoids inventing a maximum record length: a line is as long
+// as its longest path, and no bound on that is both safe and obviously
+// enough. The framing is looser than eachRecord's as a result: two records on
+// one line parse here and fail there. Decoding is deliberately the lenient
+// direction, and every producer writes one record per line.
+func eachRecordStream(r io.Reader, fn func(line []byte) error) error {
+	dec := json.NewDecoder(r)
+	for n := 0; ; n++ {
+		var line json.RawMessage
+		if err := dec.Decode(&line); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return fmt.Errorf("record %d: %w", n, err)
+		}
+		if err := fn(line); err != nil {
+			return fmt.Errorf("record %d: %w", n, err)
+		}
+	}
+	// Nothing is drained here, and nothing needs to be: the Decode that ends
+	// the loop reads the trailing whitespace before it reports EOF, and
+	// trailing bytes that are not whitespace fail that Decode instead of
+	// being left behind. So a successful loop has read the reader to EOF,
+	// which is what a caller hashing what it feeds in depends on
+	// (TestDecodeManifestStreamReadsToEOF is the guard).
 	return nil
 }
 

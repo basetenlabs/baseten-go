@@ -1,4 +1,4 @@
-package separatemoduletests_test
+package volume_test
 
 import (
 	"bytes"
@@ -23,7 +23,7 @@ import (
 
 func pullOptions(dest string, f *fakeService) transfer.PullOptions {
 	return transfer.PullOptions{
-		Ref:            fakeNamespace + "/" + fakeVolume,
+		Ref:            bdn.ResolveRequest{Namespace: fakeNamespace, Volume: fakeVolume},
 		DestDir:        dest,
 		NewHasher:      newBlake3,
 		Decompress:     newZstdReader,
@@ -108,8 +108,8 @@ func TestPullReproducesTheTree(t *testing.T) {
 	if result.Files != 5 || result.SelectedFiles != 5 || result.TotalFiles != 5 {
 		t.Errorf("files %d, selected %d, total %d", result.Files, result.SelectedFiles, result.TotalFiles)
 	}
-	if !strings.HasSuffix(result.VersionRef, "@"+result.ManifestDigest.String()) {
-		t.Errorf("version ref %q is not pinned to the digest", result.VersionRef)
+	if result.ManifestDigest.Hex() == "" {
+		t.Error("the result names no version")
 	}
 	// Nothing was on disk beforehand, and the empty file's zero-length chunk
 	// counts as neither fetched nor reused.
@@ -457,7 +457,7 @@ func TestPullPinnedRef(t *testing.T) {
 
 	dest := filepath.Join(t.TempDir(), "pinned")
 	opts := pullOptions(dest, fake)
-	opts.Ref = fakeNamespace + "/" + fakeVolume + "@" + first
+	opts.Ref = bdn.ResolveRequest{Namespace: fakeNamespace, Volume: fakeVolume, Digest: first}
 	result, err := transfer.Pull(context.Background(), fake.client(t), opts)
 	if err != nil {
 		t.Fatal(err)

@@ -35,13 +35,9 @@ func (p *pusher) loadPriorVersion(ctx context.Context) *priorVersion {
 		return nil
 	}
 
-	// The ref is built through Ref rather than concatenated, because the
-	// server requires the bdn:// scheme and rejects a bare "namespace/volume"
-	// outright. Getting that wrong is invisible from here: every failure on
-	// this path is soft, so the reuse would simply never happen and nothing
-	// would say so.
-	ref := bdn.Ref{Namespace: p.opts.Namespace, Volume: p.opts.Volume}
-	resolved, err := p.client.Resolve(ctx, ref.String())
+	// No selector: the previous version is whatever head points at now.
+	resolved, err := p.client.Resolve(ctx, bdn.ResolveRequest{
+		Namespace: p.opts.Namespace, Volume: p.opts.Volume})
 	if err != nil {
 		return nil
 	}

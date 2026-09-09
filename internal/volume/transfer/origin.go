@@ -2,6 +2,7 @@ package transfer
 
 import (
 	"context"
+	"io"
 	"sync"
 	"time"
 
@@ -24,7 +25,7 @@ const credentialMargin = time.Minute
 // could quietly switch versions in the middle of a download.
 type origin struct {
 	client    *bdn.Client
-	ref       bdn.Ref
+	ref       bdn.ResolveRequest
 	namespace string
 
 	mu    sync.Mutex
@@ -40,7 +41,7 @@ type origin struct {
 	renewable bool
 }
 
-func newOrigin(client *bdn.Client, ref bdn.Ref, org string, lease bdn.Origin) *origin {
+func newOrigin(client *bdn.Client, ref bdn.ResolveRequest, org string, lease bdn.Origin) *origin {
 	return &origin{client: client, ref: ref, namespace: ref.Namespace, org: org, lease: lease, renewable: true}
 }
 
@@ -51,7 +52,7 @@ func (o *origin) request(ctx context.Context, target volume.Target, size int64) 
 	defer o.mu.Unlock()
 
 	if o.renewable && !o.lease.ExpiresAt.IsZero() && time.Until(o.lease.ExpiresAt) < credentialMargin {
-		resolved, err := o.client.Resolve(ctx, o.ref.String())
+		resolved, err := o.client.Resolve(ctx, o.ref)
 		if err != nil {
 			return volume.ObjectDownload{}, err
 		}
@@ -77,6 +78,23 @@ func (o *origin) request(ctx context.Context, target volume.Target, size int64) 
 		},
 		ExpectedSize: size,
 	}, nil
+}
+
+// stream opens one object for reading rather than holding it in memory,
+// decoded according to the media type the store reports. The caller closes
+// what comes back.
+func (o *origin) stream(
+	ctx context.Context,
+	download volume.ObjectDownloader,
+	decompress volume.Decompressor,
+	target volume.Target,
+	size int64,
+) (io.ReadCloser, error) {
+	req, err := o.request(ctx, target, size)
+	if err != nil {
+		return nil, err
+	}
+	return volume.OpenObject(ctx, download, decompress, req)
 }
 
 // fetch reads one object whole, decoding it according to the media type the

@@ -66,17 +66,59 @@ func volumeTwinPairs() []twinPair {
 		{name: "VolumeObjectDownload", public: VolumeObjectDownload{}, internal: internal.ObjectDownload{}},
 		{name: "VolumeObjectResult", public: VolumeObjectResult{}, internal: internal.ObjectResult{}},
 		{name: "VolumeWarning", public: VolumeWarning{}, internal: internal.ContainmentWarning{}},
-		{name: "PushVolumeResult", public: PushVolumeResult{}, internal: transfer.PushResult{}},
-		{name: "DownloadVolumeResult", public: DownloadVolumeResult{}, internal: transfer.PullResult{}},
 		{
-			name: "PushVolumeOptions", public: PushVolumeOptions{}, internal: transfer.PushOptions{},
+			name: "VolumeEntry", public: VolumeEntry{}, internal: internal.Entry{},
+			// Both renames say the same thing: the public name is what a Go
+			// caller expects, the internal one is what the wire calls it.
+			renamed: map[string]string{"ModTime": "MTime", "LinkTarget": "Target"},
+		},
+		// Both results name the version they settled on. Publicly that is a
+		// ref pinned to the digest, since a ref is what a caller quotes back;
+		// internally it is the digest alone, because rendering a ref is the
+		// boundary's job and the engine never needed the rendered form.
+		{
+			name: "PushVolumeResult", public: PushVolumeResult{}, internal: transfer.PushResult{},
+			renamed: map[string]string{"VersionRef": "ManifestDigest"},
+		},
+		{
+			name: "PullVolumeResult", public: PullVolumeResult{}, internal: transfer.PullResult{},
+			renamed: map[string]string{"VersionRef": "ManifestDigest"},
+		},
+		{
+			name: "VolumeManifest", public: VolumeManifest{}, internal: transfer.ManifestResult{},
+			// Entries are the flattened public form of the internal manifest's
+			// three per-record-type slices, which is what volume.Entry is for.
+			renamed: map[string]string{"VersionRef": "ManifestDigest", "Entries": "Manifest"},
+		},
+		{
+			name: "FetchVolumeManifestOptions", public: FetchVolumeManifestOptions{}, internal: transfer.ManifestOptions{},
 			renamed:      map[string]string{"Hasher": "NewHasher"},
 			publicOnly:   seamOnly,
 			internalOnly: seamInternal,
 		},
 		{
-			name: "DownloadVolumeOptions", public: DownloadVolumeOptions{}, internal: transfer.PullOptions{},
-			renamed:      map[string]string{"Hasher": "NewHasher"},
+			name: "PushVolumeOptions", public: PushVolumeOptions{}, internal: transfer.PushOptions{},
+			renamed: map[string]string{"Hasher": "NewHasher"},
+			publicOnly: map[string]string{
+				"Store": seamOnly["Store"],
+				"Ref": "a push names its volume with one VolumeRef; the engine is handed the two parts it needs, " +
+					"since it never sees a selector or a path and a ref it cannot fully honour would invite one",
+			},
+			internalOnly: map[string]string{
+				"DownloadObject": seamInternal["DownloadObject"],
+				"Decompress":     seamInternal["Decompress"],
+				"Limiter":        seamInternal["Limiter"],
+				"Namespace":      "the namespace of the public Ref, folded to lowercase in the translation",
+				"Volume":         "the volume of the public Ref, folded to lowercase in the translation",
+			},
+		},
+		{
+			name: "PullVolumeOptions", public: PullVolumeOptions{}, internal: transfer.PullOptions{},
+			// StripRefPath is a flag publicly and the path it resolves to
+			// internally, because the only prefix worth standing for is the
+			// one the ref already named: a second spelling of it could
+			// disagree with the first.
+			renamed:      map[string]string{"Hasher": "NewHasher", "StripRefPath": "StripPrefix"},
 			publicOnly:   seamOnly,
 			internalOnly: seamInternal,
 		},
@@ -132,6 +174,10 @@ func TestVolumeVocabularyIsClassified(t *testing.T) {
 		"VolumeErrorReason": "defined string type mirroring the service's wire reason strings, so a reason the service adds flows through without new API",
 		"VolumeError":       "deliberately narrower than the internal error: Reason and Message are the caller's API, Err wraps the whole original chain, and the internal Code and Domain stay internal — volumeOpError owns the translation",
 		"VolumeObjectStore": "the seam interface; its two halves are the internal DownloadObject and Decompress function pair, excepted per pair in the table",
+		"VolumeEntryKind":   "defined string type; volume.EntryKind is a uint8 iota, so the two are related by volumeEntryKind's switch rather than by fields, and VolumeEntry's parity covers the field that carries it",
+		"VolumePulledEntry": "embeds VolumeEntry and adds the Reader; internally the two are the handler's separate entry and io.Reader parameters, so there is no struct to compare against",
+		"VolumeRefLevel":    "defined int type derived from which of VolumeRef's fields are set, with no internal counterpart at all: the engine is handed a namespace and a volume and never reasons about ref levels",
+		"VolumeRef":         "no internal twin by design. bdn.ResolveRequest is the nearest thing and is deliberately narrower (no path, no level, no validation) because a ref's grammar belongs on the public side and the engine only ever needs what it sends",
 	}
 
 	inTable := map[string]bool{}
@@ -139,7 +185,7 @@ func TestVolumeVocabularyIsClassified(t *testing.T) {
 		inTable[pair.name] = true
 	}
 
-	declared := exportedTypeDecls(t, "management_volume.go")
+	declared := exportedTypeDecls(t, "management_volume.go", "volume_ref.go", "volume_entry.go")
 	if len(declared) == 0 {
 		t.Fatal("no exported types found in the vocabulary files — the enumeration is broken, not the vocabulary empty")
 	}

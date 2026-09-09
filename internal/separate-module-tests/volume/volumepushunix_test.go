@@ -1,6 +1,6 @@
 //go:build unix
 
-package separatemoduletests_test
+package volume_test
 
 // The identity pin's unix arm, in a unix-tagged file so it RUNS wherever the
 // pin is live rather than skipping everywhere — a guard that never runs is a

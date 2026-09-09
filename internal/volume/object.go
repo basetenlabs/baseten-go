@@ -106,36 +106,13 @@ func FetchObjectInto(
 	maxSize int64,
 	buf []byte,
 ) ([]byte, error) {
-	result, err := download(ctx, req)
+	opened, err := OpenObject(ctx, download, decompress, req)
 	if err != nil {
 		return nil, err
 	}
-	defer result.Body.Close()
+	defer opened.Close()
 
-	compressed := strings.HasSuffix(result.ContentType, zstdSuffix)
-
-	// A stored object whose length already disagrees with what the manifest
-	// says is wrong before any of it is read. The digest check would catch it
-	// too, but only after pulling the whole body over the network and hashing
-	// it. The comparison is only meaningful uncompressed: a compressed object's
-	// stored length is a property of the compressor, not of the content.
-	if !compressed && req.ExpectedSize > 0 && result.Size > 0 && result.Size != req.ExpectedSize {
-		return nil, fmt.Errorf("object %s is %d bytes, the manifest says %d",
-			req.Key, result.Size, req.ExpectedSize)
-	}
-
-	var body io.Reader = result.Body
-	if compressed {
-		if decompress == nil {
-			return nil, fmt.Errorf("object %s is stored as %s and no decompressor was supplied", req.Key, result.ContentType)
-		}
-		reader, err := decompress(result.Body)
-		if err != nil {
-			return nil, fmt.Errorf("decompress %s: %w", req.Key, err)
-		}
-		defer reader.Close()
-		body = reader
-	}
+	var body io.Reader = opened
 	if maxSize > 0 {
 		// One byte past the bound distinguishes an object that just fits from
 		// one that does not.
@@ -156,6 +133,72 @@ func FetchObjectInto(
 		return nil, fmt.Errorf("object %s is larger than the %d byte limit", req.Key, maxSize)
 	}
 	return data, nil
+}
+
+// OpenObject starts a read of one object, yielding the object's own bytes:
+// decompressed when the store held it compressed, and as they came otherwise.
+// The returned reader must be closed, which closes the decompressor and the
+// body beneath it together.
+//
+// This is what a caller reading an object too large to hold uses; every
+// caller that wants the whole thing in memory goes through FetchObject, which
+// is this plus a bounded read. Nothing here checks a digest, so a caller that
+// trusts what it reads has to hash the stream itself.
+func OpenObject(
+	ctx context.Context,
+	download ObjectDownloader,
+	decompress Decompressor,
+	req ObjectDownload,
+) (io.ReadCloser, error) {
+	result, err := download(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	compressed := strings.HasSuffix(result.ContentType, zstdSuffix)
+
+	// A stored object whose length already disagrees with what the manifest
+	// says is wrong before any of it is read. The digest check would catch it
+	// too, but only after pulling the whole body over the network and hashing
+	// it. The comparison is only meaningful uncompressed: a compressed object's
+	// stored length is a property of the compressor, not of the content.
+	if !compressed && req.ExpectedSize > 0 && result.Size > 0 && result.Size != req.ExpectedSize {
+		result.Body.Close()
+		return nil, fmt.Errorf("object %s is %d bytes, the manifest says %d",
+			req.Key, result.Size, req.ExpectedSize)
+	}
+	if !compressed {
+		return result.Body, nil
+	}
+
+	if decompress == nil {
+		result.Body.Close()
+		return nil, fmt.Errorf("object %s is stored as %s and no decompressor was supplied", req.Key, result.ContentType)
+	}
+	reader, err := decompress(result.Body)
+	if err != nil {
+		result.Body.Close()
+		return nil, fmt.Errorf("decompress %s: %w", req.Key, err)
+	}
+	return &decompressedObject{reader: reader, body: result.Body}, nil
+}
+
+// decompressedObject is a decompressor over a store body, closing both. The
+// decompressor closes first: it may hold buffered reads of the body, and a
+// closed body under a live decompressor is what makes those fail.
+type decompressedObject struct {
+	reader io.ReadCloser
+	body   io.ReadCloser
+}
+
+func (o *decompressedObject) Read(p []byte) (int, error) { return o.reader.Read(p) }
+
+func (o *decompressedObject) Close() error {
+	err := o.reader.Close()
+	if bodyErr := o.body.Close(); err == nil {
+		err = bodyErr
+	}
+	return err
 }
 
 // readAllSized reads r to EOF. A caller that knows the content's length

@@ -1,4 +1,4 @@
-package separatemoduletests_test
+package volume_test
 
 // The cross-client compatibility anchor.
 //

@@ -28,7 +28,25 @@ import (
 // Nothing is visible until the whole tree has been uploaded, so an interrupted
 // push publishes nothing. What it uploaded is not wasted: the next push finds
 // those objects already stored and skips them.
+//
+// Each call exchanges its own capability token and shares nothing with any
+// other, so this is not currently optimized for many calls against the same
+// volume.
 func (c *ManagementClient) PushVolume(ctx context.Context, opts PushVolumeOptions) (*PushVolumeResult, error) {
+	if err := opts.Ref.validate(); err != nil {
+		return nil, err
+	}
+	// Checked here rather than in the engine's Validate, because the engine is
+	// handed a namespace and a volume and never sees the rest of a ref.
+	switch {
+	case opts.Ref.Path != "":
+		return nil, fmt.Errorf("push ref %s names a path; a push publishes a whole tree", opts.Ref)
+	case opts.Ref.Tag != "":
+		return nil, fmt.Errorf("push ref %s names a tag; apply tags with Tags instead", opts.Ref)
+	case opts.Ref.Digest != "":
+		return nil, fmt.Errorf("push ref %s names a version; a push creates one", opts.Ref)
+	}
+
 	push := volumePushOptions(opts)
 	if err := push.Validate(); err != nil {
 		return nil, err
@@ -48,7 +66,7 @@ func (c *ManagementClient) PushVolume(ctx context.Context, opts PushVolumeOption
 		return nil, volumeOpError(err)
 	}
 	return &PushVolumeResult{
-		ManifestDigest: result.ManifestDigest.String(),
+		VersionRef:     pinnedVolumeRef(push.Namespace, push.Volume, result.ManifestDigest),
 		Sequence:       result.Sequence,
 		HeadUpdated:    result.HeadUpdated,
 		HeadMoveDenied: result.HeadMoveDenied,
@@ -84,8 +102,8 @@ func volumePushOptions(o PushVolumeOptions) transfer.PushOptions {
 		// conversions, and before the token is scoped to them: the capability
 		// the exchange returns must name the volume the transfer will
 		// actually address.
-		Namespace:       strings.ToLower(o.Namespace),
-		Volume:          strings.ToLower(o.Volume),
+		Namespace:       strings.ToLower(o.Ref.Namespace),
+		Volume:          strings.ToLower(o.Ref.Volume),
 		SourceDir:       o.SourceDir,
 		SourceURI:       o.SourceURI,
 		Tags:            o.Tags,
@@ -123,6 +141,50 @@ func volumeProgressAdapter(fn func(VolumeProgress)) volume.ProgressFunc {
 	}
 }
 
+// volumeEntryHandlerAdapter adapts the public handler to the engine's.
+func volumeEntryHandlerAdapter(
+	fn func(context.Context, VolumePulledEntry) error,
+) func(context.Context, volume.Entry, io.Reader) error {
+	if fn == nil {
+		return nil
+	}
+	return func(ctx context.Context, entry volume.Entry, r io.Reader) error {
+		return fn(ctx, VolumePulledEntry{VolumeEntry: publicVolumeEntry(entry), Reader: r})
+	}
+}
+
+// publicVolumeEntry gives an entry its public shape: the path gains its
+// leading slash, the kind becomes a named string rather than an integer, and
+// the wire widths widen to the ones a caller expects.
+func publicVolumeEntry(entry volume.Entry) VolumeEntry {
+	return VolumeEntry{
+		// Slash-prefixed publicly, bare on the wire: the leading slash is what
+		// makes an entry's path assignable straight to VolumeRef.Path, and
+		// equal to what parsing that ref yields.
+		Path:       "/" + entry.Path,
+		Kind:       volumeEntryKind(entry.Kind),
+		Size:       int64(entry.Size),
+		Mode:       uint32(entry.Mode),
+		ModTime:    entry.MTime,
+		LinkTarget: entry.Target,
+	}
+}
+
+// volumeEntryKind names an entry kind. An unrecognized one would mean the
+// engine grew a kind this translation does not know, so it is reported as
+// itself rather than silently becoming a file.
+func volumeEntryKind(kind volume.EntryKind) VolumeEntryKind {
+	switch kind {
+	case volume.EntryKindFile:
+		return VolumeEntryKindFile
+	case volume.EntryKindDirectory:
+		return VolumeEntryKindDirectory
+	case volume.EntryKindSymlink:
+		return VolumeEntryKindSymlink
+	}
+	return VolumeEntryKind(fmt.Sprintf("unknown(%d)", uint8(kind)))
+}
+
 // volumeStoreDownloader adapts the public store to the engine's downloader seam.
 func volumeStoreDownloader(store VolumeObjectStore) volume.ObjectDownloader {
 	return func(ctx context.Context, req volume.ObjectDownload) (*volume.ObjectResult, error) {
@@ -145,8 +207,8 @@ func volumeStoreDownloader(store VolumeObjectStore) volume.ObjectDownloader {
 	}
 }
 
-// DownloadVolume downloads a version of a volume into a directory.
-// [DownloadVolumeOptions] configures it.
+// PullVolume downloads a version of a volume into a directory.
+// [PullVolumeOptions] configures it.
 //
 // A volume is a versioned directory tree stored by content, so pushing a
 // tree that mostly matches one already stored transfers only what differs,
@@ -156,18 +218,28 @@ func volumeStoreDownloader(store VolumeObjectStore) volume.ObjectDownloader {
 // a corrupted or truncated read fails the download rather than producing a
 // file that merely looks complete. An interrupted download can be run again
 // and picks up where it stopped.
-func (c *ManagementClient) DownloadVolume(ctx context.Context, opts DownloadVolumeOptions) (*DownloadVolumeResult, error) {
+//
+// Each call exchanges its own capability token and resolves the ref again,
+// sharing nothing with any other call, so this is not currently optimized for
+// many calls against the same volume.
+func (c *ManagementClient) PullVolume(ctx context.Context, opts PullVolumeOptions) (*PullVolumeResult, error) {
+	if err := opts.Ref.validate(); err != nil {
+		return nil, err
+	}
+	// Checked here rather than in the engine's Validate, which is handed the
+	// prefix this resolves to and cannot tell an absent one from a refused one.
+	if opts.StripRefPath && (opts.Ref.Path == "" || opts.Ref.Path == "/") {
+		return nil, fmt.Errorf(
+			"pull ref %s names no path for StripRefPath to strip", opts.Ref)
+	}
+
 	pull := volumePullOptions(opts)
 	if err := pull.Validate(); err != nil {
 		return nil, err
 	}
-	ref, err := bdn.ParseRef(opts.Ref)
-	if err != nil {
-		return nil, err
-	}
 
 	client, _, err := c.volumeClient(
-		ref.Namespace, ref.Volume, []string{volumeScopePull}, newVolumeCorrelationID())
+		pull.Ref.Namespace, pull.Ref.Volume, []string{volumeScopePull}, newVolumeCorrelationID())
 	if err != nil {
 		return nil, err
 	}
@@ -180,29 +252,61 @@ func (c *ManagementClient) DownloadVolume(ctx context.Context, opts DownloadVolu
 	for _, w := range result.Warnings {
 		warnings = append(warnings, VolumeWarning{Path: w.Path, Kind: VolumeWarningKind(w.Kind), Detail: w.Detail})
 	}
-	return &DownloadVolumeResult{
-		VersionRef:     result.VersionRef,
-		ManifestDigest: result.ManifestDigest.String(),
-		Files:          result.Files,
-		Bytes:          result.Bytes,
-		SelectedFiles:  result.SelectedFiles,
-		TotalFiles:     result.TotalFiles,
-		ChunksFetched:  result.ChunksFetched,
-		ChunksReused:   result.ChunksReused,
-		Warnings:       warnings,
+	return &PullVolumeResult{
+		VersionRef:    pinnedVolumeRef(pull.Ref.Namespace, pull.Ref.Volume, result.ManifestDigest),
+		Files:         result.Files,
+		Bytes:         result.Bytes,
+		SelectedFiles: result.SelectedFiles,
+		TotalFiles:    result.TotalFiles,
+		ChunksFetched: result.ChunksFetched,
+		ChunksReused:  result.ChunksReused,
+		Warnings:      warnings,
 	}, nil
 }
 
 // volumePullOptions translates the public options into the engine's, exhaustively
 // and field by field, like volumePushOptions.
-func volumePullOptions(o DownloadVolumeOptions) transfer.PullOptions {
+//
+// A path on the ref is lowered to an Include of that path and nothing more, so
+// naming one narrows the download exactly as adding it to Include would. Both
+// are volume-root-relative, and setting both selects the union rather than
+// intersecting them.
+//
+// The namespace and volume fold to lowercase here, as they do for a push, so
+// the volume the capability token is scoped to cannot differ from the one the
+// transfer addresses.
+func volumePullOptions(o PullVolumeOptions) transfer.PullOptions {
+	// The root path narrows nothing, and an Include of "" would not mean the
+	// whole volume to the engine.
+	include := o.Include
+	refPath := ""
+	if o.Ref.Path != "" && o.Ref.Path != "/" {
+		refPath = strings.TrimPrefix(o.Ref.Path, "/")
+		include = append(append(make([]string, 0, len(o.Include)+1), o.Include...), refPath)
+	}
+	// The engine takes the prefix as a path rather than a flag, since that is
+	// what naming a destination entry needs. Publicly it is a flag, because
+	// the only prefix worth standing for is the one the ref already named and
+	// a second spelling of it could disagree with the first.
+	stripPrefix := ""
+	if o.StripRefPath {
+		stripPrefix = refPath
+	}
+
 	opts := transfer.PullOptions{
-		Ref:       o.Ref,
-		DestDir:   o.DestDir,
-		Overwrite: o.Overwrite,
-		Include:   o.Include,
-		Restart:   o.Restart,
-		NewHasher: o.Hasher,
+		Ref: bdn.ResolveRequest{
+			Namespace: strings.ToLower(o.Ref.Namespace),
+			Volume:    strings.ToLower(o.Ref.Volume),
+			Tag:       o.Ref.Tag,
+			Digest:    o.Ref.Digest,
+		},
+		DestDir:      o.DestDir,
+		EntryHandler: volumeEntryHandlerAdapter(o.EntryHandler),
+		Overwrite:    o.Overwrite,
+		Include:      include,
+		Restart:      o.Restart,
+		StripPrefix:  stripPrefix,
+		NewHasher:    o.Hasher,
 		// Keyed and exhaustive like volumePushOptions's, and for the same
 		// reason.
 		Concurrency: volume.Concurrency{
@@ -217,6 +321,118 @@ func volumePullOptions(o DownloadVolumeOptions) transfer.PullOptions {
 		opts.Decompress = o.Store.Decompressor
 	}
 	return opts
+}
+
+// FetchVolumeManifest reads the list of entries in a version of a volume.
+// [FetchVolumeManifestOptions] configures it.
+//
+// This is the metadata read behind listing a volume's contents and describing
+// one entry: what the version holds, at what size and mode, and nothing about
+// the bytes. Reading the bytes is [ManagementClient.PullVolume], whose
+// EntryHandler streams them without writing a directory.
+//
+// The document is verified against the digest the version resolved to before
+// any of it is reported, and it is read in one pass rather than held whole, so
+// [FetchVolumeManifestOptions.EntryFilter] narrowing to one subtree of a large
+// volume holds only that subtree.
+//
+// Each call exchanges its own capability token and resolves the ref again,
+// sharing nothing with any other call, so this is not currently optimized for
+// many calls against the same volume.
+func (c *ManagementClient) FetchVolumeManifest(
+	ctx context.Context, opts FetchVolumeManifestOptions,
+) (*VolumeManifest, error) {
+	if err := opts.Ref.validate(); err != nil {
+		return nil, err
+	}
+	fetch := volumeManifestOptions(opts)
+	if err := fetch.Validate(); err != nil {
+		return nil, err
+	}
+
+	client, _, err := c.volumeClient(
+		fetch.Ref.Namespace, fetch.Ref.Volume, []string{volumeScopePull}, newVolumeCorrelationID())
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := transfer.FetchManifest(ctx, client, fetch)
+	if err != nil {
+		return nil, volumeOpError(err)
+	}
+
+	entries := result.Manifest.Entries()
+	manifest := &VolumeManifest{
+		VersionRef: pinnedVolumeRef(fetch.Ref.Namespace, fetch.Ref.Volume, result.ManifestDigest),
+		EntryCount: int64(result.EntryCount),
+		TotalSize:  int64(result.TotalSize),
+		Entries:    make([]VolumeEntry, 0, len(entries)),
+	}
+	for _, entry := range entries {
+		manifest.Entries = append(manifest.Entries, publicVolumeEntry(entry))
+	}
+	return manifest, nil
+}
+
+// pinnedVolumeRef names the version an operation settled on: the volume it
+// addressed, pinned to the digest it resolved to, and carrying no path, so an
+// entry's path can be assigned straight onto it to name that entry.
+//
+// The namespace and volume come from the translated options rather than the
+// caller's ref, so what is reported is what was actually addressed, folded
+// exactly as the capability token was scoped.
+func pinnedVolumeRef(namespace, vol string, digest volume.Digest) VolumeRef {
+	return VolumeRef{Namespace: namespace, Volume: vol, Digest: digest.String()}
+}
+
+// volumeManifestOptions translates the public options into the engine's,
+// exhaustively and field by field, like volumePullOptions.
+//
+// A path on the ref becomes part of the filter rather than a separate
+// narrowing, since both are decisions about which entries to keep and one
+// predicate is what the decoder takes.
+func volumeManifestOptions(o FetchVolumeManifestOptions) transfer.ManifestOptions {
+	opts := transfer.ManifestOptions{
+		Ref: bdn.ResolveRequest{
+			Namespace: strings.ToLower(o.Ref.Namespace),
+			Volume:    strings.ToLower(o.Ref.Volume),
+			Tag:       o.Ref.Tag,
+			Digest:    o.Ref.Digest,
+		},
+		EntryFilter: volumeEntryFilter(strings.TrimPrefix(o.Ref.Path, "/"), o.EntryFilter),
+		NewHasher:   o.Hasher,
+	}
+	if o.Store != nil {
+		opts.DownloadObject = volumeStoreDownloader(o.Store)
+		opts.Decompress = o.Store.Decompressor
+	}
+	return opts
+}
+
+// volumeEntryFilter combines the ref's path with the caller's filter: an
+// entry is kept when it is at or under the path and the filter also keeps it.
+// Both narrow, so they compose by conjunction, unlike a pull's Include
+// entries, which each select and therefore union.
+//
+// The path matches on slash boundaries, so a path of "config" does not also
+// take "configuration.json", and matching nothing yields no entries rather
+// than an error: a read reporting that a path holds nothing is an answer,
+// where a download that produced nothing failed to do what was asked.
+func volumeEntryFilter(
+	prefix string, fn func(context.Context, VolumeEntry) bool,
+) func(context.Context, volume.Entry) bool {
+	if prefix == "" && fn == nil {
+		return nil
+	}
+	return func(ctx context.Context, entry volume.Entry) bool {
+		if prefix != "" && entry.Path != prefix && !strings.HasPrefix(entry.Path, prefix+"/") {
+			return false
+		}
+		if fn == nil {
+			return true
+		}
+		return fn(ctx, publicVolumeEntry(entry))
+	}
 }
 
 // volumeClient builds a protocol client whose credentials come from exchanging
@@ -697,10 +913,17 @@ func (w VolumeWarning) String() string {
 
 // PushVolumeOptions configures [ManagementClient.PushVolume].
 type PushVolumeOptions struct {
-	// Namespace and Volume name where to publish. The volume is created if
-	// it does not exist; the namespace must already.
-	Namespace string
-	Volume    string
+	// Ref names the volume to publish to. The volume is created if it does not
+	// exist; the namespace must already.
+	//
+	// It must name a volume and nothing more specific. A path is refused
+	// because a push publishes a whole tree rather than writing into one, and
+	// a tag or digest is refused because a selector picks out an existing
+	// version everywhere else, where here it would be setting one: apply tags
+	// with Tags instead.
+	//
+	// Use [ParseVolumeRef] to read one from a string.
+	Ref VolumeRef
 
 	// SourceDir is the directory to push. It is walked without following
 	// symlinks, which are recorded as links.
@@ -760,11 +983,11 @@ type PushVolumeOptions struct {
 
 // PushVolumeResult is what a push published.
 type PushVolumeResult struct {
-	// ManifestDigest names the published version: the string "b3:" followed
-	// by sixty-four lowercase hex digits — an unkeyed BLAKE3 hash with a
-	// 32-byte output over the manifest's content bytes. It is what to pin a
-	// download to in order to get this exact tree back.
-	ManifestDigest string
+	// VersionRef is the volume pinned to the version this push published,
+	// which is what to pull to get this exact tree back. Its Digest is the
+	// complete sixty-four hex digits, never a prefix: an unkeyed BLAKE3 hash
+	// with a 32-byte output over the manifest's content bytes.
+	VersionRef VolumeRef
 
 	// Sequence is the volume's snapshot sequence at this publish.
 	Sequence int64
@@ -806,19 +1029,54 @@ type PushVolumeResult struct {
 	Existing int64
 }
 
-// DownloadVolumeOptions configures [ManagementClient.DownloadVolume].
-type DownloadVolumeOptions struct {
-	// Ref names what to download: "namespace/volume" for the current
-	// version, "namespace/volume:tag", or "namespace/volume@b3:..." for one
-	// exact version. Whatever it names is resolved once and pinned, so a tag
-	// that moves partway through cannot produce a tree assembled from two
-	// versions.
-	Ref string
+// PullVolumeOptions configures [ManagementClient.PullVolume].
+type PullVolumeOptions struct {
+	// Ref names what to download. A bare volume takes the version head points
+	// at; a tag or a digest names one point. Whatever it names is resolved once
+	// and pinned, so a tag that moves partway through cannot produce a tree
+	// assembled from two versions.
+	//
+	// A path on the ref narrows the download to that path, and does so by
+	// being treated exactly as though it had been added to Include: it is
+	// volume-root-relative, and giving both a path and Include entries selects
+	// the union of them rather than looking for Include entries beneath the
+	// path. [VolumeRef.Path] of "/" narrows nothing, being the whole tree.
+	//
+	// Narrowing does not move anything: an entry lands at its own path within
+	// the volume, under DestDir, so a ref of "bdn:weights/llama/config/x.json"
+	// writes "<DestDir>/config/x.json" and creates the directories above it.
+	// A partial pull therefore lays out exactly as the whole volume would,
+	// which is what lets two of them into one directory compose. Directories
+	// above the narrowing keep their recorded modes where the volume records
+	// them and take 0755 where it does not.
+	//
+	// Use [ParseVolumeRef] to read one from a string.
+	Ref VolumeRef
 
 	// DestDir is where the tree ends up. Unless Overwrite is set it must not
 	// exist or must be empty, and the tree is assembled beside it and moved
 	// into place only once it is complete.
+	//
+	// Exactly one of DestDir and EntryHandler is set.
 	DestDir string
+
+	// EntryHandler receives every selected entry instead of anything being
+	// written to disk, which is what reproducing a version somewhere that is
+	// not a filesystem looks like: an archive, a stream, another store.
+	//
+	// Entries arrive one at a time, in path order, so a directory always
+	// precedes what is under it and a subtree is contiguous. Directories and
+	// symlinks are included; see [VolumePulledEntry.Reader] for what they
+	// read as. Returning an error stops the pull and is what it returns.
+	//
+	// Because there is no destination directory, Overwrite and Restart do not
+	// apply and are refused, and a file's bytes arrive in order rather than
+	// its chunks being fetched in parallel. A caller whose own sink tolerates
+	// concurrency can fan out inside the handler.
+	//
+	// ctx is the one driving the pull, so it carries the caller's values and
+	// is cancelled with it.
+	EntryHandler func(ctx context.Context, entry VolumePulledEntry) error
 
 	// Overwrite writes into an existing DestDir in place. Files already
 	// there that the volume does not describe are left alone; a failed
@@ -827,14 +1085,32 @@ type DownloadVolumeOptions struct {
 	Overwrite bool
 
 	// Include narrows the download to named entries. Each is an exact path
-	// or a directory whose contents are wanted, matched on slash boundaries.
-	// One that matches nothing fails the download rather than silently
-	// producing less than was asked for. Empty downloads the whole volume.
+	// or a directory whose contents are wanted, matched on slash boundaries,
+	// and each is relative to the volume's root whatever else is set. One that
+	// matches nothing fails the download rather than silently producing less
+	// than was asked for. Empty downloads the whole volume, unless Ref carries
+	// a path, which narrows the same way; see [PullVolumeOptions.Ref].
 	Include []string
 
 	// Restart discards a partly downloaded tree from an earlier attempt
 	// instead of continuing it.
 	Restart bool
+
+	// StripRefPath makes DestDir stand for the directory Ref's path names, so
+	// that directory's contents land directly in DestDir rather than under the
+	// chain of directories that led to them. Pulling
+	// "bdn:weights/llama/config/models" into "./out" writes
+	// "./out/gpt2.json" with it set, and "./out/config/models/gpt2.json"
+	// without it.
+	//
+	// Requires a path on Ref, since without one there is nothing for DestDir
+	// to stand for. It changes only the layout, never what is downloaded.
+	//
+	// A symlink under the path whose target resolves outside it is refused:
+	// stripping makes DestDir a subtree of the volume, and a link reaching
+	// above that subtree is not the link the volume records. Entries selected
+	// by Include from outside the path are refused for the same reason.
+	StripRefPath bool
 
 	// Hasher returns an unkeyed BLAKE3 hash with a 32-byte digest. Required:
 	// every chunk is verified against the digest recorded for it, and
@@ -865,16 +1141,14 @@ type DownloadVolumeOptions struct {
 	Concurrency VolumeConcurrencyOptions
 }
 
-// DownloadVolumeResult is what a download produced.
-type DownloadVolumeResult struct {
-	// VersionRef is the ref pinned to the version that was downloaded, which
-	// is the form to quote to get this exact tree again.
-	VersionRef string
-
-	// ManifestDigest names the version that was downloaded: the string "b3:"
-	// followed by sixty-four lowercase hex digits — an unkeyed BLAKE3 hash
-	// with a 32-byte output over the manifest's content bytes.
-	ManifestDigest string
+// PullVolumeResult is what a download produced.
+type PullVolumeResult struct {
+	// VersionRef is the volume pinned to the version that was downloaded,
+	// which is the form to quote to get this exact tree again. Its Digest is
+	// the complete sixty-four hex digits, never a prefix: an unkeyed BLAKE3
+	// hash with a 32-byte output over the manifest's content bytes. It
+	// carries no path whatever narrowed the download.
+	VersionRef VolumeRef
 
 	// Files and Bytes are what was written.
 	Files int64
@@ -896,6 +1170,79 @@ type DownloadVolumeResult struct {
 	// published before the containment rule carry these; they are written
 	// out faithfully and reported here rather than silently.
 	Warnings []VolumeWarning
+}
+
+// FetchVolumeManifestOptions describes a manifest read.
+type FetchVolumeManifestOptions struct {
+	// Ref names the version to read. A bare volume reads the version head
+	// points at; a tag or a digest names one point.
+	//
+	// A path on the ref narrows the read to the entries at or under it,
+	// matched on slash boundaries, and a path naming nothing yields no entries
+	// rather than an error. [VolumeRef.Path] of "/" narrows nothing, being the
+	// whole tree.
+	//
+	// Use [ParseVolumeRef] to read one from a string.
+	Ref VolumeRef
+
+	// EntryFilter keeps the entries it returns true for and drops the rest.
+	// Nil keeps everything, which is the whole version and can be very large:
+	// a manifest carries one entry per file, directory, and symlink.
+	//
+	// It narrows what is HELD, never what is read: a version's digest covers
+	// the whole manifest, so the document is downloaded and verified either
+	// way, and a filter buys memory rather than time. Entries arrive in the
+	// order the manifest carried them rather than the sorted order they are
+	// returned in, so a filter must decide on the entry in front of it without
+	// depending on entries it has not seen.
+	//
+	// A path on Ref narrows as well, and the two compose: an entry is kept
+	// when it is under the path and this returns true for it.
+	//
+	// ctx is the one driving the read, so it carries the caller's values and
+	// is cancelled with it.
+	EntryFilter func(ctx context.Context, entry VolumeEntry) bool
+
+	// Hasher returns an unkeyed BLAKE3 hash with a 32-byte digest. Required:
+	// the manifest is verified against the digest the version resolved to, and
+	// nothing about the tree is reported before that check passes. See
+	// [PullVolumeOptions.Hasher] for what to pass.
+	Hasher func() hash.Hash
+
+	// Store reads the volume's objects. Required: a manifest is an object like
+	// any other, and the service compresses what it stores at its own
+	// discretion, so a reader has to be able to download and decompress
+	// whatever comes back.
+	Store VolumeObjectStore
+}
+
+// VolumeManifest is what one version of a volume holds.
+type VolumeManifest struct {
+	// VersionRef is the volume pinned to the version that was read, carrying
+	// no path, so naming one of the entries below is an assignment:
+	//
+	//	ref := manifest.VersionRef
+	//	ref.Path = manifest.Entries[0].Path
+	//
+	// It is the form to quote to read this exact version again. Its Digest is
+	// the complete sixty-four hex digits, never a prefix: an unkeyed BLAKE3
+	// hash with a 32-byte output over the manifest's content bytes.
+	VersionRef VolumeRef
+
+	// EntryCount and TotalSize describe the WHOLE version, as the manifest
+	// itself accounts for it, whatever a filter or a ref path narrowed the
+	// entries below to. That is what they are for: with a narrowing they
+	// cannot be recovered from Entries, and recovering them would mean
+	// holding every entry, which is what narrowing avoids. TotalSize sums the
+	// files; directories and symlinks have no size of their own.
+	EntryCount int64
+	TotalSize  int64
+
+	// Entries are the entries that survived the narrowing, in path order:
+	// every entry follows its parent and a subtree is contiguous, so one pass
+	// can list a directory's children or walk a tree. A directory implied only
+	// by the paths beneath it is not an entry of its own.
+	Entries []VolumeEntry
 }
 
 // VolumeErrorReason is the stable constant naming what specifically went

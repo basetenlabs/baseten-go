@@ -10,6 +10,7 @@ import (
 
 	"github.com/basetenlabs/baseten-go/internal/require"
 	"github.com/basetenlabs/baseten-go/internal/volume"
+	"github.com/basetenlabs/baseten-go/internal/volume/bdn"
 )
 
 // TestPullOptionsRejectRestartWithOverwrite pins the combination that would
@@ -19,7 +20,8 @@ import (
 // writing in place already refetches whatever fails to verify.
 func TestPullOptionsRejectRestartWithOverwrite(t *testing.T) {
 	valid := PullOptions{
-		Ref: "ns/vol", DestDir: "/tmp/out", NewHasher: stubHasher,
+		Ref:     bdn.ResolveRequest{Namespace: "ns", Volume: "vol"},
+		DestDir: "/tmp/out", NewHasher: stubHasher,
 		Decompress:     func(io.Reader) (io.ReadCloser, error) { return nil, nil },
 		DownloadObject: func(context.Context, volume.ObjectDownload) (*volume.ObjectResult, error) { return nil, nil },
 	}

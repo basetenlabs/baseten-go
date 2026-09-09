@@ -40,7 +40,7 @@ func TestRetriesTransientStatuses(t *testing.T) {
 				writeError(w, tc.status, "CODE", "SOME_REASON", "nope")
 			})
 
-			_, err := client.Resolve(context.Background(), "ns/vol")
+			_, err := client.Resolve(context.Background(), ResolveRequest{Namespace: "ns", Volume: "vol"})
 			require.Error(t, err)
 			if tc.wantRetried {
 				require.Equal(t, int64(5), calls.Load())
@@ -95,7 +95,7 @@ func TestRetryAfterCapsTheWait(t *testing.T) {
 	})
 
 	start := time.Now()
-	_, err := client.Resolve(context.Background(), "ns/vol")
+	_, err := client.Resolve(context.Background(), ResolveRequest{Namespace: "ns", Volume: "vol"})
 	require.NoError(t, err)
 	require.Equal(t, int64(2), calls.Load())
 	require.True(t, time.Since(start) < time.Second, "the hour-long hint was not capped")
@@ -288,7 +288,7 @@ func TestRetriesTransportFailures(t *testing.T) {
 		})
 	})
 
-	_, err := client.Resolve(context.Background(), "ns/vol")
+	_, err := client.Resolve(context.Background(), ResolveRequest{Namespace: "ns", Volume: "vol"})
 	require.NoError(t, err)
 	require.Equal(t, int64(3), calls.Load())
 }
@@ -302,7 +302,7 @@ func TestStopsOnCancelledContext(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	_, err := client.Resolve(ctx, "ns/vol")
+	_, err := client.Resolve(ctx, ResolveRequest{Namespace: "ns", Volume: "vol"})
 	require.Error(t, err)
 	require.True(t, errors.Is(err, context.Canceled), "expected a cancellation, got %v", err)
 	require.Equal(t, int64(0), calls.Load())
@@ -353,7 +353,7 @@ func TestFallsBackWhenThereIsNoEnvelope(t *testing.T) {
 		_, _ = io.WriteString(w, "<html>502 Bad Gateway</html>")
 	})
 
-	_, err := client.Resolve(context.Background(), "ns/vol")
+	_, err := client.Resolve(context.Background(), ResolveRequest{Namespace: "ns", Volume: "vol"})
 	require.Error(t, err)
 
 	var serviceErr *volume.Error
@@ -384,7 +384,7 @@ func TestReExchangesRejectedToken(t *testing.T) {
 		})
 	})
 
-	_, err := client.Resolve(context.Background(), "ns/vol")
+	_, err := client.Resolve(context.Background(), ResolveRequest{Namespace: "ns", Volume: "vol"})
 	require.NoError(t, err)
 	require.Len(t, seen, 2)
 	require.Equal(t, "refreshed", seen[1])
@@ -399,7 +399,7 @@ func TestGivesUpOnASecondRejection(t *testing.T) {
 		writeError(w, http.StatusUnauthorized, "UNAUTHENTICATED", volume.ReasonUnauthenticated, "no")
 	})
 
-	_, err := client.Resolve(context.Background(), "ns/vol")
+	_, err := client.Resolve(context.Background(), ResolveRequest{Namespace: "ns", Volume: "vol"})
 	require.Error(t, err)
 	require.Equal(t, int64(2), calls.Load())
 	require.True(t, volume.HasReason(err, volume.ReasonUnauthenticated), "got %v", err)
@@ -458,7 +458,7 @@ func TestCredentialExchangeDoesNotSpendARetry(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, err = client.Resolve(context.Background(), "ns/vol")
+	_, err = client.Resolve(context.Background(), ResolveRequest{Namespace: "ns", Volume: "vol"})
 	require.NoError(t, err)
 	// Three requests: the rejected one, the single retry the budget allows,
 	// and the one that succeeded. Two would mean the exchange took the retry.

@@ -1,4 +1,4 @@
-package separatemoduletests_test
+package volume_test
 
 // Edge cases at the ends of the range: a volume with nothing in it, and a
 // transfer the caller abandons partway.

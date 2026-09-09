@@ -2,7 +2,7 @@
 // volume package states in its documentation. The root module has no
 // dependencies, so the one thing it cannot check for itself is that the
 // hashing seam it asks callers to fill is fillable as documented.
-package separatemoduletests_test
+package volume_test
 
 import (
 	"hash"
