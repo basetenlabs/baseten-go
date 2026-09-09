@@ -35,19 +35,22 @@ func newManagementAPI(t *testing.T, fake *fakeService, exchanges *atomic.Int64) 
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		// The real endpoint is namespace-scoped with an explicit scope list
-		// and forbids unknown fields, so the fake reads the request rather
-		// than ignoring it: a client sending the old volume-scoped shape
-		// should fail here rather than pass and fail in a real deployment.
+		// The real endpoint takes an explicit scope list, requires the
+		// namespaces and the volumes the capability narrows to, and forbids
+		// unknown fields, so the fake reads the request rather than ignoring
+		// it: a client sending a shape the endpoint refuses should fail here
+		// rather than pass and fail in a real deployment.
 		var request struct {
 			Scopes        []string `json:"scopes"`
 			Namespaces    []string `json:"namespaces"`
+			Volumes       []string `json:"volumes"`
 			CorrelationID string   `json:"correlation_id"`
 		}
 		decoder := json.NewDecoder(r.Body)
 		decoder.DisallowUnknownFields()
 		if err := decoder.Decode(&request); err != nil ||
-			len(request.Scopes) == 0 || len(request.Namespaces) == 0 {
+			len(request.Scopes) == 0 || len(request.Namespaces) == 0 ||
+			len(request.Volumes) == 0 {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -62,6 +65,7 @@ func newManagementAPI(t *testing.T, fake *fakeService, exchanges *atomic.Int64) 
 			// Echoed as granted, which is what a caller reads to learn what it
 			// actually got.
 			"scopes": request.Scopes, "namespaces": request.Namespaces,
+			"volumes": request.Volumes,
 		})
 	}))
 	t.Cleanup(server.Close)
@@ -370,7 +374,9 @@ func TestTokenFakeRefusesUnknownFields(t *testing.T) {
 	var exchanges atomic.Int64
 	api := newManagementAPI(t, fake, &exchanges)
 
-	body := `{"scopes":["PUSH"],"namespaces":["ns"],"volume":"the-old-volume-scoped-shape"}`
+	// Otherwise a well-formed request, so the 400 is the unknown field's
+	// doing and not a missing required one.
+	body := `{"scopes":["PUSH"],"namespaces":["ns"],"volumes":["vol"],"volume":"a-field-the-endpoint-does-not-have"}`
 	req, err := http.NewRequest(http.MethodPost, api+"/v1/volumes/token", strings.NewReader(body))
 	if err != nil {
 		t.Fatal(err)
@@ -521,20 +527,24 @@ func TestMixedCaseNamesAreLoweredForBothConsumers(t *testing.T) {
 	t.Cleanup(recorded.Close)
 
 	var scoped [][]string
+	var narrowed [][]string
 	managementAPI := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request struct {
 			Scopes     []string `json:"scopes"`
 			Namespaces []string `json:"namespaces"`
+			Volumes    []string `json:"volumes"`
 		}
 		_ = json.NewDecoder(r.Body).Decode(&request)
 		mu.Lock()
 		scoped = append(scoped, request.Namespaces)
+		narrowed = append(narrowed, request.Volumes)
 		mu.Unlock()
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"token": fake.token(), "bdn_endpoint": recorded.URL,
 			"expires_at": time.Now().Add(time.Hour).UTC().Format(time.RFC3339),
 			"scopes":     request.Scopes, "namespaces": request.Namespaces,
+			"volumes": request.Volumes,
 		})
 	}))
 	t.Cleanup(managementAPI.Close)
@@ -556,7 +566,8 @@ func TestMixedCaseNamesAreLoweredForBothConsumers(t *testing.T) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	// Consumer one: the capability token was scoped to the lowered namespace.
+	// Consumer one: the capability token was scoped to the lowered namespace
+	// and narrowed to the lowered volume.
 	if len(scoped) == 0 {
 		t.Fatal("no token exchange happened — the assertion never ran")
 	}
@@ -564,6 +575,16 @@ func TestMixedCaseNamesAreLoweredForBothConsumers(t *testing.T) {
 		for _, ns := range namespaces {
 			if ns != fakeNamespace {
 				t.Errorf("the exchange was scoped to namespace %q, want %q", ns, fakeNamespace)
+			}
+		}
+	}
+	for _, volumes := range narrowed {
+		if len(volumes) == 0 {
+			t.Errorf("an exchange carried no volumes, so the narrowing assertion is vacuous")
+		}
+		for _, vol := range volumes {
+			if vol != fakeVolume {
+				t.Errorf("the exchange was narrowed to volume %q, want %q", vol, fakeVolume)
 			}
 		}
 	}
