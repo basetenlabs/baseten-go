@@ -194,6 +194,68 @@ func TestPullStripPrefixKeepsALinkToTheStrippedDirectory(t *testing.T) {
 	}
 }
 
+// TestPullStripPrefixKeepsALinkToAnAncestor covers the same rewrite from
+// below, where the link is not at the top of the stripped subtree: "sub/up"
+// resolves to the prefix itself, which the strip turns into the destination
+// root, while "sub/deeper/to-sub" resolves to a directory inside the subtree.
+// Both walk upward, which is what makes them the pair the destination's own
+// depth can get wrong. A rewritten target always climbs to the root and
+// descends from there, so it is not the shortest spelling.
+func TestPullStripPrefixKeepsALinkToAnAncestor(t *testing.T) {
+	root := buildTree(t)
+	if err := os.MkdirAll(filepath.Join(root, "nested", "deep", "sub", "deeper"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, root, "nested/deep/target.txt", []byte("inside"), 0o644)
+	writeFile(t, root, "nested/deep/sub/marker.txt", []byte("sub"), 0o644)
+	writeFile(t, root, "nested/deep/sub/deeper/leaf.txt", []byte("leaf"), 0o644)
+	for name, target := range map[string]string{
+		filepath.Join("nested", "deep", "sub", "up"):               "..",
+		filepath.Join("nested", "deep", "sub", "deeper", "to-sub"): "..",
+	} {
+		if err := os.Symlink(target, filepath.Join(root, name)); err != nil {
+			t.Skipf("symlinks unavailable: %v", err)
+		}
+	}
+	fake := newFakeService(t)
+	if _, err := transfer.Push(context.Background(), fake.client(t), pushOptions(root, fake)); err != nil {
+		t.Fatal(err)
+	}
+
+	dest := filepath.Join(t.TempDir(), "out")
+	if _, err := transfer.Pull(context.Background(), fake.client(t),
+		stripOptions(dest, fake, "nested/deep", "nested/deep")); err != nil {
+		t.Fatal(err)
+	}
+
+	// Each link is read for its target and then read through, since the target
+	// alone cannot say whether it landed on anything.
+	for _, test := range []struct {
+		link   string
+		target string
+		file   string
+		body   string
+	}{
+		{link: filepath.Join("sub", "up"), target: "..", file: "target.txt", body: "inside"},
+		{link: filepath.Join("sub", "deeper", "to-sub"), target: "../../sub", file: "marker.txt", body: "sub"},
+	} {
+		target, err := os.Readlink(filepath.Join(dest, test.link))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if target != test.target {
+			t.Errorf("link %s target %q, want %q", test.link, target, test.target)
+		}
+		body, err := os.ReadFile(filepath.Join(dest, test.link, test.file))
+		if err != nil {
+			t.Fatalf("link %s should resolve within the destination: %v", test.link, err)
+		}
+		if string(body) != test.body {
+			t.Errorf("read %q through %s, want %q", body, test.link, test.body)
+		}
+	}
+}
+
 // TestPullStripPrefixPrunesByDestinationName covers the one place the two path
 // spaces could disagree: prune walks the destination, so what it compares
 // against has to be destination names rather than volume paths, or it would

@@ -395,9 +395,9 @@ type ResolveRequest struct {
 	// means the volume's head, which moves; a digest names one fixed version,
 	// which is why a transfer resolves once and then works from the pin.
 	//
-	// Digest carries the "b3:" prefix, which the service accepts and which is
-	// how a digest is spelled everywhere it is read or written. It may be a
-	// prefix of one rather than a whole digest.
+	// Digest is written to the wire as it is held. The service takes it with
+	// or without the "b3:" prefix, and it may be a prefix of a digest rather
+	// than a whole one.
 	Tag    string
 	Digest string
 }

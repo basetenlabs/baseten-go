@@ -55,6 +55,28 @@ func TestParseVolumeRef(t *testing.T) {
 			canonical: "bdn:weights/llama@b3:a1b2c3d4e5f6",
 		},
 		{
+			// The algorithm is optional, and which spelling was written is
+			// kept, since both name the same version and neither is worth
+			// rewriting under the author.
+			name:  "untagged digest prefix",
+			input: "bdn:weights/llama@a1b2c3d4e5f6",
+			want:  VolumeRef{Namespace: "weights", Volume: "llama", Digest: "a1b2c3d4e5f6"},
+			level: VolumeRefLevelPoint,
+		},
+		{
+			name:  "untagged whole digest",
+			input: "bdn:weights/llama@" + strings.Repeat("ab", 32),
+			want:  VolumeRef{Namespace: "weights", Volume: "llama", Digest: strings.Repeat("ab", 32)},
+			level: VolumeRefLevelPoint,
+		},
+		{
+			name:      "untagged digest hex is folded",
+			input:     "bdn:weights/llama@A1B2C3D4E5F6",
+			want:      VolumeRef{Namespace: "weights", Volume: "llama", Digest: "a1b2c3d4e5f6"},
+			level:     VolumeRefLevelPoint,
+			canonical: "bdn:weights/llama@a1b2c3d4e5f6",
+		},
+		{
 			name:  "root path",
 			input: "bdn:weights/llama/",
 			want:  VolumeRef{Namespace: "weights", Volume: "llama", Path: "/"},
@@ -140,6 +162,7 @@ func TestParseVolumeRefRoundTrips(t *testing.T) {
 		"bdn:weights/llama",
 		"bdn:weights/llama:prod",
 		"bdn:weights/llama@b3:a1b2c3d4e5f6",
+		"bdn:weights/llama@a1b2c3d4e5f6",
 		"bdn:weights/llama/",
 		"bdn:weights/llama/config/model.json",
 		"bdn:weights/llama:prod/config/model.json",
@@ -153,6 +176,58 @@ func TestParseVolumeRefRoundTrips(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, first, second)
 			require.Equal(t, first.String(), second.String())
+		})
+	}
+}
+
+func TestVolumeRefShorthandString(t *testing.T) {
+	whole := strings.Repeat("ab", 32)
+	tests := []struct {
+		name string
+		ref  string
+		want string
+	}{
+		{
+			name: "whole digest is shortened and loses its algorithm",
+			ref:  "bdn:weights/llama@b3:" + whole,
+			want: "bdn:weights/llama@abababababab",
+		},
+		{
+			name: "an untagged whole digest is shortened too",
+			ref:  "bdn:weights/llama@" + whole,
+			want: "bdn:weights/llama@abababababab",
+		},
+		{
+			// Already as short as its author was willing to make it, and
+			// shortening it further could name a different set of versions.
+			name: "a prefix is left alone",
+			ref:  "bdn:weights/llama@b3:a1b2c3d4e5f6a1b2",
+			want: "bdn:weights/llama@b3:a1b2c3d4e5f6a1b2",
+		},
+		{
+			// Everything but the digest renders as String writes it, path
+			// encoding included.
+			name: "the rest of the ref is untouched",
+			ref:  "bdn:weights/llama@" + whole + "/a%20b",
+			want: "bdn:weights/llama@abababababab/a%20b",
+		},
+		{name: "a tag is not a digest", ref: "bdn:weights/llama:prod", want: "bdn:weights/llama:prod"},
+		{name: "no selector at all", ref: "bdn:weights/llama", want: "bdn:weights/llama"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ref, err := ParseVolumeRef(test.ref)
+			require.NoError(t, err)
+			require.Equal(t, test.want, ref.ShorthandString())
+			// What it prints has to be usable as a ref, which is the whole
+			// reason the shorthand stops where it does.
+			shortened, err := ParseVolumeRef(ref.ShorthandString())
+			require.NoError(t, err)
+			require.Equal(t, test.want, shortened.String())
+			// Shortening is a rendering, so the ref itself still carries the
+			// whole digest it was parsed with.
+			require.Equal(t, test.ref, ref.String())
 		})
 	}
 }
@@ -196,9 +271,10 @@ func TestParseVolumeRefErrors(t *testing.T) {
 		{"tag leading dot", "bdn:weights/llama:.prod", `tag ".prod"`},
 
 		{"empty digest", "bdn:weights/llama@", "no digest after"},
-		{"digest with no algorithm", "bdn:weights/llama@a1b2c3", `must begin "b3:"`},
 		{"algorithm with no digest", "bdn:weights/llama@b3:", "no digest after"},
-		{"unknown algorithm", "bdn:weights/llama@sha256:a1b2c3", `must begin "b3:"`},
+		// Only "b3:" is stripped, so any other algorithm stays part of what has
+		// to be hex and is refused there.
+		{"unknown algorithm", "bdn:weights/llama@sha256:a1b2c3", "is not hex"},
 		{"digest not hex", "bdn:weights/llama@b3:xyz", "is not hex"},
 		// The first @ starts the digest and takes the rest of the segment with
 		// it, so a second colon after one is digest material rather than a tag.
@@ -207,6 +283,7 @@ func TestParseVolumeRefErrors(t *testing.T) {
 		// volume name where the name rule refuses it.
 		{"tag before digest", "bdn:weights/llama:prod@b3:abc", "must begin with a letter"},
 		{"digest too long", "bdn:weights/llama@b3:" + strings.Repeat("a", 65), "longer than 64 hex characters"},
+		{"untagged digest too long", "bdn:weights/llama@" + strings.Repeat("a", 65), "longer than 64 hex characters"},
 
 		// An encoded slash would join two segments after decoding, which is
 		// how a traversal would otherwise reach a path that rejects "..".

@@ -18,8 +18,9 @@ const (
 	// a message saying so rather than as an unknown scheme.
 	volumeRefObjectScheme = "bdn+obj://"
 
-	// volumeRefDigestAlgorithm prefixes every digest. There is one hash today
-	// and the prefix says which, so it is carried rather than implied.
+	// volumeRefDigestAlgorithm names the hash a digest was taken with. There is
+	// one hash today, so it is optional on input and carried on every digest
+	// this package writes for itself.
 	volumeRefDigestAlgorithm = "b3:"
 )
 
@@ -29,6 +30,11 @@ const (
 	volumeRefNameMax   = 256
 	volumeRefTagMax    = 128
 	volumeRefDigestMax = 64
+
+	// volumeRefDigestShorthand is how much of a digest [VolumeRef.ShorthandString]
+	// keeps. It is the shortest prefix the service will resolve, so what the
+	// shorthand prints can be pasted back in as a ref.
+	volumeRefDigestShorthand = 12
 )
 
 // Names the router matches as literal path segments before it matches a name,
@@ -85,14 +91,15 @@ type VolumeRef struct {
 	// Volume is empty on a namespace ref.
 	Volume string
 
-	// Tag and Digest are the selector, and at most one is set. Digest is
-	// "b3:" followed by 1 to 64 lowercase hex characters, which is how a
-	// digest is spelled everywhere it is read or written, so this is directly
-	// comparable to the digest a REST response carries. Fewer than 64
-	// characters is a prefix; whether one is long enough to accept, and
-	// whether it matches more than one version, are decided where it is
-	// resolved, so a prefix this type accepts can still be refused by the
-	// service.
+	// Tag and Digest are the selector, and at most one is set. Digest is 1 to
+	// 64 lowercase hex characters, optionally preceded by "b3:", and it is
+	// held and rendered in whichever of those two spellings it was read in.
+	// Every digest this package writes for itself carries the prefix and the
+	// whole 64, which is the form a REST response carries and so is directly
+	// comparable to one. Fewer than 64 characters is a prefix; whether one is
+	// long enough to accept, and whether it matches more than one version, are
+	// decided where it is resolved, so a prefix this type accepts can still be
+	// refused by the service.
 	Tag    string
 	Digest string
 
@@ -252,20 +259,17 @@ func volumeRefTag(input, tag string) (string, error) {
 }
 
 // volumeRefDigest validates a digest and folds its hex to lowercase. The
-// "b3:" prefix is required rather than optional: a digest has one spelling,
-// it is the one every response and every rendered ref carries, and accepting
-// a second would teach a form nothing here ever prints.
+// "b3:" prefix is optional and is kept exactly as it was written: a full
+// digest is spelled with it everywhere it is read or written, while a prefix
+// of one is conventionally written bare, and a ref that says either means the
+// same version.
 func volumeRefDigest(input, digest string) (string, error) {
 	lowered := strings.ToLower(digest)
 	if lowered == "" {
 		return "", fmt.Errorf("ref %q: no digest after %q", input, "@")
 	}
 	hex, tagged := strings.CutPrefix(lowered, volumeRefDigestAlgorithm)
-	if !tagged {
-		return "", fmt.Errorf("ref %q: digest %q must begin %q",
-			input, digest, volumeRefDigestAlgorithm)
-	}
-	if hex == "" {
+	if hex == "" && tagged {
 		return "", fmt.Errorf("ref %q: no digest after %q", input, volumeRefDigestAlgorithm)
 	}
 	if len(hex) > volumeRefDigestMax {
@@ -278,7 +282,7 @@ func volumeRefDigest(input, digest string) (string, error) {
 			return "", fmt.Errorf("ref %q: digest %q is not hex", input, digest)
 		}
 	}
-	return volumeRefDigestAlgorithm + hex, nil
+	return lowered, nil
 }
 
 // parseVolumeRefPath reads everything after the second slash. The argument is
@@ -365,8 +369,8 @@ func (r VolumeRef) Level() VolumeRefLevel {
 
 // String renders the ref canonically, which is the form to print, to hand back
 // in a result, and to paste into a config. A namespace ref renders with a
-// trailing slash, names render lowercase, a digest renders with its "b3:"
-// prefix, and path segments are percent-encoded again.
+// trailing slash, names render lowercase, a digest renders in the spelling the
+// ref holds, and path segments are percent-encoded again.
 func (r VolumeRef) String() string {
 	var b strings.Builder
 	b.WriteString(volumeRefScheme)
@@ -401,6 +405,22 @@ func (r VolumeRef) String() string {
 		b.WriteString(escapeVolumeRefSegment(segment))
 	}
 	return b.String()
+}
+
+// ShorthandString renders the ref the way [VolumeRef.String] does, except that
+// a whole digest is shortened to its first 12 hex characters and loses its
+// "b3:" prefix, which is how a digest prefix is conventionally written. It is
+// for a display where the whole 64 would crowd out everything beside it; the
+// result still names the same version and still parses.
+//
+// A digest that is already a prefix is left alone, since it is as short as the
+// ref's author was willing to make it. Everything else renders identically, so
+// this shortens the digest and nothing else.
+func (r VolumeRef) ShorthandString() string {
+	if hex := strings.TrimPrefix(r.Digest, volumeRefDigestAlgorithm); len(hex) == volumeRefDigestMax {
+		r.Digest = hex[:volumeRefDigestShorthand]
+	}
+	return r.String()
 }
 
 // escapeVolumeRefSegment percent-encodes everything outside the URI unreserved
