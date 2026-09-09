@@ -154,6 +154,46 @@ func TestPullStripPrefixKeepsALinkPointingInside(t *testing.T) {
 	}
 }
 
+// TestPullStripPrefixKeepsALinkToTheStrippedDirectory is the boundary of the
+// case above: the link resolves to the prefix itself, which is the destination
+// root once stripped. Trimming the prefix off cannot express that, since
+// nothing follows it, so getting this wrong points the link at a directory of
+// the prefix's own name that the destination does not have.
+func TestPullStripPrefixKeepsALinkToTheStrippedDirectory(t *testing.T) {
+	root := buildTree(t)
+	writeFile(t, root, "nested/deep/target.txt", []byte("inside"), 0o644)
+	// "nested/deep/here" targets ".", which resolves to "nested/deep".
+	if err := os.Symlink(".", filepath.Join(root, "nested", "deep", "here")); err != nil {
+		t.Skipf("symlinks unavailable: %v", err)
+	}
+	fake := newFakeService(t)
+	if _, err := transfer.Push(context.Background(), fake.client(t), pushOptions(root, fake)); err != nil {
+		t.Fatal(err)
+	}
+
+	dest := filepath.Join(t.TempDir(), "out")
+	if _, err := transfer.Pull(context.Background(), fake.client(t),
+		stripOptions(dest, fake, "nested/deep", "nested/deep")); err != nil {
+		t.Fatal(err)
+	}
+
+	target, err := os.Readlink(filepath.Join(dest, "here"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if target != "." {
+		t.Errorf("link target %q, want %q", target, ".")
+	}
+	// Read through the link, which is what proves it landed somewhere real.
+	body, err := os.ReadFile(filepath.Join(dest, "here", "target.txt"))
+	if err != nil {
+		t.Fatalf("the link should resolve to the destination root: %v", err)
+	}
+	if string(body) != "inside" {
+		t.Errorf("read %q through the link, want %q", body, "inside")
+	}
+}
+
 // TestPullStripPrefixPrunesByDestinationName covers the one place the two path
 // spaces could disagree: prune walks the destination, so what it compares
 // against has to be destination names rather than volume paths, or it would

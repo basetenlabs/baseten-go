@@ -33,6 +33,9 @@ import (
 // other, so this is not currently optimized for many calls against the same
 // volume.
 func (c *ManagementClient) PushVolume(ctx context.Context, opts PushVolumeOptions) (*PushVolumeResult, error) {
+	if err := opts.Ref.validate(); err != nil {
+		return nil, err
+	}
 	// Checked here rather than in the engine's Validate, because the engine is
 	// handed a namespace and a volume and never sees the rest of a ref.
 	switch {
@@ -220,6 +223,9 @@ func volumeStoreDownloader(store VolumeObjectStore) volume.ObjectDownloader {
 // sharing nothing with any other call, so this is not currently optimized for
 // many calls against the same volume.
 func (c *ManagementClient) PullVolume(ctx context.Context, opts PullVolumeOptions) (*PullVolumeResult, error) {
+	if err := opts.Ref.validate(); err != nil {
+		return nil, err
+	}
 	// Checked here rather than in the engine's Validate, which is handed the
 	// prefix this resolves to and cannot tell an absent one from a refused one.
 	if opts.StripRefPath && (opts.Ref.Path == "" || opts.Ref.Path == "/") {
@@ -336,6 +342,9 @@ func volumePullOptions(o PullVolumeOptions) transfer.PullOptions {
 func (c *ManagementClient) FetchVolumeManifest(
 	ctx context.Context, opts FetchVolumeManifestOptions,
 ) (*VolumeManifest, error) {
+	if err := opts.Ref.validate(); err != nil {
+		return nil, err
+	}
 	fetch := volumeManifestOptions(opts)
 	if err := fetch.Validate(); err != nil {
 		return nil, err

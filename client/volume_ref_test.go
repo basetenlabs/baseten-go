@@ -208,6 +208,10 @@ func TestParseVolumeRefErrors(t *testing.T) {
 		{"tag before digest", "bdn:weights/llama:prod@b3:abc", "must begin with a letter"},
 		{"digest too long", "bdn:weights/llama@b3:" + strings.Repeat("a", 65), "longer than 64 hex characters"},
 
+		// An encoded slash would join two segments after decoding, which is
+		// how a traversal would otherwise reach a path that rejects "..".
+		{"encoded slash", "bdn:weights/llama/a%2Fb", "decodes to a slash"},
+		{"encoded slash before dotdot", "bdn:weights/llama/a%2F..", "decodes to a slash"},
 		{"dot segment", "bdn:weights/llama/./x", `path segment "." is not allowed`},
 		{"dotdot segment", "bdn:weights/llama/../x", `path segment ".." is not allowed`},
 		{"encoded dotdot segment", "bdn:weights/llama/%2e%2e/x", `path segment ".." is not allowed`},
@@ -220,6 +224,50 @@ func TestParseVolumeRefErrors(t *testing.T) {
 			_, err := ParseVolumeRef(test.input)
 			require.Error(t, err)
 			require.Contains(t, err.Error(), test.contains)
+		})
+	}
+}
+
+// A hand-built ref is the only way to reach these, since the parser reads one
+// selector and reaches a path only through a volume. Each is a state the type
+// would otherwise paper over: two selectors render as the digest alone, and a
+// path with no volume renders as the namespace alone.
+func TestVolumeRefValidate(t *testing.T) {
+	for _, ref := range []VolumeRef{
+		{Namespace: "weights"},
+		{Namespace: "weights", Volume: "llama"},
+		{Namespace: "weights", Volume: "llama", Tag: "prod"},
+		{Namespace: "weights", Volume: "llama", Digest: "b3:a1b2", Path: "/config"},
+	} {
+		require.NoError(t, ref.validate())
+	}
+
+	tests := map[string]struct {
+		ref  VolumeRef
+		want string
+	}{
+		"no namespace": {
+			VolumeRef{Volume: "llama"},
+			"names no namespace",
+		},
+		"selector with no volume": {
+			VolumeRef{Namespace: "weights", Tag: "prod"},
+			"names no volume",
+		},
+		"path with no volume": {
+			VolumeRef{Namespace: "weights", Path: "/config"},
+			"names no volume",
+		},
+		"both selectors": {
+			VolumeRef{Namespace: "weights", Volume: "llama", Tag: "prod", Digest: "b3:a1b2"},
+			"cannot be both",
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tc.ref.validate()
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.want)
 		})
 	}
 }

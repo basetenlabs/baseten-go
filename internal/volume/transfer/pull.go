@@ -472,7 +472,13 @@ func (p *puller) writeSymlink(link volume.SymlinkEntry) error {
 				"symlink %s points at %s, which is outside %q and so has no place under the destination",
 				link.Path, resolved, prefix)
 		}
-		target = volume.RelativeLinkTarget(filepath.ToSlash(name), "/"+strings.TrimPrefix(resolved, prefix+"/"))
+		// The stripped directory is itself the destination root, which
+		// TrimPrefix cannot express: nothing follows the prefix to trim.
+		stripped := "/"
+		if resolved != prefix {
+			stripped += strings.TrimPrefix(resolved, prefix+"/")
+		}
+		target = volume.RelativeLinkTarget(filepath.ToSlash(name), stripped)
 	}
 	if err := p.ensureParent(name); err != nil {
 		return err

@@ -301,6 +301,14 @@ func parseVolumeRefPath(input, rest string) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("ref %q: path segment %q: %w", input, segment, err)
 		}
+		// An encoded slash would join two segments into one after decoding,
+		// which puts the checks below out of reach: "a%2F.." decodes to
+		// "a/..", which is neither "." nor "..", and would land a traversal
+		// in the path. No entry name can hold a slash either, so there is
+		// nothing this could have named.
+		if strings.Contains(decoded, "/") {
+			return "", fmt.Errorf("ref %q: path segment %q decodes to a slash", input, segment)
+		}
 		// Checked after decoding, so an encoded "%2e%2e" cannot slip a
 		// traversal past the check. A ref is not a filesystem path, so these
 		// are refused rather than normalized away.
@@ -311,6 +319,34 @@ func parseVolumeRefPath(input, rest string) (string, error) {
 		path.WriteString(decoded)
 	}
 	return path.String(), nil
+}
+
+// validate refuses a ref that contradicts itself.
+//
+// [ParseVolumeRef] cannot produce any of these: it reads one selector and
+// reaches a path only through a volume. They are reachable only by building a
+// VolumeRef by hand, which is a supported thing to do, and each one is a state
+// this type would otherwise paper over rather than report. Both selectors set
+// silently drops the tag, since rendering prefers the digest; a path or a
+// selector with no volume is silently dropped by [VolumeRef.String], which
+// stops at the namespace, while [VolumeRef.Level] still reports the deeper
+// level.
+//
+// Grammar is not rechecked here. The parser owns it, and a name or digest that
+// is merely wrong produces a ref the service refuses, which is a different
+// thing from a ref that does not say what it means.
+func (r VolumeRef) validate() error {
+	switch {
+	case r.Namespace == "":
+		return fmt.Errorf("ref %s names no namespace", r)
+	case r.Volume == "" && (r.Tag != "" || r.Digest != "" || r.Path != ""):
+		return fmt.Errorf("ref %s names no volume to select within", r)
+	case r.Tag != "" && r.Digest != "":
+		return fmt.Errorf(
+			"ref %s names both tag %q and digest %q, and one version cannot be both",
+			r, r.Tag, r.Digest)
+	}
+	return nil
 }
 
 // Level reports the most specific component the ref names.
