@@ -111,9 +111,9 @@ func TestUploadOnceSingleFlightsConcurrentCallers(t *testing.T) {
 	results := make([]outcome, callers)
 
 	var wg sync.WaitGroup
-	for i := range callers {
+	for i := range results {
 		wg.Add(1)
-		go func() {
+		go func(i int) {
 			defer wg.Done()
 			<-start
 			result, reused, _, err := p.uploadOnce(context.Background(), key, func() (*bdn.UploadResult, error) {
@@ -124,7 +124,7 @@ func TestUploadOnceSingleFlightsConcurrentCallers(t *testing.T) {
 				return &bdn.UploadResult{Digest: key.digest, Target: target, Created: true}, nil
 			})
 			results[i] = outcome{result: result, reused: reused, err: err}
-		}()
+		}(i)
 	}
 
 	close(start)

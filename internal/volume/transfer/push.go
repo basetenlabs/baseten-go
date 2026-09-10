@@ -744,32 +744,16 @@ func (p *pusher) uploadOnce(
 	upload func() (*bdn.UploadResult, error),
 ) (result *bdn.UploadResult, reused, waited bool, err error) {
 	for {
-		p.uploadsMu.Lock()
-		if p.uploads == nil {
-			p.uploads = make(map[uploadKey]*uploadEntry)
-		}
-		entry, found := p.uploads[key]
-		if !found {
-			entry = &uploadEntry{done: make(chan struct{})}
-			p.uploads[key] = entry
-			p.uploadsMu.Unlock()
-
+		entry, owner := p.claimUpload(key)
+		if owner {
 			result, err := upload()
 			if err == nil && result == nil {
 				err = errors.New("upload returned no result")
 			}
 
-			p.uploadsMu.Lock()
-			if err == nil {
-				entry.result = result
-			} else if p.uploads[key] == entry {
-				delete(p.uploads, key)
-			}
-			close(entry.done)
-			p.uploadsMu.Unlock()
+			p.finishUpload(key, entry, result, err)
 			return result, false, waited, err
 		}
-		p.uploadsMu.Unlock()
 
 		waited = true
 		select {
@@ -783,6 +767,39 @@ func (p *pusher) uploadOnce(
 			return nil, false, true, ctx.Err()
 		}
 	}
+}
+
+// claimUpload returns the entry for key and whether the caller installed it.
+// Keeping the map operation here makes every lock release structural rather
+// than dependent on a caller remembering each exit path.
+func (p *pusher) claimUpload(key uploadKey) (*uploadEntry, bool) {
+	p.uploadsMu.Lock()
+	defer p.uploadsMu.Unlock()
+
+	if p.uploads == nil {
+		p.uploads = make(map[uploadKey]*uploadEntry)
+	}
+	if entry, found := p.uploads[key]; found {
+		return entry, false
+	}
+	entry := &uploadEntry{done: make(chan struct{})}
+	p.uploads[key] = entry
+	return entry, true
+}
+
+// finishUpload publishes a successful result or removes a failed flight, then
+// wakes its waiters. The identity check keeps an old flight from deleting a
+// newer retry if this lifecycle changes to permit one before notification.
+func (p *pusher) finishUpload(key uploadKey, entry *uploadEntry, result *bdn.UploadResult, err error) {
+	p.uploadsMu.Lock()
+	defer p.uploadsMu.Unlock()
+
+	if err == nil {
+		entry.result = result
+	} else if p.uploads[key] == entry {
+		delete(p.uploads, key)
+	}
+	close(entry.done)
 }
 
 // recordUpload keeps the successful-object partition stable: only the caller
