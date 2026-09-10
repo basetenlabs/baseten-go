@@ -284,7 +284,7 @@ func (p *pusher) uploadManifest(
 	if err != nil {
 		return volume.Digest{}, err
 	}
-	if _, err := p.uploadMetadata(ctx, bdn.ContentTypeManifest, digest, body); err != nil {
+	if _, err := p.uploadMetadata(ctx, objectManifest, bdn.ContentTypeManifest, digest, body); err != nil {
 		return volume.Digest{}, err
 	}
 	return digest, nil
@@ -307,14 +307,42 @@ type pusher struct {
 	// or it could not be read.
 	prior *priorVersion
 
-	// uploaded remembers the objects this push has already sent, keyed by kind
-	// and digest, so the same bytes appearing in several files are sent once.
-	// Two goroutines can miss at the same moment and both upload; that costs a
-	// duplicate request and nothing else, which is cheaper than serializing
-	// every lookup behind the upload it guards.
-	uploaded sync.Map
+	// uploads coordinates objects by logical kind and digest. A successful
+	// result stays here for the life of the push, so later callers reuse its
+	// target. An in-flight result gives concurrent callers something to wait
+	// on, so only its owner sends the request. The mutex protects only this map
+	// and result publication; it is never held across a request or a wait.
+	uploadsMu sync.Mutex
+	uploads   map[uploadKey]*uploadEntry
 
 	stats stats
+}
+
+// objectKind separates objects that happen to contain the same bytes but have
+// different meanings to the service. It deliberately names the logical kind,
+// not its wire encoding: an identity and a zstd manifest describe the same
+// content-addressed object.
+type objectKind uint8
+
+const (
+	objectChunk objectKind = iota
+	objectChunkmap
+	objectManifest
+)
+
+// uploadKey is directly comparable, so looking an object up does not render
+// its digest as hex or concatenate an allocation-heavy string key.
+type uploadKey struct {
+	kind   objectKind
+	digest volume.Digest
+}
+
+// uploadEntry is one active or completed upload. Closing done publishes
+// result to every waiter. A nil result means the owner failed and the entry
+// has been removed, so a waiter may compete to retry it.
+type uploadEntry struct {
+	done   chan struct{}
+	result *bdn.UploadResult
 }
 
 // stats accumulates the counts a push reports.
@@ -421,7 +449,7 @@ func (p *pusher) pushFile(ctx context.Context, file volume.SourceFile) (volume.F
 	if err != nil {
 		return volume.FileEntry{}, err
 	}
-	target, err := p.uploadMetadata(ctx, bdn.ContentTypeChunkmap, digest, body)
+	target, err := p.uploadMetadata(ctx, objectChunkmap, bdn.ContentTypeChunkmap, digest, body)
 	if err != nil {
 		return volume.FileEntry{}, err
 	}
@@ -648,27 +676,28 @@ func (p *pusher) pushChunk(
 		return pushedChunk{ref: ref, fromPrior: true}, nil
 	}
 
-	if target, ok := p.seen(bdn.ContentTypeChunk, digest); ok {
-		permit.CompleteUntimed(volume.Neutral)
-		ref.Target = target
-		p.stats.add(1, 0, 1, 0)
-		return pushedChunk{ref: ref}, nil
-	}
-
-	result, err := p.client.UploadObject(ctx, p.session, bdn.ContentTypeChunk, digest, buffer)
+	result, reused, waited, err := p.uploadOnce(ctx, uploadKey{kind: objectChunk, digest: digest}, func() (*bdn.UploadResult, error) {
+		return p.client.UploadObject(ctx, p.session, bdn.ContentTypeChunk, digest, buffer)
+	})
 	if err != nil {
 		permit.CompleteUntimed(failureOutcome(ctx, err))
 		return pushedChunk{}, err
 	}
-	permit.Complete(result.Outcome)
-
-	p.remember(bdn.ContentTypeChunk, digest, result.Target)
-	ref.Target = result.Target
-	if result.Created {
-		p.stats.add(1, 1, 0, 0)
+	if reused {
+		// This permit observed no request. Its time is queue wait rather than
+		// origin latency and must not move the adaptive limiter's baseline.
+		permit.CompleteUntimed(volume.Neutral)
+	} else if waited {
+		// This caller became the retry owner after an earlier flight failed.
+		// Its permit includes that flight's wait, so even its real request is
+		// not a usable latency sample.
+		permit.CompleteUntimed(result.Outcome)
 	} else {
-		p.stats.add(1, 0, 0, 1)
+		permit.Complete(result.Outcome)
 	}
+
+	ref.Target = result.Target
+	p.recordUpload(result, reused)
 	return pushedChunk{ref: ref}, nil
 }
 
@@ -680,45 +709,93 @@ func (p *pusher) pushChunk(
 // against.
 func (p *pusher) uploadMetadata(
 	ctx context.Context,
+	kind objectKind,
 	contentType string,
 	digest volume.Digest,
 	body []byte,
 ) (volume.Target, error) {
-	if target, ok := p.seen(contentType, digest); ok {
+	result, reused, _, err := p.uploadOnce(ctx, uploadKey{kind: kind, digest: digest}, func() (*bdn.UploadResult, error) {
+		permit, err := p.limiter.Acquire(ctx)
+		if err != nil {
+			return nil, err
+		}
+		result, err := p.client.UploadObject(ctx, p.session, contentType, digest, body)
+		if err != nil {
+			permit.CompleteUntimed(failureOutcome(ctx, err))
+			return nil, err
+		}
+		permit.CompleteUntimed(result.Outcome)
+		return result, nil
+	})
+	if err != nil {
+		return volume.Target{}, err
+	}
+	p.recordUpload(result, reused)
+	return result.Target, nil
+}
+
+// uploadOnce runs at most one upload at a time for key. Successful results are
+// retained for the whole push. Failures are removed before waiters wake, so
+// one of them can become the next owner rather than inheriting a poisoned
+// cache entry. A waiter's cancellation never disturbs the shared flight.
+func (p *pusher) uploadOnce(
+	ctx context.Context,
+	key uploadKey,
+	upload func() (*bdn.UploadResult, error),
+) (result *bdn.UploadResult, reused, waited bool, err error) {
+	for {
+		p.uploadsMu.Lock()
+		if p.uploads == nil {
+			p.uploads = make(map[uploadKey]*uploadEntry)
+		}
+		entry, found := p.uploads[key]
+		if !found {
+			entry = &uploadEntry{done: make(chan struct{})}
+			p.uploads[key] = entry
+			p.uploadsMu.Unlock()
+
+			result, err := upload()
+			if err == nil && result == nil {
+				err = errors.New("upload returned no result")
+			}
+
+			p.uploadsMu.Lock()
+			if err == nil {
+				entry.result = result
+			} else if p.uploads[key] == entry {
+				delete(p.uploads, key)
+			}
+			close(entry.done)
+			p.uploadsMu.Unlock()
+			return result, false, waited, err
+		}
+		p.uploadsMu.Unlock()
+
+		waited = true
+		select {
+		case <-entry.done:
+			if entry.result != nil {
+				return entry.result, true, true, nil
+			}
+			// The owner failed and removed this entry. Compete with the other
+			// waiters to install the retry flight.
+		case <-ctx.Done():
+			return nil, false, true, ctx.Err()
+		}
+	}
+}
+
+// recordUpload keeps the successful-object partition stable: only the caller
+// that sent the request records Unique or Existing; every caller that shared
+// its result records Reused.
+func (p *pusher) recordUpload(result *bdn.UploadResult, reused bool) {
+	if reused {
 		p.stats.add(1, 0, 1, 0)
-		return target, nil
-	}
-
-	permit, err := p.limiter.Acquire(ctx)
-	if err != nil {
-		return volume.Target{}, err
-	}
-	result, err := p.client.UploadObject(ctx, p.session, contentType, digest, body)
-	if err != nil {
-		permit.CompleteUntimed(failureOutcome(ctx, err))
-		return volume.Target{}, err
-	}
-	permit.CompleteUntimed(result.Outcome)
-
-	p.remember(contentType, digest, result.Target)
-	if result.Created {
+	} else if result.Created {
 		p.stats.add(1, 1, 0, 0)
 	} else {
 		p.stats.add(1, 0, 0, 1)
 	}
-	return result.Target, nil
-}
-
-func (p *pusher) seen(contentType string, digest volume.Digest) (volume.Target, bool) {
-	value, ok := p.uploaded.Load(contentType + ":" + digest.String())
-	if !ok {
-		return volume.Target{}, false
-	}
-	return value.(volume.Target), true
-}
-
-func (p *pusher) remember(contentType string, digest volume.Digest, target volume.Target) {
-	p.uploaded.Store(contentType+":"+digest.String(), target)
 }
 
 // commit publishes the manifest.

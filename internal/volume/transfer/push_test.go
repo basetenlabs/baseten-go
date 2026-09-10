@@ -6,10 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"hash"
+	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/basetenlabs/baseten-go/internal/require"
 	"github.com/basetenlabs/baseten-go/internal/volume"
+	"github.com/basetenlabs/baseten-go/internal/volume/bdn"
 )
 
 // stubHasher stands in for a real one where only the presence of the option
@@ -88,4 +91,146 @@ func TestAllReused(t *testing.T) {
 	require.False(t, allReused(reused[:1], prior), "the file lost a chunk")
 	require.False(t, allReused(reused, prior[:1]), "the file gained a chunk")
 	require.False(t, allReused(nil, nil), "a file with no chunks has nothing to reuse")
+}
+
+func TestUploadOnceSingleFlightsConcurrentCallers(t *testing.T) {
+	p := &pusher{}
+	key := uploadKey{kind: objectChunk, digest: volume.Digest{1}}
+	target := volume.TargetForDigest(key.digest)
+
+	const callers = 32
+	start := make(chan struct{})
+	release := make(chan struct{})
+	ownerStarted := make(chan struct{})
+	var calls atomic.Int64
+	type outcome struct {
+		result *bdn.UploadResult
+		reused bool
+		err    error
+	}
+	results := make([]outcome, callers)
+
+	var wg sync.WaitGroup
+	for i := range callers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+			result, reused, _, err := p.uploadOnce(context.Background(), key, func() (*bdn.UploadResult, error) {
+				if calls.Add(1) == 1 {
+					close(ownerStarted)
+				}
+				<-release
+				return &bdn.UploadResult{Digest: key.digest, Target: target, Created: true}, nil
+			})
+			results[i] = outcome{result: result, reused: reused, err: err}
+		}()
+	}
+
+	close(start)
+	<-ownerStarted
+	close(release)
+	wg.Wait()
+
+	require.Equal(t, int64(1), calls.Load())
+	owners := 0
+	for _, got := range results {
+		require.NoError(t, got.err)
+		require.NotNil(t, got.result)
+		require.Equal(t, target, got.result.Target)
+		if !got.reused {
+			owners++
+		}
+	}
+	require.Equal(t, 1, owners)
+}
+
+func TestUploadOnceDoesNotCacheFailure(t *testing.T) {
+	p := &pusher{}
+	key := uploadKey{kind: objectChunk, digest: volume.Digest{2}}
+	failed := errors.New("upload failed")
+	var calls atomic.Int64
+
+	_, reused, waited, err := p.uploadOnce(context.Background(), key, func() (*bdn.UploadResult, error) {
+		calls.Add(1)
+		return nil, failed
+	})
+	require.Error(t, err)
+	require.False(t, reused, "a failed first call was not reuse")
+	require.False(t, waited, "the first owner did not wait")
+
+	target := volume.TargetForDigest(key.digest)
+	result, reused, waited, err := p.uploadOnce(context.Background(), key, func() (*bdn.UploadResult, error) {
+		calls.Add(1)
+		return &bdn.UploadResult{Digest: key.digest, Target: target}, nil
+	})
+	require.NoError(t, err)
+	require.False(t, reused, "the retry sent the request")
+	require.False(t, waited, "a sequential retry had no flight to wait on")
+	require.Equal(t, target, result.Target)
+	require.Equal(t, int64(2), calls.Load())
+}
+
+func TestUploadOnceCancelledWaiterDoesNotCancelOwner(t *testing.T) {
+	p := &pusher{}
+	key := uploadKey{kind: objectChunk, digest: volume.Digest{3}}
+	target := volume.TargetForDigest(key.digest)
+	ownerStarted := make(chan struct{})
+	release := make(chan struct{})
+	ownerDone := make(chan error, 1)
+	var calls atomic.Int64
+
+	go func() {
+		_, _, _, err := p.uploadOnce(context.Background(), key, func() (*bdn.UploadResult, error) {
+			calls.Add(1)
+			close(ownerStarted)
+			<-release
+			return &bdn.UploadResult{Digest: key.digest, Target: target}, nil
+		})
+		ownerDone <- err
+	}()
+	<-ownerStarted
+
+	waiterCtx, cancel := context.WithCancel(context.Background())
+	cancel()
+	_, _, waited, err := p.uploadOnce(waiterCtx, key, func() (*bdn.UploadResult, error) {
+		calls.Add(1)
+		return nil, errors.New("cancelled waiter became owner")
+	})
+	require.Error(t, err)
+	require.True(t, errors.Is(err, context.Canceled), "waiter should return its context error")
+	require.True(t, waited, "the cancelled call found the owner's flight")
+
+	close(release)
+	require.NoError(t, <-ownerDone)
+
+	result, reused, _, err := p.uploadOnce(context.Background(), key, func() (*bdn.UploadResult, error) {
+		calls.Add(1)
+		return nil, errors.New("completed result was not reused")
+	})
+	require.NoError(t, err)
+	require.True(t, reused, "the owner's completed result should stay cached")
+	require.Equal(t, target, result.Target)
+	require.Equal(t, int64(1), calls.Load())
+}
+
+func TestUploadOnceScopesKeysByKindAndDigest(t *testing.T) {
+	p := &pusher{}
+	keys := []uploadKey{
+		{kind: objectChunk, digest: volume.Digest{4}},
+		{kind: objectChunkmap, digest: volume.Digest{4}},
+		{kind: objectChunk, digest: volume.Digest{5}},
+	}
+	var calls atomic.Int64
+
+	for _, key := range keys {
+		result, reused, _, err := p.uploadOnce(context.Background(), key, func() (*bdn.UploadResult, error) {
+			calls.Add(1)
+			return &bdn.UploadResult{Digest: key.digest, Target: volume.TargetForDigest(key.digest)}, nil
+		})
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.False(t, reused, "each distinct key should own its first upload")
+	}
+	require.Equal(t, int64(len(keys)), calls.Load())
 }
