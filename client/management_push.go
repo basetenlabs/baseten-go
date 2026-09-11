@@ -65,9 +65,16 @@ type PushModelOptions struct {
 	DeploymentName string
 
 	// EnvironmentName is the stable environment to push to (for example
-	// "production"). The environment is created if it does not exist. When
-	// empty, the deployment is created without environment selection.
+	// "production"). When empty, the deployment is created without
+	// environment selection.
 	EnvironmentName string
+
+	// CreateEnvironmentIfMissing creates the environment named by
+	// EnvironmentName when the model does not have it yet. Without it, a push
+	// naming an environment that does not exist is rejected. Only meaningful
+	// with EnvironmentName set to something other than "production", which
+	// every model has.
+	CreateEnvironmentIfMissing bool
 
 	// Region is the region in which to deploy the model. When empty, the
 	// server chooses. Unrelated to [ModelUpload.Region], which is the AWS
@@ -82,14 +89,14 @@ type PushModelOptions struct {
 	// range is 10 to 1440; zero leaves the server default.
 	DeployTimeoutMinutes int
 
-	// OverrideEnvInstanceType replaces the target environment's current
-	// instance type with the one in Config, instead of retaining the
-	// environment's. Only meaningful with EnvironmentName set.
-	OverrideEnvInstanceType bool
+	// PreserveEnvInstanceType retains the target environment's current
+	// instance type instead of applying the one in Config. Only meaningful
+	// with EnvironmentName set to an environment that already exists.
+	PreserveEnvInstanceType bool
 
 	// IsDevelopment pushes to the model's single mutable development slot,
 	// created if absent and overwritten in place otherwise. DeploymentName,
-	// EnvironmentName, and OverrideEnvInstanceType must be left unset.
+	// EnvironmentName, and PreserveEnvInstanceType must be left unset.
 	IsDevelopment bool
 
 	// UserEnv is client environment metadata (for example client version,
@@ -275,10 +282,11 @@ func pushModelPayload(opts PushModelOptions) managementapi.DeploymentArchivePayl
 	}
 	if opts.EnvironmentName != "" {
 		payload.EnvironmentName = &opts.EnvironmentName
-		// The server rejects the field without an environment, and defaults it
-		// to true, so it is only sent to opt out.
-		preserve := !opts.OverrideEnvInstanceType
-		payload.PreserveEnvInstanceType = &preserve
+		// Both are only meaningful alongside an environment, and the server
+		// rejects them without one. Always sent explicitly, so the behavior is
+		// the caller's choice rather than the server default.
+		payload.PreserveEnvInstanceType = &opts.PreserveEnvInstanceType
+		payload.CreateEnvironmentIfMissing = &opts.CreateEnvironmentIfMissing
 	}
 	if opts.Region != "" {
 		payload.Region = &opts.Region

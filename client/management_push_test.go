@@ -295,16 +295,28 @@ func TestPushModelExisting(t *testing.T) {
 }
 
 func TestPushModelEnvironment(t *testing.T) {
-	// preserve_env_instance_type is only meaningful alongside an environment,
-	// and is sent inverted from the caller's override intent.
+	// Both fields are only meaningful alongside an environment, and both are
+	// sent explicitly so the zero value opts out rather than picking up the
+	// server default.
 	cases := map[string]struct {
-		environment string
-		override    bool
-		expected    any
+		environment     string
+		preserve        bool
+		createIfMissing bool
+		wantPreserve    any
+		wantCreate      any
 	}{
-		"NoEnvironmentOmitsPreserve": {environment: "", override: false, expected: nil},
-		"EnvironmentPreserves":       {environment: "production", override: false, expected: true},
-		"EnvironmentOverrides":       {environment: "production", override: true, expected: false},
+		"NoEnvironmentOmitsBoth": {
+			environment: "", wantPreserve: nil, wantCreate: nil,
+		},
+		"EnvironmentDefaultsBothOff": {
+			environment: "production", wantPreserve: false, wantCreate: false,
+		},
+		"EnvironmentPreserves": {
+			environment: "production", preserve: true, wantPreserve: true, wantCreate: false,
+		},
+		"EnvironmentCreatesIfMissing": {
+			environment: "staging", createIfMissing: true, wantPreserve: false, wantCreate: true,
+		},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -315,18 +327,20 @@ func TestPushModelEnvironment(t *testing.T) {
 			cl := newPushTestServer(t, srv)
 
 			_, err := cl.PushModel(context.Background(), client.PushModelOptions{
-				Config:                  map[string]any{"model_name": "my-model"},
-				Archive:                 modelarchive.BuildModelArchiveOptions{Dir: newPushModelDir(t)},
-				EnvironmentName:         tc.environment,
-				OverrideEnvInstanceType: tc.override,
-				ModelUploader:           func(_ context.Context, u client.ModelUpload) error { _, _ = collectUpload(t, u); return nil },
+				Config:                     map[string]any{"model_name": "my-model"},
+				Archive:                    modelarchive.BuildModelArchiveOptions{Dir: newPushModelDir(t)},
+				EnvironmentName:            tc.environment,
+				PreserveEnvInstanceType:    tc.preserve,
+				CreateEnvironmentIfMissing: tc.createIfMissing,
+				ModelUploader:              func(_ context.Context, u client.ModelUpload) error { _, _ = collectUpload(t, u); return nil },
 			})
 			require.NoError(t, err)
 
 			prepare := pushRequestBody(t, requestByPath(t, srv, "/v1/prepare_model_upload"))
 			deployment, ok := prepare["deployment"].(map[string]any)
 			require.True(t, ok, "expected a deployment payload, got %T", prepare["deployment"])
-			require.Equal(t, tc.expected, deployment["preserve_env_instance_type"])
+			require.Equal(t, tc.wantPreserve, deployment["preserve_env_instance_type"])
+			require.Equal(t, tc.wantCreate, deployment["create_environment_if_missing"])
 			if tc.environment == "" {
 				require.Nil(t, deployment["environment_name"])
 			} else {
