@@ -2,10 +2,6 @@
 
 package inferenceapi
 
-const (
-	BearerAuthScopes = "BearerAuth.Scopes"
-)
-
 // Defines values for AsyncRequestErrorCode.
 const (
 	AsyncRequestErrorCode_ASYNC_REQUEST_NOT_SUPPORTED AsyncRequestErrorCode = "ASYNC_REQUEST_NOT_SUPPORTED"

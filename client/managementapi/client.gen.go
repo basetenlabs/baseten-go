@@ -262,6 +262,19 @@ func (c *Client) GetAuditLogs(ctx context.Context, params GetV1AuditLogsParams) 
 	})
 }
 
+// GetBillingModelApis: Gets daily Model APIs costs
+func (c *Client) GetBillingModelApis(ctx context.Context, params GetV1BillingModelApisParams) (*ModelApisCostsResponse, error) {
+	return doJSON[ModelApisCostsResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/billing/model_apis",
+		pathArgs:    nil,
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetBillingUsageSummary: Gets billing usage summary for a date range
 func (c *Client) GetBillingUsageSummary(ctx context.Context, params GetV1BillingUsageSummaryParams) (*UsageSummary, error) {
 	return doJSON[UsageSummary](c, ctx, apiRequest{
