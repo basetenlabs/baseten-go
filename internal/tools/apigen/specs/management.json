@@ -8341,6 +8341,170 @@
                 }
             }
         },
+        "/v1/billing/model_apis": {
+            "get": {
+                "summary": "Gets daily Model APIs costs",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/billing/model_apis \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/billing/model_apis\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns daily Model API costs in USD for your organization, with optional filtering and grouping by API key, user, model, and service tier. Results may differ from finalized invoice amounts. Cost history is available from August 5, 2026 at 20:45 UTC. August 5 is a partial day; earlier dates are unavailable.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Number of daily cost buckets to return. Defaults to 7; maximum 31.",
+                        "schema": {
+                            "default": 7,
+                            "maximum": 31,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "required": false,
+                        "description": "Inclusive UTC calendar day at the start of the query range. Defaults to the previous UTC date, cannot be before 2026-08-05, and is ignored when you pass a cursor.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "format": "date",
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "required": false,
+                        "description": "Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included. The date range cannot exceed 90 days.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "format": "date",
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Date"
+                        }
+                    },
+                    {
+                        "name": "group_by",
+                        "in": "query",
+                        "required": false,
+                        "description": "Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, or service_tier. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily organization totals.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/ModelApiCostDimensionV1"
+                            },
+                            "title": "Group By",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "api_key_prefixes",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only costs for these exact API key prefixes, repeated once per prefix.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Api Key Prefixes",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "user_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only costs attributed to these exact user IDs, repeated once per ID.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "User Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "models",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only costs for these exact model identifiers, repeated once per model.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Models",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "service_tiers",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only costs for these exact service tiers, repeated once per tier.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Service Tiers",
+                            "type": "array"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ModelApisCostsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/billing/usage_summary": {
             "get": {
                 "summary": "Gets billing usage summary for a date range",
@@ -9193,7 +9357,7 @@
                         "type": "string"
                     },
                     "version_ref": {
-                        "description": "Full address of the volume, as `bdn://<namespace>/<volume>`. Paste this into the `bdn.mounts` section of a config.yaml.",
+                        "description": "Full address of the volume, as `bdn:<namespace>/<volume>`. Paste this into the `bdn.mounts` section of a config.yaml.",
                         "title": "Version Ref",
                         "type": "string"
                     },
@@ -9589,7 +9753,7 @@
                         "type": "string"
                     },
                     "version_ref": {
-                        "description": "Full address of this version, as `bdn://<namespace>/<volume>@<digest>`. Paste this into the `bdn.mounts` section of a config.yaml to pin to it.",
+                        "description": "Full address of this version, as `bdn:<namespace>/<volume>@<digest>`. Paste this into the `bdn.mounts` section of a config.yaml to pin to it.",
                         "title": "Version Ref",
                         "type": "string"
                     },
@@ -9758,7 +9922,7 @@
                         "type": "string"
                     },
                     "version_ref": {
-                        "description": "Full address of the deleted version, as `bdn://<namespace>/<volume>@<digest>`.",
+                        "description": "Full address of the deleted version, as `bdn:<namespace>/<volume>@<digest>`.",
                         "title": "Version Ref",
                         "type": "string"
                     },
@@ -9810,7 +9974,7 @@
                         "type": "string"
                     },
                     "version_ref": {
-                        "description": "Full address of this version, as `bdn://<namespace>/<volume>@<digest>`. Paste this into the `bdn.mounts` section of a config.yaml to pin to it.",
+                        "description": "Full address of this version, as `bdn:<namespace>/<volume>@<digest>`. Paste this into the `bdn.mounts` section of a config.yaml to pin to it.",
                         "title": "Version Ref",
                         "type": "string"
                     },
@@ -9962,7 +10126,7 @@
                         "type": "string"
                     },
                     "version_ref": {
-                        "description": "Full address of the restored version, as `bdn://<namespace>/<volume>@<digest>`.",
+                        "description": "Full address of the restored version, as `bdn:<namespace>/<volume>@<digest>`.",
                         "title": "Version Ref",
                         "type": "string"
                     },
@@ -10669,6 +10833,12 @@
                         "default": null,
                         "description": "Stable environment to push to (e.g. `production`). If unset, the deployment is created without environment selection. Caller must have push permission for the named environment.",
                         "title": "Environment Name"
+                    },
+                    "create_environment_if_missing": {
+                        "default": true,
+                        "description": "Create the environment named by `environment_name` if it does not exist yet. If false, a push to an environment that does not exist is rejected. Only meaningful when `environment_name` is set to something other than `production`, which always exists. This field currently defaults to true, but that default will change to false in a future release. Set it explicitly to avoid a behavior change.",
+                        "title": "Create Environment If Missing",
+                        "type": "boolean"
                     },
                     "region": {
                         "anyOf": [
@@ -25122,6 +25292,11 @@
                         ],
                         "default": null,
                         "title": "Description"
+                    },
+                    "trending": {
+                        "default": false,
+                        "title": "Trending",
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -25785,6 +25960,230 @@
                     }
                 },
                 "title": "UpdateLibraryListingVersionRequestV1",
+                "type": "object"
+            },
+            "ModelApisCostBucketV1": {
+                "description": "One daily bucket and the costs attributed to it.",
+                "properties": {
+                    "date": {
+                        "description": "UTC calendar date for this bucket, from midnight inclusive to the next midnight exclusive.",
+                        "format": "date",
+                        "title": "Date",
+                        "type": "string"
+                    },
+                    "results": {
+                        "description": "Cost totals for the observed combinations of requested dimensions in this bucket, ordered by those dimensions. Empty when the day has no matching usage.",
+                        "items": {
+                            "$ref": "#/components/schemas/ModelApisCostResultV1"
+                        },
+                        "title": "Results",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "date"
+                ],
+                "title": "ModelApisCostBucketV1",
+                "type": "object"
+            },
+            "ModelApisCostResultV1": {
+                "properties": {
+                    "api_key_prefixes": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The single attributed API key prefix for this result. Null when not grouping by api_key_prefix or when attribution is unavailable.",
+                        "title": "Api Key Prefixes"
+                    },
+                    "user_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Attributed user ID. Null when not grouping by user or when attribution is unavailable.",
+                        "title": "User Id"
+                    },
+                    "model": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Model identifier. Null when not grouping by model.",
+                        "title": "Model"
+                    },
+                    "service_tier": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Service tier. Null when not grouping by service_tier or when attribution is unavailable.",
+                        "title": "Service Tier"
+                    },
+                    "subtotal": {
+                        "description": "Model API cost in USD for this day and grouping combination, returned as an exact decimal string preserving fractional-cent amounts. This amount may differ from finalized invoice amounts.",
+                        "examples": [
+                            "0.00000123"
+                        ],
+                        "title": "Subtotal",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "subtotal"
+                ],
+                "title": "ModelApisCostResultV1",
+                "type": "object"
+            },
+            "ModelApisCostsResponseV1": {
+                "description": "One non-overlapping bucket per UTC day, ordered oldest first with no gaps.\n\nDays without matching usage are included with an empty results list.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/ModelApisCostBucketV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "ModelApisCostsResponseV1",
+                "type": "object"
+            },
+            "ModelApiCostDimensionV1": {
+                "enum": [
+                    "api_key_prefix",
+                    "user",
+                    "model",
+                    "service_tier"
+                ],
+                "title": "ModelApiCostDimensionV1",
+                "type": "string"
+            },
+            "ModelApisCostsRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 7,
+                        "description": "Number of daily cost buckets to return. Defaults to 7; maximum 31.",
+                        "maximum": 31,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "start_date": {
+                        "anyOf": [
+                            {
+                                "format": "date",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Inclusive UTC calendar day at the start of the query range. Defaults to the previous UTC date, cannot be before 2026-08-05, and is ignored when you pass a cursor.",
+                        "title": "Start Date"
+                    },
+                    "end_date": {
+                        "anyOf": [
+                            {
+                                "format": "date",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included. The date range cannot exceed 90 days.",
+                        "title": "End Date"
+                    },
+                    "group_by": {
+                        "description": "Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, or service_tier. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily organization totals.",
+                        "items": {
+                            "$ref": "#/components/schemas/ModelApiCostDimensionV1"
+                        },
+                        "title": "Group By",
+                        "type": "array"
+                    },
+                    "api_key_prefixes": {
+                        "description": "Return only costs for these exact API key prefixes, repeated once per prefix.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Api Key Prefixes",
+                        "type": "array"
+                    },
+                    "user_ids": {
+                        "description": "Return only costs attributed to these exact user IDs, repeated once per ID.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "User Ids",
+                        "type": "array"
+                    },
+                    "models": {
+                        "description": "Return only costs for these exact model identifiers, repeated once per model.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Models",
+                        "type": "array"
+                    },
+                    "service_tiers": {
+                        "description": "Return only costs for these exact service tiers, repeated once per tier.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Service Tiers",
+                        "type": "array"
+                    }
+                },
+                "title": "ModelApisCostsRequestV1",
                 "type": "object"
             },
             "BillableResourceV1": {

@@ -26,6 +26,10 @@ type preprocessedSpec struct {
 	// names on it that the spec marks `x-null-distinct`. postProcess retypes
 	// those fields to Optional[T] so callers can send an explicit null.
 	nullDistinct map[string][]string
+	// securitySchemes lists the spec's `components.securitySchemes` keys.
+	// oapi-codegen emits a scopes constant and a context-key type per scheme,
+	// which only server code uses; postProcess deletes them.
+	securitySchemes []string
 }
 
 // nullDistinctExtension marks a property whose explicit null differs from its
@@ -84,7 +88,22 @@ func preprocessSpec(data []byte) (*preprocessedSpec, error) {
 		discriminatorValues:   discriminatorValues,
 		discriminatorRequired: discriminatorRequired,
 		nullDistinct:          nullDistinct,
+		securitySchemes:       harvestSecuritySchemes(doc),
 	}, nil
+}
+
+// harvestSecuritySchemes returns the spec's security scheme names, sorted for
+// stable output.
+func harvestSecuritySchemes(doc map[string]any) []string {
+	components, ok := doc["components"].(map[string]any)
+	if !ok {
+		return nil
+	}
+	schemes, ok := components["securitySchemes"].(map[string]any)
+	if !ok {
+		return nil
+	}
+	return slices.Sorted(maps.Keys(schemes))
 }
 
 // harvestNullDistinct records which properties carry the x-null-distinct

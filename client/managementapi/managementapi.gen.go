@@ -8,10 +8,6 @@ import (
 	"time"
 )
 
-const (
-	BearerAuthScopes = "BearerAuth.Scopes"
-)
-
 // Defines values for APIKeyCategory.
 const (
 	APIKeyCategory_PERSONAL                  APIKeyCategory = "PERSONAL"
@@ -852,6 +848,30 @@ func (e LoopsRunStatusName) Valid() bool {
 	case LoopsRunStatusName_ACTIVE:
 		return true
 	case LoopsRunStatusName_INACTIVE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ModelApiCostDimension.
+const (
+	ModelApiCostDimension_api_key_prefix ModelApiCostDimension = "api_key_prefix"
+	ModelApiCostDimension_model          ModelApiCostDimension = "model"
+	ModelApiCostDimension_service_tier   ModelApiCostDimension = "service_tier"
+	ModelApiCostDimension_user           ModelApiCostDimension = "user"
+)
+
+// Valid indicates whether the value is a known member of the ModelApiCostDimension enum.
+func (e ModelApiCostDimension) Valid() bool {
+	switch e {
+	case ModelApiCostDimension_api_key_prefix:
+		return true
+	case ModelApiCostDimension_model:
+		return true
+	case ModelApiCostDimension_service_tier:
+		return true
+	case ModelApiCostDimension_user:
 		return true
 	default:
 		return false
@@ -3346,7 +3366,7 @@ type DeleteVolumeVersionResponse struct {
 	// Namespace Namespace the volume belongs to, in lowercase.
 	Namespace string `json:"namespace"`
 
-	// VersionRef Full address of the deleted version, as `bdn://<namespace>/<volume>@<digest>`.
+	// VersionRef Full address of the deleted version, as `bdn:<namespace>/<volume>@<digest>`.
 	VersionRef string `json:"version_ref"`
 
 	// Volume Name of the volume, in lowercase.
@@ -3409,6 +3429,9 @@ type Deployment struct {
 type DeploymentArchivePayload struct {
 	// Config Parsed model config as a JSON object.
 	Config map[string]interface{} `json:"config"`
+
+	// CreateEnvironmentIfMissing Create the environment named by `environment_name` if it does not exist yet. If false, a push to an environment that does not exist is rejected. Only meaningful when `environment_name` is set to something other than `production`, which always exists. This field currently defaults to true, but that default will change to false in a future release. Set it explicitly to avoid a behavior change.
+	CreateEnvironmentIfMissing *bool `json:"create_environment_if_missing,omitempty"`
 
 	// DeployTimeoutMinutes Deploy timeout in minutes; allowed range 10 to 1440. Server default applies if unset.
 	DeployTimeoutMinutes *int `json:"deploy_timeout_minutes,omitempty"`
@@ -4543,6 +4566,7 @@ type LibraryListingMetadata struct {
 	ParameterCount   *int                      `json:"parameter_count,omitempty"`
 	Publisher        *string                   `json:"publisher,omitempty"`
 	ReleaseDate      *string                   `json:"release_date,omitempty"`
+	Trending         *bool                     `json:"trending,omitempty"`
 	Variant          *string                   `json:"variant,omitempty"`
 }
 
@@ -5112,6 +5136,9 @@ type ModelAPIsResponse struct {
 	Pagination PaginationResponse `json:"pagination"`
 }
 
+// ModelApiCostDimension defines model for ModelApiCostDimension.
+type ModelApiCostDimension string
+
 // ModelApiItem defines model for ModelApiItem.
 type ModelApiItem struct {
 	// CachedInputTokens Total cached input tokens for this model
@@ -5145,6 +5172,42 @@ type ModelApiItemSubtotal1 = string
 // ModelApiItem_Subtotal Subtotal cost in dollars for this model
 type ModelApiItem_Subtotal struct {
 	union json.RawMessage
+}
+
+// ModelApisCostBucket One daily bucket and the costs attributed to it.
+type ModelApisCostBucket struct {
+	// Date UTC calendar date for this bucket, from midnight inclusive to the next midnight exclusive.
+	Date string `json:"date"`
+
+	// Results Cost totals for the observed combinations of requested dimensions in this bucket, ordered by those dimensions. Empty when the day has no matching usage.
+	Results *[]ModelApisCostResult `json:"results,omitempty"`
+}
+
+// ModelApisCostResult defines model for ModelApisCostResult.
+type ModelApisCostResult struct {
+	// ApiKeyPrefixes The single attributed API key prefix for this result. Null when not grouping by api_key_prefix or when attribution is unavailable.
+	ApiKeyPrefixes *[]string `json:"api_key_prefixes,omitempty"`
+
+	// Model Model identifier. Null when not grouping by model.
+	Model *string `json:"model,omitempty"`
+
+	// ServiceTier Service tier. Null when not grouping by service_tier or when attribution is unavailable.
+	ServiceTier *string `json:"service_tier,omitempty"`
+
+	// Subtotal Model API cost in USD for this day and grouping combination, returned as an exact decimal string preserving fractional-cent amounts. This amount may differ from finalized invoice amounts.
+	Subtotal string `json:"subtotal"`
+
+	// UserId Attributed user ID. Null when not grouping by user or when attribution is unavailable.
+	UserId *string `json:"user_id,omitempty"`
+}
+
+// ModelApisCostsResponse One non-overlapping bucket per UTC day, ordered oldest first with no gaps.
+//
+// Days without matching usage are included with an empty results list.
+type ModelApisCostsResponse struct {
+	// Items Items in this page.
+	Items      []ModelApisCostBucket `json:"items"`
+	Pagination PaginationResponse    `json:"pagination"`
 }
 
 // ModelApisUsage defines model for ModelApisUsage.
@@ -5742,7 +5805,7 @@ type RestoreVolumeVersionResponse struct {
 	// Namespace Namespace the volume belongs to, in lowercase.
 	Namespace string `json:"namespace"`
 
-	// VersionRef Full address of the restored version, as `bdn://<namespace>/<volume>@<digest>`.
+	// VersionRef Full address of the restored version, as `bdn:<namespace>/<volume>@<digest>`.
 	VersionRef string `json:"version_ref"`
 
 	// Volume Name of the volume, in lowercase.
@@ -6660,7 +6723,7 @@ type Volume struct {
 	// UpdatedAt When the volume last changed, in ISO 8601 format.
 	UpdatedAt time.Time `json:"updated_at"`
 
-	// VersionRef Full address of the volume, as `bdn://<namespace>/<volume>`. Paste this into the `bdn.mounts` section of a config.yaml.
+	// VersionRef Full address of the volume, as `bdn:<namespace>/<volume>`. Paste this into the `bdn.mounts` section of a config.yaml.
 	VersionRef string `json:"version_ref"`
 
 	// VersionsAlive Number of versions that have not been deleted.
@@ -6722,7 +6785,7 @@ type VolumeVersion struct {
 	// TotalSizeBytes Total size of the version's files in bytes. Null when not recorded.
 	TotalSizeBytes *int `json:"total_size_bytes"`
 
-	// VersionRef Full address of this version, as `bdn://<namespace>/<volume>@<digest>`. Paste this into the `bdn.mounts` section of a config.yaml to pin to it.
+	// VersionRef Full address of this version, as `bdn:<namespace>/<volume>@<digest>`. Paste this into the `bdn.mounts` section of a config.yaml to pin to it.
 	VersionRef string `json:"version_ref"`
 
 	// Volume Name of the volume, in lowercase.
@@ -6764,7 +6827,7 @@ type VolumeVersionDetail struct {
 	// TotalSizeBytes Total size of the version's files in bytes. Null when not recorded.
 	TotalSizeBytes *int `json:"total_size_bytes"`
 
-	// VersionRef Full address of this version, as `bdn://<namespace>/<volume>@<digest>`. Paste this into the `bdn.mounts` section of a config.yaml to pin to it.
+	// VersionRef Full address of this version, as `bdn:<namespace>/<volume>@<digest>`. Paste this into the `bdn.mounts` section of a config.yaml to pin to it.
 	VersionRef string `json:"version_ref"`
 
 	// Volume Name of the volume, in lowercase.
@@ -6823,6 +6886,36 @@ type GetV1AuditLogsParams struct {
 
 	// EndEpochMillis Epoch milliseconds for the end of the window. Defaults to the current time.
 	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
+}
+
+// GetV1BillingModelApisParams defines parameters for GetV1BillingModelApis.
+type GetV1BillingModelApisParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Number of daily cost buckets to return. Defaults to 7; maximum 31.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// StartDate Inclusive UTC calendar day at the start of the query range. Defaults to the previous UTC date, cannot be before 2026-08-05, and is ignored when you pass a cursor.
+	StartDate *string `form:"start_date,omitempty" json:"start_date,omitempty"`
+
+	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included. The date range cannot exceed 90 days.
+	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
+
+	// GroupBy Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, or service_tier. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily organization totals.
+	GroupBy *[]ModelApiCostDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
+
+	// ApiKeyPrefixes Return only costs for these exact API key prefixes, repeated once per prefix.
+	ApiKeyPrefixes *[]string `form:"api_key_prefixes,omitempty" json:"api_key_prefixes,omitempty"`
+
+	// UserIds Return only costs attributed to these exact user IDs, repeated once per ID.
+	UserIds *[]string `form:"user_ids,omitempty" json:"user_ids,omitempty"`
+
+	// Models Return only costs for these exact model identifiers, repeated once per model.
+	Models *[]string `form:"models,omitempty" json:"models,omitempty"`
+
+	// ServiceTiers Return only costs for these exact service tiers, repeated once per tier.
+	ServiceTiers *[]string `form:"service_tiers,omitempty" json:"service_tiers,omitempty"`
 }
 
 // GetV1BillingUsageSummaryParams defines parameters for GetV1BillingUsageSummary.

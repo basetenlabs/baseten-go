@@ -14,13 +14,15 @@ import (
 // the OpenAPI discriminator mapping keys that select it on the wire
 // (see fixDiscriminatorValueLiteral). discriminatorRequired maps a Go schema
 // name to whether its discriminator field is required, hence non-pointer
-// (see fixDiscriminatorPointerAssign).
-func postProcess(src []byte, discriminatorValues map[string][]string, discriminatorRequired map[string]bool, nullDistinct map[string][]string) ([]byte, error) {
+// (see fixDiscriminatorPointerAssign). securitySchemes lists the spec's
+// security scheme names (see removeSecurityScopes).
+func postProcess(src []byte, discriminatorValues map[string][]string, discriminatorRequired map[string]bool, nullDistinct map[string][]string, securitySchemes []string) ([]byte, error) {
 	s := string(src)
 
 	s = fixPackageComment(s)
 	s = removeMergeMethods(s)
 	s = removeRuntimeImport(s)
+	s = removeSecurityScopes(s, securitySchemes)
 	s = fixDiscriminatorValueLiteral(s, discriminatorValues)
 	s = fixDiscriminatorPointerAssign(s, discriminatorRequired)
 	s = underscoreEnumConstants(s)
@@ -62,6 +64,47 @@ func removeRuntimeImport(s string) string {
 	s = strings.ReplaceAll(s, "\t\"github.com/oapi-codegen/runtime\"\n", "")
 	s = strings.ReplaceAll(s, "\topenapi_types \"github.com/oapi-codegen/runtime/types\"\n", "")
 	return s
+}
+
+// securityScopesConstRe matches the scopes constant oapi-codegen emits for the
+// named security scheme, e.g.
+//
+//	BearerAuthScopes bearerAuthContextKey = "BearerAuth.Scopes"
+//
+// The scheme name appears verbatim in the string literal, so matching on that
+// avoids replicating oapi-codegen's identifier mangling; the constant and
+// context-key type names are read back out of the match instead. Group 1 is the
+// constant name, group 2 the context-key type.
+func securityScopesConstRe(scheme string) *regexp.Regexp {
+	return regexp.MustCompile(`(?m)^\t(\w+) (\w+) = "` + regexp.QuoteMeta(scheme) + `\.Scopes"\n`)
+}
+
+// contextKeyTypeRe matches a context-key type declaration and any doc comment
+// above it.
+func contextKeyTypeRe(name string) *regexp.Regexp {
+	return regexp.MustCompile(`(?m)(?:^//[^\n]*\n)*^type ` + regexp.QuoteMeta(name) + ` string\n`)
+}
+
+// emptyConstBlockRe matches a const block left with no specs in it.
+var emptyConstBlockRe = regexp.MustCompile(`(?m)^const \(\s*\)\n`)
+
+// removeSecurityScopes deletes the scopes constant and context-key type that
+// oapi-codegen emits per security scheme. Only generated server code reads
+// them, to stash an operation's scopes in the request context; in a client-only
+// package they are dead exported API. Schemes are taken from the spec rather
+// than matched by name, so a scheme added or renamed upstream is handled
+// without touching this code.
+func removeSecurityScopes(s string, schemes []string) string {
+	for _, scheme := range schemes {
+		constRe := securityScopesConstRe(scheme)
+		match := constRe.FindStringSubmatch(s)
+		if match == nil {
+			continue
+		}
+		s = constRe.ReplaceAllString(s, "")
+		s = contextKeyTypeRe(match[2]).ReplaceAllString(s, "")
+	}
+	return emptyConstBlockRe.ReplaceAllString(s, "")
 }
 
 // discriminatorRe matches discriminator assignments in From* methods

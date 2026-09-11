@@ -153,7 +153,7 @@ func generateAPI(apigenDir, specSource, clientDir, pkgName string) error {
 	if err != nil {
 		return fmt.Errorf("reading generated file: %w", err)
 	}
-	src, err = postProcess(src, specData.discriminatorValues, specData.discriminatorRequired, specData.nullDistinct)
+	src, err = postProcess(src, specData.discriminatorValues, specData.discriminatorRequired, specData.nullDistinct, specData.securitySchemes)
 	if err != nil {
 		return fmt.Errorf("post-processing: %w", err)
 	}
@@ -178,6 +178,7 @@ type resolvedSpec struct {
 	discriminatorValues   map[string][]string
 	discriminatorRequired map[string]bool
 	nullDistinct          map[string][]string
+	securitySchemes       []string
 }
 
 // resolveSpec reads and preprocesses a spec file, returning the preprocessed
@@ -214,6 +215,7 @@ func resolveSpec(source string) (*resolvedSpec, func(), error) {
 		discriminatorValues:   pre.discriminatorValues,
 		discriminatorRequired: pre.discriminatorRequired,
 		nullDistinct:          pre.nullDistinct,
+		securitySchemes:       pre.securitySchemes,
 	}, func() { os.Remove(tmp.Name()) }, nil
 }
 

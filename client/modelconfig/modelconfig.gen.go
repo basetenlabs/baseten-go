@@ -26,17 +26,50 @@ type AutoscalingMetric struct {
 	Target float64 `json:"target" yaml:"target"`
 }
 
-// Configuration for mounting BDN volumes.
+// Access grants for a BDN namespace.
+type BDNAccess struct {
+	// Operations granted in this namespace.
+	Grants []BDNAccessGrant `json:"grants" yaml:"grants"`
+
+	// BDN namespace to grant access to.
+	Namespace string `json:"namespace" yaml:"namespace"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
+type BDNAccessGrant string
+
+const BDNAccessGrantDelete BDNAccessGrant = "delete"
+const BDNAccessGrantInspect BDNAccessGrant = "inspect"
+const BDNAccessGrantPull BDNAccessGrant = "pull"
+const BDNAccessGrantPush BDNAccessGrant = "push"
+const BDNAccessGrantTag BDNAccessGrant = "tag"
+
+// Configuration for BDN mounts, access grants, and hot-loading.
 type BDNConfig struct {
+	// Namespace-level BDN access grants for the deployment.
+	Access []BDNAccess `json:"access,omitempty,omitzero" yaml:"access,omitempty"`
+
+	// Configure loading BDN data while the deployment is running.
+	Hotload *BDNHotload `json:"hotload,omitempty,omitzero" yaml:"hotload,omitempty"`
+
 	// Existing BDN volumes to mount when the model starts.
 	Mounts []BDNVolumeMount `json:"mounts,omitempty,omitzero" yaml:"mounts,omitempty"`
 
 	AdditionalProperties interface{} `mapstructure:",remain"`
 }
 
+// Configuration for loading BDN data while a deployment is running.
+type BDNHotload struct {
+	// If true, enables BDN hot-loading.
+	Enabled bool `json:"enabled,omitempty,omitzero" yaml:"enabled,omitempty"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
 // An existing BDN volume mounted into a model container.
 //
-// BDN vocabulary, read off a reference like `bdn://weights/llama-8b:prod`:
+// BDN vocabulary, read off a reference like `bdn:weights/llama-8b:prod`:
 //
 //   - A *namespace* (`weights`) groups volumes within your organization, and is
 //     the unit that access grants and storage are scoped to. Names are
@@ -52,7 +85,7 @@ type BDNConfig struct {
 // bdn:
 //
 //	mounts:
-//	  - source: bdn://weights/llama-8b:prod
+//	  - source: bdn:weights/llama-8b:prod
 //	    path: /models/llama
 //
 // ```
@@ -60,7 +93,7 @@ type BDNVolumeMount struct {
 	// Absolute path where the volume will be mounted at runtime.
 	Path string `json:"path" yaml:"path"`
 
-	// BDN volume reference to mount (for example, bdn://weights/llama-8b:prod).
+	// BDN volume reference to mount (for example, bdn:weights/llama-8b:prod).
 	Source string `json:"source" yaml:"source"`
 
 	AdditionalProperties interface{} `mapstructure:",remain"`
@@ -346,7 +379,7 @@ type ModelConfig struct {
 	// Use a custom Docker base image instead of the default Truss image.
 	BaseImage *BaseImage `json:"base_image,omitempty,omitzero" yaml:"base_image,omitempty"`
 
-	// Configure BDN volume mounts.
+	// Configure BDN volume mounts, access grants, and hot-loading.
 	Bdn *BDNConfig `json:"bdn,omitempty,omitzero" yaml:"bdn,omitempty"`
 
 	// Configuration options for BIS LLM deployments. This field may change in the
