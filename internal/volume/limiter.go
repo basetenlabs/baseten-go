@@ -120,10 +120,10 @@ func (l *semaphoreLimiter) Acquire(ctx context.Context) (*Permit, error) {
 // healthy origin — that says nothing about whether the container has the
 // memory to match.
 type ByteGate struct {
-	mu        sync.Mutex
-	available chan struct{}
-	limit     int64
-	inFlight  int64
+	mu       sync.Mutex
+	waiters  []chan struct{}
+	limit    int64
+	inFlight int64
 }
 
 // ErrByteBudget reports a request that could never fit the byte budget.
@@ -135,7 +135,7 @@ func NewByteGate(limit int64) *ByteGate {
 	if limit < ChunkSize {
 		limit = ChunkSize
 	}
-	return &ByteGate{available: make(chan struct{}, 1), limit: limit}
+	return &ByteGate{limit: limit}
 }
 
 // Acquire blocks until n bytes fit within the budget. A single request larger
@@ -151,15 +151,29 @@ func (g *ByteGate) Acquire(ctx context.Context, n int64) error {
 			g.mu.Unlock()
 			return nil
 		}
+		waiter := make(chan struct{})
+		g.waiters = append(g.waiters, waiter)
 		g.mu.Unlock()
 
-		// Wait for a release rather than spinning. A wakeup does not
+		// Every release wakes all current waiters. A wakeup does not
 		// guarantee room — another waiter may take it first — so the loop
-		// re-checks.
+		// re-checks and registers a fresh waiter if the budget is still full.
 		select {
-		case <-g.available:
+		case <-waiter:
 		case <-ctx.Done():
+			g.removeWaiter(waiter)
 			return ctx.Err()
+		}
+	}
+}
+
+func (g *ByteGate) removeWaiter(waiter chan struct{}) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for i, candidate := range g.waiters {
+		if candidate == waiter {
+			g.waiters = append(g.waiters[:i], g.waiters[i+1:]...)
+			return
 		}
 	}
 }
@@ -167,12 +181,12 @@ func (g *ByteGate) Acquire(ctx context.Context, n int64) error {
 // Release returns n bytes to the budget.
 func (g *ByteGate) Release(n int64) {
 	g.mu.Lock()
+	defer g.mu.Unlock()
 	g.inFlight -= n
-	g.mu.Unlock()
-	select {
-	case g.available <- struct{}{}:
-	default:
+	for _, waiter := range g.waiters {
+		close(waiter)
 	}
+	g.waiters = nil
 }
 
 // Concurrency tunes how much of a transfer runs at once. A zero field takes
