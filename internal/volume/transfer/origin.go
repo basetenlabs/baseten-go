@@ -15,6 +15,16 @@ import (
 // lease.
 const credentialMargin = time.Minute
 
+// credentialRenewalRetry bounds resolve traffic when the service returns a
+// lease that is still inside credentialMargin. It is short enough to recover
+// from a transient short lease without turning every object request into a
+// resolve.
+const credentialRenewalRetry = time.Second
+
+type originResolver interface {
+	Resolve(context.Context, bdn.ResolveRequest) (*bdn.ResolveResult, error)
+}
+
 // origin holds the credential lease a pull reads objects with, and renews it
 // when it is about to run out.
 //
@@ -24,57 +34,62 @@ const credentialMargin = time.Minute
 // the same digest twice always names the same bytes, where re-resolving a tag
 // could quietly switch versions in the middle of a download.
 type origin struct {
-	client    *bdn.Client
+	client    originResolver
 	ref       bdn.ResolveRequest
 	namespace string
 
-	mu    sync.Mutex
-	org   string
-	lease bdn.Origin
-
-	// renewable goes false once a renewal has come back no better than what it
-	// replaced. Leases shorter than the margin are always "about to expire",
-	// so retrying would mean a resolve before every object — a storm, and a
-	// serialized one, since renewal holds the lock. Giving up leaves the
-	// credentials to fail on their own terms, which is a legible error rather
-	// than a hang.
-	renewable bool
+	mu         sync.Mutex
+	org        string
+	lease      bdn.Origin
+	renewing   bool
+	renewAfter time.Time
 }
 
 func newOrigin(client *bdn.Client, ref bdn.ResolveRequest, org string, lease bdn.Origin) *origin {
-	return &origin{client: client, ref: ref, namespace: ref.Namespace, org: org, lease: lease, renewable: true}
+	return &origin{client: client, ref: ref, namespace: ref.Namespace, org: org, lease: lease}
 }
 
 // request builds a read of one object, renewing the lease first if it is close
 // to expiring.
 func (o *origin) request(ctx context.Context, target volume.Target, size int64) (volume.ObjectDownload, error) {
+	now := time.Now()
 	o.mu.Lock()
-	defer o.mu.Unlock()
+	org, lease := o.org, o.lease
+	renew := !o.renewing && !lease.ExpiresAt.IsZero() &&
+		lease.ExpiresAt.Sub(now) < credentialMargin && !now.Before(o.renewAfter)
+	if renew {
+		o.renewing = true
+	}
+	o.mu.Unlock()
 
-	if o.renewable && !o.lease.ExpiresAt.IsZero() && time.Until(o.lease.ExpiresAt) < credentialMargin {
+	if renew {
 		resolved, err := o.client.Resolve(ctx, o.ref)
+
+		o.mu.Lock()
+		o.renewing = false
+		o.renewAfter = time.Now().Add(credentialRenewalRetry)
 		if err != nil {
+			o.mu.Unlock()
 			return volume.ObjectDownload{}, err
 		}
-		o.org, o.lease = resolved.Resolved.OrgID, resolved.Origin
-
-		// A replacement that is itself already inside the margin bought
-		// nothing, and asking again on the next object would mean a resolve
-		// per object for the rest of the download.
-		if o.lease.ExpiresAt.IsZero() || time.Until(o.lease.ExpiresAt) <= credentialMargin {
-			o.renewable = false
+		// A stale resolve must not shorten the usable lifetime of credentials
+		// another request may already have installed.
+		if resolved.Origin.ExpiresAt.After(o.lease.ExpiresAt) {
+			o.org, o.lease = resolved.Resolved.OrgID, resolved.Origin
 		}
+		org, lease = o.org, o.lease
+		o.mu.Unlock()
 	}
 
 	return volume.ObjectDownload{
-		Endpoint: o.lease.Endpoint,
-		Region:   o.lease.Region,
-		Bucket:   o.lease.Bucket,
-		Key:      volume.ObjectKey(o.org, o.namespace, target),
+		Endpoint: lease.Endpoint,
+		Region:   lease.Region,
+		Bucket:   lease.Bucket,
+		Key:      volume.ObjectKey(org, o.namespace, target),
 		Credentials: volume.Credentials{
-			AccessKeyID:     o.lease.AccessKeyID,
-			SecretAccessKey: o.lease.SecretAccessKey,
-			SessionToken:    o.lease.SessionToken,
+			AccessKeyID:     lease.AccessKeyID,
+			SecretAccessKey: lease.SecretAccessKey,
+			SessionToken:    lease.SessionToken,
 		},
 		ExpectedSize: size,
 	}, nil
