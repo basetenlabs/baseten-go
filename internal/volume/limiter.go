@@ -181,12 +181,12 @@ func (g *ByteGate) removeWaiter(waiter chan struct{}) {
 // Release returns n bytes to the budget.
 func (g *ByteGate) Release(n int64) {
 	g.mu.Lock()
+	defer g.mu.Unlock()
 	g.inFlight -= n
 	for _, waiter := range g.waiters {
 		close(waiter)
 	}
 	g.waiters = nil
-	g.mu.Unlock()
 }
 
 // Concurrency tunes how much of a transfer runs at once. A zero field takes
