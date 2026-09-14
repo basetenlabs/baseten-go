@@ -75,9 +75,10 @@ func (o *origin) request(ctx context.Context, target volume.Target, size int64) 
 			o.mu.Unlock()
 			return volume.ObjectDownload{}, err
 		}
-		// A stale resolve must not shorten the usable lifetime of credentials
-		// another request may already have installed.
-		if resolved.Origin.ExpiresAt.After(o.lease.ExpiresAt) {
+		// A zero expiry is a non-expiring lease. Otherwise, a stale resolve
+		// must not shorten the usable lifetime of current credentials.
+		if resolved.Origin.ExpiresAt.IsZero() ||
+			resolved.Origin.ExpiresAt.After(o.lease.ExpiresAt) {
 			o.org, o.lease = resolved.Resolved.OrgID, resolved.Origin
 		}
 		org, lease = o.org, o.lease

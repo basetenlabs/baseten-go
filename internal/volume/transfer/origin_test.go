@@ -75,6 +75,30 @@ func TestOriginRequestsContinueDuringRenewal(t *testing.T) {
 	}
 }
 
+func TestOriginInstallsNonExpiringRenewal(t *testing.T) {
+	var calls atomic.Int64
+	o := &origin{
+		client: resolverFunc(func(context.Context, bdn.ResolveRequest) (*bdn.ResolveResult, error) {
+			calls.Add(1)
+			return resolvedLease("static-org", "static", time.Time{}), nil
+		}),
+		ref:       bdn.ResolveRequest{Namespace: "ns", Volume: "vol"},
+		namespace: "ns",
+		org:       "old-org",
+		lease:     testLease("expiring", time.Now().Add(30*time.Second)),
+	}
+
+	first, err := o.request(context.Background(), volume.Target{RelativeKey: "first"}, 1)
+	require.NoError(t, err)
+	require.Equal(t, "static", first.Credentials.AccessKeyID)
+	require.Equal(t, "bdn/static-org/ns/first", first.Key)
+
+	second, err := o.request(context.Background(), volume.Target{RelativeKey: "second"}, 1)
+	require.NoError(t, err)
+	require.Equal(t, "static", second.Credentials.AccessKeyID)
+	require.Equal(t, int64(1), calls.Load())
+}
+
 // TestOriginRetriesAfterShortRenewal covers the old permanent latch: a short
 // replacement is accepted when it is an improvement, then retried after the
 // cooldown so a later healthy lease can recover the transfer.
