@@ -41,8 +41,7 @@ type origin struct {
 	mu    sync.Mutex
 	org   string
 	lease bdn.Origin
-	// renewing is true while one caller resolves a replacement lease. Other
-	// callers use the current lease rather than starting duplicate renewals.
+	// renewing indicates whether there is an in-flight renew.
 	renewing bool
 	// renewAfter rate-limits attempts when a renewal fails or returns another
 	// short lease, without permanently disabling recovery.
