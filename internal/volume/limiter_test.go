@@ -150,6 +150,46 @@ func TestByteGateBlocksUntilReleased(t *testing.T) {
 	}
 }
 
+// TestByteGateReleaseWakesEveryWaiter guards against coalescing release
+// notifications: one large release can make room for several blocked chunks,
+// and all of them should get a chance to claim that room immediately.
+func TestByteGateReleaseWakesEveryWaiter(t *testing.T) {
+	const waiters = 3
+	gate := NewByteGate(waiters * ChunkSize)
+	require.NoError(t, gate.Acquire(context.Background(), waiters*ChunkSize))
+
+	admitted := make(chan struct{}, waiters)
+	for range waiters {
+		go func() {
+			require.NoError(t, gate.Acquire(context.Background(), ChunkSize))
+			admitted <- struct{}{}
+		}()
+	}
+
+	deadline := time.Now().Add(time.Second)
+	for {
+		gate.mu.Lock()
+		queued := len(gate.waiters)
+		gate.mu.Unlock()
+		if queued == waiters {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("only %d of %d waiters reached the gate", queued, waiters)
+		}
+		time.Sleep(time.Millisecond)
+	}
+
+	gate.Release(waiters * ChunkSize)
+	for i := 0; i < waiters; i++ {
+		select {
+		case <-admitted:
+		case <-time.After(time.Second):
+			t.Fatalf("only %d of %d waiters woke after one release", i, waiters)
+		}
+	}
+}
+
 // TestByteGateRefusesTheImpossible covers a request larger than the whole
 // budget, which no amount of waiting would ever satisfy.
 func TestByteGateRefusesTheImpossible(t *testing.T) {
@@ -173,6 +213,11 @@ func TestByteGateStopsOnCancellation(t *testing.T) {
 	defer cancel()
 	err := gate.Acquire(ctx, ChunkSize)
 	require.True(t, errors.Is(err, context.DeadlineExceeded), "expected a deadline, got %v", err)
+
+	gate.mu.Lock()
+	waiters := len(gate.waiters)
+	gate.mu.Unlock()
+	require.Equal(t, 0, waiters)
 }
 
 func TestConcurrencyDefaults(t *testing.T) {
