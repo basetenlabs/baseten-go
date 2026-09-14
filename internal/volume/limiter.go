@@ -3,6 +3,7 @@ package volume
 import (
 	"context"
 	"errors"
+	"slices"
 	"sync"
 	"time"
 )
@@ -172,7 +173,7 @@ func (g *ByteGate) removeWaiter(waiter chan struct{}) {
 	defer g.mu.Unlock()
 	for i, candidate := range g.waiters {
 		if candidate == waiter {
-			g.waiters = append(g.waiters[:i], g.waiters[i+1:]...)
+			g.waiters = slices.Delete(g.waiters, i, i+1)
 			return
 		}
 	}
