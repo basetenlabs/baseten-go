@@ -67,8 +67,10 @@ func ParseDigest(s string) (Digest, error) {
 	if len(rest) != 2*DigestSize {
 		return d, fmt.Errorf("digest %q: want %d hex characters, got %d", s, 2*DigestSize, len(rest))
 	}
-	if strings.ToLower(rest) != rest {
-		return d, fmt.Errorf("digest %q: hex must be lowercase", s)
+	for i := 0; i < len(rest); i++ {
+		if rest[i] >= 'A' && rest[i] <= 'Z' {
+			return d, fmt.Errorf("digest %q: hex must be lowercase", s)
+		}
 	}
 	if _, err := hex.Decode(d[:], []byte(rest)); err != nil {
 		return d, fmt.Errorf("digest %q: %w", s, err)
