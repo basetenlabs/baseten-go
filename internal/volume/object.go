@@ -71,6 +71,11 @@ func ObjectKey(org, namespace string, t Target) string {
 // zstdSuffix marks a media type whose bytes are compressed.
 const zstdSuffix = "+zstd"
 
+// zstdSizeHintMultiplier turns a compressed object's stored length into a
+// useful starting capacity when the content length is otherwise unknown. It
+// is only a hint: reads still grow past it and maxSize remains the hard bound.
+const zstdSizeHintMultiplier int64 = 4
+
 // FetchObject reads one object whole and decodes it according to the media
 // type the store returned.
 //
@@ -106,7 +111,7 @@ func FetchObjectInto(
 	maxSize int64,
 	buf []byte,
 ) ([]byte, error) {
-	opened, err := OpenObject(ctx, download, decompress, req)
+	opened, storedSize, compressed, err := openObject(ctx, download, decompress, req)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +129,21 @@ func FetchObjectInto(
 	if buf != nil {
 		data, err2 = readAllSizedInto(body, buf)
 	} else {
-		data, err2 = readAllSized(body, req.ExpectedSize)
+		sizeHint := req.ExpectedSize
+		if sizeHint == 0 && storedSize > 0 {
+			sizeHint = storedSize
+			if compressed {
+				if maxSize > 0 && sizeHint > maxSize/zstdSizeHintMultiplier {
+					sizeHint = maxSize
+				} else {
+					sizeHint *= zstdSizeHintMultiplier
+				}
+			}
+			if maxSize > 0 && sizeHint > maxSize {
+				sizeHint = maxSize
+			}
+		}
+		data, err2 = readAllSized(body, sizeHint)
 	}
 	if err := err2; err != nil {
 		return nil, fmt.Errorf("read %s: %w", req.Key, err)
@@ -150,9 +169,22 @@ func OpenObject(
 	decompress Decompressor,
 	req ObjectDownload,
 ) (io.ReadCloser, error) {
+	opened, _, _, err := openObject(ctx, download, decompress, req)
+	return opened, err
+}
+
+// openObject is OpenObject plus the storage metadata a whole-object read can
+// use as an allocation hint. Keeping that metadata internal leaves the
+// streaming API unchanged.
+func openObject(
+	ctx context.Context,
+	download ObjectDownloader,
+	decompress Decompressor,
+	req ObjectDownload,
+) (io.ReadCloser, int64, bool, error) {
 	result, err := download(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, 0, false, err
 	}
 
 	compressed := strings.HasSuffix(result.ContentType, zstdSuffix)
@@ -164,23 +196,23 @@ func OpenObject(
 	// stored length is a property of the compressor, not of the content.
 	if !compressed && req.ExpectedSize > 0 && result.Size > 0 && result.Size != req.ExpectedSize {
 		result.Body.Close()
-		return nil, fmt.Errorf("object %s is %d bytes, the manifest says %d",
+		return nil, 0, false, fmt.Errorf("object %s is %d bytes, the manifest says %d",
 			req.Key, result.Size, req.ExpectedSize)
 	}
 	if !compressed {
-		return result.Body, nil
+		return result.Body, result.Size, false, nil
 	}
 
 	if decompress == nil {
 		result.Body.Close()
-		return nil, fmt.Errorf("object %s is stored as %s and no decompressor was supplied", req.Key, result.ContentType)
+		return nil, 0, false, fmt.Errorf("object %s is stored as %s and no decompressor was supplied", req.Key, result.ContentType)
 	}
 	reader, err := decompress(result.Body)
 	if err != nil {
 		result.Body.Close()
-		return nil, fmt.Errorf("decompress %s: %w", req.Key, err)
+		return nil, 0, false, fmt.Errorf("decompress %s: %w", req.Key, err)
 	}
-	return &decompressedObject{reader: reader, body: result.Body}, nil
+	return &decompressedObject{reader: reader, body: result.Body}, result.Size, true, nil
 }
 
 // decompressedObject is a decompressor over a store body, closing both. The

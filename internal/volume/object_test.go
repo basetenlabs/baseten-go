@@ -39,6 +39,39 @@ func TestFetchObjectReadsAKnownSizeIntoOneBuffer(t *testing.T) {
 	}
 }
 
+func TestFetchObjectUsesStoredSizeWhenContentSizeIsUnknown(t *testing.T) {
+	content := bytes.Repeat([]byte{0xA5}, 8000)
+	got, err := FetchObject(context.Background(), stubDownload(content, "application/test", 8000), nil,
+		ObjectDownload{Key: "manifest"}, MaxManifestBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, content) {
+		t.Fatalf("read %d bytes, want the %d byte body", len(got), len(content))
+	}
+	if cap(got) != 8001 {
+		t.Errorf("buffer capacity is %d, want the stored size plus the overrun byte", cap(got))
+	}
+}
+
+func TestFetchObjectUsesStoredSizeAsCompressedHint(t *testing.T) {
+	content := bytes.Repeat([]byte{0x5A}, 6000)
+	decompress := func(io.Reader) (io.ReadCloser, error) {
+		return io.NopCloser(bytes.NewReader(content)), nil
+	}
+	got, err := FetchObject(context.Background(), stubDownload([]byte("stored"), "application/test+zstd", 2000), decompress,
+		ObjectDownload{Key: "manifest"}, MaxManifestBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, content) {
+		t.Fatalf("read %d bytes, want the %d byte content", len(got), len(content))
+	}
+	if cap(got) != 4*2000+1 {
+		t.Errorf("buffer capacity is %d, want four times the stored size plus the overrun byte", cap(got))
+	}
+}
+
 // TestFetchObjectSizedReadCoversCompressedObjects: the expected size is the
 // content's length, not the stored object's, so the sized read applies behind
 // a decompressor too — where the stored size says nothing useful.
