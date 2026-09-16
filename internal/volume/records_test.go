@@ -48,6 +48,17 @@ func TestDigestParsing(t *testing.T) {
 	}
 }
 
+func TestParseDigestDoesNotAllocate(t *testing.T) {
+	digest := testDigest(0xab).String()
+	if got := testing.AllocsPerRun(100, func() {
+		if _, err := ParseDigest(digest); err != nil {
+			t.Fatal(err)
+		}
+	}); got != 0 {
+		t.Fatalf("ParseDigest allocated %v times per valid digest, want zero", got)
+	}
+}
+
 func TestTargetForDigest(t *testing.T) {
 	d := testDigest(0xab)
 	require.Equal(t, "objects/b3/ab/ab/"+strings.Repeat("ab", 32), TargetForDigest(d).RelativeKey)
