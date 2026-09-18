@@ -2885,6 +2885,29 @@ type CreateModelRequest_Source struct {
 	union json.RawMessage
 }
 
+// CreateRouteRequest defines model for CreateRouteRequest.
+type CreateRouteRequest struct {
+	// Description Short description of the route. Omit for no description; null is not accepted.
+	Description *string `json:"description,omitempty"`
+
+	// DisplayName Display label. Omit to use the route name; null is not accepted.
+	DisplayName *string `json:"display_name,omitempty"`
+
+	// Name Immutable, globally unique route name using an organization-owned prefix.
+	Name string `json:"name"`
+
+	// Target Upstream target for the route.
+	Target CreateRouteRequest_Target `json:"target"`
+
+	// TeamId Identifier of the team that owns the route.
+	TeamId string `json:"team_id"`
+}
+
+// CreateRouteRequest_Target Upstream target for the route.
+type CreateRouteRequest_Target struct {
+	union json.RawMessage
+}
+
 // CreateTrainingJob Configuration for a training job.
 type CreateTrainingJob struct {
 	// Compute Configuration to specify the compute for a training job.
@@ -5848,6 +5871,127 @@ type RollingDeployConfig struct {
 // RollingDeployStrategy The rolling deploy strategy.
 type RollingDeployStrategy string
 
+// Route defines model for Route.
+type Route struct {
+	// CreatedAt Creation time, ISO 8601.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Description Short description of the route, empty when unset.
+	Description string `json:"description"`
+
+	// DisplayName Display label, defaulting to the route name.
+	DisplayName string `json:"display_name"`
+
+	// Id Stable route identifier.
+	Id string `json:"id"`
+
+	// InvokeUrl Base URL for inference requests using this route.
+	InvokeUrl string `json:"invoke_url"`
+
+	// Name Immutable name to send in the inference request's model field.
+	Name string `json:"name"`
+
+	// Target Configured upstream target.
+	Target Route_Target `json:"target"`
+
+	// TeamId Identifier of the owning team.
+	TeamId string `json:"team_id"`
+}
+
+// Route_Target Configured upstream target.
+type Route_Target struct {
+	union json.RawMessage
+}
+
+// RouteTargetAnthropic defines model for RouteTargetAnthropic.
+type RouteTargetAnthropic struct {
+	// Model Model name sent to the provider.
+	Model string `json:"model"`
+
+	// SecretName Name of a credential secret owned by the route's team.
+	SecretName string `json:"secret_name"`
+
+	// Type Target kind for Anthropic.
+	Type string `json:"type"`
+}
+
+// RouteTargetBasetenModelAPI defines model for RouteTargetBasetenModelAPI.
+type RouteTargetBasetenModelAPI struct {
+	// ModelApi Name of the target Model API.
+	ModelApi string `json:"model_api"`
+
+	// Type Target kind for a Baseten Model API.
+	Type string `json:"type"`
+}
+
+// RouteTargetOpenAI defines model for RouteTargetOpenAI.
+type RouteTargetOpenAI struct {
+	// Model Model name sent to the provider.
+	Model string `json:"model"`
+
+	// SecretName Name of a credential secret owned by the route's team.
+	SecretName string `json:"secret_name"`
+
+	// Type Target kind for OpenAI.
+	Type string `json:"type"`
+}
+
+// RouteTargetOpenAICompatible defines model for RouteTargetOpenAICompatible.
+type RouteTargetOpenAICompatible struct {
+	// BaseUrl HTTPS base URL of the OpenAI-compatible provider.
+	BaseUrl string `json:"base_url"`
+
+	// Model Model name sent to the provider.
+	Model string `json:"model"`
+
+	// SecretName Name of a credential secret owned by the route's team.
+	SecretName string `json:"secret_name"`
+
+	// Type Target kind for an OpenAI-compatible provider.
+	Type string `json:"type"`
+}
+
+// RouteTargetVertex defines model for RouteTargetVertex.
+type RouteTargetVertex struct {
+	// Model Model name sent to the provider.
+	Model string `json:"model"`
+
+	// SecretName Name of a credential secret owned by the route's team.
+	SecretName string `json:"secret_name"`
+
+	// Type Target kind for Google Vertex AI.
+	Type         string             `json:"type"`
+	VertexConfig VertexTargetConfig `json:"vertex_config"`
+}
+
+// RouteTargetXAI defines model for RouteTargetXAI.
+type RouteTargetXAI struct {
+	// Model Model name sent to the provider.
+	Model string `json:"model"`
+
+	// SecretName Name of a credential secret owned by the route's team.
+	SecretName string `json:"secret_name"`
+
+	// Type Target kind for xAI.
+	Type string `json:"type"`
+}
+
+// RouteTombstone defines model for RouteTombstone.
+type RouteTombstone struct {
+	// Id Stable identifier of the deleted route.
+	Id string `json:"id"`
+
+	// Name Name of the deleted route.
+	Name string `json:"name"`
+}
+
+// RoutesResponse defines model for RoutesResponse.
+type RoutesResponse struct {
+	// Items Items in this page.
+	Items      []Route            `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
 // SearchTrainingJobsRequest A request to search training jobs.
 type SearchTrainingJobsRequest struct {
 	// JobId Filter the training jobs by job ID.
@@ -6564,6 +6708,23 @@ type UpdateRollingDeployConfig struct {
 
 	// StabilizationTimeSeconds The stabilization time in seconds for rolling deploys.
 	StabilizationTimeSeconds *int `json:"stabilization_time_seconds,omitempty"`
+}
+
+// UpdateRouteRequest defines model for UpdateRouteRequest.
+type UpdateRouteRequest struct {
+	// Description New description. Omit to keep the current description; use an empty string to clear it. Null is not accepted.
+	Description *string `json:"description,omitempty"`
+
+	// DisplayName New display label. Omit to keep the current label; null is not accepted.
+	DisplayName *string `json:"display_name,omitempty"`
+
+	// Target Replaces the entire target. Omit to keep the current target; null is not accepted.
+	Target *UpdateRouteRequest_Target `json:"target,omitempty"`
+}
+
+// UpdateRouteRequest_Target Replaces the entire target. Omit to keep the current target; null is not accepted.
+type UpdateRouteRequest_Target struct {
+	union json.RawMessage
 }
 
 // UpdateTrainingJobRequest A request to update mutable fields on a training job.
@@ -7296,6 +7457,21 @@ type GetV1ModelsModelIdEnvironmentsEnvNameMetricsParams struct {
 	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
 }
 
+// GetV1RoutesParams defines parameters for GetV1Routes.
+type GetV1RoutesParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// TeamId Filter by owning team ID. Preserved by the cursor; if repeated, must match the original filter.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Name Filter by exact route name. Preserved by the cursor; if repeated, must match the original filter.
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
 // GetV1TeamsParams defines parameters for GetV1Teams.
 type GetV1TeamsParams struct {
 	// Name When set, returns only the team with this exact name, if any.
@@ -7529,6 +7705,12 @@ type PostV1ModelsModelIdEnvironmentsEnvNamePromoteJSONRequestBody = PromoteToEnv
 
 // PostV1PrepareModelUploadJSONRequestBody defines body for PostV1PrepareModelUpload for application/json ContentType.
 type PostV1PrepareModelUploadJSONRequestBody = PrepareModelUploadRequest
+
+// PostV1RoutesJSONRequestBody defines body for PostV1Routes for application/json ContentType.
+type PostV1RoutesJSONRequestBody = CreateRouteRequest
+
+// PatchV1RoutesRouteIdJSONRequestBody defines body for PatchV1RoutesRouteId for application/json ContentType.
+type PatchV1RoutesRouteIdJSONRequestBody = UpdateRouteRequest
 
 // PostV1SecretsJSONRequestBody defines body for PostV1Secrets for application/json ContentType.
 type PostV1SecretsJSONRequestBody = UpsertSecretRequest
@@ -8662,6 +8844,137 @@ func (t *CreateModelRequest_Source) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// AsRouteTargetBasetenModelAPI returns the union data inside the CreateRouteRequest_Target as a RouteTargetBasetenModelAPI
+func (t CreateRouteRequest_Target) AsRouteTargetBasetenModelAPI() (RouteTargetBasetenModelAPI, error) {
+	var body RouteTargetBasetenModelAPI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetBasetenModelAPI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetBasetenModelAPI
+func (t *CreateRouteRequest_Target) FromRouteTargetBasetenModelAPI(v RouteTargetBasetenModelAPI) error {
+	v.Type = "BASETEN_MODEL_API"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetAnthropic returns the union data inside the CreateRouteRequest_Target as a RouteTargetAnthropic
+func (t CreateRouteRequest_Target) AsRouteTargetAnthropic() (RouteTargetAnthropic, error) {
+	var body RouteTargetAnthropic
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetAnthropic overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetAnthropic
+func (t *CreateRouteRequest_Target) FromRouteTargetAnthropic(v RouteTargetAnthropic) error {
+	v.Type = "ANTHROPIC"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetOpenAI returns the union data inside the CreateRouteRequest_Target as a RouteTargetOpenAI
+func (t CreateRouteRequest_Target) AsRouteTargetOpenAI() (RouteTargetOpenAI, error) {
+	var body RouteTargetOpenAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetOpenAI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetOpenAI
+func (t *CreateRouteRequest_Target) FromRouteTargetOpenAI(v RouteTargetOpenAI) error {
+	v.Type = "OPENAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetXAI returns the union data inside the CreateRouteRequest_Target as a RouteTargetXAI
+func (t CreateRouteRequest_Target) AsRouteTargetXAI() (RouteTargetXAI, error) {
+	var body RouteTargetXAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetXAI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetXAI
+func (t *CreateRouteRequest_Target) FromRouteTargetXAI(v RouteTargetXAI) error {
+	v.Type = "XAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetVertex returns the union data inside the CreateRouteRequest_Target as a RouteTargetVertex
+func (t CreateRouteRequest_Target) AsRouteTargetVertex() (RouteTargetVertex, error) {
+	var body RouteTargetVertex
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetVertex overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetVertex
+func (t *CreateRouteRequest_Target) FromRouteTargetVertex(v RouteTargetVertex) error {
+	v.Type = "VERTEX"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetOpenAICompatible returns the union data inside the CreateRouteRequest_Target as a RouteTargetOpenAICompatible
+func (t CreateRouteRequest_Target) AsRouteTargetOpenAICompatible() (RouteTargetOpenAICompatible, error) {
+	var body RouteTargetOpenAICompatible
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetOpenAICompatible overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetOpenAICompatible
+func (t *CreateRouteRequest_Target) FromRouteTargetOpenAICompatible(v RouteTargetOpenAICompatible) error {
+	v.Type = "OPENAI_COMPATIBLE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t CreateRouteRequest_Target) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t CreateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "ANTHROPIC":
+		return t.AsRouteTargetAnthropic()
+	case "BASETEN_MODEL_API":
+		return t.AsRouteTargetBasetenModelAPI()
+	case "OPENAI":
+		return t.AsRouteTargetOpenAI()
+	case "OPENAI_COMPATIBLE":
+		return t.AsRouteTargetOpenAICompatible()
+	case "VERTEX":
+		return t.AsRouteTargetVertex()
+	case "XAI":
+		return t.AsRouteTargetXAI()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t CreateRouteRequest_Target) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CreateRouteRequest_Target) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // AsCreateTrainingJobRuntimeEnvironmentVariables0 returns the union data inside the CreateTrainingJobRuntime_EnvironmentVariables_AdditionalProperties as a CreateTrainingJobRuntimeEnvironmentVariables0
 func (t CreateTrainingJobRuntime_EnvironmentVariables_AdditionalProperties) AsCreateTrainingJobRuntimeEnvironmentVariables0() (CreateTrainingJobRuntimeEnvironmentVariables0, error) {
 	var body CreateTrainingJobRuntimeEnvironmentVariables0
@@ -9491,6 +9804,137 @@ func (t *ModelApisUsage_Total) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// AsRouteTargetBasetenModelAPI returns the union data inside the Route_Target as a RouteTargetBasetenModelAPI
+func (t Route_Target) AsRouteTargetBasetenModelAPI() (RouteTargetBasetenModelAPI, error) {
+	var body RouteTargetBasetenModelAPI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetBasetenModelAPI overwrites any union data inside the Route_Target as the provided RouteTargetBasetenModelAPI
+func (t *Route_Target) FromRouteTargetBasetenModelAPI(v RouteTargetBasetenModelAPI) error {
+	v.Type = "BASETEN_MODEL_API"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetAnthropic returns the union data inside the Route_Target as a RouteTargetAnthropic
+func (t Route_Target) AsRouteTargetAnthropic() (RouteTargetAnthropic, error) {
+	var body RouteTargetAnthropic
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetAnthropic overwrites any union data inside the Route_Target as the provided RouteTargetAnthropic
+func (t *Route_Target) FromRouteTargetAnthropic(v RouteTargetAnthropic) error {
+	v.Type = "ANTHROPIC"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetOpenAI returns the union data inside the Route_Target as a RouteTargetOpenAI
+func (t Route_Target) AsRouteTargetOpenAI() (RouteTargetOpenAI, error) {
+	var body RouteTargetOpenAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetOpenAI overwrites any union data inside the Route_Target as the provided RouteTargetOpenAI
+func (t *Route_Target) FromRouteTargetOpenAI(v RouteTargetOpenAI) error {
+	v.Type = "OPENAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetXAI returns the union data inside the Route_Target as a RouteTargetXAI
+func (t Route_Target) AsRouteTargetXAI() (RouteTargetXAI, error) {
+	var body RouteTargetXAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetXAI overwrites any union data inside the Route_Target as the provided RouteTargetXAI
+func (t *Route_Target) FromRouteTargetXAI(v RouteTargetXAI) error {
+	v.Type = "XAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetVertex returns the union data inside the Route_Target as a RouteTargetVertex
+func (t Route_Target) AsRouteTargetVertex() (RouteTargetVertex, error) {
+	var body RouteTargetVertex
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetVertex overwrites any union data inside the Route_Target as the provided RouteTargetVertex
+func (t *Route_Target) FromRouteTargetVertex(v RouteTargetVertex) error {
+	v.Type = "VERTEX"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetOpenAICompatible returns the union data inside the Route_Target as a RouteTargetOpenAICompatible
+func (t Route_Target) AsRouteTargetOpenAICompatible() (RouteTargetOpenAICompatible, error) {
+	var body RouteTargetOpenAICompatible
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetOpenAICompatible overwrites any union data inside the Route_Target as the provided RouteTargetOpenAICompatible
+func (t *Route_Target) FromRouteTargetOpenAICompatible(v RouteTargetOpenAICompatible) error {
+	v.Type = "OPENAI_COMPATIBLE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t Route_Target) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t Route_Target) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "ANTHROPIC":
+		return t.AsRouteTargetAnthropic()
+	case "BASETEN_MODEL_API":
+		return t.AsRouteTargetBasetenModelAPI()
+	case "OPENAI":
+		return t.AsRouteTargetOpenAI()
+	case "OPENAI_COMPATIBLE":
+		return t.AsRouteTargetOpenAICompatible()
+	case "VERTEX":
+		return t.AsRouteTargetVertex()
+	case "XAI":
+		return t.AsRouteTargetXAI()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t Route_Target) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *Route_Target) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // AsTrainingItemSubtotal0 returns the union data inside the TrainingItem_Subtotal as a TrainingItemSubtotal0
 func (t TrainingItem_Subtotal) AsTrainingItemSubtotal0() (TrainingItemSubtotal0, error) {
 	var body TrainingItemSubtotal0
@@ -9701,6 +10145,137 @@ func (t UpdateAutoscalingScheduleSettings_Schedules_Item) MarshalJSON() ([]byte,
 }
 
 func (t *UpdateAutoscalingScheduleSettings_Schedules_Item) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsRouteTargetBasetenModelAPI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetBasetenModelAPI
+func (t UpdateRouteRequest_Target) AsRouteTargetBasetenModelAPI() (RouteTargetBasetenModelAPI, error) {
+	var body RouteTargetBasetenModelAPI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetBasetenModelAPI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetBasetenModelAPI
+func (t *UpdateRouteRequest_Target) FromRouteTargetBasetenModelAPI(v RouteTargetBasetenModelAPI) error {
+	v.Type = "BASETEN_MODEL_API"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetAnthropic returns the union data inside the UpdateRouteRequest_Target as a RouteTargetAnthropic
+func (t UpdateRouteRequest_Target) AsRouteTargetAnthropic() (RouteTargetAnthropic, error) {
+	var body RouteTargetAnthropic
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetAnthropic overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetAnthropic
+func (t *UpdateRouteRequest_Target) FromRouteTargetAnthropic(v RouteTargetAnthropic) error {
+	v.Type = "ANTHROPIC"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetOpenAI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetOpenAI
+func (t UpdateRouteRequest_Target) AsRouteTargetOpenAI() (RouteTargetOpenAI, error) {
+	var body RouteTargetOpenAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetOpenAI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetOpenAI
+func (t *UpdateRouteRequest_Target) FromRouteTargetOpenAI(v RouteTargetOpenAI) error {
+	v.Type = "OPENAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetXAI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetXAI
+func (t UpdateRouteRequest_Target) AsRouteTargetXAI() (RouteTargetXAI, error) {
+	var body RouteTargetXAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetXAI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetXAI
+func (t *UpdateRouteRequest_Target) FromRouteTargetXAI(v RouteTargetXAI) error {
+	v.Type = "XAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetVertex returns the union data inside the UpdateRouteRequest_Target as a RouteTargetVertex
+func (t UpdateRouteRequest_Target) AsRouteTargetVertex() (RouteTargetVertex, error) {
+	var body RouteTargetVertex
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetVertex overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetVertex
+func (t *UpdateRouteRequest_Target) FromRouteTargetVertex(v RouteTargetVertex) error {
+	v.Type = "VERTEX"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetOpenAICompatible returns the union data inside the UpdateRouteRequest_Target as a RouteTargetOpenAICompatible
+func (t UpdateRouteRequest_Target) AsRouteTargetOpenAICompatible() (RouteTargetOpenAICompatible, error) {
+	var body RouteTargetOpenAICompatible
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetOpenAICompatible overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetOpenAICompatible
+func (t *UpdateRouteRequest_Target) FromRouteTargetOpenAICompatible(v RouteTargetOpenAICompatible) error {
+	v.Type = "OPENAI_COMPATIBLE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t UpdateRouteRequest_Target) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t UpdateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "ANTHROPIC":
+		return t.AsRouteTargetAnthropic()
+	case "BASETEN_MODEL_API":
+		return t.AsRouteTargetBasetenModelAPI()
+	case "OPENAI":
+		return t.AsRouteTargetOpenAI()
+	case "OPENAI_COMPATIBLE":
+		return t.AsRouteTargetOpenAICompatible()
+	case "VERTEX":
+		return t.AsRouteTargetVertex()
+	case "XAI":
+		return t.AsRouteTargetXAI()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t UpdateRouteRequest_Target) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *UpdateRouteRequest_Target) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

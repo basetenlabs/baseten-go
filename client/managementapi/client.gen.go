@@ -165,6 +165,18 @@ func (c *Client) DeleteModelsEnvironments(ctx context.Context, modelId string, e
 	})
 }
 
+// DeleteRoutes: Deletes a route
+func (c *Client) DeleteRoutes(ctx context.Context, routeId string) (*RouteTombstone, error) {
+	return doJSON[RouteTombstone](c, ctx, apiRequest{
+		method:      "DELETE",
+		pathFmt:     "/v1/routes/%s",
+		pathArgs:    []any{routeId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // DeleteSecrets: Deletes a secret by name
 func (c *Client) DeleteSecrets(ctx context.Context, secretName string) (*SecretTombstone, error) {
 	return doJSON[SecretTombstone](c, ctx, apiRequest{
@@ -1016,6 +1028,31 @@ func (c *Client) GetRegions(ctx context.Context) (*Regions, error) {
 	})
 }
 
+// GetRoutes: Lists routes
+func (c *Client) GetRoutes(ctx context.Context, params GetV1RoutesParams) (*RoutesResponse, error) {
+	return doJSON[RoutesResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/routes",
+		pathArgs:    nil,
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetRoutesRouteId: Gets a route
+func (c *Client) GetRoutesRouteId(ctx context.Context, routeId string) (*Route, error) {
+	return doJSON[Route](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/routes/%s",
+		pathArgs:    []any{routeId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetSecrets: Gets all secrets (metadata only, no plain text keys)
 func (c *Client) GetSecrets(ctx context.Context) (*Secrets, error) {
 	return doJSON[Secrets](c, ctx, apiRequest{
@@ -1561,6 +1598,18 @@ func (c *Client) PatchModelsEnvironments(ctx context.Context, modelId string, en
 		method:      "PATCH",
 		pathFmt:     "/v1/models/%s/environments/%s",
 		pathArgs:    []any{modelId, envName},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PatchRoutes: Updates a route
+func (c *Client) PatchRoutes(ctx context.Context, routeId string, body UpdateRouteRequest) (*Route, error) {
+	return doJSON[Route](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/routes/%s",
+		pathArgs:    []any{routeId},
 		body:        body,
 		successCode: 200,
 		errorCodes:  nil,
@@ -2184,6 +2233,18 @@ func (c *Client) PostPrepareModelUpload(ctx context.Context, body PrepareModelUp
 	return doJSON[PrepareModelUploadResponse](c, ctx, apiRequest{
 		method:      "POST",
 		pathFmt:     "/v1/prepare_model_upload",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostRoutes: Creates a route
+func (c *Client) PostRoutes(ctx context.Context, body CreateRouteRequest) (*Route, error) {
+	return doJSON[Route](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/routes",
 		pathArgs:    nil,
 		body:        body,
 		successCode: 200,
