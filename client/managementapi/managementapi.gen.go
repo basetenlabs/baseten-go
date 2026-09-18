@@ -11,6 +11,7 @@ import (
 // Defines values for APIKeyCategory.
 const (
 	APIKeyCategory_PERSONAL                  APIKeyCategory = "PERSONAL"
+	APIKeyCategory_ROUTES                    APIKeyCategory = "ROUTES"
 	APIKeyCategory_WORKSPACE_EXPORT_METRICS  APIKeyCategory = "WORKSPACE_EXPORT_METRICS"
 	APIKeyCategory_WORKSPACE_INVOKE          APIKeyCategory = "WORKSPACE_INVOKE"
 	APIKeyCategory_WORKSPACE_MANAGE_ALL      APIKeyCategory = "WORKSPACE_MANAGE_ALL"
@@ -21,6 +22,8 @@ const (
 func (e APIKeyCategory) Valid() bool {
 	switch e {
 	case APIKeyCategory_PERSONAL:
+		return true
+	case APIKeyCategory_ROUTES:
 		return true
 	case APIKeyCategory_WORKSPACE_EXPORT_METRICS:
 		return true
@@ -2538,6 +2541,9 @@ type CreateAPIKeyRequest struct {
 
 	// Name Optional name for the API key
 	Name *string `json:"name,omitempty"`
+
+	// TeamId Team ID for a team-scoped key. When omitted, uses the team in the URL if present, otherwise your organization's default team. Must match the URL team when both are provided. Not supported for PERSONAL or WORKSPACE_MANAGE_API_KEYS keys.
+	TeamId *string `json:"team_id,omitempty"`
 
 	// Type Enum representing the category of an API key.
 	Type APIKeyCategory `json:"type"`

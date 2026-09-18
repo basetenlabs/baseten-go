@@ -24279,7 +24279,8 @@
                     "WORKSPACE_MANAGE_ALL",
                     "WORKSPACE_EXPORT_METRICS",
                     "WORKSPACE_INVOKE",
-                    "WORKSPACE_MANAGE_API_KEYS"
+                    "WORKSPACE_MANAGE_API_KEYS",
+                    "ROUTES"
                 ],
                 "title": "APIKeyCategory",
                 "type": "string"
@@ -24334,6 +24335,19 @@
                             ]
                         ],
                         "title": "Model Ids"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "minLength": 1
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Team ID for a team-scoped key. When omitted, uses the team in the URL if present, otherwise your organization's default team. Must match the URL team when both are provided. Not supported for PERSONAL or WORKSPACE_MANAGE_API_KEYS keys."
                     }
                 },
                 "required": [
