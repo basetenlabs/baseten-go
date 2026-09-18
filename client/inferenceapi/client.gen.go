@@ -292,6 +292,18 @@ func (c *Client) GetAsyncRequestStatus(ctx context.Context, requestId string) (*
 	})
 }
 
+// GetModels: List available inference models and their capabilities.
+func (c *Client) GetModels(ctx context.Context) (*InferenceModels, error) {
+	return doJSON[InferenceModels](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/models",
+		pathArgs:    nil,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // Predict: Call the model deployment associated with a specified environment.
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.

@@ -221,6 +221,20 @@ type ErrorResponse struct {
 // ErrorResponseErrorCode Machine-readable error code.
 type ErrorResponseErrorCode string
 
+// InferenceModel Model metadata returned by the standard inference catalog. Additional metadata may be present.
+type InferenceModel struct {
+	ContextLength       int      `json:"context_length"`
+	Id                  string   `json:"id"`
+	InputModalities     []string `json:"input_modalities"`
+	MaxCompletionTokens int      `json:"max_completion_tokens"`
+	SupportedFeatures   []string `json:"supported_features"`
+}
+
+// InferenceModels defines model for InferenceModels.
+type InferenceModels struct {
+	Data []InferenceModel `json:"data"`
+}
+
 // InferenceRetryConfig Exponential backoff parameters for retrying predict requests.
 type InferenceRetryConfig struct {
 	// InitialDelayMs Minimum time between retries in milliseconds.
