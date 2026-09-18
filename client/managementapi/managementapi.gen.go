@@ -160,6 +160,7 @@ const (
 	AuditLogEventType_MODEL_DEPLOYMENT_REQUEST_BACKPRESSURE_SETTINGS_CHANGED AuditLogEventType = "MODEL_DEPLOYMENT_REQUEST_BACKPRESSURE_SETTINGS_CHANGED"
 	AuditLogEventType_MODEL_DEPLOYMENT_RETRIED                               AuditLogEventType = "MODEL_DEPLOYMENT_RETRIED"
 	AuditLogEventType_MODEL_PROMOTION_CONTROL_ACTION                         AuditLogEventType = "MODEL_PROMOTION_CONTROL_ACTION"
+	AuditLogEventType_MODEL_RENAMED                                          AuditLogEventType = "MODEL_RENAMED"
 	AuditLogEventType_REPLICA_TERMINATED                                     AuditLogEventType = "REPLICA_TERMINATED"
 	AuditLogEventType_REQUIRE_GROUP_BASED_ADMINS_ENABLED                     AuditLogEventType = "REQUIRE_GROUP_BASED_ADMINS_ENABLED"
 	AuditLogEventType_SECRET_DELETED                                         AuditLogEventType = "SECRET_DELETED"
@@ -241,6 +242,8 @@ func (e AuditLogEventType) Valid() bool {
 		return true
 	case AuditLogEventType_MODEL_PROMOTION_CONTROL_ACTION:
 		return true
+	case AuditLogEventType_MODEL_RENAMED:
+		return true
 	case AuditLogEventType_REPLICA_TERMINATED:
 		return true
 	case AuditLogEventType_REQUIRE_GROUP_BASED_ADMINS_ENABLED:
@@ -289,6 +292,7 @@ const (
 	AuditLogEventTypeGroup_ENVIRONMENT_SETTINGS          AuditLogEventTypeGroup = "ENVIRONMENT_SETTINGS"
 	AuditLogEventTypeGroup_GATEWAY                       AuditLogEventTypeGroup = "GATEWAY"
 	AuditLogEventTypeGroup_INSTANCE_TYPE_CHANGED         AuditLogEventTypeGroup = "INSTANCE_TYPE_CHANGED"
+	AuditLogEventTypeGroup_METADATA                      AuditLogEventTypeGroup = "METADATA"
 	AuditLogEventTypeGroup_PROMOTED                      AuditLogEventTypeGroup = "PROMOTED"
 	AuditLogEventTypeGroup_REPLICA_TERMINATED            AuditLogEventTypeGroup = "REPLICA_TERMINATED"
 	AuditLogEventTypeGroup_REQUEST_BACKPRESSURE_SETTINGS AuditLogEventTypeGroup = "REQUEST_BACKPRESSURE_SETTINGS"
@@ -318,6 +322,8 @@ func (e AuditLogEventTypeGroup) Valid() bool {
 	case AuditLogEventTypeGroup_GATEWAY:
 		return true
 	case AuditLogEventTypeGroup_INSTANCE_TYPE_CHANGED:
+		return true
+	case AuditLogEventTypeGroup_METADATA:
 		return true
 	case AuditLogEventTypeGroup_PROMOTED:
 		return true
@@ -1877,6 +1883,14 @@ type AuditLogEventModelPromotionControlAction struct {
 	EventType       string                         `json:"event_type"`
 	ModelId         string                         `json:"model_id"`
 	ModelName       string                         `json:"model_name"`
+}
+
+// AuditLogEventModelRenamed A model was renamed. `model_name` is the new name.
+type AuditLogEventModelRenamed struct {
+	EventType    string  `json:"event_type"`
+	ModelId      string  `json:"model_id"`
+	ModelName    string  `json:"model_name"`
+	PreviousName *string `json:"previous_name"`
 }
 
 // AuditLogEventReplicaTerminated A replica of a model deployment was terminated.
@@ -6521,6 +6535,12 @@ type UpdateLibraryListingVersionRequest struct {
 	IsLive *bool `json:"is_live,omitempty"`
 }
 
+// UpdateModelRequest A request to update a model.
+type UpdateModelRequest struct {
+	// Name New name for the model, unique within its team. Renaming does not change the model ID, endpoints, or deployments. Pushes that still use the old model_name create another model or target a model that now uses that name, so update config.yaml after renaming.
+	Name *string `json:"name,omitempty"`
+}
+
 // UpdatePromotionSettings Promotion settings for model promotion
 type UpdatePromotionSettings struct {
 	// PromotionCleanupStrategy The cleanup strategy to use after a promotion completes.
@@ -7482,6 +7502,9 @@ type PatchV1LoopsUserConfigJSONRequestBody = PatchLoopsUserConfigRequest
 // PostV1ModelsJSONRequestBody defines body for PostV1Models for application/json ContentType.
 type PostV1ModelsJSONRequestBody = CreateModelRequest
 
+// PatchV1ModelsModelIdJSONRequestBody defines body for PatchV1ModelsModelId for application/json ContentType.
+type PatchV1ModelsModelIdJSONRequestBody = UpdateModelRequest
+
 // PostV1ModelsModelIdDeploymentsJSONRequestBody defines body for PostV1ModelsModelIdDeployments for application/json ContentType.
 type PostV1ModelsModelIdDeploymentsJSONRequestBody = CreateModelDeploymentRequest
 
@@ -7747,6 +7770,21 @@ func (t AuditLogEntry_EventData) AsAuditLogEventModelDeleted() (AuditLogEventMod
 // FromAuditLogEventModelDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeleted
 func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeleted(v AuditLogEventModelDeleted) error {
 	v.EventType = "MODEL_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventModelRenamed returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelRenamed
+func (t AuditLogEntry_EventData) AsAuditLogEventModelRenamed() (AuditLogEventModelRenamed, error) {
+	var body AuditLogEventModelRenamed
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventModelRenamed overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelRenamed
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelRenamed(v AuditLogEventModelRenamed) error {
+	v.EventType = "MODEL_RENAMED"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -8366,6 +8404,8 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventModelDeploymentRetried()
 	case "MODEL_PROMOTION_CONTROL_ACTION":
 		return t.AsAuditLogEventModelPromotionControlAction()
+	case "MODEL_RENAMED":
+		return t.AsAuditLogEventModelRenamed()
 	case "REPLICA_TERMINATED":
 		return t.AsAuditLogEventReplicaTerminated()
 	case "REQUIRE_GROUP_BASED_ADMINS_ENABLED":

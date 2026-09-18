@@ -1569,6 +1569,42 @@
                         }
                     }
                 }
+            },
+            "patch": {
+                "summary": "Updates a model by ID",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/models/{model_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"my-model\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'name': 'my-model'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Updates the mutable fields of a model and returns the updated model. Renaming does not change the model ID, endpoints, or deployments. Pushes that still use the old model_name create another model or target a model that now uses that name, so update config.yaml after renaming.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateModelRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ModelV1"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/v1/models/{model_id}/audit_logs": {
@@ -11190,6 +11226,7 @@
                                 "MODEL_DEPLOYMENT_REQUEST_BACKPRESSURE_SETTINGS_CHANGED": "#/components/schemas/AuditLogEventModelDeploymentRequestBackpressureSettingsChangedV1",
                                 "MODEL_DEPLOYMENT_RETRIED": "#/components/schemas/AuditLogEventModelDeploymentRetriedV1",
                                 "MODEL_PROMOTION_CONTROL_ACTION": "#/components/schemas/AuditLogEventModelPromotionControlActionV1",
+                                "MODEL_RENAMED": "#/components/schemas/AuditLogEventModelRenamedV1",
                                 "REPLICA_TERMINATED": "#/components/schemas/AuditLogEventReplicaTerminatedV1",
                                 "REQUIRE_GROUP_BASED_ADMINS_ENABLED": "#/components/schemas/AuditLogEventRequireGroupBasedAdminsEnabledV1",
                                 "SECRET_DELETED": "#/components/schemas/AuditLogEventSecretDeletedV1",
@@ -11239,6 +11276,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventModelDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventModelRenamedV1"
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventChainDeployedV1"
@@ -14164,6 +14204,7 @@
                     "MODEL_DEPLOYMENT_INSTANCE_TYPE_CHANGED",
                     "MODEL_DEPLOYMENT_DELETED",
                     "MODEL_DELETED",
+                    "MODEL_RENAMED",
                     "CHAIN_DEPLOYED",
                     "CHAIN_DEPLOYMENT_ACTIVATED",
                     "CHAIN_DEPLOYMENT_DEACTIVATED",
@@ -14589,6 +14630,7 @@
                     "ENVIRONMENT_SETTINGS",
                     "REPLICA_TERMINATED",
                     "DELETED",
+                    "METADATA",
                     "SECRETS",
                     "API_KEYS",
                     "GATEWAY",
@@ -28389,6 +28431,70 @@
                     "ok"
                 ],
                 "title": "RegisterAPIKeyResponseV1",
+                "type": "object"
+            },
+            "UpdateModelRequestV1": {
+                "additionalProperties": false,
+                "description": "A request to update a model.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "maxLength": 255,
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "New name for the model, unique within its team. Renaming does not change the model ID, endpoints, or deployments. Pushes that still use the old model_name create another model or target a model that now uses that name, so update config.yaml after renaming.",
+                        "examples": [
+                            "my-model"
+                        ],
+                        "title": "Name"
+                    }
+                },
+                "title": "UpdateModelRequestV1",
+                "type": "object"
+            },
+            "AuditLogEventModelRenamedV1": {
+                "additionalProperties": false,
+                "description": "A model was renamed. `model_name` is the new name.",
+                "properties": {
+                    "event_type": {
+                        "const": "MODEL_RENAMED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "model_id": {
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "model_name": {
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "previous_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Previous Name"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "model_id",
+                    "model_name",
+                    "previous_name"
+                ],
+                "title": "AuditLogEventModelRenamedV1",
                 "type": "object"
             }
         },

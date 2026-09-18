@@ -1495,6 +1495,18 @@ func (c *Client) PatchLoopsUserConfig(ctx context.Context, body PatchLoopsUserCo
 	})
 }
 
+// PatchModels: Updates a model by ID
+func (c *Client) PatchModels(ctx context.Context, modelId string, body UpdateModelRequest) (*Model, error) {
+	return doJSON[Model](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/models/%s",
+		pathArgs:    []any{modelId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PatchModelsDeployments: Updates a model's deployment by ID
 func (c *Client) PatchModelsDeployments(ctx context.Context, modelId string, deploymentId string, body UpdateDeploymentRequest) (*Deployment, error) {
 	return doJSON[Deployment](c, ctx, apiRequest{
