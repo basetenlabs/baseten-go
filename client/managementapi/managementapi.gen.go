@@ -11,6 +11,7 @@ import (
 // Defines values for APIKeyCategory.
 const (
 	APIKeyCategory_PERSONAL                  APIKeyCategory = "PERSONAL"
+	APIKeyCategory_ROUTES                    APIKeyCategory = "ROUTES"
 	APIKeyCategory_WORKSPACE_EXPORT_METRICS  APIKeyCategory = "WORKSPACE_EXPORT_METRICS"
 	APIKeyCategory_WORKSPACE_INVOKE          APIKeyCategory = "WORKSPACE_INVOKE"
 	APIKeyCategory_WORKSPACE_MANAGE_ALL      APIKeyCategory = "WORKSPACE_MANAGE_ALL"
@@ -21,6 +22,8 @@ const (
 func (e APIKeyCategory) Valid() bool {
 	switch e {
 	case APIKeyCategory_PERSONAL:
+		return true
+	case APIKeyCategory_ROUTES:
 		return true
 	case APIKeyCategory_WORKSPACE_EXPORT_METRICS:
 		return true
@@ -70,6 +73,7 @@ const (
 	AuditLogApiKeyType_INVOKE_ALL_MODELS_SERVICE_ACCOUNT               AuditLogApiKeyType = "INVOKE_ALL_MODELS_SERVICE_ACCOUNT"
 	AuditLogApiKeyType_INVOKE_ALLOWED_MODELS_SERVICE_ACCOUNT           AuditLogApiKeyType = "INVOKE_ALLOWED_MODELS_SERVICE_ACCOUNT"
 	AuditLogApiKeyType_INVOKE_ALLOWED_SHARED_ENDPOINTS_SERVICE_ACCOUNT AuditLogApiKeyType = "INVOKE_ALLOWED_SHARED_ENDPOINTS_SERVICE_ACCOUNT"
+	AuditLogApiKeyType_INVOKE_ALL_ROUTES                               AuditLogApiKeyType = "INVOKE_ALL_ROUTES"
 	AuditLogApiKeyType_INVOKE_ALL_SHARED_ENDPOINTS_SERVICE_ACCOUNT     AuditLogApiKeyType = "INVOKE_ALL_SHARED_ENDPOINTS_SERVICE_ACCOUNT"
 	AuditLogApiKeyType_INVOKE_SCOPED_ENVS_AND_MODELS_SERVICE_ACCOUNT   AuditLogApiKeyType = "INVOKE_SCOPED_ENVS_AND_MODELS_SERVICE_ACCOUNT"
 	AuditLogApiKeyType_MANAGE_API_KEYS_SERVICE_ACCOUNT                 AuditLogApiKeyType = "MANAGE_API_KEYS_SERVICE_ACCOUNT"
@@ -90,6 +94,8 @@ func (e AuditLogApiKeyType) Valid() bool {
 	case AuditLogApiKeyType_INVOKE_ALLOWED_MODELS_SERVICE_ACCOUNT:
 		return true
 	case AuditLogApiKeyType_INVOKE_ALLOWED_SHARED_ENDPOINTS_SERVICE_ACCOUNT:
+		return true
+	case AuditLogApiKeyType_INVOKE_ALL_ROUTES:
 		return true
 	case AuditLogApiKeyType_INVOKE_ALL_SHARED_ENDPOINTS_SERVICE_ACCOUNT:
 		return true
@@ -404,6 +410,30 @@ func (e AuditLogSource) Valid() bool {
 	case AuditLogSource_SYSTEM:
 		return true
 	case AuditLogSource_UI:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AuthMethod.
+const (
+	AuthMethod_AWS_ASSUME_ROLE AuthMethod = "AWS_ASSUME_ROLE"
+	AuthMethod_AWS_OIDC        AuthMethod = "AWS_OIDC"
+	AuthMethod_CUSTOM_SECRET   AuthMethod = "CUSTOM_SECRET"
+	AuthMethod_GCP_OIDC        AuthMethod = "GCP_OIDC"
+)
+
+// Valid indicates whether the value is a known member of the AuthMethod enum.
+func (e AuthMethod) Valid() bool {
+	switch e {
+	case AuthMethod_AWS_ASSUME_ROLE:
+		return true
+	case AuthMethod_AWS_OIDC:
+		return true
+	case AuthMethod_CUSTOM_SECRET:
+		return true
+	case AuthMethod_GCP_OIDC:
 		return true
 	default:
 		return false
@@ -778,16 +808,25 @@ func (e LimitEnforcement) Valid() bool {
 
 // Defines values for LimitType.
 const (
-	LimitType_REQUEST LimitType = "REQUEST"
-	LimitType_TOKEN   LimitType = "TOKEN"
+	LimitType_CONCURRENT_REQUEST   LimitType = "CONCURRENT_REQUEST"
+	LimitType_OUTPUT_TOKEN         LimitType = "OUTPUT_TOKEN"
+	LimitType_REQUEST              LimitType = "REQUEST"
+	LimitType_TOKEN                LimitType = "TOKEN"
+	LimitType_UNCACHED_INPUT_TOKEN LimitType = "UNCACHED_INPUT_TOKEN"
 )
 
 // Valid indicates whether the value is a known member of the LimitType enum.
 func (e LimitType) Valid() bool {
 	switch e {
+	case LimitType_CONCURRENT_REQUEST:
+		return true
+	case LimitType_OUTPUT_TOKEN:
+		return true
 	case LimitType_REQUEST:
 		return true
 	case LimitType_TOKEN:
+		return true
+	case LimitType_UNCACHED_INPUT_TOKEN:
 		return true
 	default:
 		return false
@@ -2047,6 +2086,9 @@ type AuthCode struct {
 	WorkingDirectory *string `json:"working_directory,omitempty"`
 }
 
+// AuthMethod defines model for AuthMethod.
+type AuthMethod string
+
 // AutoscalingSchedule defines model for AutoscalingSchedule.
 type AutoscalingSchedule struct {
 	AutoscalingSettings AutoscalingScheduleSettings `json:"autoscaling_settings"`
@@ -2539,6 +2581,9 @@ type CreateAPIKeyRequest struct {
 	// Name Optional name for the API key
 	Name *string `json:"name,omitempty"`
 
+	// TeamId Team ID for a team-scoped key. When omitted, uses the team in the URL if present, otherwise your organization's default team. Must match the URL team when both are provided. Not supported for PERSONAL or WORKSPACE_MANAGE_API_KEYS keys.
+	TeamId *string `json:"team_id,omitempty"`
+
 	// Type Enum representing the category of an API key.
 	Type APIKeyCategory `json:"type"`
 }
@@ -2661,7 +2706,7 @@ type CreateJobWeightConfig struct {
 	AllowPatterns *[]string `json:"allow_patterns,omitempty"`
 
 	// Auth Authentication configuration for the weight source.
-	Auth *map[string]interface{} `json:"auth,omitempty"`
+	Auth *TrainingWeightAuth `json:"auth,omitempty"`
 
 	// AuthSecretName Name of the workspace secret for authentication (e.g., HuggingFace token)
 	AuthSecretName *string `json:"auth_secret_name,omitempty"`
@@ -6453,6 +6498,32 @@ type TrainingUsageTotal1 = string
 // TrainingUsage_Total Total cost in dollars
 type TrainingUsage_Total struct {
 	union json.RawMessage
+}
+
+// TrainingWeightAuth Authentication configuration for a training weight source.
+type TrainingWeightAuth struct {
+	AuthMethod AuthMethod `json:"auth_method"`
+
+	// AuthSecretName Name of the workspace secret used for custom-secret authentication.
+	AuthSecretName *string `json:"auth_secret_name,omitempty"`
+
+	// AwsAssumeRoleArn AWS IAM role ARN that Baseten assumes to access the weight source.
+	AwsAssumeRoleArn *string `json:"aws_assume_role_arn,omitempty"`
+
+	// AwsAssumeRoleRegion AWS region used for assume-role authentication.
+	AwsAssumeRoleRegion *string `json:"aws_assume_role_region,omitempty"`
+
+	// AwsOidcRegion AWS region used for OIDC authentication.
+	AwsOidcRegion *string `json:"aws_oidc_region,omitempty"`
+
+	// AwsOidcRoleArn AWS IAM role ARN used for OIDC authentication.
+	AwsOidcRoleArn *string `json:"aws_oidc_role_arn,omitempty"`
+
+	// GcpOidcServiceAccount GCP service account used for OIDC authentication.
+	GcpOidcServiceAccount *string `json:"gcp_oidc_service_account,omitempty"`
+
+	// GcpOidcWorkloadIdProvider GCP workload identity provider used for OIDC authentication.
+	GcpOidcWorkloadIdProvider *string `json:"gcp_oidc_workload_id_provider,omitempty"`
 }
 
 // TrussUserEnv This data models is used to flexibly store info alongside oracle versions.
