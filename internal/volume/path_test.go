@@ -48,6 +48,44 @@ func TestValidatePath(t *testing.T) {
 	}
 }
 
+func TestValidatePathErrorPrecedence(t *testing.T) {
+	tests := map[string]struct {
+		path string
+		want string
+	}{
+		"invalid UTF-8 before NUL":  {"a\x00\xff", `path "a\x00\xff" is not valid UTF-8`},
+		"NUL before absolute":       {"/a\x00", `path "/a\x00" contains a NUL byte`},
+		"absolute before trailing":  {"/a/", `path "/a/" is absolute, entry paths are relative to the volume root`},
+		"trailing before backslash": {`a\/`, `path "a\\/" has a trailing slash`},
+		"backslash before segment":  {`a\/../b`, `path "a\\/../b" contains a backslash, which cannot be reproduced on Windows`},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := ValidatePath(test.path)
+			require.Error(t, err)
+			require.Equal(t, test.want, err.Error())
+		})
+	}
+}
+
+func BenchmarkValidatePath(b *testing.B) {
+	for _, path := range []string{
+		"file",
+		"models/weights/model.safetensors",
+		"a/b/c/d/e/f/g/h/i/j/file",
+		"unicode/héllo/世界/model",
+	} {
+		b.Run(path, func(b *testing.B) {
+			b.ReportAllocs()
+			for b.Loop() {
+				if err := ValidatePath(path); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	}
+}
+
 // TestValidateSourceURI covers the third piece of text that reaches the
 // encoder, after entry paths and symlink targets. All three are inside the
 // digest, so all three are held to the same standard.
