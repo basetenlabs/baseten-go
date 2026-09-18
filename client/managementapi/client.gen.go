@@ -250,11 +250,12 @@ func (c *Client) DeleteVolumesVersions(ctx context.Context, volumeNamespace stri
 }
 
 // GetApiKeys: Lists API keys (metadata only, no plain text keys)
-func (c *Client) GetApiKeys(ctx context.Context) (*APIKeys, error) {
+func (c *Client) GetApiKeys(ctx context.Context, params GetV1ApiKeysParams) (*APIKeys, error) {
 	return doJSON[APIKeys](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/api_keys",
 		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -635,6 +636,18 @@ func (c *Client) GetLoopsCheckpointsFiles(ctx context.Context, checkpointId stri
 		pathFmt:     "/v1/loops/checkpoints/%s/files",
 		pathArgs:    []any{checkpointId},
 		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetLoopsCheckpointsSource: Gets where a Loops checkpoint's files come from
+func (c *Client) GetLoopsCheckpointsSource(ctx context.Context, checkpointId string) (*LoopsCheckpointSourceResponse, error) {
+	return doJSON[LoopsCheckpointSourceResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/checkpoints/%s/source",
+		pathArgs:    []any{checkpointId},
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1399,6 +1412,31 @@ func (c *Client) GetVolumesNamespaces(ctx context.Context, params GetV1VolumesNa
 	})
 }
 
+// GetVolumesSyncs: Lists volume syncs
+func (c *Client) GetVolumesSyncs(ctx context.Context, params GetV1VolumesSyncsParams) (*VolumeSyncs, error) {
+	return doJSON[VolumeSyncs](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/volumes/syncs",
+		pathArgs:    nil,
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetVolumesSyncsVolumeSyncId: Gets a volume sync
+func (c *Client) GetVolumesSyncsVolumeSyncId(ctx context.Context, volumeSyncId string) (*VolumeSync, error) {
+	return doJSON[VolumeSync](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/volumes/syncs/%s",
+		pathArgs:    []any{volumeSyncId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetVolumesVersions: Gets the versions of a volume
 func (c *Client) GetVolumesVersions(ctx context.Context, volumeNamespace string, volumeName string, params GetV1VolumesVolumeNamespaceVolumeNameVersionsParams) (*ListVolumeVersionsResponse, error) {
 	return doJSON[ListVolumeVersionsResponse](c, ctx, apiRequest{
@@ -1526,6 +1564,18 @@ func (c *Client) PatchLoopsUserConfig(ctx context.Context, body PatchLoopsUserCo
 		method:      "PATCH",
 		pathFmt:     "/v1/loops/user_config",
 		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PatchModels: Updates a model by ID
+func (c *Client) PatchModels(ctx context.Context, modelId string, body UpdateModelRequest) (*Model, error) {
+	return doJSON[Model](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/models/%s",
+		pathArgs:    []any{modelId},
 		body:        body,
 		successCode: 200,
 		errorCodes:  nil,
@@ -2463,6 +2513,30 @@ func (c *Client) PostTrainingProjectsJobsStop(ctx context.Context, trainingProje
 		pathFmt:     "/v1/training_projects/%s/jobs/%s/stop",
 		pathArgs:    []any{trainingProjectId, trainingJobId},
 		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostVolumesSyncs: Starts a volume sync
+func (c *Client) PostVolumesSyncs(ctx context.Context, body CreateVolumeSyncRequest) (*VolumeSync, error) {
+	return doJSON[VolumeSync](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/volumes/syncs",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostVolumesSyncsCancel: Cancels a volume sync
+func (c *Client) PostVolumesSyncsCancel(ctx context.Context, volumeSyncId string) (*VolumeSync, error) {
+	return doJSON[VolumeSync](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/volumes/syncs/%s/cancel",
+		pathArgs:    []any{volumeSyncId},
+		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
 	})

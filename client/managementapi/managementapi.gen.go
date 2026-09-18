@@ -166,6 +166,7 @@ const (
 	AuditLogEventType_MODEL_DEPLOYMENT_REQUEST_BACKPRESSURE_SETTINGS_CHANGED AuditLogEventType = "MODEL_DEPLOYMENT_REQUEST_BACKPRESSURE_SETTINGS_CHANGED"
 	AuditLogEventType_MODEL_DEPLOYMENT_RETRIED                               AuditLogEventType = "MODEL_DEPLOYMENT_RETRIED"
 	AuditLogEventType_MODEL_PROMOTION_CONTROL_ACTION                         AuditLogEventType = "MODEL_PROMOTION_CONTROL_ACTION"
+	AuditLogEventType_MODEL_RENAMED                                          AuditLogEventType = "MODEL_RENAMED"
 	AuditLogEventType_REPLICA_TERMINATED                                     AuditLogEventType = "REPLICA_TERMINATED"
 	AuditLogEventType_REQUIRE_GROUP_BASED_ADMINS_ENABLED                     AuditLogEventType = "REQUIRE_GROUP_BASED_ADMINS_ENABLED"
 	AuditLogEventType_SECRET_DELETED                                         AuditLogEventType = "SECRET_DELETED"
@@ -247,6 +248,8 @@ func (e AuditLogEventType) Valid() bool {
 		return true
 	case AuditLogEventType_MODEL_PROMOTION_CONTROL_ACTION:
 		return true
+	case AuditLogEventType_MODEL_RENAMED:
+		return true
 	case AuditLogEventType_REPLICA_TERMINATED:
 		return true
 	case AuditLogEventType_REQUIRE_GROUP_BASED_ADMINS_ENABLED:
@@ -295,6 +298,7 @@ const (
 	AuditLogEventTypeGroup_ENVIRONMENT_SETTINGS          AuditLogEventTypeGroup = "ENVIRONMENT_SETTINGS"
 	AuditLogEventTypeGroup_GATEWAY                       AuditLogEventTypeGroup = "GATEWAY"
 	AuditLogEventTypeGroup_INSTANCE_TYPE_CHANGED         AuditLogEventTypeGroup = "INSTANCE_TYPE_CHANGED"
+	AuditLogEventTypeGroup_METADATA                      AuditLogEventTypeGroup = "METADATA"
 	AuditLogEventTypeGroup_PROMOTED                      AuditLogEventTypeGroup = "PROMOTED"
 	AuditLogEventTypeGroup_REPLICA_TERMINATED            AuditLogEventTypeGroup = "REPLICA_TERMINATED"
 	AuditLogEventTypeGroup_REQUEST_BACKPRESSURE_SETTINGS AuditLogEventTypeGroup = "REQUEST_BACKPRESSURE_SETTINGS"
@@ -324,6 +328,8 @@ func (e AuditLogEventTypeGroup) Valid() bool {
 	case AuditLogEventTypeGroup_GATEWAY:
 		return true
 	case AuditLogEventTypeGroup_INSTANCE_TYPE_CHANGED:
+		return true
+	case AuditLogEventTypeGroup_METADATA:
 		return true
 	case AuditLogEventTypeGroup_PROMOTED:
 		return true
@@ -1310,6 +1316,33 @@ func (e V1InteractiveSessionTrigger) Valid() bool {
 	}
 }
 
+// Defines values for VolumeSyncStatus.
+const (
+	VolumeSyncStatus_CANCELED VolumeSyncStatus = "CANCELED"
+	VolumeSyncStatus_FAILED   VolumeSyncStatus = "FAILED"
+	VolumeSyncStatus_PENDING  VolumeSyncStatus = "PENDING"
+	VolumeSyncStatus_READY    VolumeSyncStatus = "READY"
+	VolumeSyncStatus_SYNCING  VolumeSyncStatus = "SYNCING"
+)
+
+// Valid indicates whether the value is a known member of the VolumeSyncStatus enum.
+func (e VolumeSyncStatus) Valid() bool {
+	switch e {
+	case VolumeSyncStatus_CANCELED:
+		return true
+	case VolumeSyncStatus_FAILED:
+		return true
+	case VolumeSyncStatus_PENDING:
+		return true
+	case VolumeSyncStatus_READY:
+		return true
+	case VolumeSyncStatus_SYNCING:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for VolumeTokenScope.
 const (
 	VolumeTokenScope_INSPECT VolumeTokenScope = "INSPECT"
@@ -1345,6 +1378,12 @@ type APIKeyCategory string
 
 // APIKeyInfo Represents the metadata of an API key.
 type APIKeyInfo struct {
+	// CreatedAt Creation time in ISO 8601 format
+	CreatedAt time.Time `json:"created_at"`
+
+	// LastUsedAt Last recorded use in ISO 8601 format, or null if unavailable. Updates may be delayed.
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+
 	// ModelIds List of model IDs to scope the API key to, only present if type is 'WORKSPACE_EXPORT_METRICS' or 'WORKSPACE_INVOKE'
 	ModelIds *[]string `json:"model_ids,omitempty"`
 
@@ -1916,6 +1955,14 @@ type AuditLogEventModelPromotionControlAction struct {
 	EventType       string                         `json:"event_type"`
 	ModelId         string                         `json:"model_id"`
 	ModelName       string                         `json:"model_name"`
+}
+
+// AuditLogEventModelRenamed A model was renamed. `model_name` is the new name.
+type AuditLogEventModelRenamed struct {
+	EventType    string  `json:"event_type"`
+	ModelId      string  `json:"model_id"`
+	ModelName    string  `json:"model_name"`
+	PreviousName *string `json:"previous_name"`
 }
 
 // AuditLogEventReplicaTerminated A replica of a model deployment was terminated.
@@ -2673,7 +2720,7 @@ type CreateEnvironmentRequest struct {
 	// Name Name of the environment
 	Name string `json:"name"`
 
-	// PromotionSettings Promotion settings for the environment
+	// PromotionSettings Promotion settings for the environment. New Model environments use rolling promotions by default. Set `rolling_deploy` to `false` to opt out.
 	PromotionSettings *UpdatePromotionSettings `json:"promotion_settings,omitempty"`
 
 	// RequestBackpressureSettings Request backpressure settings for the environment.
@@ -2944,8 +2991,8 @@ type CreateRouteRequest struct {
 	// Target Upstream target for the route.
 	Target CreateRouteRequest_Target `json:"target"`
 
-	// TeamId Identifier of the team that owns the route.
-	TeamId string `json:"team_id"`
+	// TeamId Identifier of the team that owns the route. When omitted, uses your organization's default team.
+	TeamId *string `json:"team_id,omitempty"`
 }
 
 // CreateRouteRequest_Target Upstream target for the route.
@@ -3100,6 +3147,20 @@ type CreateTrainingJobS3Artifact struct {
 
 	// S3Key S3 key for the uploaded runtime artifact.
 	S3Key string `json:"s3_key"`
+}
+
+// CreateVolumeSyncRequest Request to start an asynchronous volume sync.
+type CreateVolumeSyncRequest struct {
+	// Destination BDN destination for a volume sync.
+	Destination VolumeSyncDestination `json:"destination"`
+
+	// Source Remote source to sync from.
+	Source CreateVolumeSyncRequest_Source `json:"source"`
+}
+
+// CreateVolumeSyncRequest_Source Remote source to sync from.
+type CreateVolumeSyncRequest_Source struct {
+	union json.RawMessage
 }
 
 // CreateVolumeTokenRequest defines model for CreateVolumeTokenRequest.
@@ -4894,6 +4955,33 @@ type LoopsCheckpointFilesResponse struct {
 	TotalCount int `json:"total_count"`
 }
 
+// LoopsCheckpointS3Source The checkpoint's files are fetched as presigned URLs, page by page.
+type LoopsCheckpointS3Source struct {
+	Kind *string `json:"kind,omitempty"`
+}
+
+// LoopsCheckpointSourceResponse Where a checkpoint's files are fetched from, and how.
+type LoopsCheckpointSourceResponse struct {
+	// Source `s3` means the files endpoint serves presigned URLs for this checkpoint; `volume` carries the ref to pull instead.
+	Source LoopsCheckpointSourceResponse_Source `json:"source"`
+}
+
+// LoopsCheckpointSourceResponse_Source `s3` means the files endpoint serves presigned URLs for this checkpoint; `volume` carries the ref to pull instead.
+type LoopsCheckpointSourceResponse_Source struct {
+	union json.RawMessage
+}
+
+// LoopsCheckpointVolumeSource The checkpoint's files are pulled from a Baseten volume.
+type LoopsCheckpointVolumeSource struct {
+	Kind *string `json:"kind,omitempty"`
+
+	// Path Directory inside that version holding the checkpoint's files.
+	Path string `json:"path"`
+
+	// VolumeRef Ref of the volume version holding the checkpoint, as `bdn:<namespace>/<volume>:<tag>`.
+	VolumeRef string `json:"volume_ref"`
+}
+
 // LoopsDebugArchiveFilesResponse Response with presigned URLs for a Loops deployment's debug archive.
 type LoopsDebugArchiveFilesResponse struct {
 	NextPageToken *string          `json:"next_page_token,omitempty"`
@@ -5941,6 +6029,9 @@ type Route struct {
 
 	// TeamId Identifier of the owning team.
 	TeamId string `json:"team_id"`
+
+	// TeamName Name of the owning team.
+	TeamName string `json:"team_name"`
 }
 
 // Route_Target Configured upstream target.
@@ -5962,8 +6053,8 @@ type RouteTargetAnthropic struct {
 
 // RouteTargetBasetenModelAPI defines model for RouteTargetBasetenModelAPI.
 type RouteTargetBasetenModelAPI struct {
-	// ModelApi Name of the target Model API.
-	ModelApi string `json:"model_api"`
+	// Model Name of the target Model API.
+	Model string `json:"model"`
 
 	// Type Target kind for a Baseten Model API.
 	Type string `json:"type"`
@@ -6736,6 +6827,12 @@ type UpdateLibraryListingVersionRequest struct {
 	IsLive *bool `json:"is_live,omitempty"`
 }
 
+// UpdateModelRequest A request to update a model.
+type UpdateModelRequest struct {
+	// Name New name for the model, unique within its team. Renaming does not change the model ID, endpoints, or deployments. Pushes that still use the old model_name create another model or target a model that now uses that name, so update config.yaml after renaming.
+	Name *string `json:"name,omitempty"`
+}
+
 // UpdatePromotionSettings Promotion settings for model promotion
 type UpdatePromotionSettings struct {
 	// PromotionCleanupStrategy The cleanup strategy to use after a promotion completes.
@@ -6968,6 +7065,205 @@ type Volume struct {
 	VersionsUntagged int `json:"versions_untagged"`
 }
 
+// VolumeSync Current state and result of a volume sync.
+type VolumeSync struct {
+	// CompletedAt Time at which the sync reached a terminal state.
+	CompletedAt *time.Time `json:"completed_at,omitempty"`
+
+	// ContentDigest BLAKE3 digest of the synced content; null until available.
+	ContentDigest *string `json:"content_digest,omitempty"`
+
+	// CreatedAt Time at which the sync was created.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Destination BDN destination for a volume sync.
+	Destination VolumeSyncDestination `json:"destination"`
+
+	// Error Redacted failure details; null unless the sync failed.
+	Error *VolumeSyncError `json:"error,omitempty"`
+
+	// Source Remote source being synced.
+	Source VolumeSync_Source `json:"source"`
+	Status VolumeSyncStatus  `json:"status"`
+
+	// SyncId Identifier of this sync operation.
+	SyncId string `json:"sync_id"`
+
+	// TotalSizeBytes Total size of the synced content in bytes; null until available.
+	TotalSizeBytes *int `json:"total_size_bytes,omitempty"`
+
+	// VersionRef Immutable BDN reference; null until the sync is ready.
+	VersionRef *string `json:"version_ref,omitempty"`
+
+	// VolumeVersionId Produced artifact identifier; null until the sync is ready.
+	VolumeVersionId *string `json:"volume_version_id,omitempty"`
+}
+
+// VolumeSync_Source Remote source being synced.
+type VolumeSync_Source struct {
+	union json.RawMessage
+}
+
+// VolumeSyncAuthenticationAWSAssumeRole Authentication using an AWS IAM role assumed by Baseten.
+type VolumeSyncAuthenticationAWSAssumeRole struct {
+	// Region AWS region for the assumed role session.
+	Region string `json:"region"`
+
+	// RoleArn AWS IAM role ARN to assume.
+	RoleArn string `json:"role_arn"`
+}
+
+// VolumeSyncDestination BDN destination for a volume sync.
+type VolumeSyncDestination struct {
+	// Ref Destination as bdn:<namespace>/<volume> with an optional tag.
+	Ref string `json:"ref"`
+}
+
+// VolumeSyncError Public failure details for a volume sync.
+type VolumeSyncError struct {
+	// Code Stable machine-readable failure classification.
+	Code string `json:"code"`
+
+	// Message Redacted user-facing failure message.
+	Message string `json:"message"`
+}
+
+// VolumeSyncSourceAzure Azure Blob Storage source.
+type VolumeSyncSourceAzure struct {
+	// AuthSecretName Optional workspace secret containing credentials for this source.
+	AuthSecretName *string `json:"auth_secret_name,omitempty"`
+
+	// Exclude Glob patterns selecting files to exclude.
+	Exclude *[]string `json:"exclude,omitempty"`
+
+	// Include Glob patterns selecting files to include.
+	Include *[]string `json:"include,omitempty"`
+
+	// Type Azure Blob Storage source type.
+	Type string `json:"type"`
+
+	// Uri Remote source URI to materialize into the destination volume.
+	Uri string `json:"uri"`
+}
+
+// VolumeSyncSourceBasetenTraining Baseten training artifact source.
+type VolumeSyncSourceBasetenTraining struct {
+	// Exclude Glob patterns selecting files to exclude.
+	Exclude *[]string `json:"exclude,omitempty"`
+
+	// Include Glob patterns selecting files to include.
+	Include *[]string `json:"include,omitempty"`
+
+	// Type Baseten training artifact source type.
+	Type string `json:"type"`
+
+	// Uri Remote source URI to materialize into the destination volume.
+	Uri string `json:"uri"`
+}
+
+// VolumeSyncSourceCoreWeave CoreWeave object storage source.
+type VolumeSyncSourceCoreWeave struct {
+	// AuthSecretName Optional workspace secret containing credentials for this source.
+	AuthSecretName *string `json:"auth_secret_name,omitempty"`
+
+	// Exclude Glob patterns selecting files to exclude.
+	Exclude *[]string `json:"exclude,omitempty"`
+
+	// Include Glob patterns selecting files to include.
+	Include *[]string `json:"include,omitempty"`
+
+	// Type CoreWeave object storage source type.
+	Type string `json:"type"`
+
+	// Uri Remote source URI to materialize into the destination volume.
+	Uri string `json:"uri"`
+}
+
+// VolumeSyncSourceGCS Google Cloud Storage source.
+type VolumeSyncSourceGCS struct {
+	// AuthSecretName Optional workspace secret containing credentials for this source.
+	AuthSecretName *string `json:"auth_secret_name,omitempty"`
+
+	// Exclude Glob patterns selecting files to exclude.
+	Exclude *[]string `json:"exclude,omitempty"`
+
+	// Include Glob patterns selecting files to include.
+	Include *[]string `json:"include,omitempty"`
+
+	// Type Google Cloud Storage source type.
+	Type string `json:"type"`
+
+	// Uri Remote source URI to materialize into the destination volume.
+	Uri string `json:"uri"`
+}
+
+// VolumeSyncSourceHuggingFace Hugging Face source.
+type VolumeSyncSourceHuggingFace struct {
+	// AuthSecretName Optional workspace secret containing credentials for this source.
+	AuthSecretName *string `json:"auth_secret_name,omitempty"`
+
+	// Exclude Glob patterns selecting files to exclude.
+	Exclude *[]string `json:"exclude,omitempty"`
+
+	// Include Glob patterns selecting files to include.
+	Include *[]string `json:"include,omitempty"`
+
+	// Type Hugging Face source type.
+	Type string `json:"type"`
+
+	// Uri Remote source URI to materialize into the destination volume.
+	Uri string `json:"uri"`
+}
+
+// VolumeSyncSourceR2 Cloudflare R2 source.
+type VolumeSyncSourceR2 struct {
+	// AuthSecretName Optional workspace secret containing credentials for this source.
+	AuthSecretName *string `json:"auth_secret_name,omitempty"`
+
+	// Exclude Glob patterns selecting files to exclude.
+	Exclude *[]string `json:"exclude,omitempty"`
+
+	// Include Glob patterns selecting files to include.
+	Include *[]string `json:"include,omitempty"`
+
+	// Type Cloudflare R2 source type.
+	Type string `json:"type"`
+
+	// Uri Remote source URI to materialize into the destination volume.
+	Uri string `json:"uri"`
+}
+
+// VolumeSyncSourceS3 Amazon S3 source.
+type VolumeSyncSourceS3 struct {
+	// AuthSecretName Optional workspace secret containing credentials for this source.
+	AuthSecretName *string `json:"auth_secret_name,omitempty"`
+
+	// AwsAssumeRole AWS AssumeRole authentication for this source. Cannot be combined with auth_secret_name.
+	AwsAssumeRole *VolumeSyncAuthenticationAWSAssumeRole `json:"aws_assume_role,omitempty"`
+
+	// Exclude Glob patterns selecting files to exclude.
+	Exclude *[]string `json:"exclude,omitempty"`
+
+	// Include Glob patterns selecting files to include.
+	Include *[]string `json:"include,omitempty"`
+
+	// Type Amazon S3 source type.
+	Type string `json:"type"`
+
+	// Uri Remote source URI to materialize into the destination volume.
+	Uri string `json:"uri"`
+}
+
+// VolumeSyncStatus defines model for VolumeSyncStatus.
+type VolumeSyncStatus string
+
+// VolumeSyncs A page of volume syncs in the active workspace.
+type VolumeSyncs struct {
+	// Items Items in this page.
+	Items      []VolumeSync       `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
 // VolumeTag defines model for VolumeTag.
 type VolumeTag struct {
 	// Digest Digest of the version the tag points at, as `b3:<hex>`.
@@ -7079,6 +7375,15 @@ type VolumeVersionSummary struct {
 
 	// TotalSizeBytes Total size of the version's files in bytes.
 	TotalSizeBytes int `json:"total_size_bytes"`
+}
+
+// GetV1ApiKeysParams defines parameters for GetV1ApiKeys.
+type GetV1ApiKeysParams struct {
+	// Type Filter by API key type
+	Type *APIKeyCategory `form:"type,omitempty" json:"type,omitempty"`
+
+	// CreatedByMe Return only keys created by the authenticated user
+	CreatedByMe *bool `form:"created_by_me,omitempty" json:"created_by_me,omitempty"`
 }
 
 // GetV1AuditLogsParams defines parameters for GetV1AuditLogs.
@@ -7645,6 +7950,18 @@ type GetV1VolumesNamespacesParams struct {
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// GetV1VolumesSyncsParams defines parameters for GetV1VolumesSyncs.
+type GetV1VolumesSyncsParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Ref Exact destination reference to match.
+	Ref *string `form:"ref,omitempty" json:"ref,omitempty"`
+}
+
 // GetV1VolumesVolumeNamespaceVolumeNameVersionsParams defines parameters for GetV1VolumesVolumeNamespaceVolumeNameVersions.
 type GetV1VolumesVolumeNamespaceVolumeNameVersionsParams struct {
 	// IncludeTombstoned Whether to include deleted versions. A deleted version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.
@@ -7728,6 +8045,9 @@ type PatchV1LoopsUserConfigJSONRequestBody = PatchLoopsUserConfigRequest
 
 // PostV1ModelsJSONRequestBody defines body for PostV1Models for application/json ContentType.
 type PostV1ModelsJSONRequestBody = CreateModelRequest
+
+// PatchV1ModelsModelIdJSONRequestBody defines body for PatchV1ModelsModelId for application/json ContentType.
+type PatchV1ModelsModelIdJSONRequestBody = UpdateModelRequest
 
 // PostV1ModelsModelIdDeploymentsJSONRequestBody defines body for PostV1ModelsModelIdDeployments for application/json ContentType.
 type PostV1ModelsModelIdDeploymentsJSONRequestBody = CreateModelDeploymentRequest
@@ -7842,6 +8162,9 @@ type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdSshSignJSONRequestB
 
 // PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody defines body for PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStop for application/json ContentType.
 type PostV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdStopJSONRequestBody = StopTrainingJobRequest
+
+// PostV1VolumesSyncsJSONRequestBody defines body for PostV1VolumesSyncs for application/json ContentType.
+type PostV1VolumesSyncsJSONRequestBody = CreateVolumeSyncRequest
 
 // PostV1VolumesTokenJSONRequestBody defines body for PostV1VolumesToken for application/json ContentType.
 type PostV1VolumesTokenJSONRequestBody = CreateVolumeTokenRequest
@@ -8000,6 +8323,21 @@ func (t AuditLogEntry_EventData) AsAuditLogEventModelDeleted() (AuditLogEventMod
 // FromAuditLogEventModelDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelDeleted
 func (t *AuditLogEntry_EventData) FromAuditLogEventModelDeleted(v AuditLogEventModelDeleted) error {
 	v.EventType = "MODEL_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventModelRenamed returns the union data inside the AuditLogEntry_EventData as a AuditLogEventModelRenamed
+func (t AuditLogEntry_EventData) AsAuditLogEventModelRenamed() (AuditLogEventModelRenamed, error) {
+	var body AuditLogEventModelRenamed
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventModelRenamed overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventModelRenamed
+func (t *AuditLogEntry_EventData) FromAuditLogEventModelRenamed(v AuditLogEventModelRenamed) error {
+	v.EventType = "MODEL_RENAMED"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -8619,6 +8957,8 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventModelDeploymentRetried()
 	case "MODEL_PROMOTION_CONTROL_ACTION":
 		return t.AsAuditLogEventModelPromotionControlAction()
+	case "MODEL_RENAMED":
+		return t.AsAuditLogEventModelRenamed()
 	case "REPLICA_TERMINATED":
 		return t.AsAuditLogEventReplicaTerminated()
 	case "REQUIRE_GROUP_BASED_ADMINS_ENABLED":
@@ -9080,6 +9420,154 @@ func (t CreateTrainingJobRuntime_EnvironmentVariables_AdditionalProperties) Mars
 }
 
 func (t *CreateTrainingJobRuntime_EnvironmentVariables_AdditionalProperties) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsVolumeSyncSourceHuggingFace returns the union data inside the CreateVolumeSyncRequest_Source as a VolumeSyncSourceHuggingFace
+func (t CreateVolumeSyncRequest_Source) AsVolumeSyncSourceHuggingFace() (VolumeSyncSourceHuggingFace, error) {
+	var body VolumeSyncSourceHuggingFace
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceHuggingFace overwrites any union data inside the CreateVolumeSyncRequest_Source as the provided VolumeSyncSourceHuggingFace
+func (t *CreateVolumeSyncRequest_Source) FromVolumeSyncSourceHuggingFace(v VolumeSyncSourceHuggingFace) error {
+	v.Type = "HUGGING_FACE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsVolumeSyncSourceS3 returns the union data inside the CreateVolumeSyncRequest_Source as a VolumeSyncSourceS3
+func (t CreateVolumeSyncRequest_Source) AsVolumeSyncSourceS3() (VolumeSyncSourceS3, error) {
+	var body VolumeSyncSourceS3
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceS3 overwrites any union data inside the CreateVolumeSyncRequest_Source as the provided VolumeSyncSourceS3
+func (t *CreateVolumeSyncRequest_Source) FromVolumeSyncSourceS3(v VolumeSyncSourceS3) error {
+	v.Type = "S3"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsVolumeSyncSourceGCS returns the union data inside the CreateVolumeSyncRequest_Source as a VolumeSyncSourceGCS
+func (t CreateVolumeSyncRequest_Source) AsVolumeSyncSourceGCS() (VolumeSyncSourceGCS, error) {
+	var body VolumeSyncSourceGCS
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceGCS overwrites any union data inside the CreateVolumeSyncRequest_Source as the provided VolumeSyncSourceGCS
+func (t *CreateVolumeSyncRequest_Source) FromVolumeSyncSourceGCS(v VolumeSyncSourceGCS) error {
+	v.Type = "GCS"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsVolumeSyncSourceAzure returns the union data inside the CreateVolumeSyncRequest_Source as a VolumeSyncSourceAzure
+func (t CreateVolumeSyncRequest_Source) AsVolumeSyncSourceAzure() (VolumeSyncSourceAzure, error) {
+	var body VolumeSyncSourceAzure
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceAzure overwrites any union data inside the CreateVolumeSyncRequest_Source as the provided VolumeSyncSourceAzure
+func (t *CreateVolumeSyncRequest_Source) FromVolumeSyncSourceAzure(v VolumeSyncSourceAzure) error {
+	v.Type = "AZURE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsVolumeSyncSourceR2 returns the union data inside the CreateVolumeSyncRequest_Source as a VolumeSyncSourceR2
+func (t CreateVolumeSyncRequest_Source) AsVolumeSyncSourceR2() (VolumeSyncSourceR2, error) {
+	var body VolumeSyncSourceR2
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceR2 overwrites any union data inside the CreateVolumeSyncRequest_Source as the provided VolumeSyncSourceR2
+func (t *CreateVolumeSyncRequest_Source) FromVolumeSyncSourceR2(v VolumeSyncSourceR2) error {
+	v.Type = "R2"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsVolumeSyncSourceCoreWeave returns the union data inside the CreateVolumeSyncRequest_Source as a VolumeSyncSourceCoreWeave
+func (t CreateVolumeSyncRequest_Source) AsVolumeSyncSourceCoreWeave() (VolumeSyncSourceCoreWeave, error) {
+	var body VolumeSyncSourceCoreWeave
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceCoreWeave overwrites any union data inside the CreateVolumeSyncRequest_Source as the provided VolumeSyncSourceCoreWeave
+func (t *CreateVolumeSyncRequest_Source) FromVolumeSyncSourceCoreWeave(v VolumeSyncSourceCoreWeave) error {
+	v.Type = "COREWEAVE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsVolumeSyncSourceBasetenTraining returns the union data inside the CreateVolumeSyncRequest_Source as a VolumeSyncSourceBasetenTraining
+func (t CreateVolumeSyncRequest_Source) AsVolumeSyncSourceBasetenTraining() (VolumeSyncSourceBasetenTraining, error) {
+	var body VolumeSyncSourceBasetenTraining
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceBasetenTraining overwrites any union data inside the CreateVolumeSyncRequest_Source as the provided VolumeSyncSourceBasetenTraining
+func (t *CreateVolumeSyncRequest_Source) FromVolumeSyncSourceBasetenTraining(v VolumeSyncSourceBasetenTraining) error {
+	v.Type = "BASETEN_TRAINING"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t CreateVolumeSyncRequest_Source) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t CreateVolumeSyncRequest_Source) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "AZURE":
+		return t.AsVolumeSyncSourceAzure()
+	case "BASETEN_TRAINING":
+		return t.AsVolumeSyncSourceBasetenTraining()
+	case "COREWEAVE":
+		return t.AsVolumeSyncSourceCoreWeave()
+	case "GCS":
+		return t.AsVolumeSyncSourceGCS()
+	case "HUGGING_FACE":
+		return t.AsVolumeSyncSourceHuggingFace()
+	case "R2":
+		return t.AsVolumeSyncSourceR2()
+	case "S3":
+		return t.AsVolumeSyncSourceS3()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t CreateVolumeSyncRequest_Source) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CreateVolumeSyncRequest_Source) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -9643,6 +10131,71 @@ func (t LoadCheckpointConfig_Checkpoints_Item) MarshalJSON() ([]byte, error) {
 }
 
 func (t *LoadCheckpointConfig_Checkpoints_Item) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsLoopsCheckpointS3Source returns the union data inside the LoopsCheckpointSourceResponse_Source as a LoopsCheckpointS3Source
+func (t LoopsCheckpointSourceResponse_Source) AsLoopsCheckpointS3Source() (LoopsCheckpointS3Source, error) {
+	var body LoopsCheckpointS3Source
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsCheckpointS3Source overwrites any union data inside the LoopsCheckpointSourceResponse_Source as the provided LoopsCheckpointS3Source
+func (t *LoopsCheckpointSourceResponse_Source) FromLoopsCheckpointS3Source(v LoopsCheckpointS3Source) error {
+	_v := "s3"
+	v.Kind = &_v
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsLoopsCheckpointVolumeSource returns the union data inside the LoopsCheckpointSourceResponse_Source as a LoopsCheckpointVolumeSource
+func (t LoopsCheckpointSourceResponse_Source) AsLoopsCheckpointVolumeSource() (LoopsCheckpointVolumeSource, error) {
+	var body LoopsCheckpointVolumeSource
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsCheckpointVolumeSource overwrites any union data inside the LoopsCheckpointSourceResponse_Source as the provided LoopsCheckpointVolumeSource
+func (t *LoopsCheckpointSourceResponse_Source) FromLoopsCheckpointVolumeSource(v LoopsCheckpointVolumeSource) error {
+	_v := "volume"
+	v.Kind = &_v
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t LoopsCheckpointSourceResponse_Source) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"kind"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t LoopsCheckpointSourceResponse_Source) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "s3":
+		return t.AsLoopsCheckpointS3Source()
+	case "volume":
+		return t.AsLoopsCheckpointVolumeSource()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t LoopsCheckpointSourceResponse_Source) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *LoopsCheckpointSourceResponse_Source) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -10347,6 +10900,154 @@ func (t UpdateRouteRequest_Target) MarshalJSON() ([]byte, error) {
 }
 
 func (t *UpdateRouteRequest_Target) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsVolumeSyncSourceHuggingFace returns the union data inside the VolumeSync_Source as a VolumeSyncSourceHuggingFace
+func (t VolumeSync_Source) AsVolumeSyncSourceHuggingFace() (VolumeSyncSourceHuggingFace, error) {
+	var body VolumeSyncSourceHuggingFace
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceHuggingFace overwrites any union data inside the VolumeSync_Source as the provided VolumeSyncSourceHuggingFace
+func (t *VolumeSync_Source) FromVolumeSyncSourceHuggingFace(v VolumeSyncSourceHuggingFace) error {
+	v.Type = "HUGGING_FACE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsVolumeSyncSourceS3 returns the union data inside the VolumeSync_Source as a VolumeSyncSourceS3
+func (t VolumeSync_Source) AsVolumeSyncSourceS3() (VolumeSyncSourceS3, error) {
+	var body VolumeSyncSourceS3
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceS3 overwrites any union data inside the VolumeSync_Source as the provided VolumeSyncSourceS3
+func (t *VolumeSync_Source) FromVolumeSyncSourceS3(v VolumeSyncSourceS3) error {
+	v.Type = "S3"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsVolumeSyncSourceGCS returns the union data inside the VolumeSync_Source as a VolumeSyncSourceGCS
+func (t VolumeSync_Source) AsVolumeSyncSourceGCS() (VolumeSyncSourceGCS, error) {
+	var body VolumeSyncSourceGCS
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceGCS overwrites any union data inside the VolumeSync_Source as the provided VolumeSyncSourceGCS
+func (t *VolumeSync_Source) FromVolumeSyncSourceGCS(v VolumeSyncSourceGCS) error {
+	v.Type = "GCS"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsVolumeSyncSourceAzure returns the union data inside the VolumeSync_Source as a VolumeSyncSourceAzure
+func (t VolumeSync_Source) AsVolumeSyncSourceAzure() (VolumeSyncSourceAzure, error) {
+	var body VolumeSyncSourceAzure
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceAzure overwrites any union data inside the VolumeSync_Source as the provided VolumeSyncSourceAzure
+func (t *VolumeSync_Source) FromVolumeSyncSourceAzure(v VolumeSyncSourceAzure) error {
+	v.Type = "AZURE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsVolumeSyncSourceR2 returns the union data inside the VolumeSync_Source as a VolumeSyncSourceR2
+func (t VolumeSync_Source) AsVolumeSyncSourceR2() (VolumeSyncSourceR2, error) {
+	var body VolumeSyncSourceR2
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceR2 overwrites any union data inside the VolumeSync_Source as the provided VolumeSyncSourceR2
+func (t *VolumeSync_Source) FromVolumeSyncSourceR2(v VolumeSyncSourceR2) error {
+	v.Type = "R2"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsVolumeSyncSourceCoreWeave returns the union data inside the VolumeSync_Source as a VolumeSyncSourceCoreWeave
+func (t VolumeSync_Source) AsVolumeSyncSourceCoreWeave() (VolumeSyncSourceCoreWeave, error) {
+	var body VolumeSyncSourceCoreWeave
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceCoreWeave overwrites any union data inside the VolumeSync_Source as the provided VolumeSyncSourceCoreWeave
+func (t *VolumeSync_Source) FromVolumeSyncSourceCoreWeave(v VolumeSyncSourceCoreWeave) error {
+	v.Type = "COREWEAVE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsVolumeSyncSourceBasetenTraining returns the union data inside the VolumeSync_Source as a VolumeSyncSourceBasetenTraining
+func (t VolumeSync_Source) AsVolumeSyncSourceBasetenTraining() (VolumeSyncSourceBasetenTraining, error) {
+	var body VolumeSyncSourceBasetenTraining
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromVolumeSyncSourceBasetenTraining overwrites any union data inside the VolumeSync_Source as the provided VolumeSyncSourceBasetenTraining
+func (t *VolumeSync_Source) FromVolumeSyncSourceBasetenTraining(v VolumeSyncSourceBasetenTraining) error {
+	v.Type = "BASETEN_TRAINING"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t VolumeSync_Source) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t VolumeSync_Source) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "AZURE":
+		return t.AsVolumeSyncSourceAzure()
+	case "BASETEN_TRAINING":
+		return t.AsVolumeSyncSourceBasetenTraining()
+	case "COREWEAVE":
+		return t.AsVolumeSyncSourceCoreWeave()
+	case "GCS":
+		return t.AsVolumeSyncSourceGCS()
+	case "HUGGING_FACE":
+		return t.AsVolumeSyncSourceHuggingFace()
+	case "R2":
+		return t.AsVolumeSyncSourceR2()
+	case "S3":
+		return t.AsVolumeSyncSourceS3()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t VolumeSync_Source) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *VolumeSync_Source) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
