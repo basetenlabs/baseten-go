@@ -27,27 +27,72 @@ const SymlinkMode uint16 = 0o777
 // cannot be reproduced on Windows at all. Failing is the honest answer; rewriting
 // it to a slash would silently push a different tree.
 func ValidatePath(path string) error {
-	switch {
-	case path == "":
+	if path == "" {
 		return fmt.Errorf("path is empty")
-	case !utf8.ValidString(path):
-		return fmt.Errorf("path %q is not valid UTF-8", path)
-	case strings.ContainsRune(path, 0):
-		return fmt.Errorf("path %q contains a NUL byte", path)
-	case strings.HasPrefix(path, "/"):
-		return fmt.Errorf("path %q is absolute, entry paths are relative to the volume root", path)
-	case strings.HasSuffix(path, "/"):
-		return fmt.Errorf("path %q has a trailing slash", path)
-	case strings.Contains(path, `\`):
-		return fmt.Errorf(`path %q contains a backslash, which cannot be reproduced on Windows`, path)
 	}
-	for _, segment := range strings.Split(path, "/") {
-		switch segment {
-		case "":
-			return fmt.Errorf("path %q has an empty segment", path)
-		case ".", "..":
-			return fmt.Errorf("path %q has a %q segment", path, segment)
+
+	var (
+		invalidUTF8   bool
+		containsNUL   bool
+		backslash     bool
+		badSegment    string
+		hasBadSegment bool
+	)
+	// Record failures during one pass, then report them in the established
+	// order below. In particular, malformed UTF-8 must take precedence even
+	// when another invalid byte appears earlier in the path.
+	segmentStart := 0
+	for i := 0; i < len(path); {
+		c := path[i]
+		if c >= utf8.RuneSelf {
+			_, size := utf8.DecodeRuneInString(path[i:])
+			if size == 1 {
+				invalidUTF8 = true
+			}
+			i += size
+			continue
 		}
+
+		switch c {
+		case 0:
+			containsNUL = true
+		case '\\':
+			backslash = true
+		case '/':
+			if !hasBadSegment {
+				segment := path[segmentStart:i]
+				if segment == "" || segment == "." || segment == ".." {
+					badSegment = segment
+					hasBadSegment = true
+				}
+			}
+			segmentStart = i + 1
+		}
+		i++
+	}
+	if !hasBadSegment {
+		segment := path[segmentStart:]
+		if segment == "" || segment == "." || segment == ".." {
+			badSegment = segment
+			hasBadSegment = true
+		}
+	}
+
+	switch {
+	case invalidUTF8:
+		return fmt.Errorf("path %q is not valid UTF-8", path)
+	case containsNUL:
+		return fmt.Errorf("path %q contains a NUL byte", path)
+	case path[0] == '/':
+		return fmt.Errorf("path %q is absolute, entry paths are relative to the volume root", path)
+	case path[len(path)-1] == '/':
+		return fmt.Errorf("path %q has a trailing slash", path)
+	case backslash:
+		return fmt.Errorf(`path %q contains a backslash, which cannot be reproduced on Windows`, path)
+	case hasBadSegment && badSegment == "":
+		return fmt.Errorf("path %q has an empty segment", path)
+	case hasBadSegment:
+		return fmt.Errorf("path %q has a %q segment", path, badSegment)
 	}
 	return nil
 }
