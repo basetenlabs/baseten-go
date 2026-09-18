@@ -165,6 +165,18 @@ func (c *Client) DeleteModelsEnvironments(ctx context.Context, modelId string, e
 	})
 }
 
+// DeleteRoutes: Deletes a route
+func (c *Client) DeleteRoutes(ctx context.Context, routeId string) (*RouteTombstone, error) {
+	return doJSON[RouteTombstone](c, ctx, apiRequest{
+		method:      "DELETE",
+		pathFmt:     "/v1/routes/%s",
+		pathArgs:    []any{routeId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // DeleteSecrets: Deletes a secret by name
 func (c *Client) DeleteSecrets(ctx context.Context, secretName string) (*SecretTombstone, error) {
 	return doJSON[SecretTombstone](c, ctx, apiRequest{
@@ -238,11 +250,12 @@ func (c *Client) DeleteVolumesVersions(ctx context.Context, volumeNamespace stri
 }
 
 // GetApiKeys: Lists API keys (metadata only, no plain text keys)
-func (c *Client) GetApiKeys(ctx context.Context) (*APIKeys, error) {
+func (c *Client) GetApiKeys(ctx context.Context, params GetV1ApiKeysParams) (*APIKeys, error) {
 	return doJSON[APIKeys](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/api_keys",
 		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -623,6 +636,18 @@ func (c *Client) GetLoopsCheckpointsFiles(ctx context.Context, checkpointId stri
 		pathFmt:     "/v1/loops/checkpoints/%s/files",
 		pathArgs:    []any{checkpointId},
 		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetLoopsCheckpointsSource: Gets where a Loops checkpoint's files come from
+func (c *Client) GetLoopsCheckpointsSource(ctx context.Context, checkpointId string) (*LoopsCheckpointSourceResponse, error) {
+	return doJSON[LoopsCheckpointSourceResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/loops/checkpoints/%s/source",
+		pathArgs:    []any{checkpointId},
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -1016,6 +1041,31 @@ func (c *Client) GetRegions(ctx context.Context) (*Regions, error) {
 	})
 }
 
+// GetRoutes: Lists routes
+func (c *Client) GetRoutes(ctx context.Context, params GetV1RoutesParams) (*RoutesResponse, error) {
+	return doJSON[RoutesResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/routes",
+		pathArgs:    nil,
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetRoutesRouteId: Gets a route
+func (c *Client) GetRoutesRouteId(ctx context.Context, routeId string) (*Route, error) {
+	return doJSON[Route](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/routes/%s",
+		pathArgs:    []any{routeId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetSecrets: Gets all secrets (metadata only, no plain text keys)
 func (c *Client) GetSecrets(ctx context.Context) (*Secrets, error) {
 	return doJSON[Secrets](c, ctx, apiRequest{
@@ -1362,6 +1412,31 @@ func (c *Client) GetVolumesNamespaces(ctx context.Context, params GetV1VolumesNa
 	})
 }
 
+// GetVolumesSyncs: Lists volume syncs
+func (c *Client) GetVolumesSyncs(ctx context.Context, params GetV1VolumesSyncsParams) (*VolumeSyncs, error) {
+	return doJSON[VolumeSyncs](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/volumes/syncs",
+		pathArgs:    nil,
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetVolumesSyncsVolumeSyncId: Gets a volume sync
+func (c *Client) GetVolumesSyncsVolumeSyncId(ctx context.Context, volumeSyncId string) (*VolumeSync, error) {
+	return doJSON[VolumeSync](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/volumes/syncs/%s",
+		pathArgs:    []any{volumeSyncId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetVolumesVersions: Gets the versions of a volume
 func (c *Client) GetVolumesVersions(ctx context.Context, volumeNamespace string, volumeName string, params GetV1VolumesVolumeNamespaceVolumeNameVersionsParams) (*ListVolumeVersionsResponse, error) {
 	return doJSON[ListVolumeVersionsResponse](c, ctx, apiRequest{
@@ -1495,6 +1570,18 @@ func (c *Client) PatchLoopsUserConfig(ctx context.Context, body PatchLoopsUserCo
 	})
 }
 
+// PatchModels: Updates a model by ID
+func (c *Client) PatchModels(ctx context.Context, modelId string, body UpdateModelRequest) (*Model, error) {
+	return doJSON[Model](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/models/%s",
+		pathArgs:    []any{modelId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PatchModelsDeployments: Updates a model's deployment by ID
 func (c *Client) PatchModelsDeployments(ctx context.Context, modelId string, deploymentId string, body UpdateDeploymentRequest) (*Deployment, error) {
 	return doJSON[Deployment](c, ctx, apiRequest{
@@ -1561,6 +1648,18 @@ func (c *Client) PatchModelsEnvironments(ctx context.Context, modelId string, en
 		method:      "PATCH",
 		pathFmt:     "/v1/models/%s/environments/%s",
 		pathArgs:    []any{modelId, envName},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PatchRoutes: Updates a route
+func (c *Client) PatchRoutes(ctx context.Context, routeId string, body UpdateRouteRequest) (*Route, error) {
+	return doJSON[Route](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/routes/%s",
+		pathArgs:    []any{routeId},
 		body:        body,
 		successCode: 200,
 		errorCodes:  nil,
@@ -2191,6 +2290,18 @@ func (c *Client) PostPrepareModelUpload(ctx context.Context, body PrepareModelUp
 	})
 }
 
+// PostRoutes: Creates a route
+func (c *Client) PostRoutes(ctx context.Context, body CreateRouteRequest) (*Route, error) {
+	return doJSON[Route](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/routes",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PostSecrets: Upserts a secret
 func (c *Client) PostSecrets(ctx context.Context, body UpsertSecretRequest) (*Secret, error) {
 	return doJSON[Secret](c, ctx, apiRequest{
@@ -2402,6 +2513,30 @@ func (c *Client) PostTrainingProjectsJobsStop(ctx context.Context, trainingProje
 		pathFmt:     "/v1/training_projects/%s/jobs/%s/stop",
 		pathArgs:    []any{trainingProjectId, trainingJobId},
 		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostVolumesSyncs: Starts a volume sync
+func (c *Client) PostVolumesSyncs(ctx context.Context, body CreateVolumeSyncRequest) (*VolumeSync, error) {
+	return doJSON[VolumeSync](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/volumes/syncs",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostVolumesSyncsCancel: Cancels a volume sync
+func (c *Client) PostVolumesSyncsCancel(ctx context.Context, volumeSyncId string) (*VolumeSync, error) {
+	return doJSON[VolumeSync](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/volumes/syncs/%s/cancel",
+		pathArgs:    []any{volumeSyncId},
+		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
 	})

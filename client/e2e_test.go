@@ -128,7 +128,7 @@ func TestE2EAPIKeyCRUD(t *testing.T) {
 	require.NoError(t, err)
 	createdPrefix = strings.SplitN(created.ApiKey, ".", 2)[0]
 
-	keys, err := c.API().GetApiKeys(t.Context())
+	keys, err := c.API().GetApiKeys(t.Context(), managementapi.GetV1ApiKeysParams{})
 	require.NoError(t, err)
 	found := false
 	for _, k := range keys.Keys {
@@ -143,7 +143,7 @@ func TestE2EAPIKeyCRUD(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, createdPrefix, tombstone.Prefix)
 
-	keys, err = c.API().GetApiKeys(t.Context())
+	keys, err = c.API().GetApiKeys(t.Context(), managementapi.GetV1ApiKeysParams{})
 	require.NoError(t, err)
 	for _, k := range keys.Keys {
 		require.NotEqual(t, createdPrefix, k.Prefix)
