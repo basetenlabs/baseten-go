@@ -545,3 +545,93 @@ func BenchmarkContainmentAdversarial(b *testing.B) {
 		})
 	}
 }
+
+// benchmarkVolumeManifest builds a representative valid volume shape: many
+// files grouped into moderately sized nested directories, with every directory
+// recorded explicitly. The files share a chunk digest because the
+// manifest pipeline benchmark is concerned with entry parsing and path
+// validation rather than object transfer.
+func benchmarkVolumeManifest(files int) *Manifest {
+	const filesPerShard = 100
+
+	digest := testDigest(0x11)
+	m := &Manifest{
+		Provenance: Provenance{
+			SourceFingerprint:     ProvenanceFingerprint,
+			SourceFingerprintType: ProvenanceFingerprintType,
+			SourceURI:             "file:///benchmark/model",
+		},
+		Directories: []DirectoryEntry{{Path: "models", Mode: DefaultDirMode}},
+	}
+	for shard, remaining := 0, files; remaining > 0; shard++ {
+		shardPath := fmt.Sprintf("models/shard-%04d", shard)
+		weightsPath := shardPath + "/weights"
+		m.Directories = append(m.Directories,
+			DirectoryEntry{Path: shardPath, Mode: DefaultDirMode},
+			DirectoryEntry{Path: weightsPath, Mode: DefaultDirMode},
+		)
+
+		inShard := min(remaining, filesPerShard)
+		for file := 0; file < inShard; file++ {
+			m.Files = append(m.Files, FileEntry{
+				Path: fmt.Sprintf("%s/tensor-%06d.safetensors", weightsPath, shard*filesPerShard+file),
+				Mode: 0o644,
+				Kind: FileKindChunk,
+				Size: 1,
+				Chunk: ChunkRef{
+					Digest: digest,
+					Length: 1,
+					Target: TargetForDigest(digest),
+				},
+			})
+		}
+		remaining -= inShard
+	}
+	return m
+}
+
+// BenchmarkManifestContainment measures the actual in-memory pull check that
+// calls ValidatePath for every manifest entry. Unlike the adversarial link
+// benchmarks above, these inputs model ordinary, valid volume contents.
+func BenchmarkManifestContainment(b *testing.B) {
+	for _, files := range []int{1_000, 10_000} {
+		m := benchmarkVolumeManifest(files)
+		b.Run(fmt.Sprintf("files-%d", files), func(b *testing.B) {
+			b.ReportAllocs()
+			for b.Loop() {
+				warnings, err := CheckManifestContainment(m)
+				if err != nil {
+					b.Fatal(err)
+				}
+				if len(warnings) != 0 {
+					b.Fatalf("got %d containment warnings", len(warnings))
+				}
+			}
+		})
+	}
+}
+
+// BenchmarkManifestDecodeAndContainment measures the broader manifest phase
+// of a pull: decode the canonical wire bytes, then validate the complete tree
+// before any entry selection or materialization.
+func BenchmarkManifestDecodeAndContainment(b *testing.B) {
+	for _, files := range []int{1_000, 10_000} {
+		encoded := EncodeManifest(benchmarkVolumeManifest(files))
+		b.Run(fmt.Sprintf("files-%d", files), func(b *testing.B) {
+			b.ReportAllocs()
+			for b.Loop() {
+				m, err := DecodeManifest(encoded)
+				if err != nil {
+					b.Fatal(err)
+				}
+				warnings, err := CheckManifestContainment(m)
+				if err != nil {
+					b.Fatal(err)
+				}
+				if len(warnings) != 0 {
+					b.Fatalf("got %d containment warnings", len(warnings))
+				}
+			}
+		})
+	}
+}
