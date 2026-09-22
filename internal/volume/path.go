@@ -41,15 +41,19 @@ func ValidatePath(path string) error {
 	case strings.Contains(path, `\`):
 		return fmt.Errorf(`path %q contains a backslash, which cannot be reproduced on Windows`, path)
 	}
-	for _, segment := range strings.Split(path, "/") {
+	for rest := path; ; {
+		segment, after, found := strings.Cut(rest, "/")
 		switch segment {
 		case "":
 			return fmt.Errorf("path %q has an empty segment", path)
 		case ".", "..":
 			return fmt.Errorf("path %q has a %q segment", path, segment)
 		}
+		if !found {
+			return nil
+		}
+		rest = after
 	}
-	return nil
 }
 
 // ValidateSourceURI checks the provenance URI a push records.
