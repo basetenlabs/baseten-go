@@ -899,6 +899,24 @@ func (e LoopsRunStatusName) Valid() bool {
 	}
 }
 
+// Defines values for LoopsUseCase.
+const (
+	LoopsUseCase_rl  LoopsUseCase = "rl"
+	LoopsUseCase_sft LoopsUseCase = "sft"
+)
+
+// Valid indicates whether the value is a known member of the LoopsUseCase enum.
+func (e LoopsUseCase) Valid() bool {
+	switch e {
+	case LoopsUseCase_rl:
+		return true
+	case LoopsUseCase_sft:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ModelApiCostDimension.
 const (
 	ModelApiCostDimension_api_key_prefix ModelApiCostDimension = "api_key_prefix"
@@ -1157,6 +1175,21 @@ func (e SortOrder) Valid() bool {
 	case SortOrder_asc:
 		return true
 	case SortOrder_desc:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TokenScope.
+const (
+	TokenScope_sandboxes TokenScope = "sandboxes"
+)
+
+// Valid indicates whether the value is a known member of the TokenScope enum.
+func (e TokenScope) Valid() bool {
+	switch e {
+	case TokenScope_sandboxes:
 		return true
 	default:
 		return false
@@ -3000,6 +3033,12 @@ type CreateRouteRequest_Target struct {
 	union json.RawMessage
 }
 
+// CreateTokenRequest defines model for CreateTokenRequest.
+type CreateTokenRequest struct {
+	// Scopes What the token should grant access to. Only `sandboxes` is supported today; the token then authenticates against the sandbox API.
+	Scopes []TokenScope `json:"scopes"`
+}
+
 // CreateTrainingJob Configuration for a training job.
 type CreateTrainingJob struct {
 	// Compute Configuration to specify the compute for a training job.
@@ -3844,6 +3883,18 @@ type EmbeddingBenchmarkMetrics struct {
 	RequestsPerSec    *float32 `json:"requests_per_sec,omitempty"`
 }
 
+// EnablementDetails Why a supported model is not enabled for this workspace.
+type EnablementDetails struct {
+	// Reason Machine-readable reason the model is not enabled. Currently one of 'needs_approval', 'sequence_length_unsupported' or 'loops_not_enabled'. Deliberately not a closed enum: values are added as the check learns to distinguish cases that call for a different action, so treat an unrecognized value as 'not enabled, reason unknown' rather than an error.
+	Reason string `json:"reason"`
+
+	// ReasonDetail Human-readable explanation of the reason.
+	ReasonDetail string `json:"reason_detail"`
+
+	// Remediation Human-readable next step to enable the model.
+	Remediation string `json:"remediation"`
+}
+
 // Endpoint A Gateway endpoint: a slug and its priority-ordered targets (index 0 tried first).
 type Endpoint struct {
 	// CreatedAt Creation time, ISO 8601.
@@ -4230,8 +4281,11 @@ type GetLogsResponse struct {
 }
 
 // GetLoopsCapabilitiesResponse Response for “GET /v1/loops/capabilities“.
+//
+// A model Baseten does not support has no entry at all, so an empty list for
+// a single-model request means exactly that.
 type GetLoopsCapabilitiesResponse struct {
-	// SupportedModels List of models available on the server.
+	// SupportedModels Models Baseten supports for this use case, each carrying an 'enabled' flag saying whether this workspace can run it now, and 'enablement_details' when it cannot. Filter on 'enabled' to get the models you can use.
 	SupportedModels []SupportedModel `json:"supported_models"`
 }
 
@@ -5181,6 +5235,14 @@ type LoopsSamplerStatus struct {
 type LoopsSession struct {
 	Id string `json:"id"`
 }
+
+// LoopsUseCase What the caller intends to run.
+//
+// Reinforcement learning runs a trainer and a sampler; supervised
+// fine-tuning runs a trainer alone. A model can therefore be enabled for one
+// and not the other, and the same model can support a longer sequence length
+// for SFT than for RL.
+type LoopsUseCase string
 
 // LoopsUserConfig The caller's Loops user-level config (accelerator priorities).
 type LoopsUserConfig struct {
@@ -6236,8 +6298,21 @@ type StorageMetrics struct {
 
 // SupportedModel A model supported by the Loops server.
 type SupportedModel struct {
-	// MaxContextLength The maximum context length (in tokens) supported by this model.
+	// Enabled Whether this workspace can start a run with this model now. False means Baseten supports it but the workspace cannot use it yet; 'not_enabled' says why. Capacity is resolved when the run is created, so true is not a guarantee that GPUs are free.
+	Enabled *bool `json:"enabled,omitempty"`
+
+	// EnablementDetails Why the model is not enabled, and what would change it. Present only when 'enabled' is false — an enabled model has nothing to explain. Read 'enabled' for the state; this is the detail behind it.
+	EnablementDetails *EnablementDetails `json:"enablement_details,omitempty"`
+
+	// MaxContextLength Deprecated. Use 'max_seq_len', which carries the same value. Kept so existing clients keep working.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	MaxContextLength int `json:"max_context_length"`
+
+	// MaxEnabledSeqLen The longest sequence length this workspace can train at. Lower than 'max_seq_len' when the longer configurations need hardware the workspace is not approved for — a model's longer sequence lengths often need a bigger SKU of the same GPU. Zero when the workspace cannot run the model at all, so a client can compare against a required length without a null case.
+	MaxEnabledSeqLen *int `json:"max_enabled_seq_len,omitempty"`
+
+	// MaxSeqLen The longest sequence length Baseten supports for this model. Independent of the caller: see 'max_enabled_seq_len' for what this workspace can actually train at. Named to match the 'max_seq_len' query parameter and the field of the same name on run creation, so one name follows the value through the API.
+	MaxSeqLen int `json:"max_seq_len"`
 
 	// ModelName The name of the supported model.
 	ModelName string `json:"model_name"`
@@ -6320,6 +6395,44 @@ type Teams struct {
 type TerminateReplicaResponse struct {
 	// Success Whether the replica was successfully terminated
 	Success *bool `json:"success,omitempty"`
+}
+
+// Token defines model for Token.
+type Token struct {
+	// ExpiresAt Token expiry in ISO 8601 format. Tokens cannot be renewed; request a new one.
+	ExpiresAt time.Time `json:"expires_at"`
+
+	// Token Short-lived bearer token for the sandbox API. Send it as Authorization: Bearer <token>.
+	Token string `json:"token"`
+}
+
+// TokenScope What a token minted by POST /v1/token grants access to.
+type TokenScope string
+
+// ToolCallUsageBucket Server-side tool call usage for one day, provider, charge unit, and model.
+type ToolCallUsageBucket struct {
+	// Calls Number of tool calls.
+	Calls int `json:"calls"`
+
+	// Date UTC day the usage was recorded on.
+	Date string `json:"date"`
+
+	// Model Model that made the tool calls.
+	Model string `json:"model"`
+
+	// Provider Tool provider, such as exa or parallel.
+	Provider string `json:"provider"`
+
+	// Quantity Billable quantity in the provider's sku unit, summed over the calls.
+	Quantity float32 `json:"quantity"`
+
+	// Sku Charge unit, as `<provider>/<unit>`. The unit is what the provider reported, or the tool name when it reported none. Its meaning varies by provider.
+	Sku string `json:"sku"`
+}
+
+// ToolCallUsageResponse Daily server-side tool call usage, ordered by day, provider, sku, and model.
+type ToolCallUsageResponse struct {
+	Items *[]ToolCallUsageBucket `json:"items,omitempty"`
 }
 
 // TrainerCheckpointTarget Whether a TrainerServerCheckpoint is loadable by the sampler or the trainer.
@@ -7031,7 +7144,10 @@ type VertexTargetConfig struct {
 
 // Volume defines model for Volume.
 type Volume struct {
-	// Head Version that the reserved `head` tag points at, which a reference with no tag or digest resolves to. Null when the volume has no head, or when your API key cannot read it.
+	// ExpiresAt When the whole volume expires, in ISO 8601 format. At that instant every live version is deleted, every tag drops, and the volume leaves the volume listing; each version then stays restorable until its recovery deadline passes. Null for a volume that never expires.
+	ExpiresAt *time.Time `json:"expires_at"`
+
+	// Head Version that the reserved `head` tag points at, which a reference with no tag or digest resolves to. Never an expiring version. Null when the volume has no head, or when your API key cannot read it.
 	Head *VolumeVersionSummary `json:"head"`
 
 	// Name Name of the volume, in lowercase.
@@ -7040,28 +7156,34 @@ type Volume struct {
 	// Namespace Namespace the volume belongs to, in lowercase.
 	Namespace string `json:"namespace"`
 
-	// Sequence Revision counter for the volume, incremented on every commit and tag change. Use it to detect that a volume changed.
+	// Sequence Revision counter for the volume, incremented on every commit, tag change, delete, and restore. A tag or version that expires leaves without changing it; the next write then increments it once. Use it to detect that a volume was written to.
 	Sequence int `json:"sequence"`
 
-	// TagCount Total number of tags on the volume, which can exceed the length of `tags` when your API key cannot read all of them.
+	// TagCount Total number of tags on the volume, which can exceed the length of `tags` when your API key cannot read all of them. Counts only tags that have not expired.
 	TagCount int `json:"tag_count"`
 
-	// Tags Tags on the volume that your API key can read.
+	// Tags Tags on the volume that your API key can read. A tag with `expires_at` leaves this list at that instant.
 	Tags []VolumeTag `json:"tags"`
 
-	// UpdatedAt When the volume last changed, in ISO 8601 format.
+	// UpdatedAt When the volume was last written to, in ISO 8601 format. An expiry does not update it.
 	UpdatedAt time.Time `json:"updated_at"`
 
 	// VersionRef Full address of the volume, as `bdn:<namespace>/<volume>`. Paste this into the `bdn.mounts` section of a config.yaml.
 	VersionRef string `json:"version_ref"`
 
-	// VersionsAlive Number of versions that have not been deleted.
+	// VersionsAlive Number of versions that have not been deleted or expired.
 	VersionsAlive int `json:"versions_alive"`
 
-	// VersionsTombstoned Number of versions that have been deleted.
+	// VersionsEarliestExpiresAt Earliest expiry among the live versions, in ISO 8601 format. Null when no live version is scheduled to expire.
+	VersionsEarliestExpiresAt *time.Time `json:"versions_earliest_expires_at"`
+
+	// VersionsExpiring Number of live versions with an expiry still ahead of them. A version that has already expired counts in `versions_tombstoned` instead.
+	VersionsExpiring int `json:"versions_expiring"`
+
+	// VersionsTombstoned Number of versions that have been deleted or expired and are still within their recovery window.
 	VersionsTombstoned int `json:"versions_tombstoned"`
 
-	// VersionsUntagged Number of versions that no tag points at.
+	// VersionsUntagged Number of live versions that no tag points at.
 	VersionsUntagged int `json:"versions_untagged"`
 }
 
@@ -7111,6 +7233,24 @@ type VolumeSyncAuthenticationAWSAssumeRole struct {
 
 	// RoleArn AWS IAM role ARN to assume.
 	RoleArn string `json:"role_arn"`
+}
+
+// VolumeSyncAuthenticationAWSOIDC Authentication using an AWS IAM role and Baseten workload identity.
+type VolumeSyncAuthenticationAWSOIDC struct {
+	// Region AWS region for the OIDC role session.
+	Region string `json:"region"`
+
+	// RoleArn AWS IAM role ARN to assume through OIDC.
+	RoleArn string `json:"role_arn"`
+}
+
+// VolumeSyncAuthenticationGCPOIDC Authentication using GCP Workload Identity Federation.
+type VolumeSyncAuthenticationGCPOIDC struct {
+	// ServiceAccount GCP service account to impersonate through OIDC.
+	ServiceAccount string `json:"service_account"`
+
+	// WorkloadIdentityProvider Full resource name of the GCP workload identity provider.
+	WorkloadIdentityProvider string `json:"workload_identity_provider"`
 }
 
 // VolumeSyncDestination BDN destination for a volume sync.
@@ -7187,6 +7327,9 @@ type VolumeSyncSourceGCS struct {
 	// Exclude Glob patterns selecting files to exclude.
 	Exclude *[]string `json:"exclude,omitempty"`
 
+	// GcpOidc GCP OIDC authentication for this source. Cannot be combined with auth_secret_name.
+	GcpOidc *VolumeSyncAuthenticationGCPOIDC `json:"gcp_oidc,omitempty"`
+
 	// Include Glob patterns selecting files to include.
 	Include *[]string `json:"include,omitempty"`
 
@@ -7241,6 +7384,9 @@ type VolumeSyncSourceS3 struct {
 	// AwsAssumeRole AWS AssumeRole authentication for this source. Cannot be combined with auth_secret_name.
 	AwsAssumeRole *VolumeSyncAuthenticationAWSAssumeRole `json:"aws_assume_role,omitempty"`
 
+	// AwsOidc AWS OIDC authentication for this source. Cannot be combined with other authentication fields.
+	AwsOidc *VolumeSyncAuthenticationAWSOIDC `json:"aws_oidc,omitempty"`
+
 	// Exclude Glob patterns selecting files to exclude.
 	Exclude *[]string `json:"exclude,omitempty"`
 
@@ -7269,6 +7415,9 @@ type VolumeTag struct {
 	// Digest Digest of the version the tag points at, as `b3:<hex>`.
 	Digest string `json:"digest"`
 
+	// ExpiresAt When the tag stops resolving and leaves the volume, in ISO 8601 format. Null for a tag that never expires. The version it points at is not affected.
+	ExpiresAt *time.Time `json:"expires_at"`
+
 	// Name Tag name. Tags are case-sensitive.
 	Name string `json:"name"`
 }
@@ -7292,10 +7441,13 @@ type VolumeVersion struct {
 	// Digest Content digest of the version, as `b3:<hex>`.
 	Digest string `json:"digest"`
 
+	// ExpiresAt When the version expires, in ISO 8601 format. At that instant it becomes TOMBSTONED with `tombstoned_at` set to this value, and every tag pointing at it drops. Null for a version that never expires, and null once the lifecycle is TOMBSTONED.
+	ExpiresAt *time.Time `json:"expires_at"`
+
 	// IsHead Whether the reserved `head` tag points at this version.
 	IsHead bool `json:"is_head"`
 
-	// Lifecycle Lifecycle state of the version, for example ALIVE or TOMBSTONED.
+	// Lifecycle Lifecycle state of the version: ALIVE, or TOMBSTONED once it has been deleted or has expired.
 	Lifecycle string `json:"lifecycle"`
 
 	// Namespace Namespace the volume belongs to, in lowercase.
@@ -7307,7 +7459,7 @@ type VolumeVersion struct {
 	// Tags Tags pointing at this version that your API key can read.
 	Tags []string `json:"tags"`
 
-	// TombstonedAt When the version was deleted, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.
+	// TombstonedAt When the version was deleted or expired, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.
 	TombstonedAt *time.Time `json:"tombstoned_at"`
 
 	// TotalSizeBytes Total size of the version's files in bytes. Null when not recorded.
@@ -7334,10 +7486,13 @@ type VolumeVersionDetail struct {
 	// EntryCount Number of files in the version. Null when not recorded.
 	EntryCount *int `json:"entry_count"`
 
+	// ExpiresAt When the version expires, in ISO 8601 format. At that instant it becomes TOMBSTONED with `tombstoned_at` set to this value, and every tag pointing at it drops. Null for a version that never expires, and null once the lifecycle is TOMBSTONED.
+	ExpiresAt *time.Time `json:"expires_at"`
+
 	// IsHead Whether the reserved `head` tag points at this version.
 	IsHead bool `json:"is_head"`
 
-	// Lifecycle Lifecycle state of the version, for example ALIVE or TOMBSTONED.
+	// Lifecycle Lifecycle state of the version: ALIVE, or TOMBSTONED once it has been deleted or has expired.
 	Lifecycle string `json:"lifecycle"`
 
 	// Namespace Namespace the volume belongs to, in lowercase.
@@ -7349,7 +7504,7 @@ type VolumeVersionDetail struct {
 	// Tags Tags pointing at this version that your API key can read.
 	Tags []string `json:"tags"`
 
-	// TombstonedAt When the version was deleted, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.
+	// TombstonedAt When the version was deleted or expired, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.
 	TombstonedAt *time.Time `json:"tombstoned_at"`
 
 	// TotalSizeBytes Total size of the version's files in bytes. Null when not recorded.
@@ -7455,6 +7610,15 @@ type GetV1BillingModelApisParams struct {
 	ServiceTiers *[]string `form:"service_tiers,omitempty" json:"service_tiers,omitempty"`
 }
 
+// GetV1BillingToolCallUsageParams defines parameters for GetV1BillingToolCallUsage.
+type GetV1BillingToolCallUsageParams struct {
+	// StartDate Inclusive UTC calendar day at the start of the query range.
+	StartDate string `form:"start_date" json:"start_date"`
+
+	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included. The date range cannot exceed 90 days.
+	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
+}
+
 // GetV1BillingUsageSummaryParams defines parameters for GetV1BillingUsageSummary.
 type GetV1BillingUsageSummaryParams struct {
 	// StartDate Start date (ISO 8601, UTC). Earliest queryable: 2026-01-01.
@@ -7558,6 +7722,18 @@ type GetV1GatewayEventsParams struct {
 
 	// Cursor Next-page cursor. Other parameters are ignored.
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// GetV1LoopsCapabilitiesParams defines parameters for GetV1LoopsCapabilities.
+type GetV1LoopsCapabilitiesParams struct {
+	// Model Restrict the response to one model, identified by its HuggingFace repo id. A supported model comes back with its 'enabled' flag and, when false, its 'enablement_details'. An empty list means Baseten does not support that model. Omit to list every supported model.
+	Model *string `form:"model,omitempty" json:"model,omitempty"`
+
+	// UseCase What the caller intends to run. Defaults to 'rl', the stricter of the two: an RL run needs both a trainer and a sampler, so anything enabled for 'rl' is also enabled for 'sft'.
+	UseCase *LoopsUseCase `form:"use_case,omitempty" json:"use_case,omitempty"`
+
+	// MaxSeqLen The sequence length the caller intends to train at — the same value they would pass as 'max_seq_len' when creating the run. Models that cannot serve it are reported as not enabled rather than returned with a ceiling the caller cannot use. Omit for the model's highest enabled sequence length.
+	MaxSeqLen *int `form:"max_seq_len,omitempty" json:"max_seq_len,omitempty"`
 }
 
 // GetV1LoopsCheckpointsParams defines parameters for GetV1LoopsCheckpoints.
@@ -7964,7 +8140,7 @@ type GetV1VolumesSyncsParams struct {
 
 // GetV1VolumesVolumeNamespaceVolumeNameVersionsParams defines parameters for GetV1VolumesVolumeNamespaceVolumeNameVersions.
 type GetV1VolumesVolumeNamespaceVolumeNameVersionsParams struct {
-	// IncludeTombstoned Whether to include deleted versions. A deleted version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.
+	// IncludeTombstoned Whether to include deleted and expired versions. Such a version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.
 	IncludeTombstoned *bool `form:"include_tombstoned,omitempty" json:"include_tombstoned,omitempty"`
 }
 
@@ -8132,6 +8308,9 @@ type PostV1TeamsTeamIdSecretsJSONRequestBody = UpsertSecretRequest
 
 // PostV1TeamsTeamIdTrainingProjectsJSONRequestBody defines body for PostV1TeamsTeamIdTrainingProjects for application/json ContentType.
 type PostV1TeamsTeamIdTrainingProjectsJSONRequestBody = UpsertTrainingProjectRequest
+
+// PostV1TokenJSONRequestBody defines body for PostV1Token for application/json ContentType.
+type PostV1TokenJSONRequestBody = CreateTokenRequest
 
 // PatchV1TrainingCapacityJSONRequestBody defines body for PatchV1TrainingCapacity for application/json ContentType.
 type PatchV1TrainingCapacityJSONRequestBody = PatchTeamTrainingGpuCapacityRequest
