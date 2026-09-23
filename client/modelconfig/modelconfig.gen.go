@@ -121,7 +121,8 @@ type BaseImage struct {
 	// The path to the Docker image.
 	Image string `json:"image,omitempty,omitzero" yaml:"image,omitempty"`
 
-	// A path to the Python executable on the image.
+	// A path to the Python executable on the image. Truss uses `python3` from the
+	// image's PATH when this is empty.
 	PythonExecutablePath string `json:"python_executable_path,omitempty,omitzero" yaml:"python_executable_path,omitempty"`
 
 	AdditionalProperties interface{} `mapstructure:",remain"`

@@ -288,6 +288,19 @@ func (c *Client) GetBillingModelApis(ctx context.Context, params GetV1BillingMod
 	})
 }
 
+// GetBillingToolCallUsage: Gets server-side tool call usage
+func (c *Client) GetBillingToolCallUsage(ctx context.Context, params GetV1BillingToolCallUsageParams) (*ToolCallUsageResponse, error) {
+	return doJSON[ToolCallUsageResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/billing/tool_call_usage",
+		pathArgs:    nil,
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetBillingUsageSummary: Gets billing usage summary for a date range
 func (c *Client) GetBillingUsageSummary(ctx context.Context, params GetV1BillingUsageSummaryParams) (*UsageSummary, error) {
 	return doJSON[UsageSummary](c, ctx, apiRequest{
@@ -605,11 +618,12 @@ func (c *Client) GetLibraryListingsVersionsVersionTag(ctx context.Context, userD
 }
 
 // GetLoopsCapabilities: Gets Loops server capabilities
-func (c *Client) GetLoopsCapabilities(ctx context.Context) (*GetLoopsCapabilitiesResponse, error) {
+func (c *Client) GetLoopsCapabilities(ctx context.Context, params GetV1LoopsCapabilitiesParams) (*GetLoopsCapabilitiesResponse, error) {
 	return doJSON[GetLoopsCapabilitiesResponse](c, ctx, apiRequest{
 		method:      "GET",
 		pathFmt:     "/v1/loops/capabilities",
 		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
@@ -2422,6 +2436,18 @@ func (c *Client) PostTeamsTrainingProjects(ctx context.Context, teamId string, b
 	})
 }
 
+// PostToken: Creates a sandbox access token
+func (c *Client) PostToken(ctx context.Context, body CreateTokenRequest) (*Token, error) {
+	return doJSON[Token](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/token",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PostTrainingJobsSearch: Searches training jobs
 func (c *Client) PostTrainingJobsSearch(ctx context.Context, body SearchTrainingJobsRequest) (*SearchTrainingJobsResponse, error) {
 	return doJSON[SearchTrainingJobsResponse](c, ctx, apiRequest{
@@ -2554,7 +2580,7 @@ func (c *Client) PostVolumesToken(ctx context.Context, body CreateVolumeTokenReq
 	})
 }
 
-// PostVolumesVersionsRestore: Restores a deleted version of a volume
+// PostVolumesVersionsRestore: Restores a deleted or expired version of a volume
 func (c *Client) PostVolumesVersionsRestore(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string, body RestoreVolumeVersionRequest) (*RestoreVolumeVersionResponse, error) {
 	return doJSON[RestoreVolumeVersionResponse](c, ctx, apiRequest{
 		method:      "POST",

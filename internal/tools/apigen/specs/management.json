@@ -28,7 +28,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'namespace': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns one row per volume in the namespace, each with its tags, head version, and version counts. Pass namespace to choose the namespace, which is required because the volume service has no cross-namespace inventory. Versions live on the versions sub-resource, so this response stays a fixed size per volume no matter how long a volume's history is.",
+                "description": "Returns one row per volume in the namespace, each with its tags, head version, version counts, and any scheduled expiry. Pass namespace to choose the namespace, which is required because the volume service has no cross-namespace inventory. Versions live on the versions sub-resource, so this response stays a fixed size per volume no matter how long a volume's history is. A volume with no live versions left, whether deleted or expired, is not listed.",
                 "parameters": [
                     {
                         "name": "cursor",
@@ -430,7 +430,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns a volume with its tags, head version, and version counts. Versions live on the versions sub-resource so they can be paged separately.",
+                "description": "Returns a volume with its tags, head version, version counts, and any scheduled expiry. Versions live on the versions sub-resource so they can be paged separately. A volume whose versions have all been deleted or have expired is still returned, with zero live versions.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -459,13 +459,13 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns every live version of the volume, newest first, each with its digest, size, lifecycle, and the tags pointing at it. Pass include_tombstoned to list deleted versions alongside them.",
+                "description": "Returns every live version of the volume, newest first, each with its digest, size, lifecycle, the tags pointing at it, and any scheduled expiry. Pass include_tombstoned to list deleted and expired versions alongside them.",
                 "parameters": [
                     {
                         "name": "include_tombstoned",
                         "in": "query",
                         "required": false,
-                        "description": "Whether to include deleted versions. A deleted version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.",
+                        "description": "Whether to include deleted and expired versions. Such a version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.",
                         "schema": {
                             "default": false,
                             "title": "Include Tombstoned",
@@ -575,7 +575,7 @@
         },
         "/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}/restore": {
             "post": {
-                "summary": "Restores a deleted version of a volume",
+                "summary": "Restores a deleted or expired version of a volume",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -586,7 +586,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}/restore\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'expected_sequence': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns a deleted version to service, provided its recovery deadline has not passed. The tags the version carried when it was deleted are not restored with it, so re-tag it if anything depended on those. Address the version by digest: a deleted version has no tags left to name it by.",
+                "description": "Returns a deleted or expired version to service, provided its recovery deadline has not passed. The tags the version carried are not restored with it, so re-tag it if anything depended on those, and a restored version never expires until something sets a new expiry. Address the version by digest: a tombstoned version has no tags left to name it by.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -622,6 +622,45 @@
                     "$ref": "#/components/parameters/volume_version"
                 }
             ]
+        },
+        "/v1/token": {
+            "post": {
+                "summary": "Creates a sandbox access token",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/token \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"scopes\": [\n    \"sandboxes\"\n  ]\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/token\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'scopes': ['sandboxes']}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Exchanges your Baseten credentials for a short-lived token that authenticates against the sandbox API. The token carries every team you belong to. Tokens expire after two hours and cannot be renewed; request a new one when needed. This endpoint is experimental and may change or be removed without notice.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateTokenRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TokenV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
         },
         "/v1/secrets": {
             "get": {
@@ -6276,10 +6315,68 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/capabilities\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/capabilities\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'model': 'Qwen/Qwen3-8B', 'use_case': 'rl', 'max_seq_len': 32768}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the list of models supported by the Loops server, including each model's maximum context length and whether it supports vision-language inputs.",
+                "description": "Returns the list of models supported by the Loops server, including each model's maximum context length and whether it supports vision-language inputs. Each entry carries an 'enabled' flag saying whether this workspace can run it now, and 'enablement_details' explaining why when it cannot; filter on 'enabled' for the usable set. Capacity is resolved when the run is created, not here. Pass ?model= to ask about one model \u2014 an empty list means Baseten does not support it. Pass ?use_case=sft for a run that needs no sampler, and ?max_seq_len= to check a specific sequence length.",
+                "parameters": [
+                    {
+                        "name": "model",
+                        "in": "query",
+                        "required": false,
+                        "description": "Restrict the response to one model, identified by its HuggingFace repo id. A supported model comes back with its 'enabled' flag and, when false, its 'enablement_details'. An empty list means Baseten does not support that model. Omit to list every supported model.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "Qwen/Qwen3-8B"
+                            ],
+                            "title": "Model"
+                        }
+                    },
+                    {
+                        "name": "use_case",
+                        "in": "query",
+                        "required": false,
+                        "description": "What the caller intends to run. Defaults to 'rl', the stricter of the two: an RL run needs both a trainer and a sampler, so anything enabled for 'rl' is also enabled for 'sft'.",
+                        "schema": {
+                            "$ref": "#/components/schemas/LoopsUseCaseV1",
+                            "default": "rl",
+                            "examples": [
+                                "rl"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "max_seq_len",
+                        "in": "query",
+                        "required": false,
+                        "description": "The sequence length the caller intends to train at \u2014 the same value they would pass as 'max_seq_len' when creating the run. Models that cannot serve it are reported as not enabled rather than returned with a ceiling the caller cannot use. Omit for the model's highest enabled sequence length.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "minimum": 1,
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                32768
+                            ],
+                            "title": "Max Seq Len"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -8840,6 +8937,66 @@
                 }
             }
         },
+        "/v1/billing/tool_call_usage": {
+            "get": {
+                "summary": "Gets server-side tool call usage",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/billing/tool_call_usage \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/billing/tool_call_usage\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns your organization's server-side tool call usage (web search and fetch tools Baseten executes on your behalf) as daily rows grouped by provider, charge unit (sku), and model.",
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "required": true,
+                        "description": "Inclusive UTC calendar day at the start of the query range.",
+                        "schema": {
+                            "format": "date",
+                            "title": "Start Date",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "required": false,
+                        "description": "Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included. The date range cannot exceed 90 days.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "format": "date",
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ToolCallUsageResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users": {
             "get": {
                 "summary": "Lists users in the workspace",
@@ -9849,11 +10006,25 @@
                         "description": "Digest of the version the tag points at, as `b3:<hex>`.",
                         "title": "Digest",
                         "type": "string"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "When the tag stops resolving and leaves the volume, in ISO 8601 format. Null for a tag that never expires. The version it points at is not affected.",
+                        "title": "Expires At"
                     }
                 },
                 "required": [
                     "name",
-                    "digest"
+                    "digest",
+                    "expires_at"
                 ],
                 "title": "VolumeTagV1",
                 "type": "object"
@@ -9876,15 +10047,28 @@
                         "type": "string"
                     },
                     "sequence": {
-                        "description": "Revision counter for the volume, incremented on every commit and tag change. Use it to detect that a volume changed.",
+                        "description": "Revision counter for the volume, incremented on every commit, tag change, delete, and restore. A tag or version that expires leaves without changing it; the next write then increments it once. Use it to detect that a volume was written to.",
                         "title": "Sequence",
                         "type": "integer"
                     },
                     "updated_at": {
-                        "description": "When the volume last changed, in ISO 8601 format.",
+                        "description": "When the volume was last written to, in ISO 8601 format. An expiry does not update it.",
                         "format": "date-time",
                         "title": "Updated At",
                         "type": "string"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "When the whole volume expires, in ISO 8601 format. At that instant every live version is deleted, every tag drops, and the volume leaves the volume listing; each version then stays restorable until its recovery deadline passes. Null for a volume that never expires.",
+                        "title": "Expires At"
                     },
                     "head": {
                         "anyOf": [
@@ -9895,10 +10079,10 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Version that the reserved `head` tag points at, which a reference with no tag or digest resolves to. Null when the volume has no head, or when your API key cannot read it."
+                        "description": "Version that the reserved `head` tag points at, which a reference with no tag or digest resolves to. Never an expiring version. Null when the volume has no head, or when your API key cannot read it."
                     },
                     "tags": {
-                        "description": "Tags on the volume that your API key can read.",
+                        "description": "Tags on the volume that your API key can read. A tag with `expires_at` leaves this list at that instant.",
                         "items": {
                             "$ref": "#/components/schemas/VolumeTagV1"
                         },
@@ -9906,24 +10090,42 @@
                         "type": "array"
                     },
                     "tag_count": {
-                        "description": "Total number of tags on the volume, which can exceed the length of `tags` when your API key cannot read all of them.",
+                        "description": "Total number of tags on the volume, which can exceed the length of `tags` when your API key cannot read all of them. Counts only tags that have not expired.",
                         "title": "Tag Count",
                         "type": "integer"
                     },
                     "versions_alive": {
-                        "description": "Number of versions that have not been deleted.",
+                        "description": "Number of versions that have not been deleted or expired.",
                         "title": "Versions Alive",
                         "type": "integer"
                     },
                     "versions_tombstoned": {
-                        "description": "Number of versions that have been deleted.",
+                        "description": "Number of versions that have been deleted or expired and are still within their recovery window.",
                         "title": "Versions Tombstoned",
                         "type": "integer"
                     },
                     "versions_untagged": {
-                        "description": "Number of versions that no tag points at.",
+                        "description": "Number of live versions that no tag points at.",
                         "title": "Versions Untagged",
                         "type": "integer"
+                    },
+                    "versions_expiring": {
+                        "description": "Number of live versions with an expiry still ahead of them. A version that has already expired counts in `versions_tombstoned` instead.",
+                        "title": "Versions Expiring",
+                        "type": "integer"
+                    },
+                    "versions_earliest_expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Earliest expiry among the live versions, in ISO 8601 format. Null when no live version is scheduled to expire.",
+                        "title": "Versions Earliest Expires At"
                     }
                 },
                 "required": [
@@ -9932,12 +10134,15 @@
                     "version_ref",
                     "sequence",
                     "updated_at",
+                    "expires_at",
                     "head",
                     "tags",
                     "tag_count",
                     "versions_alive",
                     "versions_tombstoned",
-                    "versions_untagged"
+                    "versions_untagged",
+                    "versions_expiring",
+                    "versions_earliest_expires_at"
                 ],
                 "title": "VolumeV1",
                 "type": "object"
@@ -10227,6 +10432,54 @@
                 "title": "VolumeSyncAuthenticationAWSAssumeRoleV1",
                 "type": "object"
             },
+            "VolumeSyncAuthenticationAWSOIDCV1": {
+                "additionalProperties": false,
+                "description": "Authentication using an AWS IAM role and Baseten workload identity.",
+                "properties": {
+                    "role_arn": {
+                        "description": "AWS IAM role ARN to assume through OIDC.",
+                        "minLength": 1,
+                        "title": "Role Arn",
+                        "type": "string"
+                    },
+                    "region": {
+                        "description": "AWS region for the OIDC role session.",
+                        "minLength": 1,
+                        "title": "Region",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "role_arn",
+                    "region"
+                ],
+                "title": "VolumeSyncAuthenticationAWSOIDCV1",
+                "type": "object"
+            },
+            "VolumeSyncAuthenticationGCPOIDCV1": {
+                "additionalProperties": false,
+                "description": "Authentication using GCP Workload Identity Federation.",
+                "properties": {
+                    "service_account": {
+                        "description": "GCP service account to impersonate through OIDC.",
+                        "minLength": 1,
+                        "title": "Service Account",
+                        "type": "string"
+                    },
+                    "workload_identity_provider": {
+                        "description": "Full resource name of the GCP workload identity provider.",
+                        "minLength": 1,
+                        "title": "Workload Identity Provider",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "service_account",
+                    "workload_identity_provider"
+                ],
+                "title": "VolumeSyncAuthenticationGCPOIDCV1",
+                "type": "object"
+            },
             "VolumeSyncDestinationV1": {
                 "additionalProperties": false,
                 "description": "BDN destination for a volume sync.",
@@ -10453,6 +10706,18 @@
                         "description": "Google Cloud Storage source type.",
                         "title": "Type",
                         "type": "string"
+                    },
+                    "gcp_oidc": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeSyncAuthenticationGCPOIDCV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "GCP OIDC authentication for this source. Cannot be combined with auth_secret_name."
                     }
                 },
                 "required": [
@@ -10624,6 +10889,18 @@
                         ],
                         "default": null,
                         "description": "AWS AssumeRole authentication for this source. Cannot be combined with auth_secret_name."
+                    },
+                    "aws_oidc": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeSyncAuthenticationAWSOIDCV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "AWS OIDC authentication for this source. Cannot be combined with other authentication fields."
                     }
                 },
                 "required": [
@@ -10999,7 +11276,7 @@
                         "title": "Sequence"
                     },
                     "lifecycle": {
-                        "description": "Lifecycle state of the version, for example ALIVE or TOMBSTONED.",
+                        "description": "Lifecycle state of the version: ALIVE, or TOMBSTONED once it has been deleted or has expired.",
                         "title": "Lifecycle",
                         "type": "string"
                     },
@@ -11034,6 +11311,19 @@
                         "title": "Created At",
                         "type": "string"
                     },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "When the version expires, in ISO 8601 format. At that instant it becomes TOMBSTONED with `tombstoned_at` set to this value, and every tag pointing at it drops. Null for a version that never expires, and null once the lifecycle is TOMBSTONED.",
+                        "title": "Expires At"
+                    },
                     "tombstoned_at": {
                         "anyOf": [
                             {
@@ -11044,7 +11334,7 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "When the version was deleted, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.",
+                        "description": "When the version was deleted or expired, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.",
                         "title": "Tombstoned At"
                     },
                     "delete_after": {
@@ -11072,6 +11362,7 @@
                     "tags",
                     "total_size_bytes",
                     "created_at",
+                    "expires_at",
                     "tombstoned_at",
                     "delete_after"
                 ],
@@ -11106,7 +11397,7 @@
                 "properties": {
                     "include_tombstoned": {
                         "default": false,
-                        "description": "Whether to include deleted versions. A deleted version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.",
+                        "description": "Whether to include deleted and expired versions. Such a version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.",
                         "title": "Include Tombstoned",
                         "type": "boolean"
                     }
@@ -11220,7 +11511,7 @@
                         "title": "Sequence"
                     },
                     "lifecycle": {
-                        "description": "Lifecycle state of the version, for example ALIVE or TOMBSTONED.",
+                        "description": "Lifecycle state of the version: ALIVE, or TOMBSTONED once it has been deleted or has expired.",
                         "title": "Lifecycle",
                         "type": "string"
                     },
@@ -11255,6 +11546,19 @@
                         "title": "Created At",
                         "type": "string"
                     },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "When the version expires, in ISO 8601 format. At that instant it becomes TOMBSTONED with `tombstoned_at` set to this value, and every tag pointing at it drops. Null for a version that never expires, and null once the lifecycle is TOMBSTONED.",
+                        "title": "Expires At"
+                    },
                     "tombstoned_at": {
                         "anyOf": [
                             {
@@ -11265,7 +11569,7 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "When the version was deleted, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.",
+                        "description": "When the version was deleted or expired, in ISO 8601 format. Null unless the lifecycle is TOMBSTONED.",
                         "title": "Tombstoned At"
                     },
                     "delete_after": {
@@ -11310,6 +11614,7 @@
                     "tags",
                     "total_size_bytes",
                     "created_at",
+                    "expires_at",
                     "tombstoned_at",
                     "delete_after",
                     "entry_count",
@@ -11379,6 +11684,58 @@
                     "volume_sequence"
                 ],
                 "title": "RestoreVolumeVersionResponseV1",
+                "type": "object"
+            },
+            "TokenScopeV1": {
+                "description": "What a token minted by POST /v1/token grants access to.",
+                "enum": [
+                    "sandboxes"
+                ],
+                "title": "TokenScopeV1",
+                "type": "string"
+            },
+            "CreateTokenRequestV1": {
+                "properties": {
+                    "scopes": {
+                        "description": "What the token should grant access to. Only `sandboxes` is supported today; the token then authenticates against the sandbox API.",
+                        "examples": [
+                            [
+                                "sandboxes"
+                            ]
+                        ],
+                        "items": {
+                            "$ref": "#/components/schemas/TokenScopeV1"
+                        },
+                        "minItems": 1,
+                        "title": "Scopes",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "scopes"
+                ],
+                "title": "CreateTokenRequestV1",
+                "type": "object"
+            },
+            "TokenV1": {
+                "properties": {
+                    "token": {
+                        "description": "Short-lived bearer token for the sandbox API. Send it as Authorization: Bearer <token>.",
+                        "title": "Token",
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "description": "Token expiry in ISO 8601 format. Tokens cannot be renewed; request a new one.",
+                        "format": "date-time",
+                        "title": "Expires At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "token",
+                    "expires_at"
+                ],
+                "title": "TokenV1",
                 "type": "object"
             },
             "SecretV1": {
@@ -23312,6 +23669,36 @@
                 "title": "SearchTrainingJobsResponseV1",
                 "type": "object"
             },
+            "EnablementDetailsV1": {
+                "description": "Why a supported model is not enabled for this workspace.",
+                "properties": {
+                    "reason": {
+                        "description": "Machine-readable reason the model is not enabled. Currently one of 'needs_approval', 'sequence_length_unsupported' or 'loops_not_enabled'. Deliberately not a closed enum: values are added as the check learns to distinguish cases that call for a different action, so treat an unrecognized value as 'not enabled, reason unknown' rather than an error.",
+                        "examples": [
+                            "needs_approval"
+                        ],
+                        "title": "Reason",
+                        "type": "string"
+                    },
+                    "reason_detail": {
+                        "description": "Human-readable explanation of the reason.",
+                        "title": "Reason Detail",
+                        "type": "string"
+                    },
+                    "remediation": {
+                        "description": "Human-readable next step to enable the model.",
+                        "title": "Remediation",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "reason",
+                    "reason_detail",
+                    "remediation"
+                ],
+                "title": "EnablementDetailsV1",
+                "type": "object"
+            },
             "SupportedModelV1": {
                 "description": "A model supported by the Loops server.",
                 "properties": {
@@ -23320,8 +23707,20 @@
                         "title": "Model Name",
                         "type": "string"
                     },
+                    "max_seq_len": {
+                        "description": "The longest sequence length Baseten supports for this model. Independent of the caller: see 'max_enabled_seq_len' for what this workspace can actually train at. Named to match the 'max_seq_len' query parameter and the field of the same name on run creation, so one name follows the value through the API.",
+                        "title": "Max Seq Len",
+                        "type": "integer"
+                    },
+                    "max_enabled_seq_len": {
+                        "default": 0,
+                        "description": "The longest sequence length this workspace can train at. Lower than 'max_seq_len' when the longer configurations need hardware the workspace is not approved for \u2014 a model's longer sequence lengths often need a bigger SKU of the same GPU. Zero when the workspace cannot run the model at all, so a client can compare against a required length without a null case.",
+                        "title": "Max Enabled Seq Len",
+                        "type": "integer"
+                    },
                     "max_context_length": {
-                        "description": "The maximum context length (in tokens) supported by this model.",
+                        "deprecated": true,
+                        "description": "Deprecated. Use 'max_seq_len', which carries the same value. Kept so existing clients keep working.",
                         "title": "Max Context Length",
                         "type": "integer"
                     },
@@ -23329,10 +23728,29 @@
                         "description": "Whether the model accepts image inputs alongside text.",
                         "title": "Supports Vision Language",
                         "type": "boolean"
+                    },
+                    "enabled": {
+                        "default": true,
+                        "description": "Whether this workspace can start a run with this model now. False means Baseten supports it but the workspace cannot use it yet; 'not_enabled' says why. Capacity is resolved when the run is created, so true is not a guarantee that GPUs are free.",
+                        "title": "Enabled",
+                        "type": "boolean"
+                    },
+                    "enablement_details": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/EnablementDetailsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Why the model is not enabled, and what would change it. Present only when 'enabled' is false \u2014 an enabled model has nothing to explain. Read 'enabled' for the state; this is the detail behind it."
                     }
                 },
                 "required": [
                     "model_name",
+                    "max_seq_len",
                     "max_context_length",
                     "supports_vision_language"
                 ],
@@ -23340,10 +23758,10 @@
                 "type": "object"
             },
             "GetLoopsCapabilitiesResponseV1": {
-                "description": "Response for ``GET /v1/loops/capabilities``.",
+                "description": "Response for ``GET /v1/loops/capabilities``.\n\nA model Baseten does not support has no entry at all, so an empty list for\na single-model request means exactly that.",
                 "properties": {
                     "supported_models": {
-                        "description": "List of models available on the server.",
+                        "description": "Models Baseten supports for this use case, each carrying an 'enabled' flag saying whether this workspace can run it now, and 'enablement_details' when it cannot. Filter on 'enabled' to get the models you can use.",
                         "items": {
                             "$ref": "#/components/schemas/SupportedModelV1"
                         },
@@ -23355,6 +23773,63 @@
                     "supported_models"
                 ],
                 "title": "GetLoopsCapabilitiesResponseV1",
+                "type": "object"
+            },
+            "LoopsUseCaseV1": {
+                "description": "What the caller intends to run.\n\nReinforcement learning runs a trainer and a sampler; supervised\nfine-tuning runs a trainer alone. A model can therefore be enabled for one\nand not the other, and the same model can support a longer sequence length\nfor SFT than for RL.",
+                "enum": [
+                    "rl",
+                    "sft"
+                ],
+                "title": "LoopsUseCaseV1",
+                "type": "string"
+            },
+            "GetLoopsCapabilitiesQueryParamsV1": {
+                "description": "Query-string filters for ``GET /v1/loops/capabilities``.",
+                "properties": {
+                    "model": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Restrict the response to one model, identified by its HuggingFace repo id. A supported model comes back with its 'enabled' flag and, when false, its 'enablement_details'. An empty list means Baseten does not support that model. Omit to list every supported model.",
+                        "examples": [
+                            "Qwen/Qwen3-8B"
+                        ],
+                        "title": "Model"
+                    },
+                    "use_case": {
+                        "$ref": "#/components/schemas/LoopsUseCaseV1",
+                        "default": "rl",
+                        "description": "What the caller intends to run. Defaults to 'rl', the stricter of the two: an RL run needs both a trainer and a sampler, so anything enabled for 'rl' is also enabled for 'sft'.",
+                        "examples": [
+                            "rl"
+                        ]
+                    },
+                    "max_seq_len": {
+                        "anyOf": [
+                            {
+                                "minimum": 1,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The sequence length the caller intends to train at \u2014 the same value they would pass as 'max_seq_len' when creating the run. Models that cannot serve it are reported as not enabled rather than returned with a ceiling the caller cannot use. Omit for the model's highest enabled sequence length.",
+                        "examples": [
+                            32768
+                        ],
+                        "title": "Max Seq Len"
+                    }
+                },
+                "title": "GetLoopsCapabilitiesQueryParamsV1",
                 "type": "object"
             },
             "LoopsSessionV1": {
@@ -28511,6 +28986,95 @@
                     "end_date"
                 ],
                 "title": "UsageSummaryRequestV1",
+                "type": "object"
+            },
+            "ToolCallUsageBucketV1": {
+                "description": "Server-side tool call usage for one day, provider, charge unit, and model.",
+                "properties": {
+                    "date": {
+                        "description": "UTC day the usage was recorded on.",
+                        "format": "date",
+                        "title": "Date",
+                        "type": "string"
+                    },
+                    "provider": {
+                        "description": "Tool provider, such as exa or parallel.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "sku": {
+                        "description": "Charge unit, as `<provider>/<unit>`. The unit is what the provider reported, or the tool name when it reported none. Its meaning varies by provider.",
+                        "title": "Sku",
+                        "type": "string"
+                    },
+                    "model": {
+                        "description": "Model that made the tool calls.",
+                        "title": "Model",
+                        "type": "string"
+                    },
+                    "calls": {
+                        "description": "Number of tool calls.",
+                        "title": "Calls",
+                        "type": "integer"
+                    },
+                    "quantity": {
+                        "description": "Billable quantity in the provider's sku unit, summed over the calls.",
+                        "title": "Quantity",
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "date",
+                    "provider",
+                    "sku",
+                    "model",
+                    "calls",
+                    "quantity"
+                ],
+                "title": "ToolCallUsageBucketV1",
+                "type": "object"
+            },
+            "ToolCallUsageResponseV1": {
+                "description": "Daily server-side tool call usage, ordered by day, provider, sku, and model.",
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/ToolCallUsageBucketV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    }
+                },
+                "title": "ToolCallUsageResponseV1",
+                "type": "object"
+            },
+            "ToolCallUsageRequestV1": {
+                "properties": {
+                    "start_date": {
+                        "description": "Inclusive UTC calendar day at the start of the query range.",
+                        "format": "date",
+                        "title": "Start Date",
+                        "type": "string"
+                    },
+                    "end_date": {
+                        "anyOf": [
+                            {
+                                "format": "date",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included. The date range cannot exceed 90 days.",
+                        "title": "End Date"
+                    }
+                },
+                "required": [
+                    "start_date"
+                ],
+                "title": "ToolCallUsageRequestV1",
                 "type": "object"
             },
             "UserInfoV1": {
