@@ -460,6 +460,19 @@ func (c *Client) GetEnvironmentGroupsEnvName(ctx context.Context, envName string
 	})
 }
 
+// GetExploreMetadata: Lists model metadata
+func (c *Client) GetExploreMetadata(ctx context.Context, params GetV1ExploreMetadataParams) (*ExploreMetadataResponse, error) {
+	return doJSON[ExploreMetadataResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/explore/metadata",
+		pathArgs:    nil,
+		queryParams: params,
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetGatewayEndpoints: Lists Gateway endpoints
 func (c *Client) GetGatewayEndpoints(ctx context.Context) (*EndpointsResponse, error) {
 	return doJSON[EndpointsResponse](c, ctx, apiRequest{
@@ -1074,6 +1087,19 @@ func (c *Client) GetRoutesRouteId(ctx context.Context, routeId string) (*Route, 
 		method:      "GET",
 		pathFmt:     "/v1/routes/%s",
 		pathArgs:    []any{routeId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetRoutesUsage: Gets daily route usage and estimated costs
+func (c *Client) GetRoutesUsage(ctx context.Context, params GetV1RoutesUsageParams) (*RoutesUsageResponse, error) {
+	return doJSON[RoutesUsageResponse](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/routes/usage",
+		pathArgs:    nil,
+		queryParams: params,
 		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
