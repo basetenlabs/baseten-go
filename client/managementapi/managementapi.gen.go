@@ -1145,6 +1145,63 @@ func (e RollingDeployStrategy) Valid() bool {
 	}
 }
 
+// Defines values for RouteProvider.
+const (
+	RouteProvider_ANTHROPIC         RouteProvider = "ANTHROPIC"
+	RouteProvider_BASETEN_MODEL_API RouteProvider = "BASETEN_MODEL_API"
+	RouteProvider_OPENAI            RouteProvider = "OPENAI"
+	RouteProvider_OPENAI_COMPATIBLE RouteProvider = "OPENAI_COMPATIBLE"
+	RouteProvider_VERTEX            RouteProvider = "VERTEX"
+	RouteProvider_XAI               RouteProvider = "XAI"
+)
+
+// Valid indicates whether the value is a known member of the RouteProvider enum.
+func (e RouteProvider) Valid() bool {
+	switch e {
+	case RouteProvider_ANTHROPIC:
+		return true
+	case RouteProvider_BASETEN_MODEL_API:
+		return true
+	case RouteProvider_OPENAI:
+		return true
+	case RouteProvider_OPENAI_COMPATIBLE:
+		return true
+	case RouteProvider_VERTEX:
+		return true
+	case RouteProvider_XAI:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RouteUsageDimension.
+const (
+	RouteUsageDimension_API_KEY_PREFIX RouteUsageDimension = "API_KEY_PREFIX"
+	RouteUsageDimension_MODEL          RouteUsageDimension = "MODEL"
+	RouteUsageDimension_PROVIDER       RouteUsageDimension = "PROVIDER"
+	RouteUsageDimension_ROUTE          RouteUsageDimension = "ROUTE"
+	RouteUsageDimension_USER           RouteUsageDimension = "USER"
+)
+
+// Valid indicates whether the value is a known member of the RouteUsageDimension enum.
+func (e RouteUsageDimension) Valid() bool {
+	switch e {
+	case RouteUsageDimension_API_KEY_PREFIX:
+		return true
+	case RouteUsageDimension_MODEL:
+		return true
+	case RouteUsageDimension_PROVIDER:
+		return true
+	case RouteUsageDimension_ROUTE:
+		return true
+	case RouteUsageDimension_USER:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SharedEndpointRegion.
 const (
 	SharedEndpointRegion_EU           SharedEndpointRegion = "EU"
@@ -2545,6 +2602,9 @@ type ChainEnvironment struct {
 	// CurrentDeployment Current chain deployment of the environment
 	CurrentDeployment *ChainDeployment `json:"current_deployment"`
 
+	// InProgressPromotion Details of the in-progress promotion, if any
+	InProgressPromotion *InProgressPromotion `json:"in_progress_promotion,omitempty"`
+
 	// Name Name of the environment
 	Name string `json:"name"`
 
@@ -3017,6 +3077,9 @@ type CreateRouteRequest struct {
 
 	// DisplayName Display label. Omit to use the route name; null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
+
+	// MetadataSlug Slug of a metadata row to link. Omit to auto-resolve from the target; required for OPENAI_COMPATIBLE and VERTEX targets.
+	MetadataSlug Optional[string] `json:"metadata_slug,omitzero"`
 
 	// Name Immutable, globally unique route name using an organization-owned prefix.
 	Name string `json:"name"`
@@ -4099,6 +4162,97 @@ type EnvironmentTombstone struct {
 // Environments list of environments
 type Environments struct {
 	Environments []Environment `json:"environments"`
+}
+
+// ExploreCost defines model for ExploreCost.
+type ExploreCost struct {
+	// CacheRead USD per 1M input tokens read from cache, when available.
+	CacheRead *float32 `json:"cache_read,omitempty"`
+
+	// CacheWrite USD per 1M input tokens written to cache, when available.
+	CacheWrite *float32 `json:"cache_write,omitempty"`
+
+	// Input USD per 1M input tokens, when available.
+	Input *float32 `json:"input,omitempty"`
+
+	// LongContext Prices for long-context requests, when the provider tiers by context length.
+	LongContext *ExploreCostValues `json:"long_context,omitempty"`
+
+	// Output USD per 1M output tokens, when available.
+	Output *float32 `json:"output,omitempty"`
+}
+
+// ExploreCostValues defines model for ExploreCostValues.
+type ExploreCostValues struct {
+	// CacheRead USD per 1M input tokens read from cache, when available.
+	CacheRead *float32 `json:"cache_read,omitempty"`
+
+	// CacheWrite USD per 1M input tokens written to cache, when available.
+	CacheWrite *float32 `json:"cache_write,omitempty"`
+
+	// Input USD per 1M input tokens, when available.
+	Input *float32 `json:"input,omitempty"`
+
+	// Output USD per 1M output tokens, when available.
+	Output *float32 `json:"output,omitempty"`
+}
+
+// ExploreMetadata defines model for ExploreMetadata.
+type ExploreMetadata struct {
+	// ContextWindow Total context window in tokens.
+	ContextWindow *int `json:"context_window"`
+
+	// Cost Provider list prices in USD per 1M tokens, when available.
+	Cost *ExploreCost `json:"cost"`
+
+	// DisplayName Model display name, when available.
+	DisplayName *string `json:"display_name"`
+
+	// InputModalities Accepted input modalities.
+	InputModalities []string `json:"input_modalities"`
+
+	// MaxOutputTokens Maximum output tokens per response.
+	MaxOutputTokens *int `json:"max_output_tokens"`
+
+	// ParallelToolCalls Whether the model supports parallel tool calls.
+	ParallelToolCalls *bool `json:"parallel_tool_calls"`
+
+	// Provider Provider key derived from the slug prefix, e.g. 'anthropic'; null for unprefixed slugs.
+	Provider *string `json:"provider"`
+
+	// ReasoningEffortLevels Reasoning effort levels the model supports.
+	ReasoningEffortLevels *[]string `json:"reasoning_effort_levels"`
+
+	// ReleaseDate Model release date. Month-only source dates use the first day of that month.
+	ReleaseDate *string `json:"release_date"`
+
+	// Slug Metadata slug, e.g. 'anthropic/claude-opus-4'; null for rows without one.
+	Slug *string `json:"slug"`
+
+	// SupportedApiFormats API formats the model supports.
+	SupportedApiFormats *ExploreMetadataAPIFormats `json:"supported_api_formats"`
+
+	// Tools Whether the model supports tool calling.
+	Tools *bool `json:"tools"`
+}
+
+// ExploreMetadataAPIFormats defines model for ExploreMetadataAPIFormats.
+type ExploreMetadataAPIFormats struct {
+	// ChatCompletions OpenAI Chat Completions API support.
+	ChatCompletions *bool `json:"chat_completions,omitempty"`
+
+	// Messages Anthropic Messages API support.
+	Messages *bool `json:"messages,omitempty"`
+
+	// Responses OpenAI Responses API support.
+	Responses *bool `json:"responses,omitempty"`
+}
+
+// ExploreMetadataResponse defines model for ExploreMetadataResponse.
+type ExploreMetadataResponse struct {
+	// Items Items in this page.
+	Items      []ExploreMetadata  `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 // FileSummary Information about a file in the cache.
@@ -6083,6 +6237,9 @@ type Route struct {
 	// InvokeUrl Base URL for inference requests using this route.
 	InvokeUrl string `json:"invoke_url"`
 
+	// Metadata Resolved model metadata; null when the route has no linked metadata row.
+	Metadata *ExploreMetadata `json:"metadata"`
+
 	// Name Immutable name to send in the inference request's model field.
 	Name string `json:"name"`
 
@@ -6100,6 +6257,9 @@ type Route struct {
 type Route_Target struct {
 	union json.RawMessage
 }
+
+// RouteProvider Upstream provider of a route target, named like the route target types.
+type RouteProvider string
 
 // RouteTargetAnthropic defines model for RouteTargetAnthropic.
 type RouteTargetAnthropic struct {
@@ -6183,11 +6343,69 @@ type RouteTombstone struct {
 	Name string `json:"name"`
 }
 
+// RouteUsageDimension defines model for RouteUsageDimension.
+type RouteUsageDimension string
+
 // RoutesResponse defines model for RoutesResponse.
 type RoutesResponse struct {
 	// Items Items in this page.
 	Items      []Route            `json:"items"`
 	Pagination PaginationResponse `json:"pagination"`
+}
+
+// RoutesUsageBucket defines model for RoutesUsageBucket.
+type RoutesUsageBucket struct {
+	// Date UTC calendar date for this bucket, from midnight inclusive to the next midnight exclusive.
+	Date string `json:"date"`
+
+	// Results Usage broken down by the requested dimensions. Empty when there is no usage.
+	Results []RoutesUsageResult `json:"results"`
+}
+
+// RoutesUsageResponse defines model for RoutesUsageResponse.
+type RoutesUsageResponse struct {
+	// Items Items in this page.
+	Items      []RoutesUsageBucket `json:"items"`
+	Pagination PaginationResponse  `json:"pagination"`
+}
+
+// RoutesUsageResult defines model for RoutesUsageResult.
+type RoutesUsageResult struct {
+	// ApiKeyPrefix Prefix of the Routes key. Null when not grouping by API_KEY_PREFIX.
+	ApiKeyPrefix *string `json:"api_key_prefix,omitempty"`
+
+	// CachedInputTokens Input tokens read from the prompt cache.
+	CachedInputTokens int `json:"cached_input_tokens"`
+
+	// CostUsd Estimated cost in USD, returned as an exact decimal string. Null when some usage in this result could not be priced, including all Vertex and OpenAI-compatible usage. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.
+	CostUsd *string `json:"cost_usd"`
+
+	// InputTokens Input tokens, including cached input tokens.
+	InputTokens int `json:"input_tokens"`
+
+	// Model Model name. For external providers, the model name sent to the provider. Null when not grouping by MODEL.
+	Model *string `json:"model,omitempty"`
+
+	// OutputTokens Output tokens.
+	OutputTokens int `json:"output_tokens"`
+
+	// Provider Provider that served the requests. Null when not grouping by PROVIDER or when the provider cannot be determined.
+	Provider *RouteProvider `json:"provider,omitempty"`
+
+	// RequestCount Number of requests.
+	RequestCount int `json:"request_count"`
+
+	// RouteId Route ID. Null when not grouping by ROUTE.
+	RouteId *string `json:"route_id,omitempty"`
+
+	// RouteName Route name. Null when not grouping by ROUTE.
+	RouteName *string `json:"route_name,omitempty"`
+
+	// UncachedInputTokens Input tokens not read from the prompt cache, including tokens written to the cache.
+	UncachedInputTokens int `json:"uncached_input_tokens"`
+
+	// UserId ID of the user who created the Routes key. Null when not grouping by USER or when the creator is unknown.
+	UserId *string `json:"user_id,omitempty"`
 }
 
 // SearchTrainingJobsRequest A request to search training jobs.
@@ -6999,6 +7217,9 @@ type UpdateRouteRequest struct {
 	// DisplayName New display label. Omit to keep the current label; null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
 
+	// MetadataSlug Slug of a metadata row to link. Omit to keep the current link, or to re-resolve from the new target when target is provided (OPENAI_COMPATIBLE and VERTEX targets always require an explicit slug). Null is not accepted.
+	MetadataSlug Optional[string] `json:"metadata_slug,omitzero"`
+
 	// Target Replaces the entire target. Omit to keep the current target; null is not accepted.
 	Target *UpdateRouteRequest_Target `json:"target,omitempty"`
 }
@@ -7703,6 +7924,21 @@ type GetV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsParams
 	Excludes *[]string `form:"excludes,omitempty" json:"excludes,omitempty"`
 }
 
+// GetV1ExploreMetadataParams defines parameters for GetV1ExploreMetadata.
+type GetV1ExploreMetadataParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Provider Filter to a provider by slug prefix, e.g. 'anthropic'. Preserved by the cursor; if repeated, must match the original filter.
+	Provider *string `form:"provider,omitempty" json:"provider,omitempty"`
+
+	// Q Case-insensitive substring search over metadata slugs. Preserved by the cursor; if repeated, must match the original filter.
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
+}
+
 // GetV1GatewayEventsParams defines parameters for GetV1GatewayEvents.
 type GetV1GatewayEventsParams struct {
 	// StartTime Inclusive start (ISO 8601, UTC). Required without a cursor.
@@ -8022,6 +8258,39 @@ type GetV1RoutesParams struct {
 
 	// Name Filter by exact route name. Preserved by the cursor; if repeated, must match the original filter.
 	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
+// GetV1RoutesUsageParams defines parameters for GetV1RoutesUsage.
+type GetV1RoutesUsageParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Number of daily buckets to return. Defaults to 7; maximum 31.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// StartDate Inclusive UTC calendar day at the start of the query range. Defaults to the previous UTC date, and is ignored when you pass a cursor.
+	StartDate *string `form:"start_date,omitempty" json:"start_date,omitempty"`
+
+	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included.
+	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
+
+	// GroupBy Dimensions to break usage down by, repeated once per dimension: API_KEY_PREFIX, USER, ROUTE, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.
+	GroupBy *[]RouteUsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
+
+	// ApiKeyPrefixes Return only usage for these exact Routes key prefixes, repeated once per prefix.
+	ApiKeyPrefixes *[]string `form:"api_key_prefixes,omitempty" json:"api_key_prefixes,omitempty"`
+
+	// UserIds Return only usage from Routes keys created by these user IDs, repeated once per ID.
+	UserIds *[]string `form:"user_ids,omitempty" json:"user_ids,omitempty"`
+
+	// RouteIds Return only usage for these route IDs, repeated once per ID.
+	RouteIds *[]string `form:"route_ids,omitempty" json:"route_ids,omitempty"`
+
+	// Models Return only usage for these exact model names, repeated once per model.
+	Models *[]string `form:"models,omitempty" json:"models,omitempty"`
+
+	// Providers Return only usage for these providers, repeated once per provider.
+	Providers *[]RouteProvider `form:"providers,omitempty" json:"providers,omitempty"`
 }
 
 // GetV1TeamsParams defines parameters for GetV1Teams.

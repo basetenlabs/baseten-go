@@ -9300,6 +9300,104 @@
                 }
             }
         },
+        "/v1/explore/metadata": {
+            "get": {
+                "summary": "Lists model metadata",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/explore/metadata \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/explore/metadata\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'provider': None, 'q': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists all live model metadata rows, e.g. for model pickers.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "provider",
+                        "in": "query",
+                        "required": false,
+                        "description": "Filter to a provider by slug prefix, e.g. 'anthropic'. Preserved by the cursor; if repeated, must match the original filter.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Provider"
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": false,
+                        "description": "Case-insensitive substring search over metadata slugs. Preserved by the cursor; if repeated, must match the original filter.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Q"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExploreMetadataResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
         "/v1/routes": {
             "get": {
                 "summary": "Lists routes",
@@ -9402,11 +9500,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/routes \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"my-org/assistant\",\n  \"team_id\": \"abc1234\",\n  \"display_name\": \"Assistant\",\n  \"target\": {\n    \"model\": \"zai-org/GLM-5.3\",\n    \"type\": \"BASETEN_MODEL_API\"\n  },\n  \"description\": \"Assistant for code review and debugging.\"\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/routes \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"my-org/assistant\",\n  \"team_id\": \"abc1234\",\n  \"display_name\": \"Assistant\",\n  \"target\": {\n    \"model\": \"zai-org/GLM-5.3\",\n    \"type\": \"BASETEN_MODEL_API\"\n  },\n  \"description\": \"Assistant for code review and debugging.\",\n  \"metadata_slug\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'my-org/assistant', 'team_id': 'abc1234', 'display_name': 'Assistant', 'target': {'model': 'zai-org/GLM-5.3', 'type': 'BASETEN_MODEL_API'}, 'description': 'Assistant for code review and debugging.'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'my-org/assistant', 'team_id': 'abc1234', 'display_name': 'Assistant', 'target': {'model': 'zai-org/GLM-5.3', 'type': 'BASETEN_MODEL_API'}, 'description': 'Assistant for code review and debugging.', 'metadata_slug': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Dedicated deployment targets are not supported.",
@@ -9427,6 +9525,184 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/RouteV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/routes/usage": {
+            "get": {
+                "summary": "Gets daily route usage and estimated costs",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/usage \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/usage\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Buckets are UTC days, and days with no usage are included. Organization admins see all route usage in the organization. Other members, including viewers, see only usage from Routes keys they created, including keys that have since expired, been revoked, or been deleted. Model API costs use your prices at the time of each request. xAI costs are the charges xAI reports. OpenAI and Anthropic costs are estimated from Baseten's reference prices and may differ from your provider's bill. Vertex and OpenAI-compatible usage has no cost estimate. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges. A null cost means some usage in that result could not be priced. Usage is retained for 92 days.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Number of daily buckets to return. Defaults to 7; maximum 31.",
+                        "schema": {
+                            "default": 7,
+                            "maximum": 31,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "required": false,
+                        "description": "Inclusive UTC calendar day at the start of the query range. Defaults to the previous UTC date, and is ignored when you pass a cursor.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "format": "date",
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "required": false,
+                        "description": "Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "format": "date",
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Date"
+                        }
+                    },
+                    {
+                        "name": "group_by",
+                        "in": "query",
+                        "required": false,
+                        "description": "Dimensions to break usage down by, repeated once per dimension: API_KEY_PREFIX, USER, ROUTE, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/RouteUsageDimensionV1"
+                            },
+                            "title": "Group By",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "api_key_prefixes",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage for these exact Routes key prefixes, repeated once per prefix.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Api Key Prefixes",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "user_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage from Routes keys created by these user IDs, repeated once per ID.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "User Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "route_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage for these route IDs, repeated once per ID.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Route Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "models",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage for these exact model names, repeated once per model.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Models",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "providers",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage for these providers, repeated once per provider.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/RouteProviderV1"
+                            },
+                            "title": "Providers",
+                            "type": "array"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RoutesUsageResponseV1"
                                 }
                             }
                         }
@@ -9498,11 +9774,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"description\": \"Assistant for code review and debugging.\",\n  \"display_name\": \"Assistant\",\n  \"target\": {\n    \"model\": \"zai-org/GLM-5.3\",\n    \"type\": \"BASETEN_MODEL_API\"\n  }\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"description\": \"Assistant for code review and debugging.\",\n  \"display_name\": \"Assistant\",\n  \"target\": {\n    \"model\": \"zai-org/GLM-5.3\",\n    \"type\": \"BASETEN_MODEL_API\"\n  },\n  \"metadata_slug\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'description': 'Assistant for code review and debugging.', 'display_name': 'Assistant', 'target': {'model': 'zai-org/GLM-5.3', 'type': 'BASETEN_MODEL_API'}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'description': 'Assistant for code review and debugging.', 'display_name': 'Assistant', 'target': {'model': 'zai-org/GLM-5.3', 'type': 'BASETEN_MODEL_API'}, 'metadata_slug': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Replaces the entire target when provided. The route name and owning team are immutable.",
@@ -20537,6 +20813,18 @@
                         ],
                         "default": null,
                         "description": "Candidate chain deployment being promoted to the environment, if a promotion is in progress"
+                    },
+                    "in_progress_promotion": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/InProgressPromotionV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Details of the in-progress promotion, if any"
                     }
                 },
                 "required": [
@@ -29443,6 +29731,395 @@
                 "title": "GatewayEventsRequestV1",
                 "type": "object"
             },
+            "ExploreCostV1": {
+                "properties": {
+                    "input": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "USD per 1M input tokens, when available.",
+                        "title": "Input"
+                    },
+                    "output": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "USD per 1M output tokens, when available.",
+                        "title": "Output"
+                    },
+                    "cache_read": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "USD per 1M input tokens read from cache, when available.",
+                        "title": "Cache Read"
+                    },
+                    "cache_write": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "USD per 1M input tokens written to cache, when available.",
+                        "title": "Cache Write"
+                    },
+                    "long_context": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ExploreCostValuesV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Prices for long-context requests, when the provider tiers by context length."
+                    }
+                },
+                "title": "ExploreCostV1",
+                "type": "object"
+            },
+            "ExploreCostValuesV1": {
+                "properties": {
+                    "input": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "USD per 1M input tokens, when available.",
+                        "title": "Input"
+                    },
+                    "output": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "USD per 1M output tokens, when available.",
+                        "title": "Output"
+                    },
+                    "cache_read": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "USD per 1M input tokens read from cache, when available.",
+                        "title": "Cache Read"
+                    },
+                    "cache_write": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "USD per 1M input tokens written to cache, when available.",
+                        "title": "Cache Write"
+                    }
+                },
+                "title": "ExploreCostValuesV1",
+                "type": "object"
+            },
+            "ExploreMetadataAPIFormatsV1": {
+                "properties": {
+                    "messages": {
+                        "default": false,
+                        "description": "Anthropic Messages API support.",
+                        "title": "Messages",
+                        "type": "boolean"
+                    },
+                    "responses": {
+                        "default": false,
+                        "description": "OpenAI Responses API support.",
+                        "title": "Responses",
+                        "type": "boolean"
+                    },
+                    "chat_completions": {
+                        "default": false,
+                        "description": "OpenAI Chat Completions API support.",
+                        "title": "Chat Completions",
+                        "type": "boolean"
+                    }
+                },
+                "title": "ExploreMetadataAPIFormatsV1",
+                "type": "object"
+            },
+            "ExploreMetadataV1": {
+                "properties": {
+                    "slug": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Metadata slug, e.g. 'anthropic/claude-opus-4'; null for rows without one.",
+                        "title": "Slug"
+                    },
+                    "display_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Model display name, when available.",
+                        "title": "Display Name"
+                    },
+                    "release_date": {
+                        "anyOf": [
+                            {
+                                "format": "date",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Model release date. Month-only source dates use the first day of that month.",
+                        "title": "Release Date"
+                    },
+                    "provider": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Provider key derived from the slug prefix, e.g. 'anthropic'; null for unprefixed slugs.",
+                        "title": "Provider"
+                    },
+                    "context_window": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Total context window in tokens.",
+                        "title": "Context Window"
+                    },
+                    "max_output_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Maximum output tokens per response.",
+                        "title": "Max Output Tokens"
+                    },
+                    "input_modalities": {
+                        "description": "Accepted input modalities.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Input Modalities",
+                        "type": "array"
+                    },
+                    "tools": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Whether the model supports tool calling.",
+                        "title": "Tools"
+                    },
+                    "reasoning_effort_levels": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Reasoning effort levels the model supports.",
+                        "title": "Reasoning Effort Levels"
+                    },
+                    "parallel_tool_calls": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Whether the model supports parallel tool calls.",
+                        "title": "Parallel Tool Calls"
+                    },
+                    "supported_api_formats": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ExploreMetadataAPIFormatsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "API formats the model supports."
+                    },
+                    "cost": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ExploreCostV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Provider list prices in USD per 1M tokens, when available."
+                    }
+                },
+                "required": [
+                    "slug",
+                    "display_name",
+                    "release_date",
+                    "provider",
+                    "context_window",
+                    "max_output_tokens",
+                    "input_modalities",
+                    "tools",
+                    "reasoning_effort_levels",
+                    "parallel_tool_calls",
+                    "supported_api_formats",
+                    "cost"
+                ],
+                "title": "ExploreMetadataV1",
+                "type": "object"
+            },
+            "ExploreMetadataResponseV1": {
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/ExploreMetadataV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "ExploreMetadataResponseV1",
+                "type": "object"
+            },
+            "ExploreMetadataRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "provider": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Filter to a provider by slug prefix, e.g. 'anthropic'. Preserved by the cursor; if repeated, must match the original filter.",
+                        "title": "Provider"
+                    },
+                    "q": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Case-insensitive substring search over metadata slugs. Preserved by the cursor; if repeated, must match the original filter.",
+                        "title": "Q"
+                    }
+                },
+                "title": "ExploreMetadataRequestV1",
+                "type": "object"
+            },
             "RouteTargetAnthropicV1": {
                 "additionalProperties": false,
                 "properties": {
@@ -29695,6 +30372,17 @@
                         ],
                         "title": "Target"
                     },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ExploreMetadataV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Resolved model metadata; null when the route has no linked metadata row."
+                    },
                     "invoke_url": {
                         "description": "Base URL for inference requests using this route.",
                         "title": "Invoke Url",
@@ -29715,6 +30403,7 @@
                     "display_name",
                     "description",
                     "target",
+                    "metadata",
                     "invoke_url",
                     "created_at"
                 ],
@@ -29927,6 +30616,21 @@
                             "Assistant for code review and debugging."
                         ],
                         "title": "Description"
+                    },
+                    "metadata_slug": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Slug of a metadata row to link. Omit to auto-resolve from the target; required for OPENAI_COMPATIBLE and VERTEX targets.",
+                        "title": "Metadata Slug",
+                        "x-null-distinct": true
                     }
                 },
                 "required": [
@@ -29934,6 +30638,310 @@
                     "target"
                 ],
                 "title": "CreateRouteRequestV1",
+                "type": "object"
+            },
+            "RouteProviderV1": {
+                "description": "Upstream provider of a route target, named like the route target types.",
+                "enum": [
+                    "BASETEN_MODEL_API",
+                    "OPENAI",
+                    "ANTHROPIC",
+                    "XAI",
+                    "VERTEX",
+                    "OPENAI_COMPATIBLE"
+                ],
+                "title": "RouteProviderV1",
+                "type": "string"
+            },
+            "RoutesUsageBucketV1": {
+                "properties": {
+                    "date": {
+                        "description": "UTC calendar date for this bucket, from midnight inclusive to the next midnight exclusive.",
+                        "format": "date",
+                        "title": "Date",
+                        "type": "string"
+                    },
+                    "results": {
+                        "description": "Usage broken down by the requested dimensions. Empty when there is no usage.",
+                        "items": {
+                            "$ref": "#/components/schemas/RoutesUsageResultV1"
+                        },
+                        "title": "Results",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "date",
+                    "results"
+                ],
+                "title": "RoutesUsageBucketV1",
+                "type": "object"
+            },
+            "RoutesUsageResultV1": {
+                "properties": {
+                    "api_key_prefix": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Prefix of the Routes key. Null when not grouping by API_KEY_PREFIX.",
+                        "title": "Api Key Prefix"
+                    },
+                    "user_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of the user who created the Routes key. Null when not grouping by USER or when the creator is unknown.",
+                        "title": "User Id"
+                    },
+                    "route_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route ID. Null when not grouping by ROUTE.",
+                        "title": "Route Id"
+                    },
+                    "route_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route name. Null when not grouping by ROUTE.",
+                        "title": "Route Name"
+                    },
+                    "model": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Model name. For external providers, the model name sent to the provider. Null when not grouping by MODEL.",
+                        "title": "Model"
+                    },
+                    "provider": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteProviderV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Provider that served the requests. Null when not grouping by PROVIDER or when the provider cannot be determined."
+                    },
+                    "cost_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Estimated cost in USD, returned as an exact decimal string. Null when some usage in this result could not be priced, including all Vertex and OpenAI-compatible usage. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.",
+                        "examples": [
+                            "0.00035625"
+                        ],
+                        "title": "Cost Usd"
+                    },
+                    "input_tokens": {
+                        "description": "Input tokens, including cached input tokens.",
+                        "title": "Input Tokens",
+                        "type": "integer"
+                    },
+                    "cached_input_tokens": {
+                        "description": "Input tokens read from the prompt cache.",
+                        "title": "Cached Input Tokens",
+                        "type": "integer"
+                    },
+                    "uncached_input_tokens": {
+                        "description": "Input tokens not read from the prompt cache, including tokens written to the cache.",
+                        "title": "Uncached Input Tokens",
+                        "type": "integer"
+                    },
+                    "output_tokens": {
+                        "description": "Output tokens.",
+                        "title": "Output Tokens",
+                        "type": "integer"
+                    },
+                    "request_count": {
+                        "description": "Number of requests.",
+                        "title": "Request Count",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "cost_usd",
+                    "input_tokens",
+                    "cached_input_tokens",
+                    "uncached_input_tokens",
+                    "output_tokens",
+                    "request_count"
+                ],
+                "title": "RoutesUsageResultV1",
+                "type": "object"
+            },
+            "RoutesUsageResponseV1": {
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/RoutesUsageBucketV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "RoutesUsageResponseV1",
+                "type": "object"
+            },
+            "RouteUsageDimensionV1": {
+                "enum": [
+                    "API_KEY_PREFIX",
+                    "USER",
+                    "ROUTE",
+                    "MODEL",
+                    "PROVIDER"
+                ],
+                "title": "RouteUsageDimensionV1",
+                "type": "string"
+            },
+            "RoutesUsageRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 7,
+                        "description": "Number of daily buckets to return. Defaults to 7; maximum 31.",
+                        "maximum": 31,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "start_date": {
+                        "anyOf": [
+                            {
+                                "format": "date",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Inclusive UTC calendar day at the start of the query range. Defaults to the previous UTC date, and is ignored when you pass a cursor.",
+                        "title": "Start Date"
+                    },
+                    "end_date": {
+                        "anyOf": [
+                            {
+                                "format": "date",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included.",
+                        "title": "End Date"
+                    },
+                    "group_by": {
+                        "description": "Dimensions to break usage down by, repeated once per dimension: API_KEY_PREFIX, USER, ROUTE, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
+                        "items": {
+                            "$ref": "#/components/schemas/RouteUsageDimensionV1"
+                        },
+                        "title": "Group By",
+                        "type": "array"
+                    },
+                    "api_key_prefixes": {
+                        "description": "Return only usage for these exact Routes key prefixes, repeated once per prefix.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Api Key Prefixes",
+                        "type": "array"
+                    },
+                    "user_ids": {
+                        "description": "Return only usage from Routes keys created by these user IDs, repeated once per ID.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "User Ids",
+                        "type": "array"
+                    },
+                    "route_ids": {
+                        "description": "Return only usage for these route IDs, repeated once per ID.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Route Ids",
+                        "type": "array"
+                    },
+                    "models": {
+                        "description": "Return only usage for these exact model names, repeated once per model.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Models",
+                        "type": "array"
+                    },
+                    "providers": {
+                        "description": "Return only usage for these providers, repeated once per provider.",
+                        "items": {
+                            "$ref": "#/components/schemas/RouteProviderV1"
+                        },
+                        "title": "Providers",
+                        "type": "array"
+                    }
+                },
+                "title": "RoutesUsageRequestV1",
                 "type": "object"
             },
             "RouteTombstoneV1": {
@@ -30042,6 +31050,21 @@
                             }
                         ],
                         "title": "Target"
+                    },
+                    "metadata_slug": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Slug of a metadata row to link. Omit to keep the current link, or to re-resolve from the new target when target is provided (OPENAI_COMPATIBLE and VERTEX targets always require an explicit slug). Null is not accepted.",
+                        "title": "Metadata Slug",
+                        "x-null-distinct": true
                     }
                 },
                 "title": "UpdateRouteRequestV1",
