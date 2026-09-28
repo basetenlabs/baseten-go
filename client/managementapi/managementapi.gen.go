@@ -1177,23 +1177,17 @@ func (e RouteProvider) Valid() bool {
 
 // Defines values for RouteUsageDimension.
 const (
-	RouteUsageDimension_API_KEY_PREFIX RouteUsageDimension = "API_KEY_PREFIX"
-	RouteUsageDimension_MODEL          RouteUsageDimension = "MODEL"
-	RouteUsageDimension_PROVIDER       RouteUsageDimension = "PROVIDER"
-	RouteUsageDimension_ROUTE          RouteUsageDimension = "ROUTE"
-	RouteUsageDimension_USER           RouteUsageDimension = "USER"
+	RouteUsageDimension_MODEL    RouteUsageDimension = "MODEL"
+	RouteUsageDimension_PROVIDER RouteUsageDimension = "PROVIDER"
+	RouteUsageDimension_USER     RouteUsageDimension = "USER"
 )
 
 // Valid indicates whether the value is a known member of the RouteUsageDimension enum.
 func (e RouteUsageDimension) Valid() bool {
 	switch e {
-	case RouteUsageDimension_API_KEY_PREFIX:
-		return true
 	case RouteUsageDimension_MODEL:
 		return true
 	case RouteUsageDimension_PROVIDER:
-		return true
-	case RouteUsageDimension_ROUTE:
 		return true
 	case RouteUsageDimension_USER:
 		return true
@@ -6371,14 +6365,11 @@ type RoutesUsageResponse struct {
 
 // RoutesUsageResult defines model for RoutesUsageResult.
 type RoutesUsageResult struct {
-	// ApiKeyPrefix Prefix of the Routes key. Null when not grouping by API_KEY_PREFIX.
-	ApiKeyPrefix *string `json:"api_key_prefix,omitempty"`
-
 	// CachedInputTokens Input tokens read from the prompt cache.
 	CachedInputTokens int `json:"cached_input_tokens"`
 
-	// CostUsd Estimated cost in USD, returned as an exact decimal string. Null when some usage in this result could not be priced, including all Vertex and OpenAI-compatible usage. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.
-	CostUsd *string `json:"cost_usd"`
+	// CostUsd Estimated cost in USD, returned as an exact decimal string. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.
+	CostUsd string `json:"cost_usd"`
 
 	// InputTokens Input tokens, including cached input tokens.
 	InputTokens int `json:"input_tokens"`
@@ -6389,22 +6380,13 @@ type RoutesUsageResult struct {
 	// OutputTokens Output tokens.
 	OutputTokens int `json:"output_tokens"`
 
-	// Provider Provider that served the requests. Null when not grouping by PROVIDER or when the provider cannot be determined.
+	// Provider Provider that served the requests. Null when not grouping by PROVIDER.
 	Provider *RouteProvider `json:"provider,omitempty"`
-
-	// RequestCount Number of requests.
-	RequestCount int `json:"request_count"`
-
-	// RouteId Route ID. Null when not grouping by ROUTE.
-	RouteId *string `json:"route_id,omitempty"`
-
-	// RouteName Route name. Null when not grouping by ROUTE.
-	RouteName *string `json:"route_name,omitempty"`
 
 	// UncachedInputTokens Input tokens not read from the prompt cache, including tokens written to the cache.
 	UncachedInputTokens int `json:"uncached_input_tokens"`
 
-	// UserId ID of the user who created the Routes key. Null when not grouping by USER or when the creator is unknown.
+	// UserId ID of the user who created the Routes key. Null when not grouping by USER.
 	UserId *string `json:"user_id,omitempty"`
 }
 
@@ -8274,17 +8256,11 @@ type GetV1RoutesUsageParams struct {
 	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included.
 	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
 
-	// GroupBy Dimensions to break usage down by, repeated once per dimension: API_KEY_PREFIX, USER, ROUTE, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.
+	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.
 	GroupBy *[]RouteUsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
-
-	// ApiKeyPrefixes Return only usage for these exact Routes key prefixes, repeated once per prefix.
-	ApiKeyPrefixes *[]string `form:"api_key_prefixes,omitempty" json:"api_key_prefixes,omitempty"`
 
 	// UserIds Return only usage from Routes keys created by these user IDs, repeated once per ID.
 	UserIds *[]string `form:"user_ids,omitempty" json:"user_ids,omitempty"`
-
-	// RouteIds Return only usage for these route IDs, repeated once per ID.
-	RouteIds *[]string `form:"route_ids,omitempty" json:"route_ids,omitempty"`
 
 	// Models Return only usage for these exact model names, repeated once per model.
 	Models *[]string `form:"models,omitempty" json:"models,omitempty"`

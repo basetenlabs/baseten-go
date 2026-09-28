@@ -4,11 +4,7 @@
         "title": "Baseten management API",
         "version": "1.0.0"
     },
-    "servers": [
-        {
-            "url": "https://api.baseten.co"
-        }
-    ],
+    "servers": [],
     "security": [
         {
             "BearerAuth": []
@@ -9546,7 +9542,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/usage\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Buckets are UTC days, and days with no usage are included. Organization admins see all route usage in the organization. Other members, including viewers, see only usage from Routes keys they created, including keys that have since expired, been revoked, or been deleted. Model API costs use your prices at the time of each request. xAI costs are the charges xAI reports. OpenAI and Anthropic costs are estimated from Baseten's reference prices and may differ from your provider's bill. Vertex and OpenAI-compatible usage has no cost estimate. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges. A null cost means some usage in that result could not be priced. Usage is retained for 92 days.",
+                "description": "Buckets are UTC days, and days with no usage are included. Organization admins see all route usage in the organization. Other members, including viewers, see only usage from Routes keys they created, including keys that have since expired, been revoked, or been deleted. Usage is metered every 15 minutes, so the current hour can lag. Model API costs use your prices at the time of each request and include tool calls. xAI costs are the charges xAI reports. OpenAI and Anthropic costs are estimated from Baseten's reference prices and may differ from your provider's bill. Vertex and OpenAI-compatible usage is not included. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges. Usage is retained for 92 days.",
                 "parameters": [
                     {
                         "name": "cursor",
@@ -9621,25 +9617,12 @@
                         "name": "group_by",
                         "in": "query",
                         "required": false,
-                        "description": "Dimensions to break usage down by, repeated once per dimension: API_KEY_PREFIX, USER, ROUTE, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
                         "schema": {
                             "items": {
                                 "$ref": "#/components/schemas/RouteUsageDimensionV1"
                             },
                             "title": "Group By",
-                            "type": "array"
-                        }
-                    },
-                    {
-                        "name": "api_key_prefixes",
-                        "in": "query",
-                        "required": false,
-                        "description": "Return only usage for these exact Routes key prefixes, repeated once per prefix.",
-                        "schema": {
-                            "items": {
-                                "type": "string"
-                            },
-                            "title": "Api Key Prefixes",
                             "type": "array"
                         }
                     },
@@ -9653,19 +9636,6 @@
                                 "type": "string"
                             },
                             "title": "User Ids",
-                            "type": "array"
-                        }
-                    },
-                    {
-                        "name": "route_ids",
-                        "in": "query",
-                        "required": false,
-                        "description": "Return only usage for these route IDs, repeated once per ID.",
-                        "schema": {
-                            "items": {
-                                "type": "string"
-                            },
-                            "title": "Route Ids",
                             "type": "array"
                         }
                     },
@@ -30679,19 +30649,6 @@
             },
             "RoutesUsageResultV1": {
                 "properties": {
-                    "api_key_prefix": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Prefix of the Routes key. Null when not grouping by API_KEY_PREFIX.",
-                        "title": "Api Key Prefix"
-                    },
                     "user_id": {
                         "anyOf": [
                             {
@@ -30702,34 +30659,8 @@
                             }
                         ],
                         "default": null,
-                        "description": "ID of the user who created the Routes key. Null when not grouping by USER or when the creator is unknown.",
+                        "description": "ID of the user who created the Routes key. Null when not grouping by USER.",
                         "title": "User Id"
-                    },
-                    "route_id": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Route ID. Null when not grouping by ROUTE.",
-                        "title": "Route Id"
-                    },
-                    "route_name": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Route name. Null when not grouping by ROUTE.",
-                        "title": "Route Name"
                     },
                     "model": {
                         "anyOf": [
@@ -30754,22 +30685,15 @@
                             }
                         ],
                         "default": null,
-                        "description": "Provider that served the requests. Null when not grouping by PROVIDER or when the provider cannot be determined."
+                        "description": "Provider that served the requests. Null when not grouping by PROVIDER."
                     },
                     "cost_usd": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Estimated cost in USD, returned as an exact decimal string. Null when some usage in this result could not be priced, including all Vertex and OpenAI-compatible usage. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.",
+                        "description": "Estimated cost in USD, returned as an exact decimal string. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.",
                         "examples": [
                             "0.00035625"
                         ],
-                        "title": "Cost Usd"
+                        "title": "Cost Usd",
+                        "type": "string"
                     },
                     "input_tokens": {
                         "description": "Input tokens, including cached input tokens.",
@@ -30790,11 +30714,6 @@
                         "description": "Output tokens.",
                         "title": "Output Tokens",
                         "type": "integer"
-                    },
-                    "request_count": {
-                        "description": "Number of requests.",
-                        "title": "Request Count",
-                        "type": "integer"
                     }
                 },
                 "required": [
@@ -30802,8 +30721,7 @@
                     "input_tokens",
                     "cached_input_tokens",
                     "uncached_input_tokens",
-                    "output_tokens",
-                    "request_count"
+                    "output_tokens"
                 ],
                 "title": "RoutesUsageResultV1",
                 "type": "object"
@@ -30832,9 +30750,7 @@
             },
             "RouteUsageDimensionV1": {
                 "enum": [
-                    "API_KEY_PREFIX",
                     "USER",
-                    "ROUTE",
                     "MODEL",
                     "PROVIDER"
                 ],
@@ -30893,19 +30809,11 @@
                         "title": "End Date"
                     },
                     "group_by": {
-                        "description": "Dimensions to break usage down by, repeated once per dimension: API_KEY_PREFIX, USER, ROUTE, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
                         "items": {
                             "$ref": "#/components/schemas/RouteUsageDimensionV1"
                         },
                         "title": "Group By",
-                        "type": "array"
-                    },
-                    "api_key_prefixes": {
-                        "description": "Return only usage for these exact Routes key prefixes, repeated once per prefix.",
-                        "items": {
-                            "type": "string"
-                        },
-                        "title": "Api Key Prefixes",
                         "type": "array"
                     },
                     "user_ids": {
@@ -30914,14 +30822,6 @@
                             "type": "string"
                         },
                         "title": "User Ids",
-                        "type": "array"
-                    },
-                    "route_ids": {
-                        "description": "Return only usage for these route IDs, repeated once per ID.",
-                        "items": {
-                            "type": "string"
-                        },
-                        "title": "Route Ids",
                         "type": "array"
                     },
                     "models": {
