@@ -400,7 +400,7 @@ func (p *pusher) pushFile(ctx context.Context, file volume.SourceFile) (volume.F
 		return volume.FileEntry{}, err
 	}
 	p.stats.addFile(int64(file.Size))
-	p.progress.Add(1, int64(file.Size))
+	p.progress.Add(1, 0)
 
 	entry := volume.FileEntry{Path: file.Path, Mode: file.Mode, Size: file.Size, MTime: file.MTime}
 
@@ -594,6 +594,9 @@ func (p *pusher) pushChunks(ctx context.Context, file volume.SourceFile, prior [
 				return
 			}
 			chunks[i] = chunk
+			// Count logical bytes as each chunk completes, including reuse.
+			// Waiting for the whole file hides progress on large uploads.
+			p.progress.Add(0, int64(span.Length))
 		}()
 	}
 	wg.Wait()

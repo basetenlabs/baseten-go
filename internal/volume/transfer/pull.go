@@ -599,7 +599,7 @@ func (p *puller) writeFile(ctx context.Context, entry volume.FileEntry) error {
 			return err
 		}
 	}
-	p.progress.Add(1, int64(entry.Size))
+	p.progress.Add(1, 0)
 	return nil
 }
 
@@ -690,7 +690,10 @@ func (p *puller) writeChunks(ctx context.Context, handle *os.File, chunks []volu
 
 			if err := p.writeChunk(ctx, handle, chunk, resumable, permit); err != nil {
 				fail(err)
+				return
 			}
+			// Count verified bytes after they are written or reused on disk.
+			p.progress.Add(0, int64(chunk.Length))
 		}()
 	}
 	wg.Wait()

@@ -806,6 +806,9 @@ type VolumeProgress struct {
 	Files      int64
 	TotalFiles int64
 
+	// Bytes counts logical file bytes processed, including reused chunks,
+	// rather than network traffic. Uploads and downloads to disk advance it
+	// as chunks complete.
 	Bytes      int64
 	TotalBytes int64
 }

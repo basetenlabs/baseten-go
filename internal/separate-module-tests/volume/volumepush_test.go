@@ -92,6 +92,55 @@ func pushOptions(root string, f *fakeService) transfer.PushOptions {
 	}
 }
 
+func TestPushReportsBytesBeforeFileCompletion(t *testing.T) {
+	root := t.TempDir()
+	content := patternBytes(volume.ChunkSize + 1024)
+	writeFile(t, root, "large.bin", content, 0o644)
+	writeFile(t, root, "duplicate.bin", content, 0o644)
+	writeFile(t, root, "empty.txt", nil, 0o644)
+	fake := newFakeService(t)
+
+	// The first push covers uploads and within-push deduplication; the second
+	// covers reuse from the previous version. Both report logical bytes.
+	for _, name := range []string{"upload", "reuse"} {
+		t.Run(name, func(t *testing.T) {
+			var updates []volume.Progress
+			opts := pushOptions(root, fake)
+			opts.Progress = func(p volume.Progress) {
+				if p.Phase == volume.PhaseUpload {
+					updates = append(updates, p)
+				}
+			}
+			_, err := transfer.Push(context.Background(), fake.client(t), opts)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var previous volume.Progress
+			intermediate := false
+			for _, p := range updates {
+				if p.Bytes < previous.Bytes || p.Files < previous.Files {
+					t.Fatalf("progress decreased: %+v -> %+v", previous, p)
+				}
+				if p.TotalBytes != int64(2*len(content)) || p.TotalFiles != 3 {
+					t.Fatalf("unexpected totals: %+v", p)
+				}
+				// A byte update without a completed file proves that progress
+				// is emitted within a file, rather than just at its boundary.
+				if p.Bytes > previous.Bytes && p.Bytes < p.TotalBytes && p.Files == previous.Files {
+					intermediate = true
+				}
+				previous = p
+			}
+			if !intermediate {
+				t.Fatal("no byte progress before file completion")
+			}
+			if previous.Bytes != int64(2*len(content)) || previous.Files != 3 {
+				t.Fatalf("unexpected final progress: %+v", previous)
+			}
+		})
+	}
+}
+
 func TestPushPublishesTheWholeTree(t *testing.T) {
 	root := buildTree(t)
 	fake := newFakeService(t)
