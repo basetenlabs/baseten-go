@@ -36,16 +36,22 @@ type Client struct {
 type ResponseError struct {
 	StatusCode int
 	Body       string
+	Header     http.Header
 }
 
 func (e *ResponseError) Error() string {
 	return fmt.Sprintf("baseten API error (HTTP %d): %s", e.StatusCode, e.Body)
 }
 
+// RawRequestOptions selects the response content type for a content-negotiated operation.
+// The caller must close the returned response Body.
+type RawRequestOptions struct{ Accept string }
+
 // ResponseErrorResponse is returned for non-success HTTP responses whose body
 // decoded as [ErrorResponse].
 type ResponseErrorResponse struct {
 	StatusCode    int
+	Header        http.Header
 	ErrorResponse ErrorResponse
 }
 
@@ -59,12 +65,13 @@ func (e *ResponseErrorResponse) Error() string {
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 413, 429, 503.
 func (c *Client) AsyncPredict(ctx context.Context, envName string, body AsyncPredictRequest) (*AsyncPredictOutput, error) {
 	return doJSON[AsyncPredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/environments/%s/async_predict",
-		pathArgs:    []any{envName},
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/environments/%s/async_predict",
+		pathArgs:     []any{envName},
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
 }
 
@@ -73,12 +80,13 @@ func (c *Client) AsyncPredict(ctx context.Context, envName string, body AsyncPre
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 413, 429, 503.
 func (c *Client) AsyncPredictDeployment(ctx context.Context, deploymentId string, body AsyncPredictRequest) (*AsyncPredictOutput, error) {
 	return doJSON[AsyncPredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/deployment/%s/async_predict",
-		pathArgs:    []any{deploymentId},
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/deployment/%s/async_predict",
+		pathArgs:     []any{deploymentId},
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
 }
 
@@ -87,12 +95,13 @@ func (c *Client) AsyncPredictDeployment(ctx context.Context, deploymentId string
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 413, 429, 503.
 func (c *Client) AsyncPredictDevelopment(ctx context.Context, body AsyncPredictRequest) (*AsyncPredictOutput, error) {
 	return doJSON[AsyncPredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/development/async_predict",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/development/async_predict",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
 }
 
@@ -101,12 +110,13 @@ func (c *Client) AsyncPredictDevelopment(ctx context.Context, body AsyncPredictR
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 413, 429, 503.
 func (c *Client) AsyncPredictProduction(ctx context.Context, body AsyncPredictRequest) (*AsyncPredictOutput, error) {
 	return doJSON[AsyncPredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/production/async_predict",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/production/async_predict",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
 }
 
@@ -115,12 +125,13 @@ func (c *Client) AsyncPredictProduction(ctx context.Context, body AsyncPredictRe
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 413, 429, 503.
 func (c *Client) AsyncPredictRegional(ctx context.Context, body AsyncPredictRequest) (*AsyncPredictOutput, error) {
 	return doJSON[AsyncPredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/async_predict",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/async_predict",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
 }
 
@@ -129,12 +140,13 @@ func (c *Client) AsyncPredictRegional(ctx context.Context, body AsyncPredictRequ
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 503.
 func (c *Client) AsyncRunRemote(ctx context.Context, envName string, body any) (*AsyncRunRemoteOutput, error) {
 	return doJSON[AsyncRunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/environments/%s/async_run_remote",
-		pathArgs:    []any{envName},
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/environments/%s/async_run_remote",
+		pathArgs:     []any{envName},
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
 }
 
@@ -143,12 +155,13 @@ func (c *Client) AsyncRunRemote(ctx context.Context, envName string, body any) (
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 503.
 func (c *Client) AsyncRunRemoteDeployment(ctx context.Context, deploymentId string, body any) (*AsyncRunRemoteOutput, error) {
 	return doJSON[AsyncRunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/deployment/%s/async_run_remote",
-		pathArgs:    []any{deploymentId},
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/deployment/%s/async_run_remote",
+		pathArgs:     []any{deploymentId},
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
 }
 
@@ -157,12 +170,13 @@ func (c *Client) AsyncRunRemoteDeployment(ctx context.Context, deploymentId stri
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 503.
 func (c *Client) AsyncRunRemoteDevelopment(ctx context.Context, body any) (*AsyncRunRemoteOutput, error) {
 	return doJSON[AsyncRunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/development/async_run_remote",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/development/async_run_remote",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
 }
 
@@ -171,12 +185,13 @@ func (c *Client) AsyncRunRemoteDevelopment(ctx context.Context, body any) (*Asyn
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 503.
 func (c *Client) AsyncRunRemoteProduction(ctx context.Context, body any) (*AsyncRunRemoteOutput, error) {
 	return doJSON[AsyncRunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/production/async_run_remote",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/production/async_run_remote",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
 }
 
@@ -185,12 +200,13 @@ func (c *Client) AsyncRunRemoteProduction(ctx context.Context, body any) (*Async
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 503.
 func (c *Client) AsyncRunRemoteRegional(ctx context.Context, body any) (*AsyncRunRemoteOutput, error) {
 	return doJSON[AsyncRunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/async_run_remote",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/async_run_remote",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
 }
 
@@ -199,12 +215,13 @@ func (c *Client) AsyncRunRemoteRegional(ctx context.Context, body any) (*AsyncRu
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) CancelAsyncRequest(ctx context.Context, requestId string) (*CancelAsyncRequestOutput, error) {
 	return doJSON[CancelAsyncRequestOutput](c, ctx, apiRequest{
-		method:      "DELETE",
-		pathFmt:     "/async_request/%s",
-		pathArgs:    []any{requestId},
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "DELETE",
+		pathFmt:      "/async_request/%s",
+		pathArgs:     []any{requestId},
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
 }
 
@@ -213,12 +230,13 @@ func (c *Client) CancelAsyncRequest(ctx context.Context, requestId string) (*Can
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) GetAsyncQueueStatus(ctx context.Context, envName string) (*GetAsyncQueueStatusOutput, error) {
 	return doJSON[GetAsyncQueueStatusOutput](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/environments/%s/async_queue_status",
-		pathArgs:    []any{envName},
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "GET",
+		pathFmt:      "/environments/%s/async_queue_status",
+		pathArgs:     []any{envName},
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
 }
 
@@ -227,12 +245,13 @@ func (c *Client) GetAsyncQueueStatus(ctx context.Context, envName string) (*GetA
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) GetAsyncQueueStatusDeployment(ctx context.Context, deploymentId string) (*GetAsyncQueueStatusOutput, error) {
 	return doJSON[GetAsyncQueueStatusOutput](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/deployment/%s/async_queue_status",
-		pathArgs:    []any{deploymentId},
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "GET",
+		pathFmt:      "/deployment/%s/async_queue_status",
+		pathArgs:     []any{deploymentId},
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
 }
 
@@ -241,12 +260,13 @@ func (c *Client) GetAsyncQueueStatusDeployment(ctx context.Context, deploymentId
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) GetAsyncQueueStatusDevelopment(ctx context.Context) (*GetAsyncQueueStatusOutput, error) {
 	return doJSON[GetAsyncQueueStatusOutput](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/development/async_queue_status",
-		pathArgs:    nil,
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "GET",
+		pathFmt:      "/development/async_queue_status",
+		pathArgs:     nil,
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
 }
 
@@ -255,12 +275,13 @@ func (c *Client) GetAsyncQueueStatusDevelopment(ctx context.Context) (*GetAsyncQ
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) GetAsyncQueueStatusProduction(ctx context.Context) (*GetAsyncQueueStatusOutput, error) {
 	return doJSON[GetAsyncQueueStatusOutput](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/production/async_queue_status",
-		pathArgs:    nil,
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "GET",
+		pathFmt:      "/production/async_queue_status",
+		pathArgs:     nil,
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
 }
 
@@ -269,12 +290,13 @@ func (c *Client) GetAsyncQueueStatusProduction(ctx context.Context) (*GetAsyncQu
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) GetAsyncQueueStatusRegional(ctx context.Context) (*GetAsyncQueueStatusOutput, error) {
 	return doJSON[GetAsyncQueueStatusOutput](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/async_queue_status",
-		pathArgs:    nil,
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "GET",
+		pathFmt:      "/async_queue_status",
+		pathArgs:     nil,
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
 }
 
@@ -283,12 +305,13 @@ func (c *Client) GetAsyncQueueStatusRegional(ctx context.Context) (*GetAsyncQueu
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) GetAsyncRequestStatus(ctx context.Context, requestId string) (*AsyncRequestStatusResponse, error) {
 	return doJSON[AsyncRequestStatusResponse](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/async_request/%s",
-		pathArgs:    []any{requestId},
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "GET",
+		pathFmt:      "/async_request/%s",
+		pathArgs:     []any{requestId},
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
 }
 
@@ -297,12 +320,13 @@ func (c *Client) GetAsyncRequestStatus(ctx context.Context, requestId string) (*
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) Predict(ctx context.Context, envName string, body any) (*PredictOutput, error) {
 	return doJSON[PredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/environments/%s/predict",
-		pathArgs:    []any{envName},
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/environments/%s/predict",
+		pathArgs:     []any{envName},
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
 }
 
@@ -311,12 +335,13 @@ func (c *Client) Predict(ctx context.Context, envName string, body any) (*Predic
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) PredictDeployment(ctx context.Context, deploymentId string, body any) (*PredictOutput, error) {
 	return doJSON[PredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/deployment/%s/predict",
-		pathArgs:    []any{deploymentId},
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/deployment/%s/predict",
+		pathArgs:     []any{deploymentId},
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
 }
 
@@ -325,12 +350,13 @@ func (c *Client) PredictDeployment(ctx context.Context, deploymentId string, bod
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) PredictDevelopment(ctx context.Context, body any) (*PredictOutput, error) {
 	return doJSON[PredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/development/predict",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/development/predict",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
 }
 
@@ -339,12 +365,13 @@ func (c *Client) PredictDevelopment(ctx context.Context, body any) (*PredictOutp
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) PredictProduction(ctx context.Context, body any) (*PredictOutput, error) {
 	return doJSON[PredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/production/predict",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/production/predict",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
 }
 
@@ -353,12 +380,13 @@ func (c *Client) PredictProduction(ctx context.Context, body any) (*PredictOutpu
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) PredictRegional(ctx context.Context, body any) (*PredictOutput, error) {
 	return doJSON[PredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/predict",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/predict",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
 }
 
@@ -367,12 +395,13 @@ func (c *Client) PredictRegional(ctx context.Context, body any) (*PredictOutput,
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) RunRemote(ctx context.Context, envName string, body any) (*RunRemoteOutput, error) {
 	return doJSON[RunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/environments/%s/run_remote",
-		pathArgs:    []any{envName},
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/environments/%s/run_remote",
+		pathArgs:     []any{envName},
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
 }
 
@@ -381,12 +410,13 @@ func (c *Client) RunRemote(ctx context.Context, envName string, body any) (*RunR
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) RunRemoteDeployment(ctx context.Context, deploymentId string, body any) (*RunRemoteOutput, error) {
 	return doJSON[RunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/deployment/%s/run_remote",
-		pathArgs:    []any{deploymentId},
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/deployment/%s/run_remote",
+		pathArgs:     []any{deploymentId},
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
 }
 
@@ -395,12 +425,13 @@ func (c *Client) RunRemoteDeployment(ctx context.Context, deploymentId string, b
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) RunRemoteDevelopment(ctx context.Context, body any) (*RunRemoteOutput, error) {
 	return doJSON[RunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/development/run_remote",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/development/run_remote",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
 }
 
@@ -409,12 +440,13 @@ func (c *Client) RunRemoteDevelopment(ctx context.Context, body any) (*RunRemote
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) RunRemoteProduction(ctx context.Context, body any) (*RunRemoteOutput, error) {
 	return doJSON[RunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/production/run_remote",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/production/run_remote",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
 }
 
@@ -423,12 +455,13 @@ func (c *Client) RunRemoteProduction(ctx context.Context, body any) (*RunRemoteO
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) RunRemoteRegional(ctx context.Context, body any) (*RunRemoteOutput, error) {
 	return doJSON[RunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/run_remote",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/run_remote",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
 }
 
@@ -437,12 +470,13 @@ func (c *Client) RunRemoteRegional(ctx context.Context, body any) (*RunRemoteOut
 // Returns [*ResponseErrorResponse] on HTTP 401.
 func (c *Client) Wake(ctx context.Context, envName string) error {
 	return c.doNoResponse(ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/environments/%s/wake",
-		pathArgs:    []any{envName},
-		body:        nil,
-		successCode: 202,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/environments/%s/wake",
+		pathArgs:     []any{envName},
+		body:         nil,
+		successCodes: []int{202},
+		successCode:  202,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse},
 	})
 }
 
@@ -451,12 +485,13 @@ func (c *Client) Wake(ctx context.Context, envName string) error {
 // Returns [*ResponseErrorResponse] on HTTP 401.
 func (c *Client) WakeDeployment(ctx context.Context, deploymentId string) error {
 	return c.doNoResponse(ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/deployment/%s/wake",
-		pathArgs:    []any{deploymentId},
-		body:        nil,
-		successCode: 202,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/deployment/%s/wake",
+		pathArgs:     []any{deploymentId},
+		body:         nil,
+		successCodes: []int{202},
+		successCode:  202,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse},
 	})
 }
 
@@ -465,12 +500,13 @@ func (c *Client) WakeDeployment(ctx context.Context, deploymentId string) error 
 // Returns [*ResponseErrorResponse] on HTTP 401.
 func (c *Client) WakeDevelopment(ctx context.Context) error {
 	return c.doNoResponse(ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/development/wake",
-		pathArgs:    nil,
-		body:        nil,
-		successCode: 202,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/development/wake",
+		pathArgs:     nil,
+		body:         nil,
+		successCodes: []int{202},
+		successCode:  202,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse},
 	})
 }
 
@@ -479,12 +515,13 @@ func (c *Client) WakeDevelopment(ctx context.Context) error {
 // Returns [*ResponseErrorResponse] on HTTP 401.
 func (c *Client) WakeProduction(ctx context.Context) error {
 	return c.doNoResponse(ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/production/wake",
-		pathArgs:    nil,
-		body:        nil,
-		successCode: 202,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/production/wake",
+		pathArgs:     nil,
+		body:         nil,
+		successCodes: []int{202},
+		successCode:  202,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse},
 	})
 }
 
@@ -493,12 +530,13 @@ func (c *Client) WakeProduction(ctx context.Context) error {
 // Returns [*ResponseErrorResponse] on HTTP 401.
 func (c *Client) WakeRegional(ctx context.Context) error {
 	return c.doNoResponse(ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/wake",
-		pathArgs:    nil,
-		body:        nil,
-		successCode: 202,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/wake",
+		pathArgs:     nil,
+		body:         nil,
+		successCodes: []int{202},
+		successCode:  202,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse},
 	})
 }
 
@@ -511,11 +549,16 @@ const (
 )
 
 type apiRequest struct {
-	method      string
-	pathFmt     string
-	pathArgs    []any
-	body        any
-	successCode int
+	method       string
+	pathFmt      string
+	pathArgs     []any
+	body         any
+	successCode  int
+	successCodes []int
+	wireBody     io.Reader
+	contentType  string
+	accept       string
+	headers      http.Header
 	// errorCodes maps HTTP status codes to a typed error schema. Status codes
 	// not in this map (or decode failures) fall back to [*ResponseError].
 	errorCodes map[int]errorType
@@ -527,7 +570,9 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 	}
 	path := fmt.Sprintf(r.pathFmt, r.pathArgs...)
 	var bodyReader io.Reader
-	if r.body != nil {
+	if r.wireBody != nil {
+		bodyReader = r.wireBody
+	} else if r.body != nil {
 		b, err := json.Marshal(r.body)
 		if err != nil {
 			return nil, err
@@ -538,37 +583,53 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	if r.body != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
 	for key, vals := range c.Headers {
 		for _, val := range vals {
 			req.Header.Add(key, val)
 		}
 	}
+	for key, values := range r.headers {
+		req.Header.Del(key)
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
+	}
+	if r.accept != "" {
+		req.Header.Set("Accept", r.accept)
+	}
+	if r.body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	if r.contentType != "" {
+		req.Header.Set("Content-Type", r.contentType)
+	}
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != r.successCode {
+	success := resp.StatusCode == r.successCode
+	for _, code := range r.successCodes {
+		success = success || resp.StatusCode == code
+	}
+	if !success {
 		defer resp.Body.Close()
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 		if et, ok := r.errorCodes[resp.StatusCode]; ok {
-			if typedErr := decodeErrorType(et, resp.StatusCode, body); typedErr != nil {
+			if typedErr := decodeErrorType(et, resp.StatusCode, resp.Header, body); typedErr != nil {
 				return nil, typedErr
 			}
 		}
-		return nil, &ResponseError{StatusCode: resp.StatusCode, Body: string(body)}
+		return nil, &ResponseError{StatusCode: resp.StatusCode, Body: string(body), Header: resp.Header.Clone()}
 	}
 	return resp, nil
 }
 
-func decodeErrorType(et errorType, statusCode int, body []byte) error {
+func decodeErrorType(et errorType, statusCode int, header http.Header, body []byte) error {
 	switch et {
 	case errorTypeErrorResponse:
 		var detail ErrorResponse
 		if err := json.Unmarshal(body, &detail); err == nil {
-			return &ResponseErrorResponse{StatusCode: statusCode, ErrorResponse: detail}
+			return &ResponseErrorResponse{StatusCode: statusCode, Header: header.Clone(), ErrorResponse: detail}
 		}
 	}
 	return nil

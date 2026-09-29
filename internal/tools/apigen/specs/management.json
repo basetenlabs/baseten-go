@@ -10213,6 +10213,823 @@
                     "$ref": "#/components/parameters/api_key_prefix"
                 }
             ]
+        },
+        "/v1/sandboxes/cleanup_images": {
+            "post": {
+                "description": "Remove unused sandbox image versions. Versions referenced by active deployments are preserved.",
+                "operationId": "CleanupImages",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/CleanupImages"
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/CleanupImagesResponseV1"
+                                }
+                            }
+                        },
+                        "description": "Successful operation."
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "summary": "Clean up unused images",
+                "tags": [
+                    "Images"
+                ],
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/sandboxes/images": {
+            "get": {
+                "description": "Return one cursor-paginated page of image repository summaries. Tags are listed separately. Pages can be empty when non-sandbox repositories are excluded; follow pagination.cursor while pagination.has_more is true. Prefix search forces ascending name order.",
+                "operationId": "ListImages",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Cursor"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Limit"
+                    },
+                    {
+                        "description": "Sort by repository name or creation time: name:asc, name:desc, createdAt:asc, or createdAt:desc. Keep the same sort when following a cursor.",
+                        "in": "query",
+                        "name": "sort",
+                        "schema": {
+                            "default": "createdAt:desc",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Case-sensitive repository name prefix. Search is applied before pagination.",
+                        "in": "query",
+                        "name": "q",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/ImagesList"
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListImagesResponseV1"
+                                }
+                            }
+                        },
+                        "description": "Successful operation."
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "summary": "List sandbox images",
+                "tags": [
+                    "Images"
+                ],
+                "x-stability": "unstable"
+            },
+            "post": {
+                "description": "With image supplied, import the registry image asynchronously. Otherwise return an upload URL for a ZIP source archive containing its Dockerfile and build context. Processing starts after upload. No sandbox is created. Poll the image until BUILT or FAILED.",
+                "operationId": "PushImage",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "archive": {
+                                    "$ref": "#/components/examples/PushArchive"
+                                },
+                                "registry": {
+                                    "$ref": "#/components/examples/PushRegistry"
+                                }
+                            },
+                            "schema": {
+                                "$ref": "#/components/schemas/PushImageRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "202": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "archive": {
+                                        "$ref": "#/components/examples/PushArchiveAccepted"
+                                    },
+                                    "registry": {
+                                        "$ref": "#/components/examples/PushRegistryAccepted"
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/PushImageResponseV1"
+                                }
+                            }
+                        },
+                        "description": "Request accepted."
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "summary": "Push a sandbox image",
+                "tags": [
+                    "Images"
+                ],
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/sandboxes/images/{image_name}": {
+            "delete": {
+                "description": "Delete the image repository and all its tags. Reject deletion if any version is referenced by an active deployment. Return the deleted image.",
+                "operationId": "DeleteImage",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/ImageReady"
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImageV1"
+                                }
+                            }
+                        },
+                        "description": "Successful operation."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "409": {
+                        "$ref": "#/components/responses/SandboxError409"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "summary": "Delete a sandbox image",
+                "tags": [
+                    "Images"
+                ],
+                "x-stability": "unstable"
+            },
+            "get": {
+                "description": "Return the repository summary and processing status. Use the tag listing endpoint for image versions.",
+                "operationId": "GetImage",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/ImageSummary"
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImageV1"
+                                }
+                            }
+                        },
+                        "description": "Successful operation."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "summary": "Get a sandbox image",
+                "tags": [
+                    "Images"
+                ],
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/ImageName"
+                }
+            ]
+        },
+        "/v1/sandboxes/images/{image_name}/tags": {
+            "get": {
+                "description": "Return one cursor-paginated page of image versions.",
+                "operationId": "ListImageTags",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Cursor"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Limit"
+                    },
+                    {
+                        "description": "Sort by tag name: name:asc or name:desc. Keep the same sort when following a cursor.",
+                        "in": "query",
+                        "name": "sort",
+                        "schema": {
+                            "default": "name:asc",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Case-sensitive tag name prefix. Cannot be combined with name. Forces ascending name order.",
+                        "in": "query",
+                        "name": "q",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Exact tag name. Cannot be combined with q. Forces ascending name order.",
+                        "in": "query",
+                        "name": "name",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListImageTagsResponseV1"
+                                }
+                            }
+                        },
+                        "description": "Successful operation."
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "summary": "List image tags",
+                "tags": [
+                    "Images"
+                ],
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/ImageName"
+                }
+            ]
+        },
+        "/v1/sandboxes/images/{image_name}/tags/{tag_name}": {
+            "delete": {
+                "description": "Delete a specific image version. Reject deletion if the version is referenced by an active deployment. Return the updated image with its remaining tags, possibly empty.",
+                "operationId": "DeleteImageTag",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/ImageAfterTagDeletion"
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImageV1"
+                                }
+                            }
+                        },
+                        "description": "Successful operation."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "409": {
+                        "$ref": "#/components/responses/SandboxError409"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "summary": "Delete an image tag",
+                "tags": [
+                    "Images"
+                ],
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/ImageName"
+                },
+                {
+                    "$ref": "#/components/parameters/TagName"
+                }
+            ]
+        },
+        "/v1/sandboxes/instances": {
+            "get": {
+                "description": "Return a cursor-paginated page of sandboxes. Terminated sandboxes are hidden by default.",
+                "operationId": "ListSandboxes",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Cursor"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Limit"
+                    },
+                    {
+                        "description": "Search indexed sandbox names and labels. Search is applied before pagination.",
+                        "in": "query",
+                        "name": "q",
+                        "required": false,
+                        "schema": {
+                            "example": "api-review",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Deployment statuses. Repeat the query parameter for each status, for example status=DEPLOYED&status=FAILED. Unknown values are rejected. Cannot be combined with external_id.",
+                        "explode": true,
+                        "in": "query",
+                        "name": "status",
+                        "required": false,
+                        "schema": {
+                            "example": [
+                                "DEPLOYED",
+                                "FAILED"
+                            ],
+                            "items": {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        "style": "form"
+                    },
+                    {
+                        "description": "Filter by a caller-owned external identifier. Cannot be combined with status.",
+                        "in": "query",
+                        "name": "external_id",
+                        "required": false,
+                        "schema": {
+                            "example": "api-review-20260916-001",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "last_page": {
+                                        "$ref": "#/components/examples/SandboxesLastPage"
+                                    },
+                                    "page": {
+                                        "$ref": "#/components/examples/SandboxesPage"
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListSandboxesResponseV1"
+                                }
+                            }
+                        },
+                        "description": "Successful operation."
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "summary": "List sandboxes",
+                "tags": [
+                    "Sandboxes"
+                ],
+                "x-stability": "unstable"
+            },
+            "post": {
+                "description": "Create a sandbox with an optional client-provided name, generated by the server when omitted. The request waits briefly for deployment, then returns the created resource. Deployment may continue after the response; inspect status to determine readiness. Names belonging to failed or terminated sandboxes can be reused; an active sandbox reserves its name. To get started, set image to blaxel/base-image:latest, the built-in image with the sandbox execution API ready to use. It is available directly; no image build, push, or GET /v1/sandboxes/images is needed. Use the returned url to execute commands with the same Bearer API key.",
+                "operationId": "CreateSandbox",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "complete": {
+                                    "$ref": "#/components/examples/CreateSandbox"
+                                },
+                                "quickstart": {
+                                    "$ref": "#/components/examples/CreateSandboxQuickstart"
+                                }
+                            },
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateSandboxRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxReady"
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxV1"
+                                }
+                            }
+                        },
+                        "description": "Sandbox created."
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": "ALREADY_EXISTS",
+                                    "details": {
+                                        "name": "baseten-api-review-0916"
+                                    },
+                                    "message": "A sandbox with this name already exists."
+                                }
+                            }
+                        },
+                        "description": "An active sandbox with the requested name already exists. Returns a JSON error with code, message, and optional details."
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "summary": "Create a sandbox",
+                "tags": [
+                    "Sandboxes"
+                ],
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/sandboxes/instances/{sandbox_name}": {
+            "delete": {
+                "description": "Permanently delete the sandbox and its local data asynchronously. The returned resource has status DELETING.",
+                "operationId": "DeleteSandbox",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxDeleting"
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxV1"
+                                }
+                            }
+                        },
+                        "description": "Request accepted."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "409": {
+                        "$ref": "#/components/responses/SandboxError409"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "summary": "Delete a sandbox",
+                "tags": [
+                    "Sandboxes"
+                ],
+                "x-stability": "unstable"
+            },
+            "get": {
+                "description": "Return the sandbox configuration and current state.",
+                "operationId": "GetSandbox",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxReady"
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxV1"
+                                }
+                            }
+                        },
+                        "description": "Successful operation."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "summary": "Get a sandbox",
+                "tags": [
+                    "Sandboxes"
+                ],
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/SandboxName"
+                }
+            ],
+            "patch": {
+                "description": "Partially update configuration. Omitted fields remain unchanged; supplied arrays and maps replace their previous values. Structured objects update only supplied fields. Changes to image may reset running state. The name, memory, and network configuration are immutable after creation. Supplying memory or network returns 400, including unchanged, empty, or null values.",
+                "operationId": "UpdateSandbox",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "complete": {
+                                    "$ref": "#/components/examples/UpdateSandbox"
+                                }
+                            },
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateSandboxRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxUpdated"
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxV1"
+                                }
+                            }
+                        },
+                        "description": "Successful operation."
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": "INVALID_REQUEST",
+                                    "message": "Memory and network configuration cannot be changed after creation."
+                                }
+                            }
+                        },
+                        "description": "Invalid request, including attempts to change memory or network configuration."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "409": {
+                        "$ref": "#/components/responses/SandboxError409"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "summary": "Update a sandbox",
+                "tags": [
+                    "Sandboxes"
+                ],
+                "x-stability": "unstable"
+            }
         }
     },
     "openapi": "3.1.0",
@@ -31956,6 +32773,1917 @@
                 ],
                 "title": "RegisterAPIKeyResponseV1",
                 "type": "object"
+            },
+            "CleanupImagesResponseV1": {
+                "description": "Result of cleaning up unused sandbox images.",
+                "example": {
+                    "deleted": 3,
+                    "message": "Removed 3 unused image versions. Image versions used by active sandboxes were retained."
+                },
+                "properties": {
+                    "deleted": {
+                        "description": "Number of image versions removed.",
+                        "example": 3,
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "message": {
+                        "description": "Human-readable cleanup result.",
+                        "example": "Removed 3 unused image versions. Image versions used by active sandboxes were retained.",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "deleted",
+                    "message"
+                ],
+                "type": "object"
+            },
+            "CreateSandboxRequestV1": {
+                "description": "Configuration for a new sandbox. The client may provide a name; otherwise the server generates one. The name is immutable after creation.",
+                "example": {
+                    "display_name": "Baseten API review",
+                    "envs": [
+                        {
+                            "name": "NODE_ENV",
+                            "secret": false,
+                            "value": "production"
+                        },
+                        {
+                            "name": "PORT",
+                            "secret": false,
+                            "value": "3000"
+                        }
+                    ],
+                    "external_id": "api-review-20260916-001",
+                    "image": "blaxel/base-image:latest",
+                    "labels": {
+                        "env": "development",
+                        "project": "api-review",
+                        "team": "engineering"
+                    },
+                    "lifecycle": {
+                        "expiration_policies": [
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_IDLE",
+                                "value": "24h"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_MAX_AGE",
+                                "value": "7d"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "DATE",
+                                "value": "2026-09-23T21:26:58Z"
+                            }
+                        ],
+                        "terminated_retention": "24h"
+                    },
+                    "memory": 4096,
+                    "name": "baseten-api-review-0916",
+                    "network": {
+                        "proxy": {
+                            "allowed_domains": [
+                                "api.openai.com",
+                                "pypi.org",
+                                "files.pythonhosted.org",
+                                "registry.npmjs.org"
+                            ],
+                            "bypass": [
+                                "registry.npmjs.org"
+                            ],
+                            "forbidden_domains": [
+                                "facebook.com",
+                                "*.facebook.com"
+                            ],
+                            "routing": [
+                                {
+                                    "body": {
+                                        "user": "baseten-api-review-0916"
+                                    },
+                                    "destinations": [
+                                        "api.openai.com"
+                                    ],
+                                    "headers": {
+                                        "Authorization": "Bearer {{SECRET:openai-key}}"
+                                    },
+                                    "secrets": {
+                                        "openai-key": "sk-proj-demo-not-a-valid-api-key"
+                                    }
+                                }
+                            ]
+                        },
+                        "subnet": "default"
+                    },
+                    "ports": [
+                        {
+                            "name": "http",
+                            "protocol": "HTTP",
+                            "target": 3000
+                        }
+                    ],
+                    "region": "us-pdx-1"
+                },
+                "properties": {
+                    "display_name": {
+                        "description": "Human-readable name for display in the UI. Can contain spaces and special characters, max 63 characters.",
+                        "example": "Baseten API review",
+                        "maxLength": 63,
+                        "type": "string"
+                    },
+                    "envs": {
+                        "description": "Environment variables injected into the sandbox.",
+                        "example": [
+                            {
+                                "name": "NODE_ENV",
+                                "secret": false,
+                                "value": "production"
+                            },
+                            {
+                                "name": "PORT",
+                                "secret": false,
+                                "value": "3000"
+                            }
+                        ],
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxEnvV1"
+                        },
+                        "type": "array"
+                    },
+                    "external_id": {
+                        "description": "Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.",
+                        "example": "api-review-20260916-001",
+                        "maxLength": 64,
+                        "pattern": "^[A-Za-z0-9-]+$",
+                        "type": "string"
+                    },
+                    "image": {
+                        "description": "Image reference including its tag. Use blaxel/base-image:latest to get started with the built-in sandbox execution API. This image is available directly without building, pushing, or listing images through GET /v1/sandboxes/images.",
+                        "example": "blaxel/base-image:latest",
+                        "type": "string"
+                    },
+                    "labels": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxMetadataLabelsV1"
+                            }
+                        ],
+                        "description": "Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.",
+                        "example": {
+                            "env": "development",
+                            "project": "api-review",
+                            "team": "engineering"
+                        }
+                    },
+                    "lifecycle": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxLifecycleV1"
+                            }
+                        ],
+                        "description": "Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates",
+                        "example": {
+                            "expiration_policies": [
+                                {
+                                    "action": "DELETE",
+                                    "type": "TTL_IDLE",
+                                    "value": "24h"
+                                },
+                                {
+                                    "action": "DELETE",
+                                    "type": "TTL_MAX_AGE",
+                                    "value": "7d"
+                                },
+                                {
+                                    "action": "DELETE",
+                                    "type": "DATE",
+                                    "value": "2026-09-23T21:26:58Z"
+                                }
+                            ],
+                            "terminated_retention": "24h"
+                        }
+                    },
+                    "memory": {
+                        "description": "Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs).",
+                        "example": 4096,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Optional unique sandbox name. Generated by the server when omitted; immutable after creation.",
+                        "example": "baseten-api-review-0916",
+                        "minLength": 1,
+                        "type": "string"
+                    },
+                    "network": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxNetworkV1"
+                            }
+                        ],
+                        "description": "Network configuration for a sandbox including subnet, domain filtering, and proxy settings",
+                        "example": {
+                            "proxy": {
+                                "allowed_domains": [
+                                    "api.openai.com",
+                                    "pypi.org",
+                                    "files.pythonhosted.org",
+                                    "registry.npmjs.org"
+                                ],
+                                "bypass": [
+                                    "registry.npmjs.org"
+                                ],
+                                "forbidden_domains": [
+                                    "facebook.com",
+                                    "*.facebook.com"
+                                ],
+                                "routing": [
+                                    {
+                                        "body": {
+                                            "user": "baseten-api-review-0916"
+                                        },
+                                        "destinations": [
+                                            "api.openai.com"
+                                        ],
+                                        "headers": {
+                                            "Authorization": "Bearer {{SECRET:openai-key}}"
+                                        },
+                                        "secrets": {
+                                            "openai-key": "sk-proj-demo-not-a-valid-api-key"
+                                        }
+                                    }
+                                ]
+                            },
+                            "subnet": "default"
+                        }
+                    },
+                    "ports": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxPortsV1"
+                            }
+                        ],
+                        "description": "Set of ports for a resource",
+                        "example": [
+                            {
+                                "name": "http",
+                                "protocol": "HTTP",
+                                "target": 3000
+                            }
+                        ]
+                    },
+                    "region": {
+                        "description": "Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.",
+                        "example": "us-pdx-1",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ImageStatusV1": {
+                "description": "Image processing status. Only BUILT images are ready to use.",
+                "enum": [
+                    "UPLOADING",
+                    "BUILDING",
+                    "BUILT",
+                    "FAILED"
+                ],
+                "example": "BUILT",
+                "readOnly": true,
+                "type": "string"
+            },
+            "ImageTagV1": {
+                "description": "A tag identifying a version of a sandbox image.",
+                "example": {
+                    "created_at": "2026-09-16T21:20:00Z",
+                    "name": "latest",
+                    "size": 134217728,
+                    "updated_at": "2026-09-16T21:25:00Z"
+                },
+                "properties": {
+                    "created_at": {
+                        "description": "Time the tag was created.",
+                        "example": "2026-09-16T21:20:00Z",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Image tag name.",
+                        "example": "latest",
+                        "type": "string"
+                    },
+                    "size": {
+                        "description": "Image size in bytes.",
+                        "example": 134217728,
+                        "format": "int64",
+                        "minimum": 0,
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "updated_at": {
+                        "description": "Time the tag was last updated.",
+                        "example": "2026-09-16T21:25:00Z",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ],
+                "type": "object"
+            },
+            "ImageV1": {
+                "description": "Sandbox image repository. List and get operations return a summary without embedded tags.",
+                "example": {
+                    "created_at": "2026-09-15T21:20:00Z",
+                    "display_name": "b10/base-image",
+                    "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
+                    "name": "base-image",
+                    "size": 260046848,
+                    "status": "BUILT",
+                    "tags": [
+                        {
+                            "created_at": "2026-09-16T21:20:00Z",
+                            "name": "latest",
+                            "size": 134217728,
+                            "updated_at": "2026-09-16T21:25:00Z"
+                        },
+                        {
+                            "created_at": "2026-09-15T21:20:00Z",
+                            "name": "20260915212000",
+                            "size": 125829120,
+                            "updated_at": "2026-09-15T21:25:00Z"
+                        }
+                    ],
+                    "updated_at": "2026-09-16T21:25:00Z"
+                },
+                "properties": {
+                    "created_at": {
+                        "description": "Time the image was created.",
+                        "example": "2026-09-15T21:20:00Z",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "display_name": {
+                        "description": "Human-readable image repository name.",
+                        "example": "b10/base-image",
+                        "type": "string"
+                    },
+                    "last_deployed_at": {
+                        "description": "Most recent deployment time across all tags, if deployed.",
+                        "example": "2026-09-16T21:26:58.545765901Z",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Stable repository name supplied when pushing the image.",
+                        "example": "base-image",
+                        "type": "string"
+                    },
+                    "size": {
+                        "description": "Total repository size in bytes.",
+                        "example": 260046848,
+                        "format": "int64",
+                        "minimum": 0,
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ImageStatusV1"
+                            }
+                        ],
+                        "description": "Image processing status. Only BUILT images are ready to use.",
+                        "example": "BUILT"
+                    },
+                    "tag_count": {
+                        "description": "Number of image versions in the repository.",
+                        "example": 2,
+                        "format": "int64",
+                        "minimum": 0,
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "tags": {
+                        "description": "Empty for list and get summary responses. Use GET /sandboxes/images/{image_name}/tags to retrieve paginated image versions.",
+                        "example": [
+                            {
+                                "created_at": "2026-09-16T21:20:00Z",
+                                "name": "latest",
+                                "size": 134217728,
+                                "updated_at": "2026-09-16T21:25:00Z"
+                            },
+                            {
+                                "created_at": "2026-09-15T21:20:00Z",
+                                "name": "20260915212000",
+                                "size": 125829120,
+                                "updated_at": "2026-09-15T21:25:00Z"
+                            }
+                        ],
+                        "items": {
+                            "$ref": "#/components/schemas/ImageTagV1"
+                        },
+                        "type": "array"
+                    },
+                    "updated_at": {
+                        "description": "Time the image was last updated.",
+                        "example": "2026-09-16T21:25:00Z",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "status",
+                    "tags"
+                ],
+                "type": "object"
+            },
+            "ListImageTagsResponseV1": {
+                "description": "One page of image tags.",
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/ImageTagV1"
+                        },
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/SandboxApiPaginationV1"
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "type": "object"
+            },
+            "ListImagesResponseV1": {
+                "description": "One page of image repository summaries. Fetch tags through the separate tag listing endpoint.",
+                "properties": {
+                    "items": {
+                        "description": "Image repositories on this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/ImageV1"
+                        },
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/SandboxApiPaginationV1"
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "type": "object"
+            },
+            "ListSandboxesResponseV1": {
+                "description": "One page of sandboxes.",
+                "example": {
+                    "items": [
+                        {
+                            "created_at": "2026-09-16T21:26:58.545765901Z",
+                            "created_by": "sandbox-automation",
+                            "display_name": "Baseten API review",
+                            "enabled": true,
+                            "envs": [
+                                {
+                                    "name": "NODE_ENV",
+                                    "secret": false,
+                                    "value": "production"
+                                },
+                                {
+                                    "name": "PORT",
+                                    "secret": false,
+                                    "value": "3000"
+                                }
+                            ],
+                            "expires_in": 86400,
+                            "external_id": "api-review-20260916-001",
+                            "image": "blaxel/base-image:latest",
+                            "labels": {
+                                "env": "development",
+                                "project": "api-review",
+                                "team": "engineering"
+                            },
+                            "last_used_at": "2026-09-16T21:31:13Z",
+                            "lifecycle": {
+                                "expiration_policies": [
+                                    {
+                                        "action": "DELETE",
+                                        "type": "TTL_IDLE",
+                                        "value": "24h"
+                                    },
+                                    {
+                                        "action": "DELETE",
+                                        "type": "TTL_MAX_AGE",
+                                        "value": "7d"
+                                    },
+                                    {
+                                        "action": "DELETE",
+                                        "type": "DATE",
+                                        "value": "2026-09-23T21:26:58Z"
+                                    }
+                                ],
+                                "terminated_retention": "24h"
+                            },
+                            "memory": 4096,
+                            "name": "baseten-api-review-0916",
+                            "network": {
+                                "proxy": {
+                                    "allowed_domains": [
+                                        "api.openai.com",
+                                        "pypi.org",
+                                        "files.pythonhosted.org",
+                                        "registry.npmjs.org"
+                                    ],
+                                    "bypass": [
+                                        "registry.npmjs.org"
+                                    ],
+                                    "forbidden_domains": [
+                                        "facebook.com",
+                                        "*.facebook.com"
+                                    ],
+                                    "routing": [
+                                        {
+                                            "body": {
+                                                "user": "baseten-api-review-0916"
+                                            },
+                                            "destinations": [
+                                                "api.openai.com"
+                                            ],
+                                            "headers": {
+                                                "Authorization": "Bearer {{SECRET:openai-key}}"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "subnet": "default"
+                            },
+                            "ports": [
+                                {
+                                    "name": "http",
+                                    "protocol": "HTTP",
+                                    "target": 3000
+                                }
+                            ],
+                            "region": "us-pdx-1",
+                            "state": "RUNNING",
+                            "status": "DEPLOYED",
+                            "updated_at": "2026-09-16T21:31:13Z",
+                            "updated_by": "sandbox-automation",
+                            "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run"
+                        }
+                    ],
+                    "pagination": {
+                        "cursor": "eyJ2IjoxLCJsYXN0X2tleSI6ImJhc2V0ZW4tYXBpLXJldmlldy0wOTE2Iiwic29ydCI6ImRlc2MifQ",
+                        "has_more": true
+                    }
+                },
+                "properties": {
+                    "items": {
+                        "description": "Resources on this page.",
+                        "example": [
+                            {
+                                "created_at": "2026-09-16T21:26:58.545765901Z",
+                                "created_by": "sandbox-automation",
+                                "display_name": "Baseten API review",
+                                "enabled": true,
+                                "envs": [
+                                    {
+                                        "name": "NODE_ENV",
+                                        "secret": false,
+                                        "value": "production"
+                                    },
+                                    {
+                                        "name": "PORT",
+                                        "secret": false,
+                                        "value": "3000"
+                                    }
+                                ],
+                                "expires_in": 86400,
+                                "external_id": "api-review-20260916-001",
+                                "image": "blaxel/base-image:latest",
+                                "labels": {
+                                    "env": "development",
+                                    "project": "api-review",
+                                    "team": "engineering"
+                                },
+                                "last_used_at": "2026-09-16T21:31:13Z",
+                                "lifecycle": {
+                                    "expiration_policies": [
+                                        {
+                                            "action": "DELETE",
+                                            "type": "TTL_IDLE",
+                                            "value": "24h"
+                                        },
+                                        {
+                                            "action": "DELETE",
+                                            "type": "TTL_MAX_AGE",
+                                            "value": "7d"
+                                        },
+                                        {
+                                            "action": "DELETE",
+                                            "type": "DATE",
+                                            "value": "2026-09-23T21:26:58Z"
+                                        }
+                                    ],
+                                    "terminated_retention": "24h"
+                                },
+                                "memory": 4096,
+                                "name": "baseten-api-review-0916",
+                                "network": {
+                                    "proxy": {
+                                        "allowed_domains": [
+                                            "api.openai.com",
+                                            "pypi.org",
+                                            "files.pythonhosted.org",
+                                            "registry.npmjs.org"
+                                        ],
+                                        "bypass": [
+                                            "registry.npmjs.org"
+                                        ],
+                                        "forbidden_domains": [
+                                            "facebook.com",
+                                            "*.facebook.com"
+                                        ],
+                                        "routing": [
+                                            {
+                                                "body": {
+                                                    "user": "baseten-api-review-0916"
+                                                },
+                                                "destinations": [
+                                                    "api.openai.com"
+                                                ],
+                                                "headers": {
+                                                    "Authorization": "Bearer {{SECRET:openai-key}}"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "subnet": "default"
+                                },
+                                "ports": [
+                                    {
+                                        "name": "http",
+                                        "protocol": "HTTP",
+                                        "target": 3000
+                                    }
+                                ],
+                                "region": "us-pdx-1",
+                                "state": "RUNNING",
+                                "status": "DEPLOYED",
+                                "updated_at": "2026-09-16T21:31:13Z",
+                                "updated_by": "sandbox-automation",
+                                "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run"
+                            }
+                        ],
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxV1"
+                        },
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxApiPaginationV1"
+                            }
+                        ],
+                        "description": "Cursor pagination information. The cursor is present only when another page is available.",
+                        "example": {
+                            "cursor": "eyJ2IjoxLCJsYXN0X2tleSI6ImJhc2V0ZW4tYXBpLXJldmlldy0wOTE2Iiwic29ydCI6ImRlc2MifQ",
+                            "has_more": true
+                        }
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "type": "object"
+            },
+            "PushImageRequestV1": {
+                "description": "Push a sandbox image from a source archive or an existing registry image.",
+                "example": {
+                    "docker_config": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}",
+                    "image": "docker.io/b10/base-image:latest",
+                    "name": "base-image"
+                },
+                "properties": {
+                    "docker_config": {
+                        "description": "Optional serialized registry authentication configuration for importing a private image. Used only when image is supplied; never returned.",
+                        "example": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}",
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "image": {
+                        "description": "Optional source registry image reference including a registry hostname. When omitted, the response provides an archive upload URL.",
+                        "example": "docker.io/b10/base-image:latest",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Target image repository name. Reusing a name pushes a new version to the existing repository.",
+                        "example": "base-image",
+                        "minLength": 1,
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ],
+                "type": "object"
+            },
+            "PushImageResponseV1": {
+                "description": "Accepted image push. Acceptance does not imply readiness; poll GET /sandboxes/images/{image_name} until status is BUILT or FAILED.",
+                "example": {
+                    "image": "b10/base-image:latest",
+                    "name": "base-image",
+                    "status": "BUILDING"
+                },
+                "properties": {
+                    "image": {
+                        "description": "Registered image reference including its tag, when available. Tags are assigned by the service; GET /sandboxes/images/{image_name} returns the available tags once processing completes.",
+                        "example": "b10/base-image:latest",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Target image repository name.",
+                        "example": "base-image",
+                        "type": "string"
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ImageStatusV1"
+                            }
+                        ],
+                        "description": "Image processing status. Only BUILT images are ready to use.",
+                        "example": "BUILDING"
+                    },
+                    "upload_url": {
+                        "description": "Temporary signed URL for uploading the source ZIP archive with HTTP PUT. Present only when no source image was supplied. Uploading starts asynchronous processing. This storage upload is separate from the API endpoints.",
+                        "example": "https://uploads.b10.run/images/base-image/20260916212658/source.zip?expires=2026-09-16T22%3A26%3A58Z&signature=demo-not-a-valid-upload-signature",
+                        "format": "uri",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "status"
+                ],
+                "type": "object"
+            },
+            "SandboxApiPaginationV1": {
+                "description": "Cursor pagination information. The cursor is present only when another page is available.",
+                "example": {
+                    "cursor": "eyJ2IjoxLCJsYXN0X2tleSI6ImJhc2V0ZW4tYXBpLXJldmlldy0wOTE2Iiwic29ydCI6ImRlc2MifQ",
+                    "has_more": true
+                },
+                "properties": {
+                    "cursor": {
+                        "description": "Opaque cursor to pass to the next list request. Keep the same filters.",
+                        "example": "eyJ2IjoxLCJsYXN0X2tleSI6ImJhc2V0ZW4tYXBpLXJldmlldy0wOTE2Iiwic29ydCI6ImRlc2MifQ",
+                        "minLength": 1,
+                        "type": "string"
+                    },
+                    "has_more": {
+                        "description": "Whether another page is available.",
+                        "example": true,
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "has_more"
+                ],
+                "type": "object"
+            },
+            "SandboxConfigurationV1": {
+                "description": "Writable sandbox configuration. Fields are serialized at the root of the request or resource.",
+                "example": {
+                    "display_name": "Baseten API review",
+                    "enabled": true,
+                    "envs": [
+                        {
+                            "name": "NODE_ENV",
+                            "secret": false,
+                            "value": "production"
+                        },
+                        {
+                            "name": "PORT",
+                            "secret": false,
+                            "value": "3000"
+                        }
+                    ],
+                    "external_id": "api-review-20260916-001",
+                    "image": "blaxel/base-image:latest",
+                    "labels": {
+                        "env": "development",
+                        "project": "api-review",
+                        "team": "engineering"
+                    },
+                    "lifecycle": {
+                        "expiration_policies": [
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_IDLE",
+                                "value": "24h"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_MAX_AGE",
+                                "value": "7d"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "DATE",
+                                "value": "2026-09-23T21:26:58Z"
+                            }
+                        ],
+                        "terminated_retention": "24h"
+                    },
+                    "memory": 4096,
+                    "network": {
+                        "proxy": {
+                            "allowed_domains": [
+                                "api.openai.com",
+                                "pypi.org",
+                                "files.pythonhosted.org",
+                                "registry.npmjs.org"
+                            ],
+                            "bypass": [
+                                "registry.npmjs.org"
+                            ],
+                            "forbidden_domains": [
+                                "facebook.com",
+                                "*.facebook.com"
+                            ],
+                            "routing": [
+                                {
+                                    "body": {
+                                        "user": "baseten-api-review-0916"
+                                    },
+                                    "destinations": [
+                                        "api.openai.com"
+                                    ],
+                                    "headers": {
+                                        "Authorization": "Bearer {{SECRET:openai-key}}"
+                                    },
+                                    "secrets": {
+                                        "openai-key": "sk-proj-demo-not-a-valid-api-key"
+                                    }
+                                }
+                            ]
+                        },
+                        "subnet": "default"
+                    },
+                    "ports": [
+                        {
+                            "name": "http",
+                            "protocol": "HTTP",
+                            "target": 3000
+                        }
+                    ],
+                    "region": "us-pdx-1"
+                },
+                "properties": {
+                    "display_name": {
+                        "description": "Human-readable name for display in the UI. Can contain spaces and special characters, max 63 characters.",
+                        "example": "Baseten API review",
+                        "maxLength": 63,
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "default": true,
+                        "description": "When false, the sandbox is disabled and will not accept connections",
+                        "example": true,
+                        "type": "boolean"
+                    },
+                    "envs": {
+                        "description": "Environment variables injected into the sandbox.",
+                        "example": [
+                            {
+                                "name": "NODE_ENV",
+                                "secret": false,
+                                "value": "production"
+                            },
+                            {
+                                "name": "PORT",
+                                "secret": false,
+                                "value": "3000"
+                            }
+                        ],
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxEnvV1"
+                        },
+                        "type": "array"
+                    },
+                    "external_id": {
+                        "description": "Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.",
+                        "example": "api-review-20260916-001",
+                        "maxLength": 64,
+                        "pattern": "^[A-Za-z0-9-]+$",
+                        "type": "string"
+                    },
+                    "image": {
+                        "description": "Image reference including its tag. Use blaxel/base-image:latest to get started with the built-in sandbox execution API. This image is available directly without building, pushing, or listing images through GET /v1/sandboxes/images.",
+                        "example": "blaxel/base-image:latest",
+                        "type": "string"
+                    },
+                    "labels": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxMetadataLabelsV1"
+                            }
+                        ],
+                        "description": "Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.",
+                        "example": {
+                            "env": "development",
+                            "project": "api-review",
+                            "team": "engineering"
+                        }
+                    },
+                    "lifecycle": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxLifecycleV1"
+                            }
+                        ],
+                        "description": "Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates",
+                        "example": {
+                            "expiration_policies": [
+                                {
+                                    "action": "DELETE",
+                                    "type": "TTL_IDLE",
+                                    "value": "24h"
+                                },
+                                {
+                                    "action": "DELETE",
+                                    "type": "TTL_MAX_AGE",
+                                    "value": "7d"
+                                },
+                                {
+                                    "action": "DELETE",
+                                    "type": "DATE",
+                                    "value": "2026-09-23T21:26:58Z"
+                                }
+                            ],
+                            "terminated_retention": "24h"
+                        }
+                    },
+                    "memory": {
+                        "description": "Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs).",
+                        "example": 4096,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "network": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxNetworkV1"
+                            }
+                        ],
+                        "description": "Network configuration for a sandbox including subnet, domain filtering, and proxy settings",
+                        "example": {
+                            "proxy": {
+                                "allowed_domains": [
+                                    "api.openai.com",
+                                    "pypi.org",
+                                    "files.pythonhosted.org",
+                                    "registry.npmjs.org"
+                                ],
+                                "bypass": [
+                                    "registry.npmjs.org"
+                                ],
+                                "forbidden_domains": [
+                                    "facebook.com",
+                                    "*.facebook.com"
+                                ],
+                                "routing": [
+                                    {
+                                        "body": {
+                                            "user": "baseten-api-review-0916"
+                                        },
+                                        "destinations": [
+                                            "api.openai.com"
+                                        ],
+                                        "headers": {
+                                            "Authorization": "Bearer {{SECRET:openai-key}}"
+                                        },
+                                        "secrets": {
+                                            "openai-key": "sk-proj-demo-not-a-valid-api-key"
+                                        }
+                                    }
+                                ]
+                            },
+                            "subnet": "default"
+                        }
+                    },
+                    "ports": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxPortsV1"
+                            }
+                        ],
+                        "description": "Set of ports for a resource",
+                        "example": [
+                            {
+                                "name": "http",
+                                "protocol": "HTTP",
+                                "target": 3000
+                            }
+                        ]
+                    },
+                    "region": {
+                        "description": "Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.",
+                        "example": "us-pdx-1",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "SandboxDateExpirationPolicyV1": {
+                "description": "Delete at the specified absolute timestamp.",
+                "properties": {
+                    "action": {
+                        "enum": [
+                            "DELETE"
+                        ],
+                        "type": "string"
+                    },
+                    "type": {
+                        "enum": [
+                            "DATE"
+                        ],
+                        "type": "string"
+                    },
+                    "value": {
+                        "example": "2026-09-23T21:26:58Z",
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "action",
+                    "type",
+                    "value"
+                ],
+                "type": "object"
+            },
+            "SandboxDurationV1": {
+                "description": "Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w.",
+                "example": "24h",
+                "pattern": "^[+-]?(0|[0-9]+[dw]|([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(ns|us|µs|μs|ms|s|m|h)(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(ns|us|µs|μs|ms|s|m|h))*)$",
+                "type": "string"
+            },
+            "SandboxEnvV1": {
+                "description": "Environment variable with name and value",
+                "example": {
+                    "name": "NODE_ENV",
+                    "secret": false,
+                    "value": "production"
+                },
+                "properties": {
+                    "name": {
+                        "description": "Name of the environment variable",
+                        "example": "NODE_ENV",
+                        "type": "string"
+                    },
+                    "secret": {
+                        "description": "Whether the value is a secret",
+                        "example": false,
+                        "type": "boolean"
+                    },
+                    "value": {
+                        "description": "Value of the environment variable",
+                        "example": "production",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "SandboxExpirationPolicyV1": {
+                "description": "Expiration policy. The type determines whether value is a duration or an absolute timestamp.",
+                "discriminator": {
+                    "mapping": {
+                        "DATE": "#/components/schemas/SandboxDateExpirationPolicyV1",
+                        "TTL_IDLE": "#/components/schemas/SandboxTTLIdleExpirationPolicyV1",
+                        "TTL_MAX_AGE": "#/components/schemas/SandboxTTLMaxAgeExpirationPolicyV1"
+                    },
+                    "propertyName": "type"
+                },
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/SandboxTTLIdleExpirationPolicyV1"
+                    },
+                    {
+                        "$ref": "#/components/schemas/SandboxTTLMaxAgeExpirationPolicyV1"
+                    },
+                    {
+                        "$ref": "#/components/schemas/SandboxDateExpirationPolicyV1"
+                    }
+                ]
+            },
+            "SandboxLifecycleV1": {
+                "description": "Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates",
+                "example": {
+                    "expiration_policies": [
+                        {
+                            "action": "DELETE",
+                            "type": "TTL_IDLE",
+                            "value": "24h"
+                        },
+                        {
+                            "action": "DELETE",
+                            "type": "TTL_MAX_AGE",
+                            "value": "7d"
+                        },
+                        {
+                            "action": "DELETE",
+                            "type": "DATE",
+                            "value": "2026-09-23T21:26:58Z"
+                        }
+                    ],
+                    "terminated_retention": "24h"
+                },
+                "properties": {
+                    "expiration_policies": {
+                        "description": "List of expiration policies. Multiple policies can be combined; whichever condition is met first triggers the action.",
+                        "example": [
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_IDLE",
+                                "value": "24h"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_MAX_AGE",
+                                "value": "7d"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "DATE",
+                                "value": "2026-09-23T21:26:58Z"
+                            }
+                        ],
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxExpirationPolicyV1"
+                        },
+                        "type": "array"
+                    },
+                    "terminated_retention": {
+                        "description": "Duration to keep the sandbox record after termination for log access (e.g., '1h', '24h', '7d'). Defaults to 5m. Subject to maximum quota limits.",
+                        "example": "24h",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "SandboxMetadataLabelsV1": {
+                "additionalProperties": {
+                    "type": "string"
+                },
+                "description": "Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.",
+                "example": {
+                    "env": "development",
+                    "project": "api-review",
+                    "team": "engineering"
+                },
+                "type": "object"
+            },
+            "SandboxNetworkV1": {
+                "description": "Network configuration for a sandbox including subnet, domain filtering, and proxy settings",
+                "example": {
+                    "proxy": {
+                        "allowed_domains": [
+                            "api.openai.com",
+                            "pypi.org",
+                            "files.pythonhosted.org",
+                            "registry.npmjs.org"
+                        ],
+                        "bypass": [
+                            "registry.npmjs.org"
+                        ],
+                        "forbidden_domains": [
+                            "facebook.com",
+                            "*.facebook.com"
+                        ],
+                        "routing": [
+                            {
+                                "body": {
+                                    "user": "baseten-api-review-0916"
+                                },
+                                "destinations": [
+                                    "api.openai.com"
+                                ],
+                                "headers": {
+                                    "Authorization": "Bearer {{SECRET:openai-key}}"
+                                },
+                                "secrets": {
+                                    "openai-key": "sk-proj-demo-not-a-valid-api-key"
+                                }
+                            }
+                        ]
+                    },
+                    "subnet": "default"
+                },
+                "properties": {
+                    "proxy": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxProxyConfigV1"
+                            }
+                        ],
+                        "description": "Proxy configuration for routing sandbox HTTP traffic through the platform proxy with MITM inspection and per-destination header/body injection",
+                        "example": {
+                            "allowed_domains": [
+                                "api.openai.com",
+                                "pypi.org",
+                                "files.pythonhosted.org",
+                                "registry.npmjs.org"
+                            ],
+                            "bypass": [
+                                "registry.npmjs.org"
+                            ],
+                            "forbidden_domains": [
+                                "facebook.com",
+                                "*.facebook.com"
+                            ],
+                            "routing": [
+                                {
+                                    "body": {
+                                        "user": "baseten-api-review-0916"
+                                    },
+                                    "destinations": [
+                                        "api.openai.com"
+                                    ],
+                                    "headers": {
+                                        "Authorization": "Bearer {{SECRET:openai-key}}"
+                                    },
+                                    "secrets": {
+                                        "openai-key": "sk-proj-demo-not-a-valid-api-key"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "subnet": {
+                        "description": "Subnet name for the sandbox. Defaults to \"default\" at creation.",
+                        "example": "default",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "SandboxPortV1": {
+                "description": "A port for a resource",
+                "example": {
+                    "name": "http",
+                    "protocol": "HTTP",
+                    "target": 3000
+                },
+                "properties": {
+                    "name": {
+                        "description": "The name of the port",
+                        "example": "http",
+                        "type": "string"
+                    },
+                    "protocol": {
+                        "description": "The protocol of the port",
+                        "enum": [
+                            "HTTP",
+                            "TCP",
+                            "UDP",
+                            "TLS"
+                        ],
+                        "example": "HTTP",
+                        "type": "string"
+                    },
+                    "target": {
+                        "description": "The target port of the port",
+                        "example": 3000,
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "target"
+                ],
+                "type": "object"
+            },
+            "SandboxPortsV1": {
+                "description": "Set of ports for a resource",
+                "example": [
+                    {
+                        "name": "http",
+                        "protocol": "HTTP",
+                        "target": 3000
+                    }
+                ],
+                "items": {
+                    "$ref": "#/components/schemas/SandboxPortV1"
+                },
+                "type": "array"
+            },
+            "SandboxProxyConfigV1": {
+                "description": "Proxy configuration for routing sandbox HTTP traffic through the platform proxy with MITM inspection and per-destination header/body injection",
+                "example": {
+                    "allowed_domains": [
+                        "api.openai.com",
+                        "pypi.org",
+                        "files.pythonhosted.org",
+                        "registry.npmjs.org"
+                    ],
+                    "bypass": [
+                        "registry.npmjs.org"
+                    ],
+                    "forbidden_domains": [
+                        "facebook.com",
+                        "*.facebook.com"
+                    ],
+                    "routing": [
+                        {
+                            "body": {
+                                "user": "baseten-api-review-0916"
+                            },
+                            "destinations": [
+                                "api.openai.com"
+                            ],
+                            "headers": {
+                                "Authorization": "Bearer {{SECRET:openai-key}}"
+                            },
+                            "secrets": {
+                                "openai-key": "sk-proj-demo-not-a-valid-api-key"
+                            }
+                        }
+                    ]
+                },
+                "properties": {
+                    "allowed_domains": {
+                        "description": "List of allowed external domains (allowlist). When set, only these domains are reachable. Supports wildcards (e.g. *.storage.example.com).",
+                        "example": [
+                            "api.openai.com",
+                            "pypi.org",
+                            "files.pythonhosted.org",
+                            "registry.npmjs.org"
+                        ],
+                        "items": {
+                            "example": "api.openai.com",
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "bypass": {
+                        "description": "Domains that bypass the proxy entirely via the NO_PROXY directive. Traffic to these destinations goes direct, not through the CONNECT tunnel. Supports wildcards. Note that localhost, private ranges (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), 169.254.169.254, .local and .internal are always bypassed by default.",
+                        "example": [
+                            "registry.npmjs.org"
+                        ],
+                        "items": {
+                            "example": "registry.npmjs.org",
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "forbidden_domains": {
+                        "description": "List of forbidden external domains (denylist). When set, all domains except these are reachable. Supports wildcards (e.g. *.malware.com). If both allowed_domains and forbidden_domains are set, allowed_domains takes precedence.",
+                        "example": [
+                            "facebook.com",
+                            "*.facebook.com"
+                        ],
+                        "items": {
+                            "example": "facebook.com",
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "routing": {
+                        "description": "Per-destination routing rules with header/body injection and secrets. Use destinations [\"*\"] for global rules that apply to all destinations.",
+                        "example": [
+                            {
+                                "body": {
+                                    "user": "baseten-api-review-0916"
+                                },
+                                "destinations": [
+                                    "api.openai.com"
+                                ],
+                                "headers": {
+                                    "Authorization": "Bearer {{SECRET:openai-key}}"
+                                },
+                                "secrets": {
+                                    "openai-key": "sk-proj-demo-not-a-valid-api-key"
+                                }
+                            }
+                        ],
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxProxyTargetV1"
+                        },
+                        "type": "array"
+                    }
+                },
+                "type": "object"
+            },
+            "SandboxProxyTargetV1": {
+                "description": "Routing rule that injects headers and body fields into requests matching the given destinations. Use destinations [\"*\"] for a global rule that applies to all proxied traffic.",
+                "example": {
+                    "body": {
+                        "user": "baseten-api-review-0916"
+                    },
+                    "destinations": [
+                        "api.openai.com"
+                    ],
+                    "headers": {
+                        "Authorization": "Bearer {{SECRET:openai-key}}"
+                    },
+                    "secrets": {
+                        "openai-key": "sk-proj-demo-not-a-valid-api-key"
+                    }
+                },
+                "properties": {
+                    "body": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "description": "Body fields to inject into matching requests. Values may contain {{SECRET:name}} references resolved from this rule's secrets.",
+                        "example": {
+                            "user": "baseten-api-review-0916"
+                        },
+                        "type": "object"
+                    },
+                    "destinations": {
+                        "description": "Destination domains this rule applies to. Use [\"*\"] for a global rule that matches all destinations.",
+                        "example": [
+                            "api.openai.com"
+                        ],
+                        "items": {
+                            "example": "api.openai.com",
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "headers": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "description": "Headers to inject into matching requests. Values may contain {{SECRET:name}} references resolved from this rule's secrets.",
+                        "example": {
+                            "Authorization": "Bearer {{SECRET:openai-key}}"
+                        },
+                        "type": "object"
+                    },
+                    "secrets": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "description": "Named secret values for this routing rule, referenced in headers/body via {{SECRET:name}}. Stored encrypted at rest. Write-only: never returned in API responses.",
+                        "example": {
+                            "openai-key": "sk-proj-demo-not-a-valid-api-key"
+                        },
+                        "type": "object",
+                        "writeOnly": true
+                    }
+                },
+                "type": "object"
+            },
+            "SandboxStatusV1": {
+                "description": "Sandbox deployment status.",
+                "enum": [
+                    "DEPLOYING",
+                    "DEPLOYED",
+                    "FAILED",
+                    "DEACTIVATING",
+                    "DEACTIVATED",
+                    "DELETING",
+                    "TERMINATED",
+                    "ARCHIVING",
+                    "ARCHIVED",
+                    "UNARCHIVING",
+                    "BUILDING",
+                    "UPLOADING"
+                ],
+                "example": "DEPLOYED",
+                "readOnly": true,
+                "type": "string"
+            },
+            "SandboxTTLIdleExpirationPolicyV1": {
+                "description": "Delete after the specified period of inactivity.",
+                "properties": {
+                    "action": {
+                        "enum": [
+                            "DELETE"
+                        ],
+                        "type": "string"
+                    },
+                    "type": {
+                        "enum": [
+                            "TTL_IDLE"
+                        ],
+                        "type": "string"
+                    },
+                    "value": {
+                        "$ref": "#/components/schemas/SandboxDurationV1"
+                    }
+                },
+                "required": [
+                    "action",
+                    "type",
+                    "value"
+                ],
+                "type": "object"
+            },
+            "SandboxTTLMaxAgeExpirationPolicyV1": {
+                "description": "Delete after the specified total lifetime.",
+                "properties": {
+                    "action": {
+                        "enum": [
+                            "DELETE"
+                        ],
+                        "type": "string"
+                    },
+                    "type": {
+                        "enum": [
+                            "TTL_MAX_AGE"
+                        ],
+                        "type": "string"
+                    },
+                    "value": {
+                        "$ref": "#/components/schemas/SandboxDurationV1"
+                    }
+                },
+                "required": [
+                    "action",
+                    "type",
+                    "value"
+                ],
+                "type": "object"
+            },
+            "SandboxV1": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/SandboxConfigurationV1"
+                    },
+                    {
+                        "description": "Server-managed sandbox fields.",
+                        "example": {
+                            "created_at": "2026-09-16T21:26:58.545765901Z",
+                            "created_by": "sandbox-automation",
+                            "expires_in": 86400,
+                            "last_used_at": "2026-09-16T21:31:13Z",
+                            "name": "baseten-api-review-0916",
+                            "state": "RUNNING",
+                            "status": "DEPLOYED",
+                            "updated_at": "2026-09-16T21:31:13Z",
+                            "updated_by": "sandbox-automation",
+                            "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run"
+                        },
+                        "properties": {
+                            "created_at": {
+                                "description": "Time the sandbox was created.",
+                                "example": "2026-09-16T21:26:58.545765901Z",
+                                "format": "date-time",
+                                "readOnly": true,
+                                "type": "string"
+                            },
+                            "created_by": {
+                                "description": "User or service account that created the sandbox.",
+                                "example": "sandbox-automation",
+                                "readOnly": true,
+                                "type": "string"
+                            },
+                            "expires_in": {
+                                "description": "Seconds remaining before automatic deletion, when expiration is configured.",
+                                "example": 86400,
+                                "minimum": 0,
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "last_used_at": {
+                                "description": "Time the sandbox was last used.",
+                                "example": "2026-09-16T21:31:13Z",
+                                "format": "date-time",
+                                "readOnly": true,
+                                "type": "string"
+                            },
+                            "name": {
+                                "description": "Immutable sandbox name, provided by the client or generated by the server, used in sandbox_name path parameters.",
+                                "example": "baseten-api-review-0916",
+                                "readOnly": true,
+                                "type": "string"
+                            },
+                            "state": {
+                                "description": "Current execution state when available.",
+                                "enum": [
+                                    "RUNNING",
+                                    "STANDBY"
+                                ],
+                                "example": "RUNNING",
+                                "readOnly": true,
+                                "type": "string"
+                            },
+                            "status": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/SandboxStatusV1"
+                                    }
+                                ],
+                                "description": "Sandbox deployment status.",
+                                "example": "DEPLOYED"
+                            },
+                            "updated_at": {
+                                "description": "Time the sandbox was last updated.",
+                                "example": "2026-09-16T21:31:13Z",
+                                "format": "date-time",
+                                "readOnly": true,
+                                "type": "string"
+                            },
+                            "updated_by": {
+                                "description": "User or service account that last updated the sandbox.",
+                                "example": "sandbox-automation",
+                                "readOnly": true,
+                                "type": "string"
+                            },
+                            "url": {
+                                "description": "Base URL of this sandbox's execution API. Use this exact returned URL; do not reconstruct its hostname. Authenticate requests with the same Authorization: Bearer <api_key> header used to create the sandbox. No additional routing headers are required. Fetch GET {url}/swagger/doc.json with that header for the API reference served by this sandbox. For example, POST {url}/process with Content-Type: application/json and {\"command\":\"echo hello\",\"waitForCompletion\":true} executes a command and waits for its result. Execution API fields use camelCase, independently of this API's snake_case fields.",
+                                "example": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run",
+                                "format": "uri",
+                                "readOnly": true,
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "status",
+                            "created_at"
+                        ],
+                        "type": "object"
+                    }
+                ],
+                "description": "Sandbox resource with configuration and server-managed fields at the root. No metadata, spec, or runtime wrapper.",
+                "example": {
+                    "created_at": "2026-09-16T21:26:58.545765901Z",
+                    "created_by": "sandbox-automation",
+                    "display_name": "Baseten API review",
+                    "enabled": true,
+                    "envs": [
+                        {
+                            "name": "NODE_ENV",
+                            "secret": false,
+                            "value": "production"
+                        },
+                        {
+                            "name": "PORT",
+                            "secret": false,
+                            "value": "3000"
+                        }
+                    ],
+                    "expires_in": 86400,
+                    "external_id": "api-review-20260916-001",
+                    "image": "blaxel/base-image:latest",
+                    "labels": {
+                        "env": "development",
+                        "project": "api-review",
+                        "team": "engineering"
+                    },
+                    "last_used_at": "2026-09-16T21:31:13Z",
+                    "lifecycle": {
+                        "expiration_policies": [
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_IDLE",
+                                "value": "24h"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_MAX_AGE",
+                                "value": "7d"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "DATE",
+                                "value": "2026-09-23T21:26:58Z"
+                            }
+                        ],
+                        "terminated_retention": "24h"
+                    },
+                    "memory": 4096,
+                    "name": "baseten-api-review-0916",
+                    "network": {
+                        "proxy": {
+                            "allowed_domains": [
+                                "api.openai.com",
+                                "pypi.org",
+                                "files.pythonhosted.org",
+                                "registry.npmjs.org"
+                            ],
+                            "bypass": [
+                                "registry.npmjs.org"
+                            ],
+                            "forbidden_domains": [
+                                "facebook.com",
+                                "*.facebook.com"
+                            ],
+                            "routing": [
+                                {
+                                    "body": {
+                                        "user": "baseten-api-review-0916"
+                                    },
+                                    "destinations": [
+                                        "api.openai.com"
+                                    ],
+                                    "headers": {
+                                        "Authorization": "Bearer {{SECRET:openai-key}}"
+                                    }
+                                }
+                            ]
+                        },
+                        "subnet": "default"
+                    },
+                    "ports": [
+                        {
+                            "name": "http",
+                            "protocol": "HTTP",
+                            "target": 3000
+                        }
+                    ],
+                    "region": "us-pdx-1",
+                    "state": "RUNNING",
+                    "status": "DEPLOYED",
+                    "updated_at": "2026-09-16T21:31:13Z",
+                    "updated_by": "sandbox-automation",
+                    "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run"
+                }
+            },
+            "UpdateSandboxRequestV1": {
+                "description": "Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, and network configuration are immutable after creation. Supplying memory or network returns 400, including unchanged, empty, or null values.",
+                "example": {
+                    "display_name": "Baseten API review - revised",
+                    "enabled": true,
+                    "envs": [
+                        {
+                            "name": "NODE_ENV",
+                            "secret": false,
+                            "value": "production"
+                        },
+                        {
+                            "name": "PORT",
+                            "secret": false,
+                            "value": "3000"
+                        }
+                    ],
+                    "external_id": "api-review-20260916-001",
+                    "image": "blaxel/base-image:latest",
+                    "labels": {
+                        "env": "development",
+                        "project": "api-review",
+                        "revision": "2",
+                        "team": "engineering"
+                    },
+                    "lifecycle": {
+                        "expiration_policies": [
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_IDLE",
+                                "value": "24h"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_MAX_AGE",
+                                "value": "7d"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "DATE",
+                                "value": "2026-09-23T21:26:58Z"
+                            }
+                        ],
+                        "terminated_retention": "24h"
+                    },
+                    "ports": [
+                        {
+                            "name": "http",
+                            "protocol": "HTTP",
+                            "target": 3000
+                        }
+                    ],
+                    "region": "us-pdx-1"
+                },
+                "minProperties": 1,
+                "properties": {
+                    "display_name": {
+                        "description": "Human-readable name for display in the UI. Can contain spaces and special characters, max 63 characters.",
+                        "example": "Baseten API review - revised",
+                        "maxLength": 63,
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "description": "When false, the sandbox is disabled and will not accept connections",
+                        "example": true,
+                        "type": "boolean"
+                    },
+                    "envs": {
+                        "description": "Environment variables injected into the sandbox.",
+                        "example": [
+                            {
+                                "name": "NODE_ENV",
+                                "secret": false,
+                                "value": "production"
+                            },
+                            {
+                                "name": "PORT",
+                                "secret": false,
+                                "value": "3000"
+                            }
+                        ],
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxEnvV1"
+                        },
+                        "type": "array"
+                    },
+                    "external_id": {
+                        "description": "Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.",
+                        "example": "api-review-20260916-001",
+                        "maxLength": 64,
+                        "pattern": "^[A-Za-z0-9-]+$",
+                        "type": "string"
+                    },
+                    "image": {
+                        "description": "Image reference including its tag. Use blaxel/base-image:latest to get started with the built-in sandbox execution API. This image is available directly without building, pushing, or listing images through GET /v1/sandboxes/images.",
+                        "example": "blaxel/base-image:latest",
+                        "type": "string"
+                    },
+                    "labels": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxMetadataLabelsV1"
+                            }
+                        ],
+                        "description": "Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.",
+                        "example": {
+                            "env": "development",
+                            "project": "api-review",
+                            "revision": "2",
+                            "team": "engineering"
+                        }
+                    },
+                    "lifecycle": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxLifecycleV1"
+                            }
+                        ],
+                        "description": "Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates",
+                        "example": {
+                            "expiration_policies": [
+                                {
+                                    "action": "DELETE",
+                                    "type": "TTL_IDLE",
+                                    "value": "24h"
+                                },
+                                {
+                                    "action": "DELETE",
+                                    "type": "TTL_MAX_AGE",
+                                    "value": "7d"
+                                },
+                                {
+                                    "action": "DELETE",
+                                    "type": "DATE",
+                                    "value": "2026-09-23T21:26:58Z"
+                                }
+                            ],
+                            "terminated_retention": "24h"
+                        }
+                    },
+                    "ports": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxPortsV1"
+                            }
+                        ],
+                        "description": "Set of ports for a resource",
+                        "example": [
+                            {
+                                "name": "http",
+                                "protocol": "HTTP",
+                                "target": 3000
+                            }
+                        ]
+                    },
+                    "region": {
+                        "description": "Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.",
+                        "example": "us-pdx-1",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
             }
         },
         "parameters": {
@@ -32174,6 +34902,82 @@
                 "name": "group_id",
                 "in": "path",
                 "required": true
+            },
+            "Cursor": {
+                "description": "Opaque cursor from the previous page; omit for the first page.",
+                "in": "query",
+                "name": "cursor",
+                "required": false,
+                "schema": {
+                    "example": "eyJ2IjoxLCJsYXN0X2tleSI6ImJhc2V0ZW4tYXBpLXJldmlldy0wOTE2Iiwic29ydCI6ImRlc2MifQ",
+                    "type": "string"
+                }
+            },
+            "ImageName": {
+                "description": "Image repository name.",
+                "in": "path",
+                "name": "image_name",
+                "required": true,
+                "schema": {
+                    "example": "base-image",
+                    "minLength": 1,
+                    "type": "string"
+                }
+            },
+            "Limit": {
+                "description": "Maximum number of items to return.",
+                "in": "query",
+                "name": "limit",
+                "required": false,
+                "schema": {
+                    "default": 20,
+                    "example": 20,
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                }
+            },
+            "SandboxName": {
+                "description": "Immutable sandbox name returned by creation.",
+                "in": "path",
+                "name": "sandbox_name",
+                "required": true,
+                "schema": {
+                    "example": "baseten-api-review-0916",
+                    "minLength": 1,
+                    "type": "string"
+                }
+            },
+            "TagName": {
+                "description": "Image tag name.",
+                "in": "path",
+                "name": "tag_name",
+                "required": true,
+                "schema": {
+                    "example": "20260915212000",
+                    "minLength": 1,
+                    "type": "string"
+                }
+            },
+            "TeamId": {
+                "description": "Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.",
+                "in": "query",
+                "name": "team_id",
+                "required": false,
+                "schema": {
+                    "minLength": 1,
+                    "type": "string"
+                }
+            },
+            "TeamIdHeader": {
+                "description": "Optional team ID. Must match the team_id query parameter when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.",
+                "in": "header",
+                "name": "X-Team-Id",
+                "required": false,
+                "schema": {
+                    "minLength": 1,
+                    "type": "string"
+                }
             }
         },
         "securitySchemes": {
@@ -32181,6 +34985,881 @@
                 "type": "http",
                 "scheme": "bearer",
                 "description": "Send `Authorization: Bearer <api_key>`. The legacy `Authorization: Api-Key <api_key>` scheme is also accepted."
+            }
+        },
+        "examples": {
+            "CleanupImages": {
+                "summary": "Unused image versions removed",
+                "value": {
+                    "deleted": 3,
+                    "message": "Removed 3 unused image versions. Image versions used by active sandboxes were retained."
+                }
+            },
+            "CreateSandbox": {
+                "description": "All supported request fields are shown. Credential values are nonfunctional demonstration values.",
+                "summary": "Create with every supported field",
+                "value": {
+                    "display_name": "Baseten API review",
+                    "envs": [
+                        {
+                            "name": "NODE_ENV",
+                            "secret": false,
+                            "value": "production"
+                        },
+                        {
+                            "name": "PORT",
+                            "secret": false,
+                            "value": "3000"
+                        }
+                    ],
+                    "external_id": "api-review-20260916-001",
+                    "image": "blaxel/base-image:latest",
+                    "labels": {
+                        "env": "development",
+                        "project": "api-review",
+                        "team": "engineering"
+                    },
+                    "lifecycle": {
+                        "expiration_policies": [
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_IDLE",
+                                "value": "24h"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_MAX_AGE",
+                                "value": "7d"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "DATE",
+                                "value": "2026-09-23T21:26:58Z"
+                            }
+                        ],
+                        "terminated_retention": "24h"
+                    },
+                    "memory": 4096,
+                    "name": "baseten-api-review-0916",
+                    "network": {
+                        "proxy": {
+                            "allowed_domains": [
+                                "api.openai.com",
+                                "pypi.org",
+                                "files.pythonhosted.org",
+                                "registry.npmjs.org"
+                            ],
+                            "bypass": [
+                                "registry.npmjs.org"
+                            ],
+                            "forbidden_domains": [
+                                "facebook.com",
+                                "*.facebook.com"
+                            ],
+                            "routing": [
+                                {
+                                    "body": {
+                                        "user": "baseten-api-review-0916"
+                                    },
+                                    "destinations": [
+                                        "api.openai.com"
+                                    ],
+                                    "headers": {
+                                        "Authorization": "Bearer {{SECRET:openai-key}}"
+                                    },
+                                    "secrets": {
+                                        "openai-key": "sk-proj-demo-not-a-valid-api-key"
+                                    }
+                                }
+                            ]
+                        },
+                        "subnet": "default"
+                    },
+                    "ports": [
+                        {
+                            "name": "http",
+                            "protocol": "HTTP",
+                            "target": 3000
+                        }
+                    ],
+                    "region": "us-pdx-1"
+                }
+            },
+            "CreateSandboxQuickstart": {
+                "description": "Create directly with the built-in image; no image discovery, build, or push is needed. Use the returned url to call the sandbox execution API with the same Bearer API key.",
+                "summary": "Run code with the built-in image",
+                "value": {
+                    "image": "blaxel/base-image:latest",
+                    "memory": 2048
+                }
+            },
+            "ImageAfterTagDeletion": {
+                "summary": "Image after deleting its older tag",
+                "value": {
+                    "created_at": "2026-09-15T21:20:00Z",
+                    "display_name": "b10/base-image",
+                    "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
+                    "name": "base-image",
+                    "size": 134217728,
+                    "status": "BUILT",
+                    "tags": [
+                        {
+                            "created_at": "2026-09-16T21:20:00Z",
+                            "name": "latest",
+                            "size": 134217728,
+                            "updated_at": "2026-09-16T21:25:00Z"
+                        }
+                    ],
+                    "updated_at": "2026-09-16T21:41:13Z"
+                }
+            },
+            "ImageReady": {
+                "description": "Dates and byte sizes are representative example data. Image references use the b10 namespace.",
+                "summary": "Built image with all metadata and tags",
+                "value": {
+                    "created_at": "2026-09-15T21:20:00Z",
+                    "display_name": "b10/base-image",
+                    "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
+                    "name": "base-image",
+                    "size": 260046848,
+                    "status": "BUILT",
+                    "tags": [
+                        {
+                            "created_at": "2026-09-16T21:20:00Z",
+                            "name": "latest",
+                            "size": 134217728,
+                            "updated_at": "2026-09-16T21:25:00Z"
+                        },
+                        {
+                            "created_at": "2026-09-15T21:20:00Z",
+                            "name": "20260915212000",
+                            "size": 125829120,
+                            "updated_at": "2026-09-15T21:25:00Z"
+                        }
+                    ],
+                    "updated_at": "2026-09-16T21:25:00Z"
+                }
+            },
+            "ImageSummary": {
+                "summary": "Image repository summary",
+                "value": {
+                    "created_at": "2026-09-15T21:20:00Z",
+                    "display_name": "b10/base-image",
+                    "name": "base-image",
+                    "size": 260046848,
+                    "status": "BUILT",
+                    "tag_count": 2,
+                    "tags": []
+                }
+            },
+            "ImagesList": {
+                "summary": "One page of image repositories",
+                "value": {
+                    "items": [
+                        {
+                            "created_at": "2026-09-15T21:20:00Z",
+                            "display_name": "b10/base-image",
+                            "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
+                            "name": "base-image",
+                            "size": 260046848,
+                            "status": "BUILT",
+                            "tag_count": 2,
+                            "tags": [],
+                            "updated_at": "2026-09-16T21:25:00Z"
+                        }
+                    ],
+                    "pagination": {
+                        "has_more": false
+                    }
+                }
+            },
+            "PushArchive": {
+                "description": "Omit image and docker_config to request an upload URL. Those fields do not apply to source-archive uploads.",
+                "summary": "Build an image from an uploaded source archive",
+                "value": {
+                    "name": "base-image"
+                }
+            },
+            "PushArchiveAccepted": {
+                "description": "The signed upload URL is illustrative, with a nonfunctional signature. image is unavailable until processing produces a registered image reference.",
+                "summary": "Source upload required",
+                "value": {
+                    "name": "base-image",
+                    "status": "UPLOADING",
+                    "upload_url": "https://uploads.b10.run/images/base-image/20260916212658/source.zip?expires=2026-09-16T22%3A26%3A58Z&signature=demo-not-a-valid-upload-signature"
+                }
+            },
+            "PushRegistry": {
+                "description": "Shows every request field. docker_config is serialized registry configuration with a deliberately invalid demonstration credential.",
+                "summary": "Import an image with registry authentication",
+                "value": {
+                    "docker_config": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}",
+                    "image": "docker.io/b10/base-image:latest",
+                    "name": "base-image"
+                }
+            },
+            "PushRegistryAccepted": {
+                "description": "No upload_url is returned for registry imports.",
+                "summary": "Image import accepted",
+                "value": {
+                    "image": "b10/base-image:latest",
+                    "name": "base-image",
+                    "status": "BUILDING"
+                }
+            },
+            "SandboxDeleting": {
+                "summary": "Sandbox deletion accepted",
+                "value": {
+                    "created_at": "2026-09-16T21:26:58.545765901Z",
+                    "created_by": "sandbox-automation",
+                    "display_name": "Baseten API review",
+                    "enabled": true,
+                    "envs": [
+                        {
+                            "name": "NODE_ENV",
+                            "secret": false,
+                            "value": "production"
+                        },
+                        {
+                            "name": "PORT",
+                            "secret": false,
+                            "value": "3000"
+                        }
+                    ],
+                    "expires_in": 85800,
+                    "external_id": "api-review-20260916-001",
+                    "image": "blaxel/base-image:latest",
+                    "labels": {
+                        "env": "development",
+                        "project": "api-review",
+                        "team": "engineering"
+                    },
+                    "last_used_at": "2026-09-16T21:31:13Z",
+                    "lifecycle": {
+                        "expiration_policies": [
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_IDLE",
+                                "value": "24h"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_MAX_AGE",
+                                "value": "7d"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "DATE",
+                                "value": "2026-09-23T21:26:58Z"
+                            }
+                        ],
+                        "terminated_retention": "24h"
+                    },
+                    "memory": 4096,
+                    "name": "baseten-api-review-0916",
+                    "network": {
+                        "proxy": {
+                            "allowed_domains": [
+                                "api.openai.com",
+                                "pypi.org",
+                                "files.pythonhosted.org",
+                                "registry.npmjs.org"
+                            ],
+                            "bypass": [
+                                "registry.npmjs.org"
+                            ],
+                            "forbidden_domains": [
+                                "facebook.com",
+                                "*.facebook.com"
+                            ],
+                            "routing": [
+                                {
+                                    "body": {
+                                        "user": "baseten-api-review-0916"
+                                    },
+                                    "destinations": [
+                                        "api.openai.com"
+                                    ],
+                                    "headers": {
+                                        "Authorization": "Bearer {{SECRET:openai-key}}"
+                                    }
+                                }
+                            ]
+                        },
+                        "subnet": "default"
+                    },
+                    "ports": [
+                        {
+                            "name": "http",
+                            "protocol": "HTTP",
+                            "target": 3000
+                        }
+                    ],
+                    "region": "us-pdx-1",
+                    "state": "RUNNING",
+                    "status": "DELETING",
+                    "updated_at": "2026-09-16T21:41:13Z",
+                    "updated_by": "sandbox-automation",
+                    "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run"
+                }
+            },
+            "SandboxReady": {
+                "description": "Example sandbox URL in the b10.run domain. Write-only proxy secrets are not returned. Other values illustrate a fully configured sandbox.",
+                "summary": "Running sandbox with complete configuration",
+                "value": {
+                    "created_at": "2026-09-16T21:26:58.545765901Z",
+                    "created_by": "sandbox-automation",
+                    "display_name": "Baseten API review",
+                    "enabled": true,
+                    "envs": [
+                        {
+                            "name": "NODE_ENV",
+                            "secret": false,
+                            "value": "production"
+                        },
+                        {
+                            "name": "PORT",
+                            "secret": false,
+                            "value": "3000"
+                        }
+                    ],
+                    "expires_in": 86400,
+                    "external_id": "api-review-20260916-001",
+                    "image": "blaxel/base-image:latest",
+                    "labels": {
+                        "env": "development",
+                        "project": "api-review",
+                        "team": "engineering"
+                    },
+                    "last_used_at": "2026-09-16T21:31:13Z",
+                    "lifecycle": {
+                        "expiration_policies": [
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_IDLE",
+                                "value": "24h"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_MAX_AGE",
+                                "value": "7d"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "DATE",
+                                "value": "2026-09-23T21:26:58Z"
+                            }
+                        ],
+                        "terminated_retention": "24h"
+                    },
+                    "memory": 4096,
+                    "name": "baseten-api-review-0916",
+                    "network": {
+                        "proxy": {
+                            "allowed_domains": [
+                                "api.openai.com",
+                                "pypi.org",
+                                "files.pythonhosted.org",
+                                "registry.npmjs.org"
+                            ],
+                            "bypass": [
+                                "registry.npmjs.org"
+                            ],
+                            "forbidden_domains": [
+                                "facebook.com",
+                                "*.facebook.com"
+                            ],
+                            "routing": [
+                                {
+                                    "body": {
+                                        "user": "baseten-api-review-0916"
+                                    },
+                                    "destinations": [
+                                        "api.openai.com"
+                                    ],
+                                    "headers": {
+                                        "Authorization": "Bearer {{SECRET:openai-key}}"
+                                    }
+                                }
+                            ]
+                        },
+                        "subnet": "default"
+                    },
+                    "ports": [
+                        {
+                            "name": "http",
+                            "protocol": "HTTP",
+                            "target": 3000
+                        }
+                    ],
+                    "region": "us-pdx-1",
+                    "state": "RUNNING",
+                    "status": "DEPLOYED",
+                    "updated_at": "2026-09-16T21:31:13Z",
+                    "updated_by": "sandbox-automation",
+                    "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run"
+                }
+            },
+            "SandboxUpdated": {
+                "summary": "Updated sandbox with complete configuration",
+                "value": {
+                    "created_at": "2026-09-16T21:26:58.545765901Z",
+                    "created_by": "sandbox-automation",
+                    "display_name": "Baseten API review - revised",
+                    "enabled": true,
+                    "envs": [
+                        {
+                            "name": "NODE_ENV",
+                            "secret": false,
+                            "value": "production"
+                        },
+                        {
+                            "name": "PORT",
+                            "secret": false,
+                            "value": "3000"
+                        }
+                    ],
+                    "expires_in": 86400,
+                    "external_id": "api-review-20260916-001",
+                    "image": "blaxel/base-image:latest",
+                    "labels": {
+                        "env": "development",
+                        "project": "api-review",
+                        "revision": "2",
+                        "team": "engineering"
+                    },
+                    "last_used_at": "2026-09-16T21:36:13Z",
+                    "lifecycle": {
+                        "expiration_policies": [
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_IDLE",
+                                "value": "24h"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_MAX_AGE",
+                                "value": "7d"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "DATE",
+                                "value": "2026-09-23T21:26:58Z"
+                            }
+                        ],
+                        "terminated_retention": "24h"
+                    },
+                    "memory": 4096,
+                    "name": "baseten-api-review-0916",
+                    "network": {
+                        "proxy": {
+                            "allowed_domains": [
+                                "api.openai.com",
+                                "pypi.org",
+                                "files.pythonhosted.org",
+                                "registry.npmjs.org"
+                            ],
+                            "bypass": [
+                                "registry.npmjs.org"
+                            ],
+                            "forbidden_domains": [
+                                "facebook.com",
+                                "*.facebook.com"
+                            ],
+                            "routing": [
+                                {
+                                    "body": {
+                                        "user": "baseten-api-review-0916"
+                                    },
+                                    "destinations": [
+                                        "api.openai.com"
+                                    ],
+                                    "headers": {
+                                        "Authorization": "Bearer {{SECRET:openai-key}}"
+                                    }
+                                }
+                            ]
+                        },
+                        "subnet": "default"
+                    },
+                    "ports": [
+                        {
+                            "name": "http",
+                            "protocol": "HTTP",
+                            "target": 3000
+                        }
+                    ],
+                    "region": "us-pdx-1",
+                    "state": "RUNNING",
+                    "status": "DEPLOYED",
+                    "updated_at": "2026-09-16T21:36:13Z",
+                    "updated_by": "sandbox-automation",
+                    "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run"
+                }
+            },
+            "SandboxesLastPage": {
+                "summary": "Last sandbox page",
+                "value": {
+                    "items": [
+                        {
+                            "created_at": "2026-09-16T21:26:58.545765901Z",
+                            "created_by": "sandbox-automation",
+                            "display_name": "Baseten API review",
+                            "enabled": true,
+                            "envs": [
+                                {
+                                    "name": "NODE_ENV",
+                                    "secret": false,
+                                    "value": "production"
+                                },
+                                {
+                                    "name": "PORT",
+                                    "secret": false,
+                                    "value": "3000"
+                                }
+                            ],
+                            "expires_in": 86400,
+                            "external_id": "api-review-20260916-001",
+                            "image": "blaxel/base-image:latest",
+                            "labels": {
+                                "env": "development",
+                                "project": "api-review",
+                                "team": "engineering"
+                            },
+                            "last_used_at": "2026-09-16T21:31:13Z",
+                            "lifecycle": {
+                                "expiration_policies": [
+                                    {
+                                        "action": "DELETE",
+                                        "type": "TTL_IDLE",
+                                        "value": "24h"
+                                    },
+                                    {
+                                        "action": "DELETE",
+                                        "type": "TTL_MAX_AGE",
+                                        "value": "7d"
+                                    },
+                                    {
+                                        "action": "DELETE",
+                                        "type": "DATE",
+                                        "value": "2026-09-23T21:26:58Z"
+                                    }
+                                ],
+                                "terminated_retention": "24h"
+                            },
+                            "memory": 4096,
+                            "name": "baseten-api-review-0916",
+                            "network": {
+                                "proxy": {
+                                    "allowed_domains": [
+                                        "api.openai.com",
+                                        "pypi.org",
+                                        "files.pythonhosted.org",
+                                        "registry.npmjs.org"
+                                    ],
+                                    "bypass": [
+                                        "registry.npmjs.org"
+                                    ],
+                                    "forbidden_domains": [
+                                        "facebook.com",
+                                        "*.facebook.com"
+                                    ],
+                                    "routing": [
+                                        {
+                                            "body": {
+                                                "user": "baseten-api-review-0916"
+                                            },
+                                            "destinations": [
+                                                "api.openai.com"
+                                            ],
+                                            "headers": {
+                                                "Authorization": "Bearer {{SECRET:openai-key}}"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "subnet": "default"
+                            },
+                            "ports": [
+                                {
+                                    "name": "http",
+                                    "protocol": "HTTP",
+                                    "target": 3000
+                                }
+                            ],
+                            "region": "us-pdx-1",
+                            "state": "RUNNING",
+                            "status": "DEPLOYED",
+                            "updated_at": "2026-09-16T21:31:13Z",
+                            "updated_by": "sandbox-automation",
+                            "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run"
+                        }
+                    ],
+                    "pagination": {
+                        "has_more": false
+                    }
+                }
+            },
+            "SandboxesPage": {
+                "description": "The cursor illustrates an opaque pagination token; it is not a reusable live cursor.",
+                "summary": "Sandbox page with another page available",
+                "value": {
+                    "items": [
+                        {
+                            "created_at": "2026-09-16T21:26:58.545765901Z",
+                            "created_by": "sandbox-automation",
+                            "display_name": "Baseten API review",
+                            "enabled": true,
+                            "envs": [
+                                {
+                                    "name": "NODE_ENV",
+                                    "secret": false,
+                                    "value": "production"
+                                },
+                                {
+                                    "name": "PORT",
+                                    "secret": false,
+                                    "value": "3000"
+                                }
+                            ],
+                            "expires_in": 86400,
+                            "external_id": "api-review-20260916-001",
+                            "image": "blaxel/base-image:latest",
+                            "labels": {
+                                "env": "development",
+                                "project": "api-review",
+                                "team": "engineering"
+                            },
+                            "last_used_at": "2026-09-16T21:31:13Z",
+                            "lifecycle": {
+                                "expiration_policies": [
+                                    {
+                                        "action": "DELETE",
+                                        "type": "TTL_IDLE",
+                                        "value": "24h"
+                                    },
+                                    {
+                                        "action": "DELETE",
+                                        "type": "TTL_MAX_AGE",
+                                        "value": "7d"
+                                    },
+                                    {
+                                        "action": "DELETE",
+                                        "type": "DATE",
+                                        "value": "2026-09-23T21:26:58Z"
+                                    }
+                                ],
+                                "terminated_retention": "24h"
+                            },
+                            "memory": 4096,
+                            "name": "baseten-api-review-0916",
+                            "network": {
+                                "proxy": {
+                                    "allowed_domains": [
+                                        "api.openai.com",
+                                        "pypi.org",
+                                        "files.pythonhosted.org",
+                                        "registry.npmjs.org"
+                                    ],
+                                    "bypass": [
+                                        "registry.npmjs.org"
+                                    ],
+                                    "forbidden_domains": [
+                                        "facebook.com",
+                                        "*.facebook.com"
+                                    ],
+                                    "routing": [
+                                        {
+                                            "body": {
+                                                "user": "baseten-api-review-0916"
+                                            },
+                                            "destinations": [
+                                                "api.openai.com"
+                                            ],
+                                            "headers": {
+                                                "Authorization": "Bearer {{SECRET:openai-key}}"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "subnet": "default"
+                            },
+                            "ports": [
+                                {
+                                    "name": "http",
+                                    "protocol": "HTTP",
+                                    "target": 3000
+                                }
+                            ],
+                            "region": "us-pdx-1",
+                            "state": "RUNNING",
+                            "status": "DEPLOYED",
+                            "updated_at": "2026-09-16T21:31:13Z",
+                            "updated_by": "sandbox-automation",
+                            "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run"
+                        }
+                    ],
+                    "pagination": {
+                        "cursor": "eyJ2IjoxLCJsYXN0X2tleSI6ImJhc2V0ZW4tYXBpLXJldmlldy0wOTE2Iiwic29ydCI6ImRlc2MifQ",
+                        "has_more": true
+                    }
+                }
+            },
+            "UpdateSandbox": {
+                "description": "All mutable request fields are shown. Memory and network configuration are only accepted during creation.",
+                "summary": "Update every mutable field",
+                "value": {
+                    "display_name": "Baseten API review - revised",
+                    "enabled": true,
+                    "envs": [
+                        {
+                            "name": "NODE_ENV",
+                            "secret": false,
+                            "value": "production"
+                        },
+                        {
+                            "name": "PORT",
+                            "secret": false,
+                            "value": "3000"
+                        }
+                    ],
+                    "external_id": "api-review-20260916-001",
+                    "image": "blaxel/base-image:latest",
+                    "labels": {
+                        "env": "development",
+                        "project": "api-review",
+                        "revision": "2",
+                        "team": "engineering"
+                    },
+                    "lifecycle": {
+                        "expiration_policies": [
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_IDLE",
+                                "value": "24h"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "TTL_MAX_AGE",
+                                "value": "7d"
+                            },
+                            {
+                                "action": "DELETE",
+                                "type": "DATE",
+                                "value": "2026-09-23T21:26:58Z"
+                            }
+                        ],
+                        "terminated_retention": "24h"
+                    },
+                    "ports": [
+                        {
+                            "name": "http",
+                            "protocol": "HTTP",
+                            "target": 3000
+                        }
+                    ],
+                    "region": "us-pdx-1"
+                }
+            }
+        },
+        "responses": {
+            "SandboxError400": {
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "code": "INVALID_REQUEST",
+                            "details": {
+                                "request_id": "a3b7c4d2-91e6-4f08-9b5a-2c6d7e8f1043"
+                            },
+                            "message": "One or more request parameters are invalid."
+                        }
+                    }
+                },
+                "description": "Invalid request. Returns a JSON error with code, message, and optional details."
+            },
+            "SandboxError401": {
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "code": "UNAUTHORIZED",
+                            "details": {
+                                "header": "Authorization"
+                            },
+                            "message": "Provide a valid API key in the Authorization header."
+                        }
+                    }
+                },
+                "description": "Missing or invalid authentication. Returns a JSON error with code, message, and optional details."
+            },
+            "SandboxError403": {
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "code": "FORBIDDEN",
+                            "details": {
+                                "request_id": "a3b7c4d2-91e6-4f08-9b5a-2c6d7e8f1043"
+                            },
+                            "message": "This API key does not have permission to perform this operation."
+                        }
+                    }
+                },
+                "description": "Insufficient permissions. Returns a JSON error with code, message, and optional details."
+            },
+            "SandboxError404": {
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "code": "NOT_FOUND",
+                            "details": {
+                                "request_id": "a3b7c4d2-91e6-4f08-9b5a-2c6d7e8f1043"
+                            },
+                            "message": "The requested resource was not found."
+                        }
+                    }
+                },
+                "description": "Resource not found. Returns a JSON error with code, message, and optional details."
+            },
+            "SandboxError409": {
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "code": "RESOURCE_IN_USE",
+                            "details": {
+                                "request_id": "a3b7c4d2-91e6-4f08-9b5a-2c6d7e8f1043"
+                            },
+                            "message": "The resource is currently in use or conflicts with the requested operation."
+                        }
+                    }
+                },
+                "description": "Resource is currently in use or conflicts with the requested operation. Returns a JSON error with code, message, and optional details."
+            },
+            "SandboxError429": {
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "code": "RATE_LIMITED",
+                            "details": {
+                                "retry_after_seconds": 30
+                            },
+                            "message": "Too many requests. Try again in 30 seconds."
+                        }
+                    }
+                },
+                "description": "Request limit exceeded. Returns a JSON error with code, message, and optional details."
+            },
+            "SandboxError500": {
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "code": "INTERNAL_ERROR",
+                            "details": {
+                                "request_id": "a3b7c4d2-91e6-4f08-9b5a-2c6d7e8f1043"
+                            },
+                            "message": "The request could not be completed. Try again later."
+                        }
+                    }
+                },
+                "description": "Internal server error. Returns a JSON error with code, message, and optional details."
             }
         }
     }

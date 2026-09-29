@@ -42,4 +42,5 @@ jobs:
           BASETEN_E2E_TEST_MODEL_ID: ${{ secrets.BASETEN_E2E_TEST_MODEL_ID }}
         run: |
           go test ./...
+          (cd internal/tools/apigen && go test ./...)
           (cd internal/separate-module-tests && go test ./...)

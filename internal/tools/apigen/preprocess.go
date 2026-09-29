@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/oasdiff/yaml"
 	"maps"
 	"slices"
 	"strings"
@@ -39,8 +40,12 @@ const nullDistinctExtension = "x-null-distinct"
 
 // preprocessSpec transforms an OpenAPI 3.1 spec to 3.0-compatible form so
 // that oapi-codegen can process it, and cleans up schema names.
-func preprocessSpec(data []byte) (*preprocessedSpec, error) {
+func preprocessSpec(data []byte, inline ...bool) (*preprocessedSpec, error) {
 	var doc map[string]any
+	data, err := yaml.YAMLToJSON(data)
+	if err != nil {
+		return nil, fmt.Errorf("parsing spec YAML: %w", err)
+	}
 	if err := json.Unmarshal(data, &doc); err != nil {
 		return nil, fmt.Errorf("parsing spec JSON: %w", err)
 	}
@@ -51,6 +56,13 @@ func preprocessSpec(data []byte) (*preprocessedSpec, error) {
 
 	if err := inlineComponentParameters(doc); err != nil {
 		return nil, err
+	}
+
+	if err := normalizeSchemas(doc); err != nil {
+		return nil, err
+	}
+	if len(inline) == 0 || inline[0] {
+		hoistInlineJSON(doc)
 	}
 
 	// Build V1-suffix rename map from schema names before walking.

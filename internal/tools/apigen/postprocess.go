@@ -21,6 +21,7 @@ func postProcess(src []byte, discriminatorValues map[string][]string, discrimina
 
 	s = fixPackageComment(s)
 	s = removeMergeMethods(s)
+	s = strings.ReplaceAll(s, "openapi_types.File", "[]byte")
 	s = removeRuntimeImport(s)
 	s = removeSecurityScopes(s, securitySchemes)
 	s = fixDiscriminatorValueLiteral(s, discriminatorValues)
