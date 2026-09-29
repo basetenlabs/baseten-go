@@ -15,8 +15,8 @@ go get github.com/basetenlabs/baseten-go
 
 ## Usage
 
-The SDK is a thin client over the Baseten management and inference APIs, plus a few operations that take more than one
-call, such as pushing a model. It has no dependencies of its own.
+The SDK provides clients for the Baseten management, inference, and sandbox execution APIs, plus
+helpers for model uploads. It has no runtime dependencies.
 
 ### Calling the API
 
@@ -97,3 +97,33 @@ if err != nil {
 // The deployment is not live yet; poll it to wait for a terminal status.
 fmt.Println(result.Model.Id, result.Deployment.Id, result.Deployment.Status)
 ```
+### Sandboxes
+
+Sandbox management and execution are separate APIs. Use the generated management
+methods through `cl.API()` to manage sandboxes and obtain a short-lived token.
+Connect to the execution URL returned by the management API with that token:
+
+```go
+sandbox, err := client.NewSandboxClient(client.SandboxClientOptions{
+    BaseURL: sandboxURL,
+    Token:   token,
+})
+if err != nil {
+    log.Fatal(err)
+}
+result, err := sandbox.API().PostProcess(ctx, sandboxapi.ProcessRequest{Command: "echo hello"})
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(result.Stdout, result.ExitCode)
+```
+
+Import `github.com/basetenlabs/baseten-go/client/sandboxapi` for execution types.
+The caller manages token expiry, sandbox readiness, and deletion.
+
+The execution client performs no token exchange or retries. Binary uploads accept `io.Reader` and
+an explicit content type. For multipart, use the boundary returned by
+`multipart.Writer.FormDataContentType()`. Generated `...Raw` methods accept
+`RawRequestOptions` for content negotiation and return an unread `*http.Response`;
+the caller must close its body. Typed methods negotiate JSON. The archive export
+response retains `StatusCode` and separate `JSON200`/`JSON202` payloads.

@@ -31,11 +31,21 @@ type Client struct {
 	Headers http.Header
 }
 
+// RawRequestOptions selects a wire encoding and transfers response body ownership to the caller.
+// For multipart bodies, ContentType must include the boundary from multipart.Writer.
+type RawRequestOptions struct {
+	Body        io.Reader
+	ContentType string
+	Accept      string
+	Headers     http.Header
+}
+
 // ResponseError represents a non-success HTTP response whose body could not
 // be decoded into a typed error.
 type ResponseError struct {
 	StatusCode int
 	Body       string
+	Header     http.Header
 }
 
 func (e *ResponseError) Error() string {
@@ -46,6 +56,7 @@ func (e *ResponseError) Error() string {
 // decoded as [ErrorResponse].
 type ResponseErrorResponse struct {
 	StatusCode    int
+	Header        http.Header
 	ErrorResponse ErrorResponse
 }
 
@@ -59,13 +70,19 @@ func (e *ResponseErrorResponse) Error() string {
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 413, 429, 503.
 func (c *Client) AsyncPredict(ctx context.Context, envName string, body AsyncPredictRequest) (*AsyncPredictOutput, error) {
 	return doJSON[AsyncPredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/environments/%s/async_predict",
-		pathArgs:    []any{envName},
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/environments/%s/async_predict",
+		pathArgs:     []any{envName},
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
+}
+
+// AsyncPredictRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) AsyncPredictRaw(ctx context.Context, envName string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/environments/%s/async_predict", pathArgs: []any{envName}, raw: &options, successCodes: []int{201}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse}})
 }
 
 // AsyncPredictDeployment: Asynchronously call a specific deployment of a model.
@@ -73,13 +90,19 @@ func (c *Client) AsyncPredict(ctx context.Context, envName string, body AsyncPre
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 413, 429, 503.
 func (c *Client) AsyncPredictDeployment(ctx context.Context, deploymentId string, body AsyncPredictRequest) (*AsyncPredictOutput, error) {
 	return doJSON[AsyncPredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/deployment/%s/async_predict",
-		pathArgs:    []any{deploymentId},
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/deployment/%s/async_predict",
+		pathArgs:     []any{deploymentId},
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
+}
+
+// AsyncPredictDeploymentRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) AsyncPredictDeploymentRaw(ctx context.Context, deploymentId string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/deployment/%s/async_predict", pathArgs: []any{deploymentId}, raw: &options, successCodes: []int{201}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse}})
 }
 
 // AsyncPredictDevelopment: Asynchronously call the development deployment of a model.
@@ -87,13 +110,19 @@ func (c *Client) AsyncPredictDeployment(ctx context.Context, deploymentId string
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 413, 429, 503.
 func (c *Client) AsyncPredictDevelopment(ctx context.Context, body AsyncPredictRequest) (*AsyncPredictOutput, error) {
 	return doJSON[AsyncPredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/development/async_predict",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/development/async_predict",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
+}
+
+// AsyncPredictDevelopmentRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) AsyncPredictDevelopmentRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/development/async_predict", pathArgs: []any{}, raw: &options, successCodes: []int{201}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse}})
 }
 
 // AsyncPredictProduction: Asynchronously call the production environment of a model.
@@ -101,13 +130,19 @@ func (c *Client) AsyncPredictDevelopment(ctx context.Context, body AsyncPredictR
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 413, 429, 503.
 func (c *Client) AsyncPredictProduction(ctx context.Context, body AsyncPredictRequest) (*AsyncPredictOutput, error) {
 	return doJSON[AsyncPredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/production/async_predict",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/production/async_predict",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
+}
+
+// AsyncPredictProductionRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) AsyncPredictProductionRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/production/async_predict", pathArgs: []any{}, raw: &options, successCodes: []int{201}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse}})
 }
 
 // AsyncPredictRegional: Asynchronously call a regional environment of a model.
@@ -115,13 +150,19 @@ func (c *Client) AsyncPredictProduction(ctx context.Context, body AsyncPredictRe
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 413, 429, 503.
 func (c *Client) AsyncPredictRegional(ctx context.Context, body AsyncPredictRequest) (*AsyncPredictOutput, error) {
 	return doJSON[AsyncPredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/async_predict",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/async_predict",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
+}
+
+// AsyncPredictRegionalRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) AsyncPredictRegionalRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/async_predict", pathArgs: []any{}, raw: &options, successCodes: []int{201}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 413: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse}})
 }
 
 // AsyncRunRemote: Asynchronously call a named environment of a chain.
@@ -129,13 +170,19 @@ func (c *Client) AsyncPredictRegional(ctx context.Context, body AsyncPredictRequ
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 503.
 func (c *Client) AsyncRunRemote(ctx context.Context, envName string, body any) (*AsyncRunRemoteOutput, error) {
 	return doJSON[AsyncRunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/environments/%s/async_run_remote",
-		pathArgs:    []any{envName},
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/environments/%s/async_run_remote",
+		pathArgs:     []any{envName},
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
+}
+
+// AsyncRunRemoteRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) AsyncRunRemoteRaw(ctx context.Context, envName string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/environments/%s/async_run_remote", pathArgs: []any{envName}, raw: &options, successCodes: []int{201}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse}})
 }
 
 // AsyncRunRemoteDeployment: Asynchronously call a specific deployment of a chain.
@@ -143,13 +190,19 @@ func (c *Client) AsyncRunRemote(ctx context.Context, envName string, body any) (
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 503.
 func (c *Client) AsyncRunRemoteDeployment(ctx context.Context, deploymentId string, body any) (*AsyncRunRemoteOutput, error) {
 	return doJSON[AsyncRunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/deployment/%s/async_run_remote",
-		pathArgs:    []any{deploymentId},
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/deployment/%s/async_run_remote",
+		pathArgs:     []any{deploymentId},
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
+}
+
+// AsyncRunRemoteDeploymentRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) AsyncRunRemoteDeploymentRaw(ctx context.Context, deploymentId string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/deployment/%s/async_run_remote", pathArgs: []any{deploymentId}, raw: &options, successCodes: []int{201}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse}})
 }
 
 // AsyncRunRemoteDevelopment: Asynchronously call the development deployment of a chain.
@@ -157,13 +210,19 @@ func (c *Client) AsyncRunRemoteDeployment(ctx context.Context, deploymentId stri
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 503.
 func (c *Client) AsyncRunRemoteDevelopment(ctx context.Context, body any) (*AsyncRunRemoteOutput, error) {
 	return doJSON[AsyncRunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/development/async_run_remote",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/development/async_run_remote",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
+}
+
+// AsyncRunRemoteDevelopmentRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) AsyncRunRemoteDevelopmentRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/development/async_run_remote", pathArgs: []any{}, raw: &options, successCodes: []int{201}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse}})
 }
 
 // AsyncRunRemoteProduction: Asynchronously call the production environment of a chain.
@@ -171,13 +230,19 @@ func (c *Client) AsyncRunRemoteDevelopment(ctx context.Context, body any) (*Asyn
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 503.
 func (c *Client) AsyncRunRemoteProduction(ctx context.Context, body any) (*AsyncRunRemoteOutput, error) {
 	return doJSON[AsyncRunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/production/async_run_remote",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/production/async_run_remote",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
+}
+
+// AsyncRunRemoteProductionRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) AsyncRunRemoteProductionRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/production/async_run_remote", pathArgs: []any{}, raw: &options, successCodes: []int{201}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse}})
 }
 
 // AsyncRunRemoteRegional: Asynchronously call a regional environment of a chain.
@@ -185,13 +250,19 @@ func (c *Client) AsyncRunRemoteProduction(ctx context.Context, body any) (*Async
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 503.
 func (c *Client) AsyncRunRemoteRegional(ctx context.Context, body any) (*AsyncRunRemoteOutput, error) {
 	return doJSON[AsyncRunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/async_run_remote",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 201,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/async_run_remote",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{201},
+		successCode:  201,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse},
 	})
+}
+
+// AsyncRunRemoteRegionalRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) AsyncRunRemoteRegionalRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/async_run_remote", pathArgs: []any{}, raw: &options, successCodes: []int{201}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 503: errorTypeErrorResponse}})
 }
 
 // CancelAsyncRequest: Cancel a queued async request.
@@ -199,13 +270,19 @@ func (c *Client) AsyncRunRemoteRegional(ctx context.Context, body any) (*AsyncRu
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) CancelAsyncRequest(ctx context.Context, requestId string) (*CancelAsyncRequestOutput, error) {
 	return doJSON[CancelAsyncRequestOutput](c, ctx, apiRequest{
-		method:      "DELETE",
-		pathFmt:     "/async_request/%s",
-		pathArgs:    []any{requestId},
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "DELETE",
+		pathFmt:      "/async_request/%s",
+		pathArgs:     []any{requestId},
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
+}
+
+// CancelAsyncRequestRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) CancelAsyncRequestRaw(ctx context.Context, requestId string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/async_request/%s", pathArgs: []any{requestId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse}})
 }
 
 // GetAsyncQueueStatus: Get async queue status for a named environment.
@@ -213,13 +290,19 @@ func (c *Client) CancelAsyncRequest(ctx context.Context, requestId string) (*Can
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) GetAsyncQueueStatus(ctx context.Context, envName string) (*GetAsyncQueueStatusOutput, error) {
 	return doJSON[GetAsyncQueueStatusOutput](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/environments/%s/async_queue_status",
-		pathArgs:    []any{envName},
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "GET",
+		pathFmt:      "/environments/%s/async_queue_status",
+		pathArgs:     []any{envName},
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
+}
+
+// GetAsyncQueueStatusRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) GetAsyncQueueStatusRaw(ctx context.Context, envName string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/environments/%s/async_queue_status", pathArgs: []any{envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse}})
 }
 
 // GetAsyncQueueStatusDeployment: Get async queue status for a specific deployment.
@@ -227,13 +310,19 @@ func (c *Client) GetAsyncQueueStatus(ctx context.Context, envName string) (*GetA
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) GetAsyncQueueStatusDeployment(ctx context.Context, deploymentId string) (*GetAsyncQueueStatusOutput, error) {
 	return doJSON[GetAsyncQueueStatusOutput](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/deployment/%s/async_queue_status",
-		pathArgs:    []any{deploymentId},
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "GET",
+		pathFmt:      "/deployment/%s/async_queue_status",
+		pathArgs:     []any{deploymentId},
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
+}
+
+// GetAsyncQueueStatusDeploymentRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) GetAsyncQueueStatusDeploymentRaw(ctx context.Context, deploymentId string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/deployment/%s/async_queue_status", pathArgs: []any{deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse}})
 }
 
 // GetAsyncQueueStatusDevelopment: Get async queue status for the development deployment.
@@ -241,13 +330,19 @@ func (c *Client) GetAsyncQueueStatusDeployment(ctx context.Context, deploymentId
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) GetAsyncQueueStatusDevelopment(ctx context.Context) (*GetAsyncQueueStatusOutput, error) {
 	return doJSON[GetAsyncQueueStatusOutput](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/development/async_queue_status",
-		pathArgs:    nil,
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "GET",
+		pathFmt:      "/development/async_queue_status",
+		pathArgs:     nil,
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
+}
+
+// GetAsyncQueueStatusDevelopmentRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) GetAsyncQueueStatusDevelopmentRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/development/async_queue_status", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse}})
 }
 
 // GetAsyncQueueStatusProduction: Get async queue status for the production environment.
@@ -255,13 +350,19 @@ func (c *Client) GetAsyncQueueStatusDevelopment(ctx context.Context) (*GetAsyncQ
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) GetAsyncQueueStatusProduction(ctx context.Context) (*GetAsyncQueueStatusOutput, error) {
 	return doJSON[GetAsyncQueueStatusOutput](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/production/async_queue_status",
-		pathArgs:    nil,
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "GET",
+		pathFmt:      "/production/async_queue_status",
+		pathArgs:     nil,
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
+}
+
+// GetAsyncQueueStatusProductionRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) GetAsyncQueueStatusProductionRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/production/async_queue_status", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse}})
 }
 
 // GetAsyncQueueStatusRegional: Get async queue status for a regional environment.
@@ -269,13 +370,19 @@ func (c *Client) GetAsyncQueueStatusProduction(ctx context.Context) (*GetAsyncQu
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) GetAsyncQueueStatusRegional(ctx context.Context) (*GetAsyncQueueStatusOutput, error) {
 	return doJSON[GetAsyncQueueStatusOutput](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/async_queue_status",
-		pathArgs:    nil,
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "GET",
+		pathFmt:      "/async_queue_status",
+		pathArgs:     nil,
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
+}
+
+// GetAsyncQueueStatusRegionalRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) GetAsyncQueueStatusRegionalRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/async_queue_status", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse}})
 }
 
 // GetAsyncRequestStatus: Get the status of an async request.
@@ -283,13 +390,19 @@ func (c *Client) GetAsyncQueueStatusRegional(ctx context.Context) (*GetAsyncQueu
 // Returns [*ResponseErrorResponse] on HTTP 401, 429.
 func (c *Client) GetAsyncRequestStatus(ctx context.Context, requestId string) (*AsyncRequestStatusResponse, error) {
 	return doJSON[AsyncRequestStatusResponse](c, ctx, apiRequest{
-		method:      "GET",
-		pathFmt:     "/async_request/%s",
-		pathArgs:    []any{requestId},
-		body:        nil,
-		successCode: 200,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
+		method:       "GET",
+		pathFmt:      "/async_request/%s",
+		pathArgs:     []any{requestId},
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse},
 	})
+}
+
+// GetAsyncRequestStatusRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) GetAsyncRequestStatusRaw(ctx context.Context, requestId string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/async_request/%s", pathArgs: []any{requestId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{401: errorTypeErrorResponse, 429: errorTypeErrorResponse}})
 }
 
 // Predict: Call the model deployment associated with a specified environment.
@@ -297,13 +410,19 @@ func (c *Client) GetAsyncRequestStatus(ctx context.Context, requestId string) (*
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) Predict(ctx context.Context, envName string, body any) (*PredictOutput, error) {
 	return doJSON[PredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/environments/%s/predict",
-		pathArgs:    []any{envName},
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/environments/%s/predict",
+		pathArgs:     []any{envName},
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
+}
+
+// PredictRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) PredictRaw(ctx context.Context, envName string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/environments/%s/predict", pathArgs: []any{envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse}})
 }
 
 // PredictDeployment: Call a specific deployment of a model by deployment ID.
@@ -311,13 +430,19 @@ func (c *Client) Predict(ctx context.Context, envName string, body any) (*Predic
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) PredictDeployment(ctx context.Context, deploymentId string, body any) (*PredictOutput, error) {
 	return doJSON[PredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/deployment/%s/predict",
-		pathArgs:    []any{deploymentId},
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/deployment/%s/predict",
+		pathArgs:     []any{deploymentId},
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
+}
+
+// PredictDeploymentRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) PredictDeploymentRaw(ctx context.Context, deploymentId string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/deployment/%s/predict", pathArgs: []any{deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse}})
 }
 
 // PredictDevelopment: Call the development deployment of a model.
@@ -325,13 +450,19 @@ func (c *Client) PredictDeployment(ctx context.Context, deploymentId string, bod
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) PredictDevelopment(ctx context.Context, body any) (*PredictOutput, error) {
 	return doJSON[PredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/development/predict",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/development/predict",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
+}
+
+// PredictDevelopmentRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) PredictDevelopmentRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/development/predict", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse}})
 }
 
 // PredictProduction: Call the production environment of a model.
@@ -339,13 +470,19 @@ func (c *Client) PredictDevelopment(ctx context.Context, body any) (*PredictOutp
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) PredictProduction(ctx context.Context, body any) (*PredictOutput, error) {
 	return doJSON[PredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/production/predict",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/production/predict",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
+}
+
+// PredictProductionRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) PredictProductionRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/production/predict", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse}})
 }
 
 // PredictRegional: Call a regional environment of a model.
@@ -353,13 +490,19 @@ func (c *Client) PredictProduction(ctx context.Context, body any) (*PredictOutpu
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) PredictRegional(ctx context.Context, body any) (*PredictOutput, error) {
 	return doJSON[PredictOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/predict",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/predict",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
+}
+
+// PredictRegionalRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) PredictRegionalRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/predict", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse}})
 }
 
 // RunRemote: Call the chain deployment associated with a specified environment.
@@ -367,13 +510,19 @@ func (c *Client) PredictRegional(ctx context.Context, body any) (*PredictOutput,
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) RunRemote(ctx context.Context, envName string, body any) (*RunRemoteOutput, error) {
 	return doJSON[RunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/environments/%s/run_remote",
-		pathArgs:    []any{envName},
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/environments/%s/run_remote",
+		pathArgs:     []any{envName},
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
+}
+
+// RunRemoteRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) RunRemoteRaw(ctx context.Context, envName string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/environments/%s/run_remote", pathArgs: []any{envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse}})
 }
 
 // RunRemoteDeployment: Call a specific chain deployment by deployment ID.
@@ -381,13 +530,19 @@ func (c *Client) RunRemote(ctx context.Context, envName string, body any) (*RunR
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) RunRemoteDeployment(ctx context.Context, deploymentId string, body any) (*RunRemoteOutput, error) {
 	return doJSON[RunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/deployment/%s/run_remote",
-		pathArgs:    []any{deploymentId},
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/deployment/%s/run_remote",
+		pathArgs:     []any{deploymentId},
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
+}
+
+// RunRemoteDeploymentRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) RunRemoteDeploymentRaw(ctx context.Context, deploymentId string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/deployment/%s/run_remote", pathArgs: []any{deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse}})
 }
 
 // RunRemoteDevelopment: Call the development deployment of a chain.
@@ -395,13 +550,19 @@ func (c *Client) RunRemoteDeployment(ctx context.Context, deploymentId string, b
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) RunRemoteDevelopment(ctx context.Context, body any) (*RunRemoteOutput, error) {
 	return doJSON[RunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/development/run_remote",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/development/run_remote",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
+}
+
+// RunRemoteDevelopmentRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) RunRemoteDevelopmentRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/development/run_remote", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse}})
 }
 
 // RunRemoteProduction: Call the production environment of a chain.
@@ -409,13 +570,19 @@ func (c *Client) RunRemoteDevelopment(ctx context.Context, body any) (*RunRemote
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) RunRemoteProduction(ctx context.Context, body any) (*RunRemoteOutput, error) {
 	return doJSON[RunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/production/run_remote",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/production/run_remote",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
+}
+
+// RunRemoteProductionRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) RunRemoteProductionRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/production/run_remote", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse}})
 }
 
 // RunRemoteRegional: Call a regional environment of a chain.
@@ -423,13 +590,19 @@ func (c *Client) RunRemoteProduction(ctx context.Context, body any) (*RunRemoteO
 // Returns [*ResponseErrorResponse] on HTTP 400, 401, 429, 502, 503, 504.
 func (c *Client) RunRemoteRegional(ctx context.Context, body any) (*RunRemoteOutput, error) {
 	return doJSON[RunRemoteOutput](c, ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/run_remote",
-		pathArgs:    nil,
-		body:        body,
-		successCode: 200,
-		errorCodes:  map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/run_remote",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse},
 	})
+}
+
+// RunRemoteRegionalRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) RunRemoteRegionalRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/run_remote", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 401: errorTypeErrorResponse, 429: errorTypeErrorResponse, 502: errorTypeErrorResponse, 503: errorTypeErrorResponse, 504: errorTypeErrorResponse}})
 }
 
 // Wake: Wake a named environment of a model.
@@ -437,13 +610,19 @@ func (c *Client) RunRemoteRegional(ctx context.Context, body any) (*RunRemoteOut
 // Returns [*ResponseErrorResponse] on HTTP 401.
 func (c *Client) Wake(ctx context.Context, envName string) error {
 	return c.doNoResponse(ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/environments/%s/wake",
-		pathArgs:    []any{envName},
-		body:        nil,
-		successCode: 202,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/environments/%s/wake",
+		pathArgs:     []any{envName},
+		body:         nil,
+		successCodes: []int{202},
+		successCode:  202,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse},
 	})
+}
+
+// WakeRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) WakeRaw(ctx context.Context, envName string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/environments/%s/wake", pathArgs: []any{envName}, raw: &options, successCodes: []int{202}, errorCodes: map[int]errorType{401: errorTypeErrorResponse}})
 }
 
 // WakeDeployment: Wake a specific deployment of a model by deployment ID.
@@ -451,13 +630,19 @@ func (c *Client) Wake(ctx context.Context, envName string) error {
 // Returns [*ResponseErrorResponse] on HTTP 401.
 func (c *Client) WakeDeployment(ctx context.Context, deploymentId string) error {
 	return c.doNoResponse(ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/deployment/%s/wake",
-		pathArgs:    []any{deploymentId},
-		body:        nil,
-		successCode: 202,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/deployment/%s/wake",
+		pathArgs:     []any{deploymentId},
+		body:         nil,
+		successCodes: []int{202},
+		successCode:  202,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse},
 	})
+}
+
+// WakeDeploymentRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) WakeDeploymentRaw(ctx context.Context, deploymentId string, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/deployment/%s/wake", pathArgs: []any{deploymentId}, raw: &options, successCodes: []int{202}, errorCodes: map[int]errorType{401: errorTypeErrorResponse}})
 }
 
 // WakeDevelopment: Wake the development deployment of a model.
@@ -465,13 +650,19 @@ func (c *Client) WakeDeployment(ctx context.Context, deploymentId string) error 
 // Returns [*ResponseErrorResponse] on HTTP 401.
 func (c *Client) WakeDevelopment(ctx context.Context) error {
 	return c.doNoResponse(ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/development/wake",
-		pathArgs:    nil,
-		body:        nil,
-		successCode: 202,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/development/wake",
+		pathArgs:     nil,
+		body:         nil,
+		successCodes: []int{202},
+		successCode:  202,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse},
 	})
+}
+
+// WakeDevelopmentRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) WakeDevelopmentRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/development/wake", pathArgs: []any{}, raw: &options, successCodes: []int{202}, errorCodes: map[int]errorType{401: errorTypeErrorResponse}})
 }
 
 // WakeProduction: Wake the production environment of a model.
@@ -479,13 +670,19 @@ func (c *Client) WakeDevelopment(ctx context.Context) error {
 // Returns [*ResponseErrorResponse] on HTTP 401.
 func (c *Client) WakeProduction(ctx context.Context) error {
 	return c.doNoResponse(ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/production/wake",
-		pathArgs:    nil,
-		body:        nil,
-		successCode: 202,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/production/wake",
+		pathArgs:     nil,
+		body:         nil,
+		successCodes: []int{202},
+		successCode:  202,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse},
 	})
+}
+
+// WakeProductionRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) WakeProductionRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/production/wake", pathArgs: []any{}, raw: &options, successCodes: []int{202}, errorCodes: map[int]errorType{401: errorTypeErrorResponse}})
 }
 
 // WakeRegional: Wake a regional environment of a model.
@@ -493,13 +690,19 @@ func (c *Client) WakeProduction(ctx context.Context) error {
 // Returns [*ResponseErrorResponse] on HTTP 401.
 func (c *Client) WakeRegional(ctx context.Context) error {
 	return c.doNoResponse(ctx, apiRequest{
-		method:      "POST",
-		pathFmt:     "/wake",
-		pathArgs:    nil,
-		body:        nil,
-		successCode: 202,
-		errorCodes:  map[int]errorType{401: errorTypeErrorResponse},
+		method:       "POST",
+		pathFmt:      "/wake",
+		pathArgs:     nil,
+		body:         nil,
+		successCodes: []int{202},
+		successCode:  202,
+		errorCodes:   map[int]errorType{401: errorTypeErrorResponse},
 	})
+}
+
+// WakeRegionalRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+func (c *Client) WakeRegionalRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/wake", pathArgs: []any{}, raw: &options, successCodes: []int{202}, errorCodes: map[int]errorType{401: errorTypeErrorResponse}})
 }
 
 // errorType identifies a typed error schema for status-code-based dispatch.
@@ -511,11 +714,15 @@ const (
 )
 
 type apiRequest struct {
-	method      string
-	pathFmt     string
-	pathArgs    []any
-	body        any
-	successCode int
+	method       string
+	pathFmt      string
+	pathArgs     []any
+	body         any
+	successCode  int
+	successCodes []int
+	raw          *RawRequestOptions
+	accept       string
+	headers      http.Header
 	// errorCodes maps HTTP status codes to a typed error schema. Status codes
 	// not in this map (or decode failures) fall back to [*ResponseError].
 	errorCodes map[int]errorType
@@ -527,7 +734,9 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 	}
 	path := fmt.Sprintf(r.pathFmt, r.pathArgs...)
 	var bodyReader io.Reader
-	if r.body != nil {
+	if r.raw != nil {
+		bodyReader = r.raw.Body
+	} else if r.body != nil {
 		b, err := json.Marshal(r.body)
 		if err != nil {
 			return nil, err
@@ -541,40 +750,71 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 	if r.body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
+	if r.accept != "" {
+		req.Header.Set("Accept", r.accept)
+	}
 	for key, vals := range c.Headers {
+		if len(vals) > 0 && strings.EqualFold(key, "Accept") {
+			req.Header.Del(key)
+		}
 		for _, val := range vals {
 			req.Header.Add(key, val)
+		}
+	}
+	for k, values := range r.headers {
+		req.Header.Del(k)
+		for _, v := range values {
+			req.Header.Add(k, v)
+		}
+	}
+	if r.raw != nil {
+		for k, values := range r.raw.Headers {
+			req.Header.Del(k)
+			for _, v := range values {
+				req.Header.Add(k, v)
+			}
+		}
+		if r.raw.ContentType != "" {
+			req.Header.Set("Content-Type", r.raw.ContentType)
+		}
+		if r.raw.Accept != "" {
+			req.Header.Set("Accept", r.raw.Accept)
 		}
 	}
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != r.successCode {
+	success := resp.StatusCode == r.successCode
+	for _, code := range r.successCodes {
+		success = success || resp.StatusCode == code
+	}
+	if !success {
 		defer resp.Body.Close()
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 		if et, ok := r.errorCodes[resp.StatusCode]; ok {
-			if typedErr := decodeErrorType(et, resp.StatusCode, body); typedErr != nil {
+			if typedErr := decodeErrorType(et, resp.StatusCode, resp.Header, body); typedErr != nil {
 				return nil, typedErr
 			}
 		}
-		return nil, &ResponseError{StatusCode: resp.StatusCode, Body: string(body)}
+		return nil, &ResponseError{StatusCode: resp.StatusCode, Body: string(body), Header: resp.Header.Clone()}
 	}
 	return resp, nil
 }
 
-func decodeErrorType(et errorType, statusCode int, body []byte) error {
+func decodeErrorType(et errorType, statusCode int, header http.Header, body []byte) error {
 	switch et {
 	case errorTypeErrorResponse:
 		var detail ErrorResponse
 		if err := json.Unmarshal(body, &detail); err == nil {
-			return &ResponseErrorResponse{StatusCode: statusCode, ErrorResponse: detail}
+			return &ResponseErrorResponse{StatusCode: statusCode, Header: header.Clone(), ErrorResponse: detail}
 		}
 	}
 	return nil
 }
 
 func doJSON[T any](c *Client, ctx context.Context, r apiRequest) (*T, error) {
+	r.accept = "application/json"
 	resp, err := c.do(ctx, r)
 	if err != nil {
 		return nil, err

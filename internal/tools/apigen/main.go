@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -9,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"time"
 )
 
 const (
@@ -26,7 +28,15 @@ func main() {
 
 func run() error {
 	updateSpecs := flag.Bool("update-specs", false, "Download latest specs from remote URLs before generating")
+	managementURL := flag.String("management-spec-url", "", "Explicit management spec refresh URL (staging hosts are normalized)")
+	sandboxOnly := flag.Bool("sandbox-management-only", false, "Import only sandbox management routes and their dependencies into the existing snapshot")
 	flag.Parse()
+	if *sandboxOnly && *managementURL == "" {
+		return fmt.Errorf("-sandbox-management-only requires -management-spec-url")
+	}
+	if *sandboxOnly && *updateSpecs {
+		return fmt.Errorf("-sandbox-management-only cannot be combined with -update-specs")
+	}
 
 	_, thisFile, _, _ := runtime.Caller(0)
 	apigenDir := filepath.Join(thisFile, "..")
@@ -38,12 +48,20 @@ func run() error {
 	inferenceSpecFile := filepath.Join(specsDir, "inference.json")
 	configSchemaFile := filepath.Join(specsDir, "config.schema.json")
 
+	if *managementURL != "" {
+		downloadManagement := downloadSpecToFile
+		if *sandboxOnly {
+			downloadManagement = downloadSandboxManagementSpec
+		}
+		if err := downloadManagement(*managementURL, managementSpecFile); err != nil {
+			return err
+		}
+	}
 	if *updateSpecs {
 		fmt.Println("Updating specs from remote URLs...")
-		if err := downloadSpecToFile(defaultManagementSpecURL, managementSpecFile); err != nil {
-			return fmt.Errorf("updating management spec: %w", err)
+		if *managementURL == "" {
+			return fmt.Errorf("-update-specs requires -management-spec-url to explicitly select the management source; use %s only after sandbox routes ship there", defaultManagementSpecURL)
 		}
-		fmt.Printf("  %s -> %s\n", defaultManagementSpecURL, managementSpecFile)
 		if err := downloadSpecToFile(defaultInferenceSpecURL, inferenceSpecFile); err != nil {
 			return fmt.Errorf("updating inference spec: %w", err)
 		}
@@ -59,6 +77,9 @@ func run() error {
 	}
 	if err := generateAPI(apigenDir, inferenceSpecFile, clientDir, "inferenceapi"); err != nil {
 		return fmt.Errorf("generating inference API: %w", err)
+	}
+	if err := generateAPI(apigenDir, filepath.Join(specsDir, "sandbox.yml"), clientDir, "sandboxapi"); err != nil {
+		return fmt.Errorf("generating sandbox API: %w", err)
 	}
 	if err := generateModelConfig(apigenDir, configSchemaFile, clientDir); err != nil {
 		return fmt.Errorf("generating modelconfig: %w", err)
@@ -138,7 +159,7 @@ func generateAPI(apigenDir, specSource, clientDir, pkgName string) error {
 		return err
 	}
 
-	specData, cleanup, err := resolveSpec(specSource)
+	specData, cleanup, err := resolveSpec(specSource, pkgName == "sandboxapi")
 	if err != nil {
 		return err
 	}
@@ -183,7 +204,7 @@ type resolvedSpec struct {
 
 // resolveSpec reads and preprocesses a spec file, returning the preprocessed
 // bytes and a temp file for tools that need a file path.
-func resolveSpec(source string) (*resolvedSpec, func(), error) {
+func resolveSpec(source string, inline bool) (*resolvedSpec, func(), error) {
 	noop := func() {}
 
 	data, err := os.ReadFile(source)
@@ -191,7 +212,7 @@ func resolveSpec(source string) (*resolvedSpec, func(), error) {
 		return nil, noop, err
 	}
 
-	pre, err := preprocessSpec(data)
+	pre, err := preprocessSpec(data, inline)
 	if err != nil {
 		return nil, noop, err
 	}
@@ -220,21 +241,30 @@ func resolveSpec(source string) (*resolvedSpec, func(), error) {
 }
 
 func downloadSpecToFile(url, destFile string) error {
-	resp, err := http.Get(url)
+	data, err := downloadSpec(url)
 	if err != nil {
-		return fmt.Errorf("fetching %s: %w", url, err)
+		return err
+	}
+	return os.WriteFile(destFile, data, 0644)
+}
+
+func downloadSpec(url string) ([]byte, error) {
+	resp, err := (&http.Client{Timeout: 30 * time.Second}).Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("fetching %s: %w", url, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("fetching %s: status %d", url, resp.StatusCode)
+		return nil, fmt.Errorf("fetching %s: status %d", url, resp.StatusCode)
 	}
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("reading response from %s: %w", url, err)
+		return nil, fmt.Errorf("reading response from %s: %w", url, err)
 	}
-	return os.WriteFile(destFile, data, 0o644)
+	data = bytes.ReplaceAll(data, []byte("api.staging.baseten.co"), []byte("api.baseten.co"))
+	return data, nil
 }
 
 func runOapiCodegen(apigenDir, specFile, outFile, pkgName string) error {
