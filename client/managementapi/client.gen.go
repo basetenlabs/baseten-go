@@ -75,17 +75,6 @@ func (c *Client) CleanupImages(ctx context.Context, params CleanupImagesParams) 
 	})
 }
 
-// CleanupImagesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) CleanupImagesRaw(ctx context.Context, params CleanupImagesParams, options RawRequestOptions) (*http.Response, error) {
-	headers := http.Header{}
-	{
-		if params.XTeamId != nil {
-			headers.Set("X-Team-Id", fmt.Sprint(*params.XTeamId))
-		}
-	}
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/sandboxes/cleanup_images", pathArgs: []any{}, queryParams: params, headers: headers, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // CreateSandbox: Create a sandbox
 func (c *Client) CreateSandbox(ctx context.Context, params CreateSandboxParams, body CreateSandboxRequest) (*Sandbox, error) {
 	headers := http.Header{}
@@ -106,17 +95,6 @@ func (c *Client) CreateSandbox(ctx context.Context, params CreateSandboxParams, 
 	})
 }
 
-// CreateSandboxRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) CreateSandboxRaw(ctx context.Context, params CreateSandboxParams, options RawRequestOptions) (*http.Response, error) {
-	headers := http.Header{}
-	{
-		if params.XTeamId != nil {
-			headers.Set("X-Team-Id", fmt.Sprint(*params.XTeamId))
-		}
-	}
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/sandboxes/instances", pathArgs: []any{}, queryParams: params, headers: headers, raw: &options, successCodes: []int{201}, errorCodes: map[int]errorType{}})
-}
-
 // DeleteApiKeys: Deletes an API key by prefix
 func (c *Client) DeleteApiKeys(ctx context.Context, apiKeyPrefix string) (*APIKeyTombstone, error) {
 	return doJSON[APIKeyTombstone](c, ctx, apiRequest{
@@ -128,11 +106,6 @@ func (c *Client) DeleteApiKeys(ctx context.Context, apiKeyPrefix string) (*APIKe
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// DeleteApiKeysRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteApiKeysRaw(ctx context.Context, apiKeyPrefix string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/api_keys/%s", pathArgs: []any{apiKeyPrefix}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // DeleteChains: Deletes a chain by ID
@@ -148,11 +121,6 @@ func (c *Client) DeleteChains(ctx context.Context, chainId string) (*ChainTombst
 	})
 }
 
-// DeleteChainsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteChainsRaw(ctx context.Context, chainId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/chains/%s", pathArgs: []any{chainId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // DeleteChainsDeployments: Deletes a chain deployment by ID
 func (c *Client) DeleteChainsDeployments(ctx context.Context, chainId string, chainDeploymentId string) (*ChainDeploymentTombstone, error) {
 	return doJSON[ChainDeploymentTombstone](c, ctx, apiRequest{
@@ -166,11 +134,6 @@ func (c *Client) DeleteChainsDeployments(ctx context.Context, chainId string, ch
 	})
 }
 
-// DeleteChainsDeploymentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteChainsDeploymentsRaw(ctx context.Context, chainId string, chainDeploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/chains/%s/deployments/%s", pathArgs: []any{chainId, chainDeploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // DeleteGatewayEndpoints: Deletes a Gateway endpoint
 func (c *Client) DeleteGatewayEndpoints(ctx context.Context, endpointId string) (*EndpointTombstone, error) {
 	return doJSON[EndpointTombstone](c, ctx, apiRequest{
@@ -182,11 +145,6 @@ func (c *Client) DeleteGatewayEndpoints(ctx context.Context, endpointId string) 
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// DeleteGatewayEndpointsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteGatewayEndpointsRaw(ctx context.Context, endpointId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/gateway/endpoints/%s", pathArgs: []any{endpointId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // DeleteImage: Delete a sandbox image
@@ -209,17 +167,6 @@ func (c *Client) DeleteImage(ctx context.Context, imageName string, params Delet
 	})
 }
 
-// DeleteImageRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteImageRaw(ctx context.Context, imageName string, params DeleteImageParams, options RawRequestOptions) (*http.Response, error) {
-	headers := http.Header{}
-	{
-		if params.XTeamId != nil {
-			headers.Set("X-Team-Id", fmt.Sprint(*params.XTeamId))
-		}
-	}
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/sandboxes/images/%s", pathArgs: []any{imageName}, queryParams: params, headers: headers, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // DeleteImageTag: Delete an image tag
 func (c *Client) DeleteImageTag(ctx context.Context, imageName string, tagName string, params DeleteImageTagParams) (*Image, error) {
 	headers := http.Header{}
@@ -240,17 +187,6 @@ func (c *Client) DeleteImageTag(ctx context.Context, imageName string, tagName s
 	})
 }
 
-// DeleteImageTagRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteImageTagRaw(ctx context.Context, imageName string, tagName string, params DeleteImageTagParams, options RawRequestOptions) (*http.Response, error) {
-	headers := http.Header{}
-	{
-		if params.XTeamId != nil {
-			headers.Set("X-Team-Id", fmt.Sprint(*params.XTeamId))
-		}
-	}
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/sandboxes/images/%s/tags/%s", pathArgs: []any{imageName, tagName}, queryParams: params, headers: headers, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // DeleteLibraryListings: Deletes a library listing
 func (c *Client) DeleteLibraryListings(ctx context.Context, userDefinedListingId string) (*LibraryListingTombstone, error) {
 	return doJSON[LibraryListingTombstone](c, ctx, apiRequest{
@@ -262,11 +198,6 @@ func (c *Client) DeleteLibraryListings(ctx context.Context, userDefinedListingId
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// DeleteLibraryListingsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteLibraryListingsRaw(ctx context.Context, userDefinedListingId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/library_listings/%s", pathArgs: []any{userDefinedListingId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // DeleteLibraryListingsVersions: Deletes a library listing version
@@ -282,11 +213,6 @@ func (c *Client) DeleteLibraryListingsVersions(ctx context.Context, userDefinedL
 	})
 }
 
-// DeleteLibraryListingsVersionsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteLibraryListingsVersionsRaw(ctx context.Context, userDefinedListingId string, versionTag string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/library_listings/%s/versions/%s", pathArgs: []any{userDefinedListingId, versionTag}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // DeleteModels: Deletes a model by ID
 func (c *Client) DeleteModels(ctx context.Context, modelId string) (*ModelTombstone, error) {
 	return doJSON[ModelTombstone](c, ctx, apiRequest{
@@ -298,11 +224,6 @@ func (c *Client) DeleteModels(ctx context.Context, modelId string) (*ModelTombst
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// DeleteModelsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteModelsRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/models/%s", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // DeleteModelsDeployments: Deletes a model's deployment by ID
@@ -318,11 +239,6 @@ func (c *Client) DeleteModelsDeployments(ctx context.Context, modelId string, de
 	})
 }
 
-// DeleteModelsDeploymentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteModelsDeploymentsRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/models/%s/deployments/%s", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // DeleteModelsDeploymentsReplicas: Terminates a replica in a deployment
 func (c *Client) DeleteModelsDeploymentsReplicas(ctx context.Context, modelId string, deploymentId string, replicaId string) (*TerminateReplicaResponse, error) {
 	return doJSON[TerminateReplicaResponse](c, ctx, apiRequest{
@@ -334,11 +250,6 @@ func (c *Client) DeleteModelsDeploymentsReplicas(ctx context.Context, modelId st
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// DeleteModelsDeploymentsReplicasRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteModelsDeploymentsReplicasRaw(ctx context.Context, modelId string, deploymentId string, replicaId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/models/%s/deployments/%s/replicas/%s", pathArgs: []any{modelId, deploymentId, replicaId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // DeleteModelsEnvironments: Deletes an environment
@@ -354,11 +265,6 @@ func (c *Client) DeleteModelsEnvironments(ctx context.Context, modelId string, e
 	})
 }
 
-// DeleteModelsEnvironmentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteModelsEnvironmentsRaw(ctx context.Context, modelId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/models/%s/environments/%s", pathArgs: []any{modelId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // DeleteRoutes: Deletes a route
 func (c *Client) DeleteRoutes(ctx context.Context, routeId string) (*RouteTombstone, error) {
 	return doJSON[RouteTombstone](c, ctx, apiRequest{
@@ -370,11 +276,6 @@ func (c *Client) DeleteRoutes(ctx context.Context, routeId string) (*RouteTombst
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// DeleteRoutesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteRoutesRaw(ctx context.Context, routeId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/routes/%s", pathArgs: []any{routeId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // DeleteSandbox: Delete a sandbox
@@ -397,17 +298,6 @@ func (c *Client) DeleteSandbox(ctx context.Context, sandboxName string, params D
 	})
 }
 
-// DeleteSandboxRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteSandboxRaw(ctx context.Context, sandboxName string, params DeleteSandboxParams, options RawRequestOptions) (*http.Response, error) {
-	headers := http.Header{}
-	{
-		if params.XTeamId != nil {
-			headers.Set("X-Team-Id", fmt.Sprint(*params.XTeamId))
-		}
-	}
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/sandboxes/instances/%s", pathArgs: []any{sandboxName}, queryParams: params, headers: headers, raw: &options, successCodes: []int{202}, errorCodes: map[int]errorType{}})
-}
-
 // DeleteSecrets: Deletes a secret by name
 func (c *Client) DeleteSecrets(ctx context.Context, secretName string) (*SecretTombstone, error) {
 	return doJSON[SecretTombstone](c, ctx, apiRequest{
@@ -419,11 +309,6 @@ func (c *Client) DeleteSecrets(ctx context.Context, secretName string) (*SecretT
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// DeleteSecretsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteSecretsRaw(ctx context.Context, secretName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/secrets/%s", pathArgs: []any{secretName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // DeleteTeamsSecrets: Deletes a secret by name
@@ -439,11 +324,6 @@ func (c *Client) DeleteTeamsSecrets(ctx context.Context, teamId string, secretNa
 	})
 }
 
-// DeleteTeamsSecretsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteTeamsSecretsRaw(ctx context.Context, teamId string, secretName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/teams/%s/secrets/%s", pathArgs: []any{teamId, secretName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // DeleteTrainingProjects: Deletes a training project
 func (c *Client) DeleteTrainingProjects(ctx context.Context, trainingProjectId string) (*TrainingProjectTombstone, error) {
 	return doJSON[TrainingProjectTombstone](c, ctx, apiRequest{
@@ -455,11 +335,6 @@ func (c *Client) DeleteTrainingProjects(ctx context.Context, trainingProjectId s
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// DeleteTrainingProjectsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteTrainingProjectsRaw(ctx context.Context, trainingProjectId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/training_projects/%s", pathArgs: []any{trainingProjectId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // DeleteTrainingProjectsJobs: Deletes a training job
@@ -475,11 +350,6 @@ func (c *Client) DeleteTrainingProjectsJobs(ctx context.Context, trainingProject
 	})
 }
 
-// DeleteTrainingProjectsJobsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteTrainingProjectsJobsRaw(ctx context.Context, trainingProjectId string, trainingJobId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/training_projects/%s/jobs/%s", pathArgs: []any{trainingProjectId, trainingJobId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // DeleteVolumes: Deletes a volume
 func (c *Client) DeleteVolumes(ctx context.Context, volumeNamespace string, volumeName string, body DeleteVolumeRequest) (*DeleteVolumeResponse, error) {
 	return doJSON[DeleteVolumeResponse](c, ctx, apiRequest{
@@ -493,11 +363,6 @@ func (c *Client) DeleteVolumes(ctx context.Context, volumeNamespace string, volu
 	})
 }
 
-// DeleteVolumesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteVolumesRaw(ctx context.Context, volumeNamespace string, volumeName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/volumes/%s/%s", pathArgs: []any{volumeNamespace, volumeName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // DeleteVolumesVersions: Deletes one version of a volume
 func (c *Client) DeleteVolumesVersions(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string, body DeleteVolumeVersionRequest) (*DeleteVolumeVersionResponse, error) {
 	return doJSON[DeleteVolumeVersionResponse](c, ctx, apiRequest{
@@ -509,11 +374,6 @@ func (c *Client) DeleteVolumesVersions(ctx context.Context, volumeNamespace stri
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// DeleteVolumesVersionsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteVolumesVersionsRaw(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/v1/volumes/%s/%s/versions/%s", pathArgs: []any{volumeNamespace, volumeName, volumeVersion}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetApiKeys: Lists API keys (metadata only, no plain text keys)
@@ -530,11 +390,6 @@ func (c *Client) GetApiKeys(ctx context.Context, params GetV1ApiKeysParams) (*AP
 	})
 }
 
-// GetApiKeysRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetApiKeysRaw(ctx context.Context, params GetV1ApiKeysParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/api_keys", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetAuditLogs: Gets the audit log for the workspace
 func (c *Client) GetAuditLogs(ctx context.Context, params GetV1AuditLogsParams) (*ListAuditLogsResponse, error) {
 	return doJSON[ListAuditLogsResponse](c, ctx, apiRequest{
@@ -547,11 +402,6 @@ func (c *Client) GetAuditLogs(ctx context.Context, params GetV1AuditLogsParams) 
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetAuditLogsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetAuditLogsRaw(ctx context.Context, params GetV1AuditLogsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/audit_logs", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetBillingModelApis: Gets daily Model APIs costs
@@ -568,11 +418,6 @@ func (c *Client) GetBillingModelApis(ctx context.Context, params GetV1BillingMod
 	})
 }
 
-// GetBillingModelApisRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetBillingModelApisRaw(ctx context.Context, params GetV1BillingModelApisParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/billing/model_apis", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetBillingToolCallUsage: Gets server-side tool call usage
 func (c *Client) GetBillingToolCallUsage(ctx context.Context, params GetV1BillingToolCallUsageParams) (*ToolCallUsageResponse, error) {
 	return doJSON[ToolCallUsageResponse](c, ctx, apiRequest{
@@ -585,11 +430,6 @@ func (c *Client) GetBillingToolCallUsage(ctx context.Context, params GetV1Billin
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetBillingToolCallUsageRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetBillingToolCallUsageRaw(ctx context.Context, params GetV1BillingToolCallUsageParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/billing/tool_call_usage", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetBillingUsageSummary: Gets billing usage summary for a date range
@@ -606,11 +446,6 @@ func (c *Client) GetBillingUsageSummary(ctx context.Context, params GetV1Billing
 	})
 }
 
-// GetBillingUsageSummaryRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetBillingUsageSummaryRaw(ctx context.Context, params GetV1BillingUsageSummaryParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/billing/usage_summary", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetBlobsCredentialsModel: Gets blob credentials for models
 func (c *Client) GetBlobsCredentialsModel(ctx context.Context) (*GetBlobCredentialsResponse, error) {
 	return doJSON[GetBlobCredentialsResponse](c, ctx, apiRequest{
@@ -622,11 +457,6 @@ func (c *Client) GetBlobsCredentialsModel(ctx context.Context) (*GetBlobCredenti
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetBlobsCredentialsModelRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetBlobsCredentialsModelRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/blobs/credentials/model", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetBlobsCredentialsTrain: Gets blob credentials for training
@@ -642,11 +472,6 @@ func (c *Client) GetBlobsCredentialsTrain(ctx context.Context) (*GetBlobCredenti
 	})
 }
 
-// GetBlobsCredentialsTrainRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetBlobsCredentialsTrainRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/blobs/credentials/train", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetChains: Gets all chains
 func (c *Client) GetChains(ctx context.Context) (*Chains, error) {
 	return doJSON[Chains](c, ctx, apiRequest{
@@ -658,11 +483,6 @@ func (c *Client) GetChains(ctx context.Context) (*Chains, error) {
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetChainsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetChainsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/chains", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetChainsAuditLogs: Gets the audit log for a chain
@@ -679,11 +499,6 @@ func (c *Client) GetChainsAuditLogs(ctx context.Context, chainId string, params 
 	})
 }
 
-// GetChainsAuditLogsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetChainsAuditLogsRaw(ctx context.Context, chainId string, params GetV1ChainsChainIdAuditLogsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/chains/%s/audit_logs", pathArgs: []any{chainId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetChainsChainId: Gets a chain by ID
 func (c *Client) GetChainsChainId(ctx context.Context, chainId string) (*Chain, error) {
 	return doJSON[Chain](c, ctx, apiRequest{
@@ -695,11 +510,6 @@ func (c *Client) GetChainsChainId(ctx context.Context, chainId string) (*Chain, 
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetChainsChainIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetChainsChainIdRaw(ctx context.Context, chainId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/chains/%s", pathArgs: []any{chainId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetChainsDeployments: Gets all chain deployments
@@ -715,11 +525,6 @@ func (c *Client) GetChainsDeployments(ctx context.Context, chainId string) (*Cha
 	})
 }
 
-// GetChainsDeploymentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetChainsDeploymentsRaw(ctx context.Context, chainId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/chains/%s/deployments", pathArgs: []any{chainId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetChainsDeploymentsChainDeploymentId: Gets a chain deployment by ID
 func (c *Client) GetChainsDeploymentsChainDeploymentId(ctx context.Context, chainId string, chainDeploymentId string) (*ChainDeployment, error) {
 	return doJSON[ChainDeployment](c, ctx, apiRequest{
@@ -731,11 +536,6 @@ func (c *Client) GetChainsDeploymentsChainDeploymentId(ctx context.Context, chai
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetChainsDeploymentsChainDeploymentIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetChainsDeploymentsChainDeploymentIdRaw(ctx context.Context, chainId string, chainDeploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/chains/%s/deployments/%s", pathArgs: []any{chainId, chainDeploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetChainsDeploymentsChainletsLogs: Gets the logs for a chainlet within a chain deployment
@@ -752,11 +552,6 @@ func (c *Client) GetChainsDeploymentsChainletsLogs(ctx context.Context, chainId 
 	})
 }
 
-// GetChainsDeploymentsChainletsLogsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetChainsDeploymentsChainletsLogsRaw(ctx context.Context, chainId string, chainDeploymentId string, chainletId string, params GetV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/chains/%s/deployments/%s/chainlets/%s/logs", pathArgs: []any{chainId, chainDeploymentId, chainletId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetChainsEnvironments: Gets all chain environments
 func (c *Client) GetChainsEnvironments(ctx context.Context, chainId string) (*Environments, error) {
 	return doJSON[Environments](c, ctx, apiRequest{
@@ -768,11 +563,6 @@ func (c *Client) GetChainsEnvironments(ctx context.Context, chainId string) (*En
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetChainsEnvironmentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetChainsEnvironmentsRaw(ctx context.Context, chainId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/chains/%s/environments", pathArgs: []any{chainId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetChainsEnvironmentsEnvName: Gets a chain environment's details
@@ -788,11 +578,6 @@ func (c *Client) GetChainsEnvironmentsEnvName(ctx context.Context, chainId strin
 	})
 }
 
-// GetChainsEnvironmentsEnvNameRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetChainsEnvironmentsEnvNameRaw(ctx context.Context, chainId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/chains/%s/environments/%s", pathArgs: []any{chainId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetEnvironmentGroups: Lists environment groups
 func (c *Client) GetEnvironmentGroups(ctx context.Context) (*EnvironmentGroups, error) {
 	return doJSON[EnvironmentGroups](c, ctx, apiRequest{
@@ -806,11 +591,6 @@ func (c *Client) GetEnvironmentGroups(ctx context.Context) (*EnvironmentGroups, 
 	})
 }
 
-// GetEnvironmentGroupsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetEnvironmentGroupsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/environment_groups", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetEnvironmentGroupsEnvName: Gets an environment group by name
 func (c *Client) GetEnvironmentGroupsEnvName(ctx context.Context, envName string) (*EnvironmentGroup, error) {
 	return doJSON[EnvironmentGroup](c, ctx, apiRequest{
@@ -822,11 +602,6 @@ func (c *Client) GetEnvironmentGroupsEnvName(ctx context.Context, envName string
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetEnvironmentGroupsEnvNameRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetEnvironmentGroupsEnvNameRaw(ctx context.Context, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/environment_groups/%s", pathArgs: []any{envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetExploreMetadata: Lists model metadata
@@ -843,11 +618,6 @@ func (c *Client) GetExploreMetadata(ctx context.Context, params GetV1ExploreMeta
 	})
 }
 
-// GetExploreMetadataRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetExploreMetadataRaw(ctx context.Context, params GetV1ExploreMetadataParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/explore/metadata", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetGatewayEndpoints: Lists Gateway endpoints
 func (c *Client) GetGatewayEndpoints(ctx context.Context) (*EndpointsResponse, error) {
 	return doJSON[EndpointsResponse](c, ctx, apiRequest{
@@ -861,11 +631,6 @@ func (c *Client) GetGatewayEndpoints(ctx context.Context) (*EndpointsResponse, e
 	})
 }
 
-// GetGatewayEndpointsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetGatewayEndpointsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/gateway/endpoints", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetGatewayEndpointsEndpointId: Gets a Gateway endpoint
 func (c *Client) GetGatewayEndpointsEndpointId(ctx context.Context, endpointId string) (*Endpoint, error) {
 	return doJSON[Endpoint](c, ctx, apiRequest{
@@ -877,11 +642,6 @@ func (c *Client) GetGatewayEndpointsEndpointId(ctx context.Context, endpointId s
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetGatewayEndpointsEndpointIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetGatewayEndpointsEndpointIdRaw(ctx context.Context, endpointId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/gateway/endpoints/%s", pathArgs: []any{endpointId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetGatewayEvents: Lists gateway events
@@ -898,11 +658,6 @@ func (c *Client) GetGatewayEvents(ctx context.Context, params GetV1GatewayEvents
 	})
 }
 
-// GetGatewayEventsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetGatewayEventsRaw(ctx context.Context, params GetV1GatewayEventsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/gateway/events", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetGatewayGroups: Lists groups
 func (c *Client) GetGatewayGroups(ctx context.Context) (*GroupsResponse, error) {
 	return doJSON[GroupsResponse](c, ctx, apiRequest{
@@ -914,11 +669,6 @@ func (c *Client) GetGatewayGroups(ctx context.Context) (*GroupsResponse, error) 
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetGatewayGroupsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetGatewayGroupsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/gateway/groups", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetGatewayGroupsApiKeys: Lists API keys for a group
@@ -934,11 +684,6 @@ func (c *Client) GetGatewayGroupsApiKeys(ctx context.Context, groupId string) (*
 	})
 }
 
-// GetGatewayGroupsApiKeysRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetGatewayGroupsApiKeysRaw(ctx context.Context, groupId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/gateway/groups/%s/api_keys", pathArgs: []any{groupId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetGatewayGroupsApiKeysApiKeyPrefix: Gets an API key for a group
 func (c *Client) GetGatewayGroupsApiKeysApiKeyPrefix(ctx context.Context, groupId string, apiKeyPrefix string) (*GatewayKeyInfo, error) {
 	return doJSON[GatewayKeyInfo](c, ctx, apiRequest{
@@ -952,11 +697,6 @@ func (c *Client) GetGatewayGroupsApiKeysApiKeyPrefix(ctx context.Context, groupI
 	})
 }
 
-// GetGatewayGroupsApiKeysApiKeyPrefixRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetGatewayGroupsApiKeysApiKeyPrefixRaw(ctx context.Context, groupId string, apiKeyPrefix string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/gateway/groups/%s/api_keys/%s", pathArgs: []any{groupId, apiKeyPrefix}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetGatewayGroupsGroupId: Gets a group
 func (c *Client) GetGatewayGroupsGroupId(ctx context.Context, groupId string) (*Group, error) {
 	return doJSON[Group](c, ctx, apiRequest{
@@ -968,11 +708,6 @@ func (c *Client) GetGatewayGroupsGroupId(ctx context.Context, groupId string) (*
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetGatewayGroupsGroupIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetGatewayGroupsGroupIdRaw(ctx context.Context, groupId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/gateway/groups/%s", pathArgs: []any{groupId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetImage: Get a sandbox image
@@ -995,17 +730,6 @@ func (c *Client) GetImage(ctx context.Context, imageName string, params GetImage
 	})
 }
 
-// GetImageRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetImageRaw(ctx context.Context, imageName string, params GetImageParams, options RawRequestOptions) (*http.Response, error) {
-	headers := http.Header{}
-	{
-		if params.XTeamId != nil {
-			headers.Set("X-Team-Id", fmt.Sprint(*params.XTeamId))
-		}
-	}
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/sandboxes/images/%s", pathArgs: []any{imageName}, queryParams: params, headers: headers, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetInstanceTypePrices: Gets prices for available instance types
 func (c *Client) GetInstanceTypePrices(ctx context.Context) (*InstanceTypePrices, error) {
 	return doJSON[InstanceTypePrices](c, ctx, apiRequest{
@@ -1017,11 +741,6 @@ func (c *Client) GetInstanceTypePrices(ctx context.Context) (*InstanceTypePrices
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetInstanceTypePricesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetInstanceTypePricesRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/instance_type_prices", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetInstanceTypes: Gets all available instance types
@@ -1037,11 +756,6 @@ func (c *Client) GetInstanceTypes(ctx context.Context) (*InstanceTypes, error) {
 	})
 }
 
-// GetInstanceTypesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetInstanceTypesRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/instance_types", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetLibraryListings: Gets all library listings
 func (c *Client) GetLibraryListings(ctx context.Context) (*LibraryListings, error) {
 	return doJSON[LibraryListings](c, ctx, apiRequest{
@@ -1053,11 +767,6 @@ func (c *Client) GetLibraryListings(ctx context.Context) (*LibraryListings, erro
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetLibraryListingsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLibraryListingsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/library_listings", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetLibraryListingsUserDefinedListingId: Gets a library listing
@@ -1073,11 +782,6 @@ func (c *Client) GetLibraryListingsUserDefinedListingId(ctx context.Context, use
 	})
 }
 
-// GetLibraryListingsUserDefinedListingIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLibraryListingsUserDefinedListingIdRaw(ctx context.Context, userDefinedListingId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/library_listings/%s", pathArgs: []any{userDefinedListingId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetLibraryListingsVersions: Gets all versions for a library listing
 func (c *Client) GetLibraryListingsVersions(ctx context.Context, userDefinedListingId string) (*LibraryListingVersions, error) {
 	return doJSON[LibraryListingVersions](c, ctx, apiRequest{
@@ -1091,11 +795,6 @@ func (c *Client) GetLibraryListingsVersions(ctx context.Context, userDefinedList
 	})
 }
 
-// GetLibraryListingsVersionsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLibraryListingsVersionsRaw(ctx context.Context, userDefinedListingId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/library_listings/%s/versions", pathArgs: []any{userDefinedListingId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetLibraryListingsVersionsVersionTag: Gets a library listing version
 func (c *Client) GetLibraryListingsVersionsVersionTag(ctx context.Context, userDefinedListingId string, versionTag string) (*LibraryListingVersion, error) {
 	return doJSON[LibraryListingVersion](c, ctx, apiRequest{
@@ -1107,11 +806,6 @@ func (c *Client) GetLibraryListingsVersionsVersionTag(ctx context.Context, userD
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetLibraryListingsVersionsVersionTagRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLibraryListingsVersionsVersionTagRaw(ctx context.Context, userDefinedListingId string, versionTag string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/library_listings/%s/versions/%s", pathArgs: []any{userDefinedListingId, versionTag}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetLoopsCapabilities: Gets Loops server capabilities
@@ -1128,11 +822,6 @@ func (c *Client) GetLoopsCapabilities(ctx context.Context, params GetV1LoopsCapa
 	})
 }
 
-// GetLoopsCapabilitiesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsCapabilitiesRaw(ctx context.Context, params GetV1LoopsCapabilitiesParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/capabilities", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetLoopsCheckpoints: Lists Loops checkpoints
 func (c *Client) GetLoopsCheckpoints(ctx context.Context, params GetV1LoopsCheckpointsParams) (*ListLoopsCheckpointsResponse, error) {
 	return doJSON[ListLoopsCheckpointsResponse](c, ctx, apiRequest{
@@ -1145,11 +834,6 @@ func (c *Client) GetLoopsCheckpoints(ctx context.Context, params GetV1LoopsCheck
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetLoopsCheckpointsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsCheckpointsRaw(ctx context.Context, params GetV1LoopsCheckpointsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/checkpoints", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetLoopsCheckpointsFiles: Gets Loops checkpoint files
@@ -1166,11 +850,6 @@ func (c *Client) GetLoopsCheckpointsFiles(ctx context.Context, checkpointId stri
 	})
 }
 
-// GetLoopsCheckpointsFilesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsCheckpointsFilesRaw(ctx context.Context, checkpointId string, params GetV1LoopsCheckpointsCheckpointIdFilesParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/checkpoints/%s/files", pathArgs: []any{checkpointId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetLoopsCheckpointsSource: Gets where a Loops checkpoint's files come from
 func (c *Client) GetLoopsCheckpointsSource(ctx context.Context, checkpointId string) (*LoopsCheckpointSourceResponse, error) {
 	return doJSON[LoopsCheckpointSourceResponse](c, ctx, apiRequest{
@@ -1182,11 +861,6 @@ func (c *Client) GetLoopsCheckpointsSource(ctx context.Context, checkpointId str
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetLoopsCheckpointsSourceRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsCheckpointsSourceRaw(ctx context.Context, checkpointId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/checkpoints/%s/source", pathArgs: []any{checkpointId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetLoopsDeployments: Lists Loops deployments
@@ -1203,11 +877,6 @@ func (c *Client) GetLoopsDeployments(ctx context.Context, params GetV1LoopsDeplo
 	})
 }
 
-// GetLoopsDeploymentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsDeploymentsRaw(ctx context.Context, params GetV1LoopsDeploymentsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/deployments", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetLoopsDeploymentsDebugArchiveFiles: Gets Loops debug archive files
 func (c *Client) GetLoopsDeploymentsDebugArchiveFiles(ctx context.Context, deploymentId string, params GetV1LoopsDeploymentsDeploymentIdDebugArchiveFilesParams) (*LoopsDebugArchiveFilesResponse, error) {
 	return doJSON[LoopsDebugArchiveFilesResponse](c, ctx, apiRequest{
@@ -1222,11 +891,6 @@ func (c *Client) GetLoopsDeploymentsDebugArchiveFiles(ctx context.Context, deplo
 	})
 }
 
-// GetLoopsDeploymentsDebugArchiveFilesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsDeploymentsDebugArchiveFilesRaw(ctx context.Context, deploymentId string, params GetV1LoopsDeploymentsDeploymentIdDebugArchiveFilesParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/deployments/%s/debug_archive/files", pathArgs: []any{deploymentId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetLoopsDeploymentsDeploymentId: Gets a Loops deployment
 func (c *Client) GetLoopsDeploymentsDeploymentId(ctx context.Context, deploymentId string) (*GetLoopsDeploymentResponse, error) {
 	return doJSON[GetLoopsDeploymentResponse](c, ctx, apiRequest{
@@ -1238,11 +902,6 @@ func (c *Client) GetLoopsDeploymentsDeploymentId(ctx context.Context, deployment
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetLoopsDeploymentsDeploymentIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsDeploymentsDeploymentIdRaw(ctx context.Context, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/deployments/%s", pathArgs: []any{deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetLoopsDeploymentsLogs: Gets logs for a Loops trainer deployment
@@ -1259,11 +918,6 @@ func (c *Client) GetLoopsDeploymentsLogs(ctx context.Context, deploymentId strin
 	})
 }
 
-// GetLoopsDeploymentsLogsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsDeploymentsLogsRaw(ctx context.Context, deploymentId string, params GetV1LoopsDeploymentsDeploymentIdLogsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/deployments/%s/logs", pathArgs: []any{deploymentId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetLoopsRuns: Lists Loops runs
 func (c *Client) GetLoopsRuns(ctx context.Context, params GetV1LoopsRunsParams) (*ListLoopsRunsResponse, error) {
 	return doJSON[ListLoopsRunsResponse](c, ctx, apiRequest{
@@ -1278,11 +932,6 @@ func (c *Client) GetLoopsRuns(ctx context.Context, params GetV1LoopsRunsParams) 
 	})
 }
 
-// GetLoopsRunsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsRunsRaw(ctx context.Context, params GetV1LoopsRunsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/runs", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetLoopsRunsRunId: Gets a Loops run
 func (c *Client) GetLoopsRunsRunId(ctx context.Context, runId string) (*GetLoopsRunResponse, error) {
 	return doJSON[GetLoopsRunResponse](c, ctx, apiRequest{
@@ -1294,11 +943,6 @@ func (c *Client) GetLoopsRunsRunId(ctx context.Context, runId string) (*GetLoops
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetLoopsRunsRunIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsRunsRunIdRaw(ctx context.Context, runId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/runs/%s", pathArgs: []any{runId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetLoopsSamplers: Lists Loops samplers
@@ -1315,11 +959,6 @@ func (c *Client) GetLoopsSamplers(ctx context.Context, params GetV1LoopsSamplers
 	})
 }
 
-// GetLoopsSamplersRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsSamplersRaw(ctx context.Context, params GetV1LoopsSamplersParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/samplers", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetLoopsSamplersSamplerId: Gets a Loops sampler
 func (c *Client) GetLoopsSamplersSamplerId(ctx context.Context, samplerId string) (*GetLoopsSamplerResponse, error) {
 	return doJSON[GetLoopsSamplerResponse](c, ctx, apiRequest{
@@ -1331,11 +970,6 @@ func (c *Client) GetLoopsSamplersSamplerId(ctx context.Context, samplerId string
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetLoopsSamplersSamplerIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsSamplersSamplerIdRaw(ctx context.Context, samplerId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/samplers/%s", pathArgs: []any{samplerId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetLoopsSessions: Gets a Loops session
@@ -1351,11 +985,6 @@ func (c *Client) GetLoopsSessions(ctx context.Context, sessionId string) (*GetLo
 	})
 }
 
-// GetLoopsSessionsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsSessionsRaw(ctx context.Context, sessionId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/sessions/%s", pathArgs: []any{sessionId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetLoopsUserConfig: Gets the caller's Loops user config
 func (c *Client) GetLoopsUserConfig(ctx context.Context) (*GetLoopsUserConfigResponse, error) {
 	return doJSON[GetLoopsUserConfigResponse](c, ctx, apiRequest{
@@ -1367,11 +996,6 @@ func (c *Client) GetLoopsUserConfig(ctx context.Context) (*GetLoopsUserConfigRes
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetLoopsUserConfigRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetLoopsUserConfigRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/loops/user_config", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetModelApis: Lists Model APIs
@@ -1388,11 +1012,6 @@ func (c *Client) GetModelApis(ctx context.Context, params GetV1ModelApisParams) 
 	})
 }
 
-// GetModelApisRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelApisRaw(ctx context.Context, params GetV1ModelApisParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/model_apis", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetModelApisModelApiName: Gets a Model API
 func (c *Client) GetModelApisModelApiName(ctx context.Context, modelApiName string) (*ModelAPI, error) {
 	return doJSON[ModelAPI](c, ctx, apiRequest{
@@ -1404,11 +1023,6 @@ func (c *Client) GetModelApisModelApiName(ctx context.Context, modelApiName stri
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetModelApisModelApiNameRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelApisModelApiNameRaw(ctx context.Context, modelApiName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/model_apis/%s", pathArgs: []any{modelApiName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetModelApisUsage: Gets Model APIs token usage in time buckets
@@ -1425,11 +1039,6 @@ func (c *Client) GetModelApisUsage(ctx context.Context, params GetV1ModelApisUsa
 	})
 }
 
-// GetModelApisUsageRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelApisUsageRaw(ctx context.Context, params GetV1ModelApisUsageParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/model_apis/usage", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetModels: Gets all models
 func (c *Client) GetModels(ctx context.Context, params GetV1ModelsParams) (*Models, error) {
 	return doJSON[Models](c, ctx, apiRequest{
@@ -1442,11 +1051,6 @@ func (c *Client) GetModels(ctx context.Context, params GetV1ModelsParams) (*Mode
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetModelsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsRaw(ctx context.Context, params GetV1ModelsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetModelsAuditLogs: Gets the audit log for a model
@@ -1463,11 +1067,6 @@ func (c *Client) GetModelsAuditLogs(ctx context.Context, modelId string, params 
 	})
 }
 
-// GetModelsAuditLogsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsAuditLogsRaw(ctx context.Context, modelId string, params GetV1ModelsModelIdAuditLogsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/audit_logs", pathArgs: []any{modelId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetModelsDeployments: Gets all deployments of a model
 func (c *Client) GetModelsDeployments(ctx context.Context, modelId string, params GetV1ModelsModelIdDeploymentsParams) (*Deployments, error) {
 	return doJSON[Deployments](c, ctx, apiRequest{
@@ -1480,11 +1079,6 @@ func (c *Client) GetModelsDeployments(ctx context.Context, modelId string, param
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetModelsDeploymentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsDeploymentsRaw(ctx context.Context, modelId string, params GetV1ModelsModelIdDeploymentsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/deployments", pathArgs: []any{modelId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetModelsDeploymentsConfig: Gets a deployment's config
@@ -1501,11 +1095,6 @@ func (c *Client) GetModelsDeploymentsConfig(ctx context.Context, modelId string,
 	})
 }
 
-// GetModelsDeploymentsConfigRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsDeploymentsConfigRaw(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/deployments/%s/config", pathArgs: []any{modelId, deploymentId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetModelsDeploymentsDeploymentId: Gets a model's deployment by ID
 func (c *Client) GetModelsDeploymentsDeploymentId(ctx context.Context, modelId string, deploymentId string) (*Deployment, error) {
 	return doJSON[Deployment](c, ctx, apiRequest{
@@ -1517,11 +1106,6 @@ func (c *Client) GetModelsDeploymentsDeploymentId(ctx context.Context, modelId s
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetModelsDeploymentsDeploymentIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsDeploymentsDeploymentIdRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/deployments/%s", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetModelsDeploymentsDevelopment: Gets a model's development deployment
@@ -1537,11 +1121,6 @@ func (c *Client) GetModelsDeploymentsDevelopment(ctx context.Context, modelId st
 	})
 }
 
-// GetModelsDeploymentsDevelopmentRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsDeploymentsDevelopmentRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/deployments/development", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetModelsDeploymentsDownload: Gets a presigned download URL for a deployment's truss
 func (c *Client) GetModelsDeploymentsDownload(ctx context.Context, modelId string, deploymentId string) (*DownloadDeploymentResponse, error) {
 	return doJSON[DownloadDeploymentResponse](c, ctx, apiRequest{
@@ -1553,11 +1132,6 @@ func (c *Client) GetModelsDeploymentsDownload(ctx context.Context, modelId strin
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetModelsDeploymentsDownloadRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsDeploymentsDownloadRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/deployments/%s/download", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetModelsDeploymentsLogs: Gets the logs for a model deployment
@@ -1574,11 +1148,6 @@ func (c *Client) GetModelsDeploymentsLogs(ctx context.Context, modelId string, d
 	})
 }
 
-// GetModelsDeploymentsLogsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsDeploymentsLogsRaw(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdLogsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/deployments/%s/logs", pathArgs: []any{modelId, deploymentId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetModelsDeploymentsMetrics: Gets the metrics for a model deployment
 func (c *Client) GetModelsDeploymentsMetrics(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams) (*GetModelMetricsResponse, error) {
 	return doJSON[GetModelMetricsResponse](c, ctx, apiRequest{
@@ -1591,11 +1160,6 @@ func (c *Client) GetModelsDeploymentsMetrics(ctx context.Context, modelId string
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetModelsDeploymentsMetricsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsDeploymentsMetricsRaw(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/deployments/%s/metrics", pathArgs: []any{modelId, deploymentId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetModelsDeploymentsPatchesState: Gets a development deployment's patch state
@@ -1611,11 +1175,6 @@ func (c *Client) GetModelsDeploymentsPatchesState(ctx context.Context, modelId s
 	})
 }
 
-// GetModelsDeploymentsPatchesStateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsDeploymentsPatchesStateRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/deployments/%s/patches/state", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetModelsDeploymentsProduction: Gets a model's production deployment
 func (c *Client) GetModelsDeploymentsProduction(ctx context.Context, modelId string) (*Deployment, error) {
 	return doJSON[Deployment](c, ctx, apiRequest{
@@ -1627,11 +1186,6 @@ func (c *Client) GetModelsDeploymentsProduction(ctx context.Context, modelId str
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetModelsDeploymentsProductionRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsDeploymentsProductionRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/deployments/production", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetModelsEnvironments: Gets all environments
@@ -1647,11 +1201,6 @@ func (c *Client) GetModelsEnvironments(ctx context.Context, modelId string) (*En
 	})
 }
 
-// GetModelsEnvironmentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsEnvironmentsRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/environments", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetModelsEnvironmentsEnvName: Gets an environment's details
 func (c *Client) GetModelsEnvironmentsEnvName(ctx context.Context, modelId string, envName string) (*Environment, error) {
 	return doJSON[Environment](c, ctx, apiRequest{
@@ -1663,11 +1212,6 @@ func (c *Client) GetModelsEnvironmentsEnvName(ctx context.Context, modelId strin
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetModelsEnvironmentsEnvNameRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsEnvironmentsEnvNameRaw(ctx context.Context, modelId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/environments/%s", pathArgs: []any{modelId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetModelsEnvironmentsLogs: Gets the logs for a model environment
@@ -1684,11 +1228,6 @@ func (c *Client) GetModelsEnvironmentsLogs(ctx context.Context, modelId string, 
 	})
 }
 
-// GetModelsEnvironmentsLogsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsEnvironmentsLogsRaw(ctx context.Context, modelId string, envName string, params GetV1ModelsModelIdEnvironmentsEnvNameLogsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/environments/%s/logs", pathArgs: []any{modelId, envName}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetModelsEnvironmentsMetrics: Gets the metrics for a model environment.
 func (c *Client) GetModelsEnvironmentsMetrics(ctx context.Context, modelId string, envName string, params GetV1ModelsModelIdEnvironmentsEnvNameMetricsParams) (*GetModelMetricsResponse, error) {
 	return doJSON[GetModelMetricsResponse](c, ctx, apiRequest{
@@ -1701,11 +1240,6 @@ func (c *Client) GetModelsEnvironmentsMetrics(ctx context.Context, modelId strin
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetModelsEnvironmentsMetricsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsEnvironmentsMetricsRaw(ctx context.Context, modelId string, envName string, params GetV1ModelsModelIdEnvironmentsEnvNameMetricsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s/environments/%s/metrics", pathArgs: []any{modelId, envName}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetModelsModelId: Gets a model by ID
@@ -1721,11 +1255,6 @@ func (c *Client) GetModelsModelId(ctx context.Context, modelId string) (*Model, 
 	})
 }
 
-// GetModelsModelIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetModelsModelIdRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/models/%s", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetOrganizationsMe: Gets the authenticated organization
 func (c *Client) GetOrganizationsMe(ctx context.Context) (*OrganizationInfo, error) {
 	return doJSON[OrganizationInfo](c, ctx, apiRequest{
@@ -1739,11 +1268,6 @@ func (c *Client) GetOrganizationsMe(ctx context.Context) (*OrganizationInfo, err
 	})
 }
 
-// GetOrganizationsMeRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetOrganizationsMeRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/organizations/me", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetRegions: Lists regions available to the organization
 func (c *Client) GetRegions(ctx context.Context) (*Regions, error) {
 	return doJSON[Regions](c, ctx, apiRequest{
@@ -1755,11 +1279,6 @@ func (c *Client) GetRegions(ctx context.Context) (*Regions, error) {
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetRegionsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetRegionsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/regions", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetRoutes: Lists routes
@@ -1776,11 +1295,6 @@ func (c *Client) GetRoutes(ctx context.Context, params GetV1RoutesParams) (*Rout
 	})
 }
 
-// GetRoutesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetRoutesRaw(ctx context.Context, params GetV1RoutesParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/routes", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetRoutesRouteId: Gets a route
 func (c *Client) GetRoutesRouteId(ctx context.Context, routeId string) (*Route, error) {
 	return doJSON[Route](c, ctx, apiRequest{
@@ -1792,11 +1306,6 @@ func (c *Client) GetRoutesRouteId(ctx context.Context, routeId string) (*Route, 
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetRoutesRouteIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetRoutesRouteIdRaw(ctx context.Context, routeId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/routes/%s", pathArgs: []any{routeId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetRoutesUsage: Gets daily route usage and estimated costs
@@ -1811,11 +1320,6 @@ func (c *Client) GetRoutesUsage(ctx context.Context, params GetV1RoutesUsagePara
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetRoutesUsageRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetRoutesUsageRaw(ctx context.Context, params GetV1RoutesUsageParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/routes/usage", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetSandbox: Get a sandbox
@@ -1838,17 +1342,6 @@ func (c *Client) GetSandbox(ctx context.Context, sandboxName string, params GetS
 	})
 }
 
-// GetSandboxRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetSandboxRaw(ctx context.Context, sandboxName string, params GetSandboxParams, options RawRequestOptions) (*http.Response, error) {
-	headers := http.Header{}
-	{
-		if params.XTeamId != nil {
-			headers.Set("X-Team-Id", fmt.Sprint(*params.XTeamId))
-		}
-	}
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/sandboxes/instances/%s", pathArgs: []any{sandboxName}, queryParams: params, headers: headers, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetSecrets: Gets all secrets (metadata only, no plain text keys)
 func (c *Client) GetSecrets(ctx context.Context) (*Secrets, error) {
 	return doJSON[Secrets](c, ctx, apiRequest{
@@ -1860,11 +1353,6 @@ func (c *Client) GetSecrets(ctx context.Context) (*Secrets, error) {
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetSecretsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetSecretsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/secrets", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetTeams: Lists all teams
@@ -1881,11 +1369,6 @@ func (c *Client) GetTeams(ctx context.Context, params GetV1TeamsParams) (*Teams,
 	})
 }
 
-// GetTeamsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTeamsRaw(ctx context.Context, params GetV1TeamsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/teams", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetTeamsEnvironmentGroups: Lists environment groups
 func (c *Client) GetTeamsEnvironmentGroups(ctx context.Context, teamId string) (*EnvironmentGroups, error) {
 	return doJSON[EnvironmentGroups](c, ctx, apiRequest{
@@ -1899,11 +1382,6 @@ func (c *Client) GetTeamsEnvironmentGroups(ctx context.Context, teamId string) (
 	})
 }
 
-// GetTeamsEnvironmentGroupsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTeamsEnvironmentGroupsRaw(ctx context.Context, teamId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/teams/%s/environment_groups", pathArgs: []any{teamId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetTeamsEnvironmentGroupsEnvName: Gets an environment group by name
 func (c *Client) GetTeamsEnvironmentGroupsEnvName(ctx context.Context, teamId string, envName string) (*EnvironmentGroup, error) {
 	return doJSON[EnvironmentGroup](c, ctx, apiRequest{
@@ -1915,11 +1393,6 @@ func (c *Client) GetTeamsEnvironmentGroupsEnvName(ctx context.Context, teamId st
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetTeamsEnvironmentGroupsEnvNameRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTeamsEnvironmentGroupsEnvNameRaw(ctx context.Context, teamId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/teams/%s/environment_groups/%s", pathArgs: []any{teamId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetTeamsLoopsRuns: Lists a team's Loops runs
@@ -1936,11 +1409,6 @@ func (c *Client) GetTeamsLoopsRuns(ctx context.Context, teamId string, params Ge
 	})
 }
 
-// GetTeamsLoopsRunsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTeamsLoopsRunsRaw(ctx context.Context, teamId string, params GetV1TeamsTeamIdLoopsRunsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/teams/%s/loops/runs", pathArgs: []any{teamId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetTeamsLoopsSamplers: Lists a team's Loops samplers
 func (c *Client) GetTeamsLoopsSamplers(ctx context.Context, teamId string, params GetV1TeamsTeamIdLoopsSamplersParams) (*ListLoopsSamplersResponse, error) {
 	return doJSON[ListLoopsSamplersResponse](c, ctx, apiRequest{
@@ -1953,11 +1421,6 @@ func (c *Client) GetTeamsLoopsSamplers(ctx context.Context, teamId string, param
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetTeamsLoopsSamplersRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTeamsLoopsSamplersRaw(ctx context.Context, teamId string, params GetV1TeamsTeamIdLoopsSamplersParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/teams/%s/loops/samplers", pathArgs: []any{teamId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetTeamsModels: Gets all models
@@ -1974,11 +1437,6 @@ func (c *Client) GetTeamsModels(ctx context.Context, teamId string, params GetV1
 	})
 }
 
-// GetTeamsModelsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTeamsModelsRaw(ctx context.Context, teamId string, params GetV1TeamsTeamIdModelsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/teams/%s/models", pathArgs: []any{teamId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetTeamsRegions: Lists regions available to a team
 func (c *Client) GetTeamsRegions(ctx context.Context, teamId string) (*Regions, error) {
 	return doJSON[Regions](c, ctx, apiRequest{
@@ -1990,11 +1448,6 @@ func (c *Client) GetTeamsRegions(ctx context.Context, teamId string) (*Regions, 
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetTeamsRegionsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTeamsRegionsRaw(ctx context.Context, teamId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/teams/%s/regions", pathArgs: []any{teamId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetTeamsSecrets: Gets all secrets for a team (metadata only, no plain text keys)
@@ -2010,11 +1463,6 @@ func (c *Client) GetTeamsSecrets(ctx context.Context, teamId string) (*Secrets, 
 	})
 }
 
-// GetTeamsSecretsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTeamsSecretsRaw(ctx context.Context, teamId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/teams/%s/secrets", pathArgs: []any{teamId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetTeamsTeamId: Gets a team by ID
 func (c *Client) GetTeamsTeamId(ctx context.Context, teamId string) (*Team, error) {
 	return doJSON[Team](c, ctx, apiRequest{
@@ -2026,11 +1474,6 @@ func (c *Client) GetTeamsTeamId(ctx context.Context, teamId string) (*Team, erro
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetTeamsTeamIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTeamsTeamIdRaw(ctx context.Context, teamId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/teams/%s", pathArgs: []any{teamId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetTrainingCapacity: Gets training GPU capacity
@@ -2046,11 +1489,6 @@ func (c *Client) GetTrainingCapacity(ctx context.Context) (*GetTrainingGpuCapaci
 	})
 }
 
-// GetTrainingCapacityRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTrainingCapacityRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/training/capacity", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetTrainingJobsQueueContext: Reconstructs queue context for a training job
 func (c *Client) GetTrainingJobsQueueContext(ctx context.Context, trainingJobId string) (*GetTrainingJobQueueContextResponse, error) {
 	return doJSON[GetTrainingJobQueueContextResponse](c, ctx, apiRequest{
@@ -2062,11 +1500,6 @@ func (c *Client) GetTrainingJobsQueueContext(ctx context.Context, trainingJobId 
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetTrainingJobsQueueContextRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTrainingJobsQueueContextRaw(ctx context.Context, trainingJobId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/training/jobs/%s/queue_context", pathArgs: []any{trainingJobId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetTrainingProjects: Lists training projects
@@ -2082,11 +1515,6 @@ func (c *Client) GetTrainingProjects(ctx context.Context) (*ListTrainingProjects
 	})
 }
 
-// GetTrainingProjectsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTrainingProjectsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/training_projects", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetTrainingProjectsCacheSummary: Gets training project cache summary
 func (c *Client) GetTrainingProjectsCacheSummary(ctx context.Context, trainingProjectId string) (*GetCacheSummaryResponse, error) {
 	return doJSON[GetCacheSummaryResponse](c, ctx, apiRequest{
@@ -2098,11 +1526,6 @@ func (c *Client) GetTrainingProjectsCacheSummary(ctx context.Context, trainingPr
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetTrainingProjectsCacheSummaryRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTrainingProjectsCacheSummaryRaw(ctx context.Context, trainingProjectId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/training_projects/%s/cache/summary", pathArgs: []any{trainingProjectId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetTrainingProjectsJobs: Lists training jobs
@@ -2118,11 +1541,6 @@ func (c *Client) GetTrainingProjectsJobs(ctx context.Context, trainingProjectId 
 	})
 }
 
-// GetTrainingProjectsJobsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTrainingProjectsJobsRaw(ctx context.Context, trainingProjectId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/training_projects/%s/jobs", pathArgs: []any{trainingProjectId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetTrainingProjectsJobsAuthCodes: Gets auth codes for a training job
 func (c *Client) GetTrainingProjectsJobsAuthCodes(ctx context.Context, trainingProjectId string, trainingJobId string) (*GetAuthCodesResponse, error) {
 	return doJSON[GetAuthCodesResponse](c, ctx, apiRequest{
@@ -2134,11 +1552,6 @@ func (c *Client) GetTrainingProjectsJobsAuthCodes(ctx context.Context, trainingP
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetTrainingProjectsJobsAuthCodesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTrainingProjectsJobsAuthCodesRaw(ctx context.Context, trainingProjectId string, trainingJobId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/training_projects/%s/jobs/%s/auth_codes", pathArgs: []any{trainingProjectId, trainingJobId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetTrainingProjectsJobsCheckpointFiles: Gets training job checkpoint files
@@ -2155,11 +1568,6 @@ func (c *Client) GetTrainingProjectsJobsCheckpointFiles(ctx context.Context, tra
 	})
 }
 
-// GetTrainingProjectsJobsCheckpointFilesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTrainingProjectsJobsCheckpointFilesRaw(ctx context.Context, trainingProjectId string, trainingJobId string, params GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/training_projects/%s/jobs/%s/checkpoint_files", pathArgs: []any{trainingProjectId, trainingJobId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetTrainingProjectsJobsCheckpoints: Gets training job checkpoints
 func (c *Client) GetTrainingProjectsJobsCheckpoints(ctx context.Context, trainingProjectId string, trainingJobId string) (*GetTrainingJobCheckpointsResponse, error) {
 	return doJSON[GetTrainingJobCheckpointsResponse](c, ctx, apiRequest{
@@ -2173,11 +1581,6 @@ func (c *Client) GetTrainingProjectsJobsCheckpoints(ctx context.Context, trainin
 	})
 }
 
-// GetTrainingProjectsJobsCheckpointsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTrainingProjectsJobsCheckpointsRaw(ctx context.Context, trainingProjectId string, trainingJobId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/training_projects/%s/jobs/%s/checkpoints", pathArgs: []any{trainingProjectId, trainingJobId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetTrainingProjectsJobsDownload: Gets presigned URLs for a training job's artifacts
 func (c *Client) GetTrainingProjectsJobsDownload(ctx context.Context, trainingProjectId string, trainingJobId string) (*DownloadTrainingJobResponse, error) {
 	return doJSON[DownloadTrainingJobResponse](c, ctx, apiRequest{
@@ -2189,11 +1592,6 @@ func (c *Client) GetTrainingProjectsJobsDownload(ctx context.Context, trainingPr
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetTrainingProjectsJobsDownloadRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTrainingProjectsJobsDownloadRaw(ctx context.Context, trainingProjectId string, trainingJobId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/training_projects/%s/jobs/%s/download", pathArgs: []any{trainingProjectId, trainingJobId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetTrainingProjectsJobsLogs: Gets the logs for a training job
@@ -2210,11 +1608,6 @@ func (c *Client) GetTrainingProjectsJobsLogs(ctx context.Context, trainingProjec
 	})
 }
 
-// GetTrainingProjectsJobsLogsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTrainingProjectsJobsLogsRaw(ctx context.Context, trainingProjectId string, trainingJobId string, params GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdLogsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/training_projects/%s/jobs/%s/logs", pathArgs: []any{trainingProjectId, trainingJobId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetTrainingProjectsJobsMetrics: Gets the metrics for a training job
 func (c *Client) GetTrainingProjectsJobsMetrics(ctx context.Context, trainingProjectId string, trainingJobId string, params GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdMetricsParams) (*GetTrainingJobMetricsResponse, error) {
 	return doJSON[GetTrainingJobMetricsResponse](c, ctx, apiRequest{
@@ -2227,11 +1620,6 @@ func (c *Client) GetTrainingProjectsJobsMetrics(ctx context.Context, trainingPro
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetTrainingProjectsJobsMetricsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTrainingProjectsJobsMetricsRaw(ctx context.Context, trainingProjectId string, trainingJobId string, params GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdMetricsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/training_projects/%s/jobs/%s/metrics", pathArgs: []any{trainingProjectId, trainingJobId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetTrainingProjectsJobsTrainingJobId: Gets a training job
@@ -2247,11 +1635,6 @@ func (c *Client) GetTrainingProjectsJobsTrainingJobId(ctx context.Context, train
 	})
 }
 
-// GetTrainingProjectsJobsTrainingJobIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTrainingProjectsJobsTrainingJobIdRaw(ctx context.Context, trainingProjectId string, trainingJobId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/training_projects/%s/jobs/%s", pathArgs: []any{trainingProjectId, trainingJobId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetTrainingProjectsTrainingProjectId: Gets a training project
 func (c *Client) GetTrainingProjectsTrainingProjectId(ctx context.Context, trainingProjectId string) (*GetTrainingProjectResponse, error) {
 	return doJSON[GetTrainingProjectResponse](c, ctx, apiRequest{
@@ -2263,11 +1646,6 @@ func (c *Client) GetTrainingProjectsTrainingProjectId(ctx context.Context, train
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetTrainingProjectsTrainingProjectIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetTrainingProjectsTrainingProjectIdRaw(ctx context.Context, trainingProjectId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/training_projects/%s", pathArgs: []any{trainingProjectId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetUsers: Lists users in the workspace
@@ -2284,11 +1662,6 @@ func (c *Client) GetUsers(ctx context.Context, params GetV1UsersParams) (*UsersR
 	})
 }
 
-// GetUsersRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetUsersRaw(ctx context.Context, params GetV1UsersParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/users", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetUsersMe: Gets the authenticated user
 func (c *Client) GetUsersMe(ctx context.Context) (*UserInfo, error) {
 	return doJSON[UserInfo](c, ctx, apiRequest{
@@ -2302,11 +1675,6 @@ func (c *Client) GetUsersMe(ctx context.Context) (*UserInfo, error) {
 	})
 }
 
-// GetUsersMeRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetUsersMeRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/users/me", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetUsersUserId: Gets a user by ID
 func (c *Client) GetUsersUserId(ctx context.Context, userId string) (*UserInfo, error) {
 	return doJSON[UserInfo](c, ctx, apiRequest{
@@ -2318,11 +1686,6 @@ func (c *Client) GetUsersUserId(ctx context.Context, userId string) (*UserInfo, 
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetUsersUserIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetUsersUserIdRaw(ctx context.Context, userId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/users/%s", pathArgs: []any{userId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetVolumes: Gets the volumes in a namespace
@@ -2339,11 +1702,6 @@ func (c *Client) GetVolumes(ctx context.Context, params GetV1VolumesParams) (*Li
 	})
 }
 
-// GetVolumesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetVolumesRaw(ctx context.Context, params GetV1VolumesParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/volumes", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetVolumesNamespaces: Gets the volume namespaces in your workspace
 func (c *Client) GetVolumesNamespaces(ctx context.Context, params GetV1VolumesNamespacesParams) (*ListVolumeNamespacesResponse, error) {
 	return doJSON[ListVolumeNamespacesResponse](c, ctx, apiRequest{
@@ -2356,11 +1714,6 @@ func (c *Client) GetVolumesNamespaces(ctx context.Context, params GetV1VolumesNa
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetVolumesNamespacesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetVolumesNamespacesRaw(ctx context.Context, params GetV1VolumesNamespacesParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/volumes/namespaces", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetVolumesSyncs: Lists volume syncs
@@ -2377,11 +1730,6 @@ func (c *Client) GetVolumesSyncs(ctx context.Context, params GetV1VolumesSyncsPa
 	})
 }
 
-// GetVolumesSyncsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetVolumesSyncsRaw(ctx context.Context, params GetV1VolumesSyncsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/volumes/syncs", pathArgs: []any{}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetVolumesSyncsVolumeSyncId: Gets a volume sync
 func (c *Client) GetVolumesSyncsVolumeSyncId(ctx context.Context, volumeSyncId string) (*VolumeSync, error) {
 	return doJSON[VolumeSync](c, ctx, apiRequest{
@@ -2393,11 +1741,6 @@ func (c *Client) GetVolumesSyncsVolumeSyncId(ctx context.Context, volumeSyncId s
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetVolumesSyncsVolumeSyncIdRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetVolumesSyncsVolumeSyncIdRaw(ctx context.Context, volumeSyncId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/volumes/syncs/%s", pathArgs: []any{volumeSyncId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetVolumesVersions: Gets the versions of a volume
@@ -2414,11 +1757,6 @@ func (c *Client) GetVolumesVersions(ctx context.Context, volumeNamespace string,
 	})
 }
 
-// GetVolumesVersionsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetVolumesVersionsRaw(ctx context.Context, volumeNamespace string, volumeName string, params GetV1VolumesVolumeNamespaceVolumeNameVersionsParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/volumes/%s/%s/versions", pathArgs: []any{volumeNamespace, volumeName}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetVolumesVersionsVolumeVersion: Gets one version of a volume
 func (c *Client) GetVolumesVersionsVolumeVersion(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string) (*VolumeVersionDetail, error) {
 	return doJSON[VolumeVersionDetail](c, ctx, apiRequest{
@@ -2432,11 +1770,6 @@ func (c *Client) GetVolumesVersionsVolumeVersion(ctx context.Context, volumeName
 	})
 }
 
-// GetVolumesVersionsVolumeVersionRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetVolumesVersionsVolumeVersionRaw(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/volumes/%s/%s/versions/%s", pathArgs: []any{volumeNamespace, volumeName, volumeVersion}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // GetVolumesVolumeName: Gets a volume
 func (c *Client) GetVolumesVolumeName(ctx context.Context, volumeNamespace string, volumeName string) (*Volume, error) {
 	return doJSON[Volume](c, ctx, apiRequest{
@@ -2448,11 +1781,6 @@ func (c *Client) GetVolumesVolumeName(ctx context.Context, volumeNamespace strin
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetVolumesVolumeNameRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetVolumesVolumeNameRaw(ctx context.Context, volumeNamespace string, volumeName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/volumes/%s/%s", pathArgs: []any{volumeNamespace, volumeName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // ListImageTags: List image tags
@@ -2475,17 +1803,6 @@ func (c *Client) ListImageTags(ctx context.Context, imageName string, params Lis
 	})
 }
 
-// ListImageTagsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) ListImageTagsRaw(ctx context.Context, imageName string, params ListImageTagsParams, options RawRequestOptions) (*http.Response, error) {
-	headers := http.Header{}
-	{
-		if params.XTeamId != nil {
-			headers.Set("X-Team-Id", fmt.Sprint(*params.XTeamId))
-		}
-	}
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/sandboxes/images/%s/tags", pathArgs: []any{imageName}, queryParams: params, headers: headers, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // ListImages: List sandbox images
 func (c *Client) ListImages(ctx context.Context, params ListImagesParams) (*ListImagesResponse, error) {
 	headers := http.Header{}
@@ -2504,17 +1821,6 @@ func (c *Client) ListImages(ctx context.Context, params ListImagesParams) (*List
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// ListImagesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) ListImagesRaw(ctx context.Context, params ListImagesParams, options RawRequestOptions) (*http.Response, error) {
-	headers := http.Header{}
-	{
-		if params.XTeamId != nil {
-			headers.Set("X-Team-Id", fmt.Sprint(*params.XTeamId))
-		}
-	}
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/sandboxes/images", pathArgs: []any{}, queryParams: params, headers: headers, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // ListSandboxes: List sandboxes
@@ -2537,17 +1843,6 @@ func (c *Client) ListSandboxes(ctx context.Context, params ListSandboxesParams) 
 	})
 }
 
-// ListSandboxesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) ListSandboxesRaw(ctx context.Context, params ListSandboxesParams, options RawRequestOptions) (*http.Response, error) {
-	headers := http.Header{}
-	{
-		if params.XTeamId != nil {
-			headers.Set("X-Team-Id", fmt.Sprint(*params.XTeamId))
-		}
-	}
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/v1/sandboxes/instances", pathArgs: []any{}, queryParams: params, headers: headers, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PatchChainsEnvironments: Updates a chain environment's settings
 func (c *Client) PatchChainsEnvironments(ctx context.Context, chainId string, envName string, body UpdateChainEnvironmentRequest) (*UpdateChainEnvironmentResponse, error) {
 	return doJSON[UpdateChainEnvironmentResponse](c, ctx, apiRequest{
@@ -2559,11 +1854,6 @@ func (c *Client) PatchChainsEnvironments(ctx context.Context, chainId string, en
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PatchChainsEnvironmentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchChainsEnvironmentsRaw(ctx context.Context, chainId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/chains/%s/environments/%s", pathArgs: []any{chainId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PatchChainsEnvironmentsChainletSettingsAutoscalingSettings: Updates a chainlet environment's autoscaling settings
@@ -2579,11 +1869,6 @@ func (c *Client) PatchChainsEnvironmentsChainletSettingsAutoscalingSettings(ctx 
 	})
 }
 
-// PatchChainsEnvironmentsChainletSettingsAutoscalingSettingsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchChainsEnvironmentsChainletSettingsAutoscalingSettingsRaw(ctx context.Context, chainId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/chains/%s/environments/%s/chainlet_settings/autoscaling_settings", pathArgs: []any{chainId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PatchEnvironmentGroups: Updates an environment group's restriction settings
 func (c *Client) PatchEnvironmentGroups(ctx context.Context, envName string, body UpdateEnvironmentGroupRequest) (*EnvironmentGroup, error) {
 	return doJSON[EnvironmentGroup](c, ctx, apiRequest{
@@ -2595,11 +1880,6 @@ func (c *Client) PatchEnvironmentGroups(ctx context.Context, envName string, bod
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PatchEnvironmentGroupsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchEnvironmentGroupsRaw(ctx context.Context, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/environment_groups/%s", pathArgs: []any{envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PatchGatewayEndpoints: Updates a Gateway endpoint
@@ -2615,11 +1895,6 @@ func (c *Client) PatchGatewayEndpoints(ctx context.Context, endpointId string, b
 	})
 }
 
-// PatchGatewayEndpointsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchGatewayEndpointsRaw(ctx context.Context, endpointId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/gateway/endpoints/%s", pathArgs: []any{endpointId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PatchGatewayGroups: Updates a group
 func (c *Client) PatchGatewayGroups(ctx context.Context, groupId string, body UpdateGroupRequest) (*Group, error) {
 	return doJSON[Group](c, ctx, apiRequest{
@@ -2631,11 +1906,6 @@ func (c *Client) PatchGatewayGroups(ctx context.Context, groupId string, body Up
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PatchGatewayGroupsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchGatewayGroupsRaw(ctx context.Context, groupId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/gateway/groups/%s", pathArgs: []any{groupId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PatchLibraryListings: Updates a library listing
@@ -2651,11 +1921,6 @@ func (c *Client) PatchLibraryListings(ctx context.Context, userDefinedListingId 
 	})
 }
 
-// PatchLibraryListingsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchLibraryListingsRaw(ctx context.Context, userDefinedListingId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/library_listings/%s", pathArgs: []any{userDefinedListingId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PatchLibraryListingsVersions: Updates a library listing version
 func (c *Client) PatchLibraryListingsVersions(ctx context.Context, userDefinedListingId string, versionTag string, body UpdateLibraryListingVersionRequest) (*LibraryListingVersion, error) {
 	return doJSON[LibraryListingVersion](c, ctx, apiRequest{
@@ -2667,11 +1932,6 @@ func (c *Client) PatchLibraryListingsVersions(ctx context.Context, userDefinedLi
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PatchLibraryListingsVersionsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchLibraryListingsVersionsRaw(ctx context.Context, userDefinedListingId string, versionTag string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/library_listings/%s/versions/%s", pathArgs: []any{userDefinedListingId, versionTag}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PatchLoopsUserConfig: Patches the caller's Loops user config
@@ -2687,11 +1947,6 @@ func (c *Client) PatchLoopsUserConfig(ctx context.Context, body PatchLoopsUserCo
 	})
 }
 
-// PatchLoopsUserConfigRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchLoopsUserConfigRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/loops/user_config", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PatchModels: Updates a model by ID
 func (c *Client) PatchModels(ctx context.Context, modelId string, body UpdateModelRequest) (*Model, error) {
 	return doJSON[Model](c, ctx, apiRequest{
@@ -2703,11 +1958,6 @@ func (c *Client) PatchModels(ctx context.Context, modelId string, body UpdateMod
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PatchModelsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchModelsRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/models/%s", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PatchModelsDeployments: Updates a model's deployment by ID
@@ -2723,11 +1973,6 @@ func (c *Client) PatchModelsDeployments(ctx context.Context, modelId string, dep
 	})
 }
 
-// PatchModelsDeploymentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchModelsDeploymentsRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/models/%s/deployments/%s", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PatchModelsDeploymentsAutoscalingSettings: Updates a deployment's autoscaling settings
 func (c *Client) PatchModelsDeploymentsAutoscalingSettings(ctx context.Context, modelId string, deploymentId string, body UpdateAutoscalingSettings) (*UpdateAutoscalingSettingsResponse, error) {
 	return doJSON[UpdateAutoscalingSettingsResponse](c, ctx, apiRequest{
@@ -2739,11 +1984,6 @@ func (c *Client) PatchModelsDeploymentsAutoscalingSettings(ctx context.Context, 
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PatchModelsDeploymentsAutoscalingSettingsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchModelsDeploymentsAutoscalingSettingsRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/models/%s/deployments/%s/autoscaling_settings", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PatchModelsDeploymentsDevelopmentAutoscalingSettings: Updates a development deployment's autoscaling settings
@@ -2759,11 +1999,6 @@ func (c *Client) PatchModelsDeploymentsDevelopmentAutoscalingSettings(ctx contex
 	})
 }
 
-// PatchModelsDeploymentsDevelopmentAutoscalingSettingsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchModelsDeploymentsDevelopmentAutoscalingSettingsRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/models/%s/deployments/development/autoscaling_settings", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PatchModelsDeploymentsProductionAutoscalingSettings: Updates a production deployment's autoscaling settings
 func (c *Client) PatchModelsDeploymentsProductionAutoscalingSettings(ctx context.Context, modelId string, body UpdateAutoscalingSettings) (*UpdateAutoscalingSettingsResponse, error) {
 	return doJSON[UpdateAutoscalingSettingsResponse](c, ctx, apiRequest{
@@ -2775,11 +2010,6 @@ func (c *Client) PatchModelsDeploymentsProductionAutoscalingSettings(ctx context
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PatchModelsDeploymentsProductionAutoscalingSettingsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchModelsDeploymentsProductionAutoscalingSettingsRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/models/%s/deployments/production/autoscaling_settings", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PatchModelsDeploymentsRequestBackpressureSettings: Updates a deployment's request backpressure settings
@@ -2795,11 +2025,6 @@ func (c *Client) PatchModelsDeploymentsRequestBackpressureSettings(ctx context.C
 	})
 }
 
-// PatchModelsDeploymentsRequestBackpressureSettingsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchModelsDeploymentsRequestBackpressureSettingsRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/models/%s/deployments/%s/request_backpressure_settings", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PatchModelsEnvironments: Updates an environment's settings
 func (c *Client) PatchModelsEnvironments(ctx context.Context, modelId string, envName string, body UpdateEnvironmentRequest) (*UpdateEnvironmentResponse, error) {
 	return doJSON[UpdateEnvironmentResponse](c, ctx, apiRequest{
@@ -2811,11 +2036,6 @@ func (c *Client) PatchModelsEnvironments(ctx context.Context, modelId string, en
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PatchModelsEnvironmentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchModelsEnvironmentsRaw(ctx context.Context, modelId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/models/%s/environments/%s", pathArgs: []any{modelId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PatchRoutes: Updates a route
@@ -2831,11 +2051,6 @@ func (c *Client) PatchRoutes(ctx context.Context, routeId string, body UpdateRou
 	})
 }
 
-// PatchRoutesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchRoutesRaw(ctx context.Context, routeId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/routes/%s", pathArgs: []any{routeId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PatchTeamsEnvironmentGroups: Updates an environment group's restriction settings
 func (c *Client) PatchTeamsEnvironmentGroups(ctx context.Context, teamId string, envName string, body UpdateEnvironmentGroupRequest) (*EnvironmentGroup, error) {
 	return doJSON[EnvironmentGroup](c, ctx, apiRequest{
@@ -2847,11 +2062,6 @@ func (c *Client) PatchTeamsEnvironmentGroups(ctx context.Context, teamId string,
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PatchTeamsEnvironmentGroupsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchTeamsEnvironmentGroupsRaw(ctx context.Context, teamId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/teams/%s/environment_groups/%s", pathArgs: []any{teamId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PatchTrainingCapacity: Sets a team's training GPU capacity
@@ -2867,11 +2077,6 @@ func (c *Client) PatchTrainingCapacity(ctx context.Context, body PatchTeamTraini
 	})
 }
 
-// PatchTrainingCapacityRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchTrainingCapacityRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/training/capacity", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PatchTrainingProjectsJobs: Updates a training job
 func (c *Client) PatchTrainingProjectsJobs(ctx context.Context, trainingProjectId string, trainingJobId string, body UpdateTrainingJobRequest) (*UpdateTrainingJobResponse, error) {
 	return doJSON[UpdateTrainingJobResponse](c, ctx, apiRequest{
@@ -2883,11 +2088,6 @@ func (c *Client) PatchTrainingProjectsJobs(ctx context.Context, trainingProjectI
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PatchTrainingProjectsJobsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchTrainingProjectsJobsRaw(ctx context.Context, trainingProjectId string, trainingJobId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/training_projects/%s/jobs/%s", pathArgs: []any{trainingProjectId, trainingJobId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PatchTrainingProjectsJobsInteractiveSessions: Patches an interactive session
@@ -2903,11 +2103,6 @@ func (c *Client) PatchTrainingProjectsJobsInteractiveSessions(ctx context.Contex
 	})
 }
 
-// PatchTrainingProjectsJobsInteractiveSessionsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PatchTrainingProjectsJobsInteractiveSessionsRaw(ctx context.Context, trainingProjectId string, trainingJobId string, sessionId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/training_projects/%s/jobs/%s/interactive_sessions/%s", pathArgs: []any{trainingProjectId, trainingJobId, sessionId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostApiKeys: Creates an API key
 func (c *Client) PostApiKeys(ctx context.Context, body CreateAPIKeyRequest) (*APIKey, error) {
 	return doJSON[APIKey](c, ctx, apiRequest{
@@ -2919,11 +2114,6 @@ func (c *Client) PostApiKeys(ctx context.Context, body CreateAPIKeyRequest) (*AP
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostApiKeysRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostApiKeysRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/api_keys", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostChainsDeploymentsDeactivate: Deactivates a chain deployment
@@ -2939,11 +2129,6 @@ func (c *Client) PostChainsDeploymentsDeactivate(ctx context.Context, chainId st
 	})
 }
 
-// PostChainsDeploymentsDeactivateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostChainsDeploymentsDeactivateRaw(ctx context.Context, chainId string, chainDeploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/chains/%s/deployments/%s/deactivate", pathArgs: []any{chainId, chainDeploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostChainsEnvironments: Creates a chain environment
 func (c *Client) PostChainsEnvironments(ctx context.Context, chainId string, body CreateChainEnvironmentRequest) (*ChainEnvironment, error) {
 	return doJSON[ChainEnvironment](c, ctx, apiRequest{
@@ -2955,11 +2140,6 @@ func (c *Client) PostChainsEnvironments(ctx context.Context, chainId string, bod
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostChainsEnvironmentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostChainsEnvironmentsRaw(ctx context.Context, chainId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/chains/%s/environments", pathArgs: []any{chainId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostChainsEnvironmentsChainletSettingsInstanceTypesUpdate: Updates a chainlet environment's instance type settings
@@ -2975,11 +2155,6 @@ func (c *Client) PostChainsEnvironmentsChainletSettingsInstanceTypesUpdate(ctx c
 	})
 }
 
-// PostChainsEnvironmentsChainletSettingsInstanceTypesUpdateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostChainsEnvironmentsChainletSettingsInstanceTypesUpdateRaw(ctx context.Context, chainId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/chains/%s/environments/%s/chainlet_settings/instance_types/update", pathArgs: []any{chainId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostChainsEnvironmentsPromote: Promotes a chain deployment to an environment
 func (c *Client) PostChainsEnvironmentsPromote(ctx context.Context, chainId string, envName string, body PromoteToChainEnvironmentRequest) (*ChainDeployment, error) {
 	return doJSON[ChainDeployment](c, ctx, apiRequest{
@@ -2991,11 +2166,6 @@ func (c *Client) PostChainsEnvironmentsPromote(ctx context.Context, chainId stri
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostChainsEnvironmentsPromoteRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostChainsEnvironmentsPromoteRaw(ctx context.Context, chainId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/chains/%s/environments/%s/promote", pathArgs: []any{chainId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostGatewayEndpoints: Creates a Gateway endpoint
@@ -3011,11 +2181,6 @@ func (c *Client) PostGatewayEndpoints(ctx context.Context, body CreateEndpointRe
 	})
 }
 
-// PostGatewayEndpointsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostGatewayEndpointsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/gateway/endpoints", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostGatewayGroups: Creates a group
 func (c *Client) PostGatewayGroups(ctx context.Context, body CreateGroupRequest) (*Group, error) {
 	return doJSON[Group](c, ctx, apiRequest{
@@ -3027,11 +2192,6 @@ func (c *Client) PostGatewayGroups(ctx context.Context, body CreateGroupRequest)
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostGatewayGroupsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostGatewayGroupsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/gateway/groups", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostGatewayGroupsApiKeys: Creates an API key for a group
@@ -3047,11 +2207,6 @@ func (c *Client) PostGatewayGroupsApiKeys(ctx context.Context, groupId string, b
 	})
 }
 
-// PostGatewayGroupsApiKeysRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostGatewayGroupsApiKeysRaw(ctx context.Context, groupId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/gateway/groups/%s/api_keys", pathArgs: []any{groupId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostGatewayGroupsApiKeysRegister: Registers an API key for a group
 func (c *Client) PostGatewayGroupsApiKeysRegister(ctx context.Context, groupId string, body RegisterAPIKeyRequest) (*RegisterAPIKeyResponse, error) {
 	return doJSON[RegisterAPIKeyResponse](c, ctx, apiRequest{
@@ -3063,11 +2218,6 @@ func (c *Client) PostGatewayGroupsApiKeysRegister(ctx context.Context, groupId s
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostGatewayGroupsApiKeysRegisterRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostGatewayGroupsApiKeysRegisterRaw(ctx context.Context, groupId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/gateway/groups/%s/api_keys/register", pathArgs: []any{groupId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostLibraryListings: Creates a new library listing
@@ -3083,11 +2233,6 @@ func (c *Client) PostLibraryListings(ctx context.Context, body CreateLibraryList
 	})
 }
 
-// PostLibraryListingsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostLibraryListingsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/library_listings", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostLibraryListingsVersions: Creates a new library listing version
 func (c *Client) PostLibraryListingsVersions(ctx context.Context, userDefinedListingId string, body CreateLibraryListingVersionRequest) (*LibraryListingVersion, error) {
 	return doJSON[LibraryListingVersion](c, ctx, apiRequest{
@@ -3099,11 +2244,6 @@ func (c *Client) PostLibraryListingsVersions(ctx context.Context, userDefinedLis
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostLibraryListingsVersionsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostLibraryListingsVersionsRaw(ctx context.Context, userDefinedListingId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/library_listings/%s/versions", pathArgs: []any{userDefinedListingId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostLlmModels: Creates a new BIS-LLM deployment
@@ -3119,11 +2259,6 @@ func (c *Client) PostLlmModels(ctx context.Context, body CreateLLMModelRequest) 
 	})
 }
 
-// PostLlmModelsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostLlmModelsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/llm_models", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostLlmModelsDeployments: Creates a new BIS-LLM deployment version
 func (c *Client) PostLlmModelsDeployments(ctx context.Context, modelId string, body CreateLLMModelVersionRequest) (*LLMModelHandle, error) {
 	return doJSON[LLMModelHandle](c, ctx, apiRequest{
@@ -3135,11 +2270,6 @@ func (c *Client) PostLlmModelsDeployments(ctx context.Context, modelId string, b
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostLlmModelsDeploymentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostLlmModelsDeploymentsRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/llm_models/%s/deployments", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostLoopsCheckpointsValidate: Validates a Loops checkpoint bt:// URI
@@ -3155,11 +2285,6 @@ func (c *Client) PostLoopsCheckpointsValidate(ctx context.Context, body Validate
 	})
 }
 
-// PostLoopsCheckpointsValidateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostLoopsCheckpointsValidateRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/loops/checkpoints/validate", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostLoopsDeploymentsDeactivate: Deactivates a Loops deployment
 func (c *Client) PostLoopsDeploymentsDeactivate(ctx context.Context, deploymentId string) (*DeactivateLoopsDeploymentResponse, error) {
 	return doJSON[DeactivateLoopsDeploymentResponse](c, ctx, apiRequest{
@@ -3171,11 +2296,6 @@ func (c *Client) PostLoopsDeploymentsDeactivate(ctx context.Context, deploymentI
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostLoopsDeploymentsDeactivateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostLoopsDeploymentsDeactivateRaw(ctx context.Context, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/loops/deployments/%s/deactivate", pathArgs: []any{deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostLoopsDeploymentsMetrics: Gets metrics for a Loops trainer deployment
@@ -3191,11 +2311,6 @@ func (c *Client) PostLoopsDeploymentsMetrics(ctx context.Context, deploymentId s
 	})
 }
 
-// PostLoopsDeploymentsMetricsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostLoopsDeploymentsMetricsRaw(ctx context.Context, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/loops/deployments/%s/metrics", pathArgs: []any{deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostLoopsRuns: Creates a Loops run
 func (c *Client) PostLoopsRuns(ctx context.Context, body CreateLoopsRunRequest) (*CreateLoopsRunResponse, error) {
 	return doJSON[CreateLoopsRunResponse](c, ctx, apiRequest{
@@ -3207,11 +2322,6 @@ func (c *Client) PostLoopsRuns(ctx context.Context, body CreateLoopsRunRequest) 
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostLoopsRunsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostLoopsRunsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/loops/runs", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostLoopsRunsDeactivate: Deactivates a Loops run
@@ -3227,11 +2337,6 @@ func (c *Client) PostLoopsRunsDeactivate(ctx context.Context, runId string) (*De
 	})
 }
 
-// PostLoopsRunsDeactivateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostLoopsRunsDeactivateRaw(ctx context.Context, runId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/loops/runs/%s/deactivate", pathArgs: []any{runId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostLoopsSamplers: Creates a Loops sampler
 func (c *Client) PostLoopsSamplers(ctx context.Context, body CreateLoopsSamplerRequest) (*CreateLoopsSamplerResponse, error) {
 	return doJSON[CreateLoopsSamplerResponse](c, ctx, apiRequest{
@@ -3243,11 +2348,6 @@ func (c *Client) PostLoopsSamplers(ctx context.Context, body CreateLoopsSamplerR
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostLoopsSamplersRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostLoopsSamplersRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/loops/samplers", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostLoopsSessions: Creates a Loops session
@@ -3263,11 +2363,6 @@ func (c *Client) PostLoopsSessions(ctx context.Context) (*CreateLoopsSessionResp
 	})
 }
 
-// PostLoopsSessionsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostLoopsSessionsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/loops/sessions", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostLoopsTrainers: Creates a Loops trainer
 func (c *Client) PostLoopsTrainers(ctx context.Context, body CreateLoopsRunRequest) (*CreateLoopsRunResponse, error) {
 	return doJSON[CreateLoopsRunResponse](c, ctx, apiRequest{
@@ -3279,11 +2374,6 @@ func (c *Client) PostLoopsTrainers(ctx context.Context, body CreateLoopsRunReque
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostLoopsTrainersRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostLoopsTrainersRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/loops/trainers", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostModels: Creates a new model from a source
@@ -3299,11 +2389,6 @@ func (c *Client) PostModels(ctx context.Context, body CreateModelRequest) (*Crea
 	})
 }
 
-// PostModelsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostModelsDeployments: Adds a new deployment to a model
 func (c *Client) PostModelsDeployments(ctx context.Context, modelId string, body CreateModelDeploymentRequest) (*CreatedModelDeployment, error) {
 	return doJSON[CreatedModelDeployment](c, ctx, apiRequest{
@@ -3315,11 +2400,6 @@ func (c *Client) PostModelsDeployments(ctx context.Context, modelId string, body
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostModelsDeploymentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostModelsDeploymentsActivate: Activates a deployment
@@ -3335,11 +2415,6 @@ func (c *Client) PostModelsDeploymentsActivate(ctx context.Context, modelId stri
 	})
 }
 
-// PostModelsDeploymentsActivateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsActivateRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/%s/activate", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostModelsDeploymentsDeactivate: Deactivates a deployment
 func (c *Client) PostModelsDeploymentsDeactivate(ctx context.Context, modelId string, deploymentId string) (*DeactivateResponse, error) {
 	return doJSON[DeactivateResponse](c, ctx, apiRequest{
@@ -3351,11 +2426,6 @@ func (c *Client) PostModelsDeploymentsDeactivate(ctx context.Context, modelId st
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostModelsDeploymentsDeactivateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsDeactivateRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/%s/deactivate", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostModelsDeploymentsDevelopmentActivate: Activates a development deployment
@@ -3371,11 +2441,6 @@ func (c *Client) PostModelsDeploymentsDevelopmentActivate(ctx context.Context, m
 	})
 }
 
-// PostModelsDeploymentsDevelopmentActivateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsDevelopmentActivateRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/development/activate", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostModelsDeploymentsDevelopmentDeactivate: Deactivates a development deployment
 func (c *Client) PostModelsDeploymentsDevelopmentDeactivate(ctx context.Context, modelId string) (*DeactivateResponse, error) {
 	return doJSON[DeactivateResponse](c, ctx, apiRequest{
@@ -3387,11 +2452,6 @@ func (c *Client) PostModelsDeploymentsDevelopmentDeactivate(ctx context.Context,
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostModelsDeploymentsDevelopmentDeactivateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsDevelopmentDeactivateRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/development/deactivate", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostModelsDeploymentsDevelopmentPromote: Promotes a development deployment to production
@@ -3407,11 +2467,6 @@ func (c *Client) PostModelsDeploymentsDevelopmentPromote(ctx context.Context, mo
 	})
 }
 
-// PostModelsDeploymentsDevelopmentPromoteRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsDevelopmentPromoteRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/development/promote", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostModelsDeploymentsDevelopmentRetry: Retries a failed development deployment
 func (c *Client) PostModelsDeploymentsDevelopmentRetry(ctx context.Context, modelId string) (*RetryDeploymentResponse, error) {
 	return doJSON[RetryDeploymentResponse](c, ctx, apiRequest{
@@ -3423,11 +2478,6 @@ func (c *Client) PostModelsDeploymentsDevelopmentRetry(ctx context.Context, mode
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostModelsDeploymentsDevelopmentRetryRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsDevelopmentRetryRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/development/retry", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostModelsDeploymentsLogs: Gets the logs for a model deployment (deprecated; use GET)
@@ -3443,11 +2493,6 @@ func (c *Client) PostModelsDeploymentsLogs(ctx context.Context, modelId string, 
 	})
 }
 
-// PostModelsDeploymentsLogsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsLogsRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/%s/logs", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostModelsDeploymentsPatches: Stages a patch against a development deployment
 func (c *Client) PostModelsDeploymentsPatches(ctx context.Context, modelId string, deploymentId string, body CreateDeploymentPatchRequest) (*CreateDeploymentPatchResponse, error) {
 	return doJSON[CreateDeploymentPatchResponse](c, ctx, apiRequest{
@@ -3459,11 +2504,6 @@ func (c *Client) PostModelsDeploymentsPatches(ctx context.Context, modelId strin
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostModelsDeploymentsPatchesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsPatchesRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/%s/patches", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostModelsDeploymentsPatchesSync: Syncs staged patches to a development deployment
@@ -3479,11 +2519,6 @@ func (c *Client) PostModelsDeploymentsPatchesSync(ctx context.Context, modelId s
 	})
 }
 
-// PostModelsDeploymentsPatchesSyncRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsPatchesSyncRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/%s/patches/sync", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostModelsDeploymentsProductionActivate: Activates a production deployment
 func (c *Client) PostModelsDeploymentsProductionActivate(ctx context.Context, modelId string) (*ActivateResponse, error) {
 	return doJSON[ActivateResponse](c, ctx, apiRequest{
@@ -3495,11 +2530,6 @@ func (c *Client) PostModelsDeploymentsProductionActivate(ctx context.Context, mo
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostModelsDeploymentsProductionActivateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsProductionActivateRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/production/activate", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostModelsDeploymentsProductionDeactivate: Deactivates a production deployment
@@ -3515,11 +2545,6 @@ func (c *Client) PostModelsDeploymentsProductionDeactivate(ctx context.Context, 
 	})
 }
 
-// PostModelsDeploymentsProductionDeactivateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsProductionDeactivateRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/production/deactivate", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostModelsDeploymentsProductionRetry: Retries a failed production deployment
 func (c *Client) PostModelsDeploymentsProductionRetry(ctx context.Context, modelId string) (*RetryDeploymentResponse, error) {
 	return doJSON[RetryDeploymentResponse](c, ctx, apiRequest{
@@ -3531,11 +2556,6 @@ func (c *Client) PostModelsDeploymentsProductionRetry(ctx context.Context, model
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostModelsDeploymentsProductionRetryRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsProductionRetryRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/production/retry", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostModelsDeploymentsPromote: Promotes a deployment to production
@@ -3551,11 +2571,6 @@ func (c *Client) PostModelsDeploymentsPromote(ctx context.Context, modelId strin
 	})
 }
 
-// PostModelsDeploymentsPromoteRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsPromoteRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/%s/promote", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostModelsDeploymentsRetry: Retries a failed deployment
 func (c *Client) PostModelsDeploymentsRetry(ctx context.Context, modelId string, deploymentId string) (*RetryDeploymentResponse, error) {
 	return doJSON[RetryDeploymentResponse](c, ctx, apiRequest{
@@ -3567,11 +2582,6 @@ func (c *Client) PostModelsDeploymentsRetry(ctx context.Context, modelId string,
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostModelsDeploymentsRetryRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsRetryRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/%s/retry", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostModelsDeploymentsSshSign: Signs an SSH certificate for an inference model
@@ -3587,11 +2597,6 @@ func (c *Client) PostModelsDeploymentsSshSign(ctx context.Context, modelId strin
 	})
 }
 
-// PostModelsDeploymentsSshSignRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsDeploymentsSshSignRaw(ctx context.Context, modelId string, deploymentId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/deployments/%s/ssh/sign", pathArgs: []any{modelId, deploymentId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostModelsEnvironments: Creates an environment
 func (c *Client) PostModelsEnvironments(ctx context.Context, modelId string, body CreateEnvironmentRequest) (*Environment, error) {
 	return doJSON[Environment](c, ctx, apiRequest{
@@ -3603,11 +2608,6 @@ func (c *Client) PostModelsEnvironments(ctx context.Context, modelId string, bod
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostModelsEnvironmentsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsEnvironmentsRaw(ctx context.Context, modelId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/environments", pathArgs: []any{modelId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostModelsEnvironmentsActivate: Activates a deployment associated with an environment
@@ -3623,11 +2623,6 @@ func (c *Client) PostModelsEnvironmentsActivate(ctx context.Context, modelId str
 	})
 }
 
-// PostModelsEnvironmentsActivateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsEnvironmentsActivateRaw(ctx context.Context, modelId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/environments/%s/activate", pathArgs: []any{modelId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostModelsEnvironmentsCancelPromotion: Cancels a promotion to an environment
 func (c *Client) PostModelsEnvironmentsCancelPromotion(ctx context.Context, modelId string, envName string) (*CancelPromotionResponse, error) {
 	return doJSON[CancelPromotionResponse](c, ctx, apiRequest{
@@ -3639,11 +2634,6 @@ func (c *Client) PostModelsEnvironmentsCancelPromotion(ctx context.Context, mode
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostModelsEnvironmentsCancelPromotionRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsEnvironmentsCancelPromotionRaw(ctx context.Context, modelId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/environments/%s/cancel_promotion", pathArgs: []any{modelId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostModelsEnvironmentsDeactivate: Deactivates a deployment associated with an environment
@@ -3659,11 +2649,6 @@ func (c *Client) PostModelsEnvironmentsDeactivate(ctx context.Context, modelId s
 	})
 }
 
-// PostModelsEnvironmentsDeactivateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsEnvironmentsDeactivateRaw(ctx context.Context, modelId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/environments/%s/deactivate", pathArgs: []any{modelId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostModelsEnvironmentsForceCancelPromotion: Force cancels a rolling promotion
 func (c *Client) PostModelsEnvironmentsForceCancelPromotion(ctx context.Context, modelId string, envName string) (*SignalPromotionResponse, error) {
 	return doJSON[SignalPromotionResponse](c, ctx, apiRequest{
@@ -3675,11 +2660,6 @@ func (c *Client) PostModelsEnvironmentsForceCancelPromotion(ctx context.Context,
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostModelsEnvironmentsForceCancelPromotionRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsEnvironmentsForceCancelPromotionRaw(ctx context.Context, modelId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/environments/%s/force_cancel_promotion", pathArgs: []any{modelId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostModelsEnvironmentsForceRollForwardPromotion: Force rolls forward a rolling promotion
@@ -3695,11 +2675,6 @@ func (c *Client) PostModelsEnvironmentsForceRollForwardPromotion(ctx context.Con
 	})
 }
 
-// PostModelsEnvironmentsForceRollForwardPromotionRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsEnvironmentsForceRollForwardPromotionRaw(ctx context.Context, modelId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/environments/%s/force_roll_forward_promotion", pathArgs: []any{modelId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostModelsEnvironmentsPausePromotion: Pauses a rolling promotion
 func (c *Client) PostModelsEnvironmentsPausePromotion(ctx context.Context, modelId string, envName string) (*SignalPromotionResponse, error) {
 	return doJSON[SignalPromotionResponse](c, ctx, apiRequest{
@@ -3711,11 +2686,6 @@ func (c *Client) PostModelsEnvironmentsPausePromotion(ctx context.Context, model
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostModelsEnvironmentsPausePromotionRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsEnvironmentsPausePromotionRaw(ctx context.Context, modelId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/environments/%s/pause_promotion", pathArgs: []any{modelId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostModelsEnvironmentsPromote: Promotes a deployment to an environment
@@ -3731,11 +2701,6 @@ func (c *Client) PostModelsEnvironmentsPromote(ctx context.Context, modelId stri
 	})
 }
 
-// PostModelsEnvironmentsPromoteRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsEnvironmentsPromoteRaw(ctx context.Context, modelId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/environments/%s/promote", pathArgs: []any{modelId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostModelsEnvironmentsResumePromotion: Resumes a paused rolling promotion
 func (c *Client) PostModelsEnvironmentsResumePromotion(ctx context.Context, modelId string, envName string) (*SignalPromotionResponse, error) {
 	return doJSON[SignalPromotionResponse](c, ctx, apiRequest{
@@ -3747,11 +2712,6 @@ func (c *Client) PostModelsEnvironmentsResumePromotion(ctx context.Context, mode
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostModelsEnvironmentsResumePromotionRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostModelsEnvironmentsResumePromotionRaw(ctx context.Context, modelId string, envName string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/models/%s/environments/%s/resume_promotion", pathArgs: []any{modelId, envName}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostPrepareModelUpload: Validates a model push payload and issues upload credentials
@@ -3767,11 +2727,6 @@ func (c *Client) PostPrepareModelUpload(ctx context.Context, body PrepareModelUp
 	})
 }
 
-// PostPrepareModelUploadRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostPrepareModelUploadRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/prepare_model_upload", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostRoutes: Creates a route
 func (c *Client) PostRoutes(ctx context.Context, body CreateRouteRequest) (*Route, error) {
 	return doJSON[Route](c, ctx, apiRequest{
@@ -3783,11 +2738,6 @@ func (c *Client) PostRoutes(ctx context.Context, body CreateRouteRequest) (*Rout
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostRoutesRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostRoutesRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/routes", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostSecrets: Upserts a secret
@@ -3803,11 +2753,6 @@ func (c *Client) PostSecrets(ctx context.Context, body UpsertSecretRequest) (*Se
 	})
 }
 
-// PostSecretsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostSecretsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/secrets", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostTeamsApiKeys: Creates a team API key
 func (c *Client) PostTeamsApiKeys(ctx context.Context, teamId string, body CreateAPIKeyRequest) (*APIKey, error) {
 	return doJSON[APIKey](c, ctx, apiRequest{
@@ -3819,11 +2764,6 @@ func (c *Client) PostTeamsApiKeys(ctx context.Context, teamId string, body Creat
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostTeamsApiKeysRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTeamsApiKeysRaw(ctx context.Context, teamId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/teams/%s/api_keys", pathArgs: []any{teamId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostTeamsLlmModels: Creates a new BIS-LLM deployment
@@ -3839,11 +2779,6 @@ func (c *Client) PostTeamsLlmModels(ctx context.Context, teamId string, body Cre
 	})
 }
 
-// PostTeamsLlmModelsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTeamsLlmModelsRaw(ctx context.Context, teamId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/teams/%s/llm_models", pathArgs: []any{teamId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostTeamsLoopsRuns: Creates a Loops run in a team
 func (c *Client) PostTeamsLoopsRuns(ctx context.Context, teamId string, body CreateLoopsRunRequest) (*CreateLoopsRunResponse, error) {
 	return doJSON[CreateLoopsRunResponse](c, ctx, apiRequest{
@@ -3855,11 +2790,6 @@ func (c *Client) PostTeamsLoopsRuns(ctx context.Context, teamId string, body Cre
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostTeamsLoopsRunsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTeamsLoopsRunsRaw(ctx context.Context, teamId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/teams/%s/loops/runs", pathArgs: []any{teamId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostTeamsLoopsSamplers: Creates a Loops sampler in a team
@@ -3875,11 +2805,6 @@ func (c *Client) PostTeamsLoopsSamplers(ctx context.Context, teamId string, body
 	})
 }
 
-// PostTeamsLoopsSamplersRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTeamsLoopsSamplersRaw(ctx context.Context, teamId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/teams/%s/loops/samplers", pathArgs: []any{teamId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostTeamsLoopsSessions: Creates a Loops session
 func (c *Client) PostTeamsLoopsSessions(ctx context.Context, teamId string) (*CreateLoopsSessionResponse, error) {
 	return doJSON[CreateLoopsSessionResponse](c, ctx, apiRequest{
@@ -3891,11 +2816,6 @@ func (c *Client) PostTeamsLoopsSessions(ctx context.Context, teamId string) (*Cr
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostTeamsLoopsSessionsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTeamsLoopsSessionsRaw(ctx context.Context, teamId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/teams/%s/loops/sessions", pathArgs: []any{teamId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostTeamsLoopsTrainers: Creates a Loops trainer
@@ -3911,11 +2831,6 @@ func (c *Client) PostTeamsLoopsTrainers(ctx context.Context, teamId string, body
 	})
 }
 
-// PostTeamsLoopsTrainersRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTeamsLoopsTrainersRaw(ctx context.Context, teamId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/teams/%s/loops/trainers", pathArgs: []any{teamId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostTeamsModels: Creates a new model from a source
 func (c *Client) PostTeamsModels(ctx context.Context, teamId string, body CreateModelRequest) (*CreatedModelDeployment, error) {
 	return doJSON[CreatedModelDeployment](c, ctx, apiRequest{
@@ -3927,11 +2842,6 @@ func (c *Client) PostTeamsModels(ctx context.Context, teamId string, body Create
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostTeamsModelsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTeamsModelsRaw(ctx context.Context, teamId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/teams/%s/models", pathArgs: []any{teamId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostTeamsSecrets: Upserts a secret in a team
@@ -3947,11 +2857,6 @@ func (c *Client) PostTeamsSecrets(ctx context.Context, teamId string, body Upser
 	})
 }
 
-// PostTeamsSecretsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTeamsSecretsRaw(ctx context.Context, teamId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/teams/%s/secrets", pathArgs: []any{teamId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostTeamsTrainingProjects: Upserts a training project in a specific team
 func (c *Client) PostTeamsTrainingProjects(ctx context.Context, teamId string, body UpsertTrainingProjectRequest) (*UpsertTrainingProjectResponse, error) {
 	return doJSON[UpsertTrainingProjectResponse](c, ctx, apiRequest{
@@ -3963,11 +2868,6 @@ func (c *Client) PostTeamsTrainingProjects(ctx context.Context, teamId string, b
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostTeamsTrainingProjectsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTeamsTrainingProjectsRaw(ctx context.Context, teamId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/teams/%s/training_projects", pathArgs: []any{teamId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostToken: Creates a sandbox access token
@@ -3983,11 +2883,6 @@ func (c *Client) PostToken(ctx context.Context, body CreateTokenRequest) (*Token
 	})
 }
 
-// PostTokenRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTokenRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/token", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostTrainingJobsSearch: Searches training jobs
 func (c *Client) PostTrainingJobsSearch(ctx context.Context, body SearchTrainingJobsRequest) (*SearchTrainingJobsResponse, error) {
 	return doJSON[SearchTrainingJobsResponse](c, ctx, apiRequest{
@@ -3999,11 +2894,6 @@ func (c *Client) PostTrainingJobsSearch(ctx context.Context, body SearchTraining
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostTrainingJobsSearchRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTrainingJobsSearchRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/training_jobs/search", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostTrainingProjects: Upserts a training project
@@ -4019,11 +2909,6 @@ func (c *Client) PostTrainingProjects(ctx context.Context, body UpsertTrainingPr
 	})
 }
 
-// PostTrainingProjectsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTrainingProjectsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/training_projects", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostTrainingProjectsJobs: Creates a training job
 func (c *Client) PostTrainingProjectsJobs(ctx context.Context, trainingProjectId string, body CreateTrainingJobRequest) (*CreateTrainingJobResponse, error) {
 	return doJSON[CreateTrainingJobResponse](c, ctx, apiRequest{
@@ -4035,11 +2920,6 @@ func (c *Client) PostTrainingProjectsJobs(ctx context.Context, trainingProjectId
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostTrainingProjectsJobsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTrainingProjectsJobsRaw(ctx context.Context, trainingProjectId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/training_projects/%s/jobs", pathArgs: []any{trainingProjectId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostTrainingProjectsJobsLogs: Gets the logs for a training job (deprecated; use GET)
@@ -4055,11 +2935,6 @@ func (c *Client) PostTrainingProjectsJobsLogs(ctx context.Context, trainingProje
 	})
 }
 
-// PostTrainingProjectsJobsLogsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTrainingProjectsJobsLogsRaw(ctx context.Context, trainingProjectId string, trainingJobId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/training_projects/%s/jobs/%s/logs", pathArgs: []any{trainingProjectId, trainingJobId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostTrainingProjectsJobsMetrics: Gets the metrics for a training job (deprecated; use GET)
 func (c *Client) PostTrainingProjectsJobsMetrics(ctx context.Context, trainingProjectId string, trainingJobId string, body GetTrainingJobMetricsRequest) (*GetTrainingJobMetricsResponse, error) {
 	return doJSON[GetTrainingJobMetricsResponse](c, ctx, apiRequest{
@@ -4071,11 +2946,6 @@ func (c *Client) PostTrainingProjectsJobsMetrics(ctx context.Context, trainingPr
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostTrainingProjectsJobsMetricsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTrainingProjectsJobsMetricsRaw(ctx context.Context, trainingProjectId string, trainingJobId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/training_projects/%s/jobs/%s/metrics", pathArgs: []any{trainingProjectId, trainingJobId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostTrainingProjectsJobsRecreate: Recreates a training job
@@ -4091,11 +2961,6 @@ func (c *Client) PostTrainingProjectsJobsRecreate(ctx context.Context, trainingP
 	})
 }
 
-// PostTrainingProjectsJobsRecreateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTrainingProjectsJobsRecreateRaw(ctx context.Context, trainingProjectId string, trainingJobId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/training_projects/%s/jobs/%s/recreate", pathArgs: []any{trainingProjectId, trainingJobId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostTrainingProjectsJobsSshSign: Signs an SSH certificate for a training job
 func (c *Client) PostTrainingProjectsJobsSshSign(ctx context.Context, trainingProjectId string, trainingJobId string, body SignSSHCertificateRequest) (*SignSSHCertificateResponse, error) {
 	return doJSON[SignSSHCertificateResponse](c, ctx, apiRequest{
@@ -4107,11 +2972,6 @@ func (c *Client) PostTrainingProjectsJobsSshSign(ctx context.Context, trainingPr
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostTrainingProjectsJobsSshSignRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTrainingProjectsJobsSshSignRaw(ctx context.Context, trainingProjectId string, trainingJobId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/training_projects/%s/jobs/%s/ssh/sign", pathArgs: []any{trainingProjectId, trainingJobId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostTrainingProjectsJobsStop: Stops a training job
@@ -4127,11 +2987,6 @@ func (c *Client) PostTrainingProjectsJobsStop(ctx context.Context, trainingProje
 	})
 }
 
-// PostTrainingProjectsJobsStopRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostTrainingProjectsJobsStopRaw(ctx context.Context, trainingProjectId string, trainingJobId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/training_projects/%s/jobs/%s/stop", pathArgs: []any{trainingProjectId, trainingJobId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostVolumesSyncs: Starts a volume sync
 func (c *Client) PostVolumesSyncs(ctx context.Context, body CreateVolumeSyncRequest) (*VolumeSync, error) {
 	return doJSON[VolumeSync](c, ctx, apiRequest{
@@ -4143,11 +2998,6 @@ func (c *Client) PostVolumesSyncs(ctx context.Context, body CreateVolumeSyncRequ
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostVolumesSyncsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostVolumesSyncsRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/volumes/syncs", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostVolumesSyncsCancel: Cancels a volume sync
@@ -4163,11 +3013,6 @@ func (c *Client) PostVolumesSyncsCancel(ctx context.Context, volumeSyncId string
 	})
 }
 
-// PostVolumesSyncsCancelRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostVolumesSyncsCancelRaw(ctx context.Context, volumeSyncId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/volumes/syncs/%s/cancel", pathArgs: []any{volumeSyncId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostVolumesToken: Creates a volume access token
 func (c *Client) PostVolumesToken(ctx context.Context, body CreateVolumeTokenRequest) (*CreateVolumeTokenResponse, error) {
 	return doJSON[CreateVolumeTokenResponse](c, ctx, apiRequest{
@@ -4181,11 +3026,6 @@ func (c *Client) PostVolumesToken(ctx context.Context, body CreateVolumeTokenReq
 	})
 }
 
-// PostVolumesTokenRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostVolumesTokenRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/volumes/token", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
-}
-
 // PostVolumesVersionsRestore: Restores a deleted or expired version of a volume
 func (c *Client) PostVolumesVersionsRestore(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string, body RestoreVolumeVersionRequest) (*RestoreVolumeVersionResponse, error) {
 	return doJSON[RestoreVolumeVersionResponse](c, ctx, apiRequest{
@@ -4197,11 +3037,6 @@ func (c *Client) PostVolumesVersionsRestore(ctx context.Context, volumeNamespace
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// PostVolumesVersionsRestoreRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostVolumesVersionsRestoreRaw(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/volumes/%s/%s/versions/%s/restore", pathArgs: []any{volumeNamespace, volumeName, volumeVersion}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PushImage: Push a sandbox image
@@ -4224,17 +3059,6 @@ func (c *Client) PushImage(ctx context.Context, params PushImageParams, body Pus
 	})
 }
 
-// PushImageRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PushImageRaw(ctx context.Context, params PushImageParams, options RawRequestOptions) (*http.Response, error) {
-	headers := http.Header{}
-	{
-		if params.XTeamId != nil {
-			headers.Set("X-Team-Id", fmt.Sprint(*params.XTeamId))
-		}
-	}
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/v1/sandboxes/images", pathArgs: []any{}, queryParams: params, headers: headers, raw: &options, successCodes: []int{202}, errorCodes: map[int]errorType{}})
-}
-
 // UpdateSandbox: Update a sandbox
 func (c *Client) UpdateSandbox(ctx context.Context, sandboxName string, params UpdateSandboxParams, body UpdateSandboxRequest) (*Sandbox, error) {
 	headers := http.Header{}
@@ -4253,17 +3077,6 @@ func (c *Client) UpdateSandbox(ctx context.Context, sandboxName string, params U
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// UpdateSandboxRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) UpdateSandboxRaw(ctx context.Context, sandboxName string, params UpdateSandboxParams, options RawRequestOptions) (*http.Response, error) {
-	headers := http.Header{}
-	{
-		if params.XTeamId != nil {
-			headers.Set("X-Team-Id", fmt.Sprint(*params.XTeamId))
-		}
-	}
-	return c.do(ctx, apiRequest{method: "PATCH", pathFmt: "/v1/sandboxes/instances/%s", pathArgs: []any{sandboxName}, queryParams: params, headers: headers, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // errorType identifies a typed error schema for status-code-based dispatch.

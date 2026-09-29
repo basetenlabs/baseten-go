@@ -494,7 +494,16 @@ func (e *Response%s) Error() string {
 	for _, op := range ops {
 		pf("\n")
 		renderMethod(&w, op)
-		renderRawMethod(&w, op)
+		// Match the JavaScript client: only mixed JSON/non-JSON responses
+		// need a Raw sibling. Raw-only operations keep their ordinary name.
+		if op.RawResponse {
+			for _, ref := range op.Responses {
+				if ref != "" {
+					renderRawMethod(&w, op)
+					break
+				}
+			}
+		}
 	}
 
 	// Internal request struct and helpers at bottom.

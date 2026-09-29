@@ -2,10 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -68,6 +72,52 @@ func TestExecutionSnapshot(t *testing.T) {
 		if string(first) != string(next) {
 			t.Fatal("nondeterministic generation")
 		}
+	}
+}
+
+// Check generated public methods against the pinned specs, including clients
+// without mixed JSON/binary responses. Pure streaming operations retain their
+// original method name and must not gain a redundant Raw sibling.
+func TestSnapshotRawMethods(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		spec   string
+		inline bool
+		want   []string
+	}{
+		{name: "sandboxapi", spec: "specs/sandbox.yml", inline: true, want: []string{"GetFilesystemRaw", "PostProcessRaw"}},
+		{name: "managementapi", spec: "specs/management.json"},
+		{name: "inferenceapi", spec: "specs/inference.json"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := os.ReadFile(tc.spec)
+			if err != nil {
+				t.Fatal(err)
+			}
+			pre, err := preprocessSpec(data, tc.inline)
+			if err != nil {
+				t.Fatal(err)
+			}
+			dst := filepath.Join(t.TempDir(), "client.go")
+			if err := generateClient(pre.data, dst, tc.name); err != nil {
+				t.Fatal(err)
+			}
+			file, err := parser.ParseFile(token.NewFileSet(), dst, nil, 0)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var got []string
+			for _, decl := range file.Decls {
+				fn, ok := decl.(*ast.FuncDecl)
+				if ok && fn.Recv != nil && strings.HasSuffix(fn.Name.Name, "Raw") && ast.IsExported(fn.Name.Name) {
+					got = append(got, fn.Name.Name)
+				}
+			}
+			slices.Sort(got)
+			if !slices.Equal(got, tc.want) {
+				t.Fatalf("Raw methods = %v, want %v", got, tc.want)
+			}
+		})
 	}
 }
 
@@ -196,7 +246,7 @@ paths:
 	const runtimeTest = `package sandboxapi
 import("context";"io";"net/http";"net/http/httptest";"testing")
 func TestWire(t *testing.T){for _,status:=range []int{200,204}{server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){if r.Header.Get("X-Trace")!="false"||r.URL.Query().Has("X-Trace"){t.Error("header lost or leaked into query")};if r.URL.Query().Get("flag")!="false"||r.URL.Query().Get("count")!="0"||len(r.URL.Query()["tags"])!=2{t.Errorf("query changed: %s",r.URL)};body,_:=io.ReadAll(r.Body);if string(body)!="{}"{t.Errorf("body changed: %s",body)};w.Header().Set("Content-Type","application/json");w.WriteHeader(status);if status==200{io.WriteString(w,"{\"name\":\"ok\"}")}}));flag:=false;count:=0;tags:=[]string{"a","b"};c:=&Client{BaseURL:server.URL,HTTPClient:server.Client()};response,err:=c.UpdateItems(context.Background(),UpdateItemsParams{Flag:&flag,Count:&count,Tags:&tags,XTrace:&flag},PostItemsBody{});if err!=nil{t.Fatal(err)};if response.StatusCode!=status{t.Fatal(response.StatusCode)};if status==200&&response.JSON200==nil{t.Fatal("missing JSON")};if status==204&&response.JSON200!=nil{t.Fatal("decoded empty body")};if response.Body!=nil{response.Body.Close()};server.Close()}}
-func TestHeaderOnly(t *testing.T){server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){if r.Header.Get("X-Trace")!="selected"||r.Header.Get("X-First")!="0,1"||r.Header.Get("X-Second")!="a,b"||r.URL.RawQuery!=""{t.Errorf("bad header-only request: %v %s",r.Header,r.URL)};w.WriteHeader(204)}));defer server.Close();c:=&Client{BaseURL:server.URL,HTTPClient:server.Client()};trace:="selected";if err:=c.GetHeaders(context.Background(),GetHeadersParams{XTrace:&trace,XFirst:[]int{0,1},XSecond:[]string{"a","b"}});err!=nil{t.Fatal(err)};ignored:="ignored";resp,err:=c.GetHeadersRaw(context.Background(),GetHeadersParams{XTrace:&ignored,XFirst:[]int{0,1},XSecond:[]string{"a","b"}},RawRequestOptions{Headers:http.Header{"X-Trace":[]string{"selected"}}});if err!=nil{t.Fatal(err)};resp.Body.Close()}
+func TestHeaderOnly(t *testing.T){server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){if r.Header.Get("X-Trace")!="selected"||r.Header.Get("X-First")!="0,1"||r.Header.Get("X-Second")!="a,b"||r.URL.RawQuery!=""{t.Errorf("bad header-only request: %v %s",r.Header,r.URL)};w.WriteHeader(204)}));defer server.Close();c:=&Client{BaseURL:server.URL,HTTPClient:server.Client()};trace:="selected";if err:=c.GetHeaders(context.Background(),GetHeadersParams{XTrace:&trace,XFirst:[]int{0,1},XSecond:[]string{"a","b"}});err!=nil{t.Fatal(err)}}
 `
 	if err = os.WriteFile(filepath.Join(dir, "sandboxapi", "wire_test.go"), []byte(runtimeTest), 0600); err != nil {
 		t.Fatal(err)

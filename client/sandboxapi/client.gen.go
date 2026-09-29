@@ -83,11 +83,6 @@ func (c *Client) DeleteDrivesMount(ctx context.Context, mountPath string) (*Driv
 	})
 }
 
-// DeleteDrivesMountRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteDrivesMountRaw(ctx context.Context, mountPath string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/drives/mount/%s", pathArgs: []any{mountPath}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // DeleteFilesystem: Delete file or directory
 //
 // Returns [*ResponseErrorResponse] on HTTP 404, 422, 500.
@@ -104,11 +99,6 @@ func (c *Client) DeleteFilesystem(ctx context.Context, path string, params Delet
 	})
 }
 
-// DeleteFilesystemRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteFilesystemRaw(ctx context.Context, path string, params DeleteFilesystemPathParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/filesystem/%s", pathArgs: []any{path}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{404: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // DeleteFilesystemMultipartAbort: Abort multipart upload
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 404, 500.
@@ -122,11 +112,6 @@ func (c *Client) DeleteFilesystemMultipartAbort(ctx context.Context, uploadId st
 		successCode:  200,
 		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 404: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
-}
-
-// DeleteFilesystemMultipartAbortRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteFilesystemMultipartAbortRaw(ctx context.Context, uploadId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/filesystem-multipart/%s/abort", pathArgs: []any{uploadId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 404: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
 }
 
 // DeleteFilesystemTree: Delete directory tree
@@ -145,11 +130,6 @@ func (c *Client) DeleteFilesystemTree(ctx context.Context, path string, params D
 	})
 }
 
-// DeleteFilesystemTreeRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteFilesystemTreeRaw(ctx context.Context, path string, params DeleteFilesystemTreePathParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/filesystem/tree/%s", pathArgs: []any{path}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // DeleteNetworkProcessMonitor: Stop monitoring ports for a process
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 422, 500.
@@ -163,11 +143,6 @@ func (c *Client) DeleteNetworkProcessMonitor(ctx context.Context, pid string) (*
 		successCode:  200,
 		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
-}
-
-// DeleteNetworkProcessMonitorRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteNetworkProcessMonitorRaw(ctx context.Context, pid string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/network/process/%s/monitor", pathArgs: []any{pid}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
 }
 
 // DeleteNetworkTunnel: Disconnect tunnel
@@ -185,11 +160,6 @@ func (c *Client) DeleteNetworkTunnel(ctx context.Context) (*SuccessResponse, err
 	})
 }
 
-// DeleteNetworkTunnelRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteNetworkTunnelRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/network/tunnel", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // DeleteProcess: Stop a process
 //
 // Returns [*ResponseErrorResponse] on HTTP 404, 422, 500.
@@ -203,11 +173,6 @@ func (c *Client) DeleteProcess(ctx context.Context, identifier string) (*Success
 		successCode:  200,
 		errorCodes:   map[int]errorType{404: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
-}
-
-// DeleteProcessRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteProcessRaw(ctx context.Context, identifier string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/process/%s", pathArgs: []any{identifier}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{404: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
 }
 
 // DeleteProcessKill: Kill a process
@@ -225,11 +190,6 @@ func (c *Client) DeleteProcessKill(ctx context.Context, identifier string) (*Suc
 	})
 }
 
-// DeleteProcessKillRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteProcessKillRaw(ctx context.Context, identifier string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/process/%s/kill", pathArgs: []any{identifier}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{404: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // DeleteProcessStdin: Close a process's stdin
 //
 // Returns [*ResponseErrorResponse] on HTTP 404, 409.
@@ -245,11 +205,6 @@ func (c *Client) DeleteProcessStdin(ctx context.Context, identifier string) (*Su
 	})
 }
 
-// DeleteProcessStdinRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) DeleteProcessStdinRaw(ctx context.Context, identifier string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "DELETE", pathFmt: "/process/%s/stdin", pathArgs: []any{identifier}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{404: errorTypeErrorResponse, 409: errorTypeErrorResponse}})
-}
-
 // GetArchiveStatus: Get the archive status
 func (c *Client) GetArchiveStatus(ctx context.Context) (*QuiesceStatus, error) {
 	return doJSON[QuiesceStatus](c, ctx, apiRequest{
@@ -261,11 +216,6 @@ func (c *Client) GetArchiveStatus(ctx context.Context) (*QuiesceStatus, error) {
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetArchiveStatusRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetArchiveStatusRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/archive/status", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetCodegenReranking: Code reranking/semantic search
@@ -284,11 +234,6 @@ func (c *Client) GetCodegenReranking(ctx context.Context, path string, params Ge
 	})
 }
 
-// GetCodegenRerankingRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetCodegenRerankingRaw(ctx context.Context, path string, params GetCodegenRerankingPathParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/codegen/reranking/%s", pathArgs: []any{path}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 503: errorTypeErrorResponse}})
-}
-
 // GetDrivesMount: List currently mounted drives
 //
 // Returns [*ResponseErrorResponse] on HTTP 500.
@@ -302,11 +247,6 @@ func (c *Client) GetDrivesMount(ctx context.Context) (*DriveListResponse, error)
 		successCode:  200,
 		errorCodes:   map[int]errorType{500: errorTypeErrorResponse},
 	})
-}
-
-// GetDrivesMountRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetDrivesMountRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/drives/mount", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{500: errorTypeErrorResponse}})
 }
 
 // GetFilesystem: Get file or directory information
@@ -346,11 +286,6 @@ func (c *Client) GetFilesystemContentSearch(ctx context.Context, path string, pa
 	})
 }
 
-// GetFilesystemContentSearchRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetFilesystemContentSearchRaw(ctx context.Context, path string, params GetFilesystemContentSearchPathParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/filesystem-content-search/%s", pathArgs: []any{path}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // GetFilesystemFind: Find files and directories
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 422, 500.
@@ -365,11 +300,6 @@ func (c *Client) GetFilesystemFind(ctx context.Context, path string, params GetF
 		successCode:  200,
 		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
-}
-
-// GetFilesystemFindRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetFilesystemFindRaw(ctx context.Context, path string, params GetFilesystemFindPathParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/filesystem-find/%s", pathArgs: []any{path}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
 }
 
 // GetFilesystemMultipart: List multipart uploads
@@ -387,11 +317,6 @@ func (c *Client) GetFilesystemMultipart(ctx context.Context) (*MultipartListUplo
 	})
 }
 
-// GetFilesystemMultipartRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetFilesystemMultipartRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/filesystem-multipart", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{500: errorTypeErrorResponse}})
-}
-
 // GetFilesystemMultipartParts: List parts
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 404, 500.
@@ -405,11 +330,6 @@ func (c *Client) GetFilesystemMultipartParts(ctx context.Context, uploadId strin
 		successCode:  200,
 		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 404: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
-}
-
-// GetFilesystemMultipartPartsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetFilesystemMultipartPartsRaw(ctx context.Context, uploadId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/filesystem-multipart/%s/parts", pathArgs: []any{uploadId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 404: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
 }
 
 // GetFilesystemSearch: Fuzzy search for files and directories
@@ -428,11 +348,6 @@ func (c *Client) GetFilesystemSearch(ctx context.Context, path string, params Ge
 	})
 }
 
-// GetFilesystemSearchRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetFilesystemSearchRaw(ctx context.Context, path string, params GetFilesystemSearchPathParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/filesystem-search/%s", pathArgs: []any{path}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // GetFilesystemTree: Get directory tree
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 422, 500.
@@ -448,11 +363,6 @@ func (c *Client) GetFilesystemTree(ctx context.Context, path string) (*GetFilesy
 	})
 }
 
-// GetFilesystemTreeRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetFilesystemTreeRaw(ctx context.Context, path string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/filesystem/tree/%s", pathArgs: []any{path}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // GetHealth: Health check
 func (c *Client) GetHealth(ctx context.Context) (*HealthResponse, error) {
 	return doJSON[HealthResponse](c, ctx, apiRequest{
@@ -464,11 +374,6 @@ func (c *Client) GetHealth(ctx context.Context) (*HealthResponse, error) {
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetHealthRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetHealthRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/health", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetNetworkProcessPorts: Get open ports for a process
@@ -486,11 +391,6 @@ func (c *Client) GetNetworkProcessPorts(ctx context.Context, pid string) (*GetNe
 	})
 }
 
-// GetNetworkProcessPortsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetNetworkProcessPortsRaw(ctx context.Context, pid string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/network/process/%s/ports", pathArgs: []any{pid}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // GetProcess: List all processes
 func (c *Client) GetProcess(ctx context.Context) (*GetProcessResponse200, error) {
 	return doJSON[GetProcessResponse200](c, ctx, apiRequest{
@@ -502,11 +402,6 @@ func (c *Client) GetProcess(ctx context.Context) (*GetProcessResponse200, error)
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetProcessRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetProcessRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/process", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetProcessIdentifier: Get process by identifier
@@ -524,11 +419,6 @@ func (c *Client) GetProcessIdentifier(ctx context.Context, identifier string) (*
 	})
 }
 
-// GetProcessIdentifierRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetProcessIdentifierRaw(ctx context.Context, identifier string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/process/%s", pathArgs: []any{identifier}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{404: errorTypeErrorResponse}})
-}
-
 // GetProcessLogs: Get process logs
 //
 // Returns [*ResponseErrorResponse] on HTTP 404, 422, 500.
@@ -544,11 +434,6 @@ func (c *Client) GetProcessLogs(ctx context.Context, identifier string) (*Proces
 	})
 }
 
-// GetProcessLogsRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetProcessLogsRaw(ctx context.Context, identifier string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/process/%s/logs", pathArgs: []any{identifier}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{404: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // GetProcessLogsStream: Stream process logs in real time
 func (c *Client) GetProcessLogsStream(ctx context.Context, identifier string) (*http.Response, error) {
 	return c.do(ctx, apiRequest{
@@ -560,11 +445,6 @@ func (c *Client) GetProcessLogsStream(ctx context.Context, identifier string) (*
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetProcessLogsStreamRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetProcessLogsStreamRaw(ctx context.Context, identifier string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/process/%s/logs/stream", pathArgs: []any{identifier}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // GetWatchFilesystem: Stream file modification events in a directory
@@ -579,11 +459,6 @@ func (c *Client) GetWatchFilesystem(ctx context.Context, path string, params Get
 		successCode:  200,
 		errorCodes:   nil,
 	})
-}
-
-// GetWatchFilesystemRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) GetWatchFilesystemRaw(ctx context.Context, path string, params GetWatchFilesystemPathParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/watch/filesystem/%s", pathArgs: []any{path}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{}})
 }
 
 // PostArchiveExport: Export the filesystem changes to a presigned URL
@@ -639,11 +514,6 @@ func (c *Client) PostArchiveExport(ctx context.Context, body ExportOptions) (*Po
 	return result, nil
 }
 
-// PostArchiveExportRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostArchiveExportRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/archive/export", pathArgs: []any{}, raw: &options, successCodes: []int{200, 202}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 409: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // PostArchiveResume: Lift the archive freeze
 //
 // Returns [*ResponseErrorResponse] on HTTP 409, 500.
@@ -657,11 +527,6 @@ func (c *Client) PostArchiveResume(ctx context.Context) (*QuiesceStatus, error) 
 		successCode:  200,
 		errorCodes:   map[int]errorType{409: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
-}
-
-// PostArchiveResumeRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostArchiveResumeRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/archive/resume", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{409: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
 }
 
 // PostDrivesMount: Attach a drive to a local path
@@ -679,11 +544,6 @@ func (c *Client) PostDrivesMount(ctx context.Context, body DriveMountRequest) (*
 	})
 }
 
-// PostDrivesMountRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostDrivesMountRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/drives/mount", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 403: errorTypeErrorResponse, 409: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // PostEnvironmentReload: Reload environment from guest metadata
 //
 // Returns [*ResponseErrorResponse] on HTTP 404, 500.
@@ -697,11 +557,6 @@ func (c *Client) PostEnvironmentReload(ctx context.Context) (*HandlerReloadRespo
 		successCode:  200,
 		errorCodes:   map[int]errorType{404: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
-}
-
-// PostEnvironmentReloadRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostEnvironmentReloadRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/environment/reload", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{404: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
 }
 
 // PostFilesystemMultipartComplete: Complete multipart upload
@@ -719,11 +574,6 @@ func (c *Client) PostFilesystemMultipartComplete(ctx context.Context, uploadId s
 	})
 }
 
-// PostFilesystemMultipartCompleteRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostFilesystemMultipartCompleteRaw(ctx context.Context, uploadId string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/filesystem-multipart/%s/complete", pathArgs: []any{uploadId}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 404: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // PostFilesystemMultipartInitiate: Initiate multipart upload
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 500.
@@ -739,11 +589,6 @@ func (c *Client) PostFilesystemMultipartInitiate(ctx context.Context, path strin
 	})
 }
 
-// PostFilesystemMultipartInitiateRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostFilesystemMultipartInitiateRaw(ctx context.Context, path string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/filesystem-multipart/initiate/%s", pathArgs: []any{path}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // PostNetworkProcessMonitor: Start monitoring ports for a process
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 422, 500.
@@ -757,11 +602,6 @@ func (c *Client) PostNetworkProcessMonitor(ctx context.Context, pid string, body
 		successCode:  200,
 		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
-}
-
-// PostNetworkProcessMonitorRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostNetworkProcessMonitorRaw(ctx context.Context, pid string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/network/process/%s/monitor", pathArgs: []any{pid}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
 }
 
 // PostProcess: Execute a command
@@ -799,11 +639,6 @@ func (c *Client) PostProcessStdin(ctx context.Context, identifier string, body i
 	})
 }
 
-// PostProcessStdinRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostProcessStdinRaw(ctx context.Context, identifier string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/process/%s/stdin", pathArgs: []any{identifier}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{404: errorTypeErrorResponse, 409: errorTypeErrorResponse, 413: errorTypeErrorResponse, 500: errorTypeErrorResponse, 503: errorTypeErrorResponse}})
-}
-
 // PostUpgrade: Upgrade the sandbox-api
 //
 // Returns [*ResponseErrorResponse] on HTTP 500.
@@ -817,11 +652,6 @@ func (c *Client) PostUpgrade(ctx context.Context, body UpgradeRequest) (*Success
 		successCode:  200,
 		errorCodes:   map[int]errorType{500: errorTypeErrorResponse},
 	})
-}
-
-// PostUpgradeRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostUpgradeRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/upgrade", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{500: errorTypeErrorResponse}})
 }
 
 // PutCodegenFastapply: Apply code edit
@@ -839,11 +669,6 @@ func (c *Client) PutCodegenFastapply(ctx context.Context, path string, body Appl
 	})
 }
 
-// PutCodegenFastapplyRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PutCodegenFastapplyRaw(ctx context.Context, path string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PUT", pathFmt: "/codegen/fastapply/%s", pathArgs: []any{path}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 503: errorTypeErrorResponse}})
-}
-
 // PutFilesystem: Create or update a file or directory
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 422, 500.
@@ -857,11 +682,6 @@ func (c *Client) PutFilesystem(ctx context.Context, path string, body FileReques
 		successCode:  200,
 		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
-}
-
-// PutFilesystemRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PutFilesystemRaw(ctx context.Context, path string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PUT", pathFmt: "/filesystem/%s", pathArgs: []any{path}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
 }
 
 // PutFilesystemMultipartPart: Upload part
@@ -880,11 +700,6 @@ func (c *Client) PutFilesystemMultipartPart(ctx context.Context, uploadId string
 	})
 }
 
-// PutFilesystemMultipartPartRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PutFilesystemMultipartPartRaw(ctx context.Context, uploadId string, params PutFilesystemMultipartUploadIdPartParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PUT", pathFmt: "/filesystem-multipart/%s/part", pathArgs: []any{uploadId}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 404: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // PutFilesystemTree: Create or update directory tree
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 422, 500.
@@ -900,11 +715,6 @@ func (c *Client) PutFilesystemTree(ctx context.Context, path string, body TreeRe
 	})
 }
 
-// PutFilesystemTreeRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PutFilesystemTreeRaw(ctx context.Context, path string, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PUT", pathFmt: "/filesystem/tree/%s", pathArgs: []any{path}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
-}
-
 // PutNetworkTunnelConfig: Update tunnel configuration
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 422, 500.
@@ -918,11 +728,6 @@ func (c *Client) PutNetworkTunnelConfig(ctx context.Context, body TunnelConfigRe
 		successCode:  200,
 		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
-}
-
-// PutNetworkTunnelConfigRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PutNetworkTunnelConfigRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "PUT", pathFmt: "/network/tunnel/config", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
 }
 
 // errorType identifies a typed error schema for status-code-based dispatch.
