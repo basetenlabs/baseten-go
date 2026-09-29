@@ -4,7 +4,11 @@
         "title": "Baseten management API",
         "version": "1.0.0"
     },
-    "servers": [],
+    "servers": [
+        {
+            "url": "https://api.baseten.co"
+        }
+    ],
     "security": [
         {
             "BearerAuth": []
@@ -6736,11 +6740,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"availability_model\": null,\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'availability_model': None, 'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a standalone Loops sampler not linked to a run.",
@@ -7645,11 +7649,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"availability_model\": null,\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'availability_model': None, 'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a standalone Loops sampler not linked to a run; the sampler belongs to the given team.",
@@ -9496,14 +9500,14 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/routes \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"my-org/assistant\",\n  \"team_id\": \"abc1234\",\n  \"display_name\": \"Assistant\",\n  \"target\": {\n    \"model\": \"zai-org/GLM-5.3\",\n    \"type\": \"BASETEN_MODEL_API\"\n  },\n  \"description\": \"Assistant for code review and debugging.\",\n  \"metadata_slug\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/routes \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"team_id\": \"abc1234\",\n  \"display_name\": \"Assistant\",\n  \"target\": {\n    \"model\": \"zai-org/GLM-5.3\",\n    \"type\": \"BASETEN_MODEL_API\"\n  },\n  \"description\": \"Assistant for code review and debugging.\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'my-org/assistant', 'team_id': 'abc1234', 'display_name': 'Assistant', 'target': {'model': 'zai-org/GLM-5.3', 'type': 'BASETEN_MODEL_API'}, 'description': 'Assistant for code review and debugging.', 'metadata_slug': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'team_id': 'abc1234', 'display_name': 'Assistant', 'target': {'model': 'zai-org/GLM-5.3', 'type': 'BASETEN_MODEL_API'}, 'description': 'Assistant for code review and debugging.'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Dedicated deployment targets are not supported.",
+                "description": "Creates and derives a name for the provided route configuration",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -9740,18 +9744,18 @@
                 "x-stability": "unstable"
             },
             "patch": {
-                "summary": "Updates a route",
+                "summary": "Updates a route's display name or description",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"description\": \"Assistant for code review and debugging.\",\n  \"display_name\": \"Assistant\",\n  \"target\": {\n    \"model\": \"zai-org/GLM-5.3\",\n    \"type\": \"BASETEN_MODEL_API\"\n  },\n  \"metadata_slug\": null\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"description\": \"Assistant for code review and debugging.\",\n  \"display_name\": \"Assistant\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'description': 'Assistant for code review and debugging.', 'display_name': 'Assistant', 'target': {'model': 'zai-org/GLM-5.3', 'type': 'BASETEN_MODEL_API'}, 'metadata_slug': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'description': 'Assistant for code review and debugging.', 'display_name': 'Assistant'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Replaces the entire target when provided. The route name and owning team are immutable.",
+                "description": "The route name, target, and owning team are immutable.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -13019,6 +13023,9 @@
                                 "MODEL_DEPLOYMENT_RETRIED": "#/components/schemas/AuditLogEventModelDeploymentRetriedV1",
                                 "MODEL_PROMOTION_CONTROL_ACTION": "#/components/schemas/AuditLogEventModelPromotionControlActionV1",
                                 "MODEL_RENAMED": "#/components/schemas/AuditLogEventModelRenamedV1",
+                                "PROVIDER_CONNECTION_CREATED": "#/components/schemas/AuditLogEventProviderConnectionCreatedV1",
+                                "PROVIDER_CONNECTION_DELETED": "#/components/schemas/AuditLogEventProviderConnectionDeletedV1",
+                                "PROVIDER_CONNECTION_UPDATED": "#/components/schemas/AuditLogEventProviderConnectionUpdatedV1",
                                 "REPLICA_TERMINATED": "#/components/schemas/AuditLogEventReplicaTerminatedV1",
                                 "REQUIRE_GROUP_BASED_ADMINS_ENABLED": "#/components/schemas/AuditLogEventRequireGroupBasedAdminsEnabledV1",
                                 "SECRET_DELETED": "#/components/schemas/AuditLogEventSecretDeletedV1",
@@ -13122,6 +13129,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventGatewayEndpointDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventProviderConnectionCreatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventProviderConnectionUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventProviderConnectionDeletedV1"
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventUserInvitedV1"
@@ -15861,6 +15877,96 @@
                 "title": "AuditLogEventModelRenamedV1",
                 "type": "object"
             },
+            "AuditLogEventProviderConnectionCreatedV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "event_type": {
+                        "const": "PROVIDER_CONNECTION_CREATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "provider_connection_id": {
+                        "title": "Provider Connection Id",
+                        "type": "string"
+                    },
+                    "provider": {
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "title": "Secret Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "provider_connection_id",
+                    "provider",
+                    "secret_name"
+                ],
+                "title": "AuditLogEventProviderConnectionCreatedV1",
+                "type": "object"
+            },
+            "AuditLogEventProviderConnectionDeletedV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "event_type": {
+                        "const": "PROVIDER_CONNECTION_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "provider_connection_id": {
+                        "title": "Provider Connection Id",
+                        "type": "string"
+                    },
+                    "provider": {
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "title": "Secret Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "provider_connection_id",
+                    "provider",
+                    "secret_name"
+                ],
+                "title": "AuditLogEventProviderConnectionDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventProviderConnectionUpdatedV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "event_type": {
+                        "const": "PROVIDER_CONNECTION_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "provider_connection_id": {
+                        "title": "Provider Connection Id",
+                        "type": "string"
+                    },
+                    "provider": {
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "title": "Secret Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "provider_connection_id",
+                    "provider",
+                    "secret_name"
+                ],
+                "title": "AuditLogEventProviderConnectionUpdatedV1",
+                "type": "object"
+            },
             "AuditLogEventReplicaTerminatedV1": {
                 "additionalProperties": false,
                 "description": "A replica of a model deployment was terminated.",
@@ -16052,6 +16158,9 @@
                     "GATEWAY_ENDPOINT_CREATED",
                     "GATEWAY_ENDPOINT_UPDATED",
                     "GATEWAY_ENDPOINT_DELETED",
+                    "PROVIDER_CONNECTION_CREATED",
+                    "PROVIDER_CONNECTION_UPDATED",
+                    "PROVIDER_CONNECTION_DELETED",
                     "USER_INVITED",
                     "USER_JOINED_ORGANIZATION",
                     "WEBHOOK_SIGNING_SECRET_CREATED",
@@ -16464,6 +16573,7 @@
                     "SECRETS",
                     "API_KEYS",
                     "GATEWAY",
+                    "CODE",
                     "WEBHOOK_SIGNING_SECRETS",
                     "USER_MANAGEMENT",
                     "DIRECTORY_GROUP_MANAGEMENT",
@@ -24618,6 +24728,18 @@
             },
             "CreateLoopsSamplerRequestV1": {
                 "properties": {
+                    "availability_model": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/V1AvailabilityModel"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Capacity the sampler runs on. 'spot' allows preemption when its GPUs are reclaimed. Defaults to 'dedicated' for standalone samplers. Paired samplers inherit their run's availability model; an explicit value must match it."
+                    },
                     "session_id": {
                         "description": "ID of the Loops session this sampler belongs to.",
                         "title": "Session Id",
@@ -30143,43 +30265,6 @@
                 "title": "RouteTargetBasetenModelAPIV1",
                 "type": "object"
             },
-            "RouteTargetOpenAICompatibleV1": {
-                "additionalProperties": false,
-                "properties": {
-                    "type": {
-                        "const": "OPENAI_COMPATIBLE",
-                        "description": "Target kind for an OpenAI-compatible provider.",
-                        "title": "Type",
-                        "type": "string"
-                    },
-                    "model": {
-                        "description": "Model name sent to the provider.",
-                        "minLength": 1,
-                        "title": "Model",
-                        "type": "string"
-                    },
-                    "secret_name": {
-                        "description": "Name of a credential secret owned by the route's team.",
-                        "minLength": 1,
-                        "title": "Secret Name",
-                        "type": "string"
-                    },
-                    "base_url": {
-                        "description": "HTTPS base URL of the OpenAI-compatible provider.",
-                        "minLength": 1,
-                        "title": "Base Url",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "type",
-                    "model",
-                    "secret_name",
-                    "base_url"
-                ],
-                "title": "RouteTargetOpenAICompatibleV1",
-                "type": "object"
-            },
             "RouteTargetOpenAIV1": {
                 "additionalProperties": false,
                 "properties": {
@@ -30208,41 +30293,6 @@
                     "secret_name"
                 ],
                 "title": "RouteTargetOpenAIV1",
-                "type": "object"
-            },
-            "RouteTargetVertexV1": {
-                "additionalProperties": false,
-                "properties": {
-                    "type": {
-                        "const": "VERTEX",
-                        "description": "Target kind for Google Vertex AI.",
-                        "title": "Type",
-                        "type": "string"
-                    },
-                    "model": {
-                        "description": "Model name sent to the provider.",
-                        "minLength": 1,
-                        "title": "Model",
-                        "type": "string"
-                    },
-                    "secret_name": {
-                        "description": "Name of a credential secret owned by the route's team.",
-                        "minLength": 1,
-                        "title": "Secret Name",
-                        "type": "string"
-                    },
-                    "vertex_config": {
-                        "$ref": "#/components/schemas/VertexTargetConfigV1",
-                        "description": "Google Vertex configuration."
-                    }
-                },
-                "required": [
-                    "type",
-                    "model",
-                    "secret_name",
-                    "vertex_config"
-                ],
-                "title": "RouteTargetVertexV1",
                 "type": "object"
             },
             "RouteTargetXAIV1": {
@@ -30283,7 +30333,7 @@
                         "type": "string"
                     },
                     "name": {
-                        "description": "Immutable name to send in the inference request's model field.",
+                        "description": "Name to send in the inference request's model field.",
                         "title": "Name",
                         "type": "string"
                     },
@@ -30314,8 +30364,6 @@
                                 "ANTHROPIC": "#/components/schemas/RouteTargetAnthropicV1",
                                 "BASETEN_MODEL_API": "#/components/schemas/RouteTargetBasetenModelAPIV1",
                                 "OPENAI": "#/components/schemas/RouteTargetOpenAIV1",
-                                "OPENAI_COMPATIBLE": "#/components/schemas/RouteTargetOpenAICompatibleV1",
-                                "VERTEX": "#/components/schemas/RouteTargetVertexV1",
                                 "XAI": "#/components/schemas/RouteTargetXAIV1"
                             },
                             "propertyName": "type"
@@ -30332,12 +30380,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/RouteTargetXAIV1"
-                            },
-                            {
-                                "$ref": "#/components/schemas/RouteTargetVertexV1"
-                            },
-                            {
-                                "$ref": "#/components/schemas/RouteTargetOpenAICompatibleV1"
                             }
                         ],
                         "title": "Target"
@@ -30378,33 +30420,6 @@
                     "created_at"
                 ],
                 "title": "RouteV1",
-                "type": "object"
-            },
-            "VertexTargetConfigV1": {
-                "properties": {
-                    "project_id": {
-                        "description": "Google Cloud project ID or project number.",
-                        "examples": [
-                            "my-gcp-project",
-                            "464036093014"
-                        ],
-                        "title": "Project Id",
-                        "type": "string"
-                    },
-                    "location": {
-                        "description": "Google Cloud location.",
-                        "examples": [
-                            "global"
-                        ],
-                        "title": "Location",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "project_id",
-                    "location"
-                ],
-                "title": "VertexTargetConfigV1",
                 "type": "object"
             },
             "RoutesResponseV1": {
@@ -30485,15 +30500,6 @@
             "CreateRouteRequestV1": {
                 "additionalProperties": false,
                 "properties": {
-                    "name": {
-                        "description": "Immutable, globally unique route name using an organization-owned prefix.",
-                        "examples": [
-                            "my-org/assistant"
-                        ],
-                        "minLength": 1,
-                        "title": "Name",
-                        "type": "string"
-                    },
                     "team_id": {
                         "anyOf": [
                             {
@@ -30536,8 +30542,6 @@
                                 "ANTHROPIC": "#/components/schemas/RouteTargetAnthropicV1",
                                 "BASETEN_MODEL_API": "#/components/schemas/RouteTargetBasetenModelAPIV1",
                                 "OPENAI": "#/components/schemas/RouteTargetOpenAIV1",
-                                "OPENAI_COMPATIBLE": "#/components/schemas/RouteTargetOpenAICompatibleV1",
-                                "VERTEX": "#/components/schemas/RouteTargetVertexV1",
                                 "XAI": "#/components/schemas/RouteTargetXAIV1"
                             },
                             "propertyName": "type"
@@ -30560,12 +30564,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/RouteTargetXAIV1"
-                            },
-                            {
-                                "$ref": "#/components/schemas/RouteTargetVertexV1"
-                            },
-                            {
-                                "$ref": "#/components/schemas/RouteTargetOpenAICompatibleV1"
                             }
                         ],
                         "title": "Target"
@@ -30586,25 +30584,9 @@
                             "Assistant for code review and debugging."
                         ],
                         "title": "Description"
-                    },
-                    "metadata_slug": {
-                        "anyOf": [
-                            {
-                                "minLength": 1,
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Slug of a metadata row to link. Omit to auto-resolve from the target; required for OPENAI_COMPATIBLE and VERTEX targets.",
-                        "title": "Metadata Slug",
-                        "x-null-distinct": true
                     }
                 },
                 "required": [
-                    "name",
                     "target"
                 ],
                 "title": "CreateRouteRequestV1",
@@ -30902,69 +30884,6 @@
                             "Assistant"
                         ],
                         "title": "Display Name"
-                    },
-                    "target": {
-                        "anyOf": [
-                            {
-                                "discriminator": {
-                                    "mapping": {
-                                        "ANTHROPIC": "#/components/schemas/RouteTargetAnthropicV1",
-                                        "BASETEN_MODEL_API": "#/components/schemas/RouteTargetBasetenModelAPIV1",
-                                        "OPENAI": "#/components/schemas/RouteTargetOpenAIV1",
-                                        "OPENAI_COMPATIBLE": "#/components/schemas/RouteTargetOpenAICompatibleV1",
-                                        "VERTEX": "#/components/schemas/RouteTargetVertexV1",
-                                        "XAI": "#/components/schemas/RouteTargetXAIV1"
-                                    },
-                                    "propertyName": "type"
-                                },
-                                "oneOf": [
-                                    {
-                                        "$ref": "#/components/schemas/RouteTargetBasetenModelAPIV1"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/RouteTargetAnthropicV1"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/RouteTargetOpenAIV1"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/RouteTargetXAIV1"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/RouteTargetVertexV1"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/RouteTargetOpenAICompatibleV1"
-                                    }
-                                ]
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Replaces the entire target. Omit to keep the current target; null is not accepted.",
-                        "examples": [
-                            {
-                                "model": "zai-org/GLM-5.3",
-                                "type": "BASETEN_MODEL_API"
-                            }
-                        ],
-                        "title": "Target"
-                    },
-                    "metadata_slug": {
-                        "anyOf": [
-                            {
-                                "minLength": 1,
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Slug of a metadata row to link. Omit to keep the current link, or to re-resolve from the new target when target is provided (OPENAI_COMPATIBLE and VERTEX targets always require an explicit slug). Null is not accepted.",
-                        "title": "Metadata Slug",
-                        "x-null-distinct": true
                     }
                 },
                 "title": "UpdateRouteRequestV1",
@@ -31114,7 +31033,6 @@
                 "type": "object"
             },
             "GatewayProvider": {
-                "description": "Customer-facing provider for an endpoint target.\n\nExternal providers resolve to a fixed upstream host + protocol adapter via\n``external_provider_configs()``; ``BASETEN`` derives its host from the referenced oracle.",
                 "enum": [
                     "ANTHROPIC",
                     "OPENAI",
@@ -31134,6 +31052,33 @@
                 ],
                 "title": "SharedEndpointRegionV1",
                 "type": "string"
+            },
+            "VertexTargetConfigV1": {
+                "properties": {
+                    "project_id": {
+                        "description": "Google Cloud project ID or project number.",
+                        "examples": [
+                            "my-gcp-project",
+                            "464036093014"
+                        ],
+                        "title": "Project Id",
+                        "type": "string"
+                    },
+                    "location": {
+                        "description": "Google Cloud location.",
+                        "examples": [
+                            "global"
+                        ],
+                        "title": "Location",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "project_id",
+                    "location"
+                ],
+                "title": "VertexTargetConfigV1",
+                "type": "object"
             },
             "EndpointsResponseV1": {
                 "properties": {

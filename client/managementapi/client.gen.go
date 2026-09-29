@@ -1694,7 +1694,7 @@ func (c *Client) PatchModelsEnvironments(ctx context.Context, modelId string, en
 	})
 }
 
-// PatchRoutes: Updates a route
+// PatchRoutes: Updates a route's display name or description
 func (c *Client) PatchRoutes(ctx context.Context, routeId string, body UpdateRouteRequest) (*Route, error) {
 	return doJSON[Route](c, ctx, apiRequest{
 		method:      "PATCH",
