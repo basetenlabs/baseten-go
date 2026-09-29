@@ -34,15 +34,6 @@ type Client struct {
 	Headers http.Header
 }
 
-// RawRequestOptions selects a wire encoding and transfers response body ownership to the caller.
-// For multipart bodies, ContentType must include the boundary from multipart.Writer.
-type RawRequestOptions struct {
-	Body        io.Reader
-	ContentType string
-	Accept      string
-	Headers     http.Header
-}
-
 // ResponseError represents a non-success HTTP response whose body could not
 // be decoded into a typed error.
 type ResponseError struct {
@@ -54,6 +45,10 @@ type ResponseError struct {
 func (e *ResponseError) Error() string {
 	return fmt.Sprintf("baseten API error (HTTP %d): %s", e.StatusCode, e.Body)
 }
+
+// RawRequestOptions selects the response content type for a content-negotiated operation.
+// The caller must close the returned response Body.
+type RawRequestOptions struct{ Accept string }
 
 // ResponseErrorResponse is returned for non-success HTTP responses whose body
 // decoded as [ErrorResponse].
@@ -265,9 +260,9 @@ func (c *Client) GetFilesystem(ctx context.Context, path string, params GetFiles
 	})
 }
 
-// GetFilesystemRaw sends a request with explicit wire encoding. The caller must close the returned Body.
+// GetFilesystemRaw returns the response unread in the requested content type. The caller must close the returned Body.
 func (c *Client) GetFilesystemRaw(ctx context.Context, path string, params GetFilesystemPathParams, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/filesystem/%s", pathArgs: []any{path}, queryParams: params, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{404: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
+	return c.do(ctx, apiRequest{method: "GET", pathFmt: "/filesystem/%s", pathArgs: []any{path}, queryParams: params, accept: options.Accept, successCodes: []int{200}, errorCodes: map[int]errorType{404: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
 }
 
 // GetFilesystemContentSearch: Search for text content in files
@@ -437,7 +432,7 @@ func (c *Client) GetProcessLogs(ctx context.Context, identifier string) (*Proces
 // GetProcessLogsStream: Stream process logs in real time
 func (c *Client) GetProcessLogsStream(ctx context.Context, identifier string) (*http.Response, error) {
 	return c.do(ctx, apiRequest{
-		method:       "GET",
+		accept: "text/plain", method: "GET",
 		pathFmt:      "/process/%s/logs/stream",
 		pathArgs:     []any{identifier},
 		body:         nil,
@@ -450,7 +445,7 @@ func (c *Client) GetProcessLogsStream(ctx context.Context, identifier string) (*
 // GetWatchFilesystem: Stream file modification events in a directory
 func (c *Client) GetWatchFilesystem(ctx context.Context, path string, params GetWatchFilesystemPathParams) (*http.Response, error) {
 	return c.do(ctx, apiRequest{
-		method:       "GET",
+		accept: "text/plain", method: "GET",
 		pathFmt:      "/watch/filesystem/%s",
 		pathArgs:     []any{path},
 		queryParams:  params,
@@ -475,7 +470,7 @@ type PostArchiveExportResponse struct {
 
 func (c *Client) PostArchiveExport(ctx context.Context, body ExportOptions) (*PostArchiveExportResponse, error) {
 	resp, err := c.do(ctx, apiRequest{
-		accept: "application/json", method: "POST",
+		method:       "POST",
 		pathFmt:      "/archive/export",
 		pathArgs:     nil,
 		body:         body,
@@ -619,20 +614,20 @@ func (c *Client) PostProcess(ctx context.Context, body ProcessRequest) (*Process
 	})
 }
 
-// PostProcessRaw sends a request with explicit wire encoding. The caller must close the returned Body.
-func (c *Client) PostProcessRaw(ctx context.Context, options RawRequestOptions) (*http.Response, error) {
-	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/process", pathArgs: []any{}, raw: &options, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
+// PostProcessRaw returns the response unread in the requested content type. The caller must close the returned Body.
+func (c *Client) PostProcessRaw(ctx context.Context, body ProcessRequest, options RawRequestOptions) (*http.Response, error) {
+	return c.do(ctx, apiRequest{method: "POST", pathFmt: "/process", pathArgs: []any{}, body: body, accept: options.Accept, successCodes: []int{200}, errorCodes: map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse}})
 }
 
 // PostProcessStdin: Write to a process's stdin
 //
 // Returns [*ResponseErrorResponse] on HTTP 404, 409, 413, 500, 503.
-func (c *Client) PostProcessStdin(ctx context.Context, identifier string, body io.Reader, contentType string) (*SuccessResponse, error) {
+func (c *Client) PostProcessStdin(ctx context.Context, identifier string, body io.Reader) (*SuccessResponse, error) {
 	return doJSON[SuccessResponse](c, ctx, apiRequest{
-		method:       "POST",
-		pathFmt:      "/process/%s/stdin",
-		pathArgs:     []any{identifier},
-		raw:          &RawRequestOptions{Body: body, ContentType: contentType},
+		method:   "POST",
+		pathFmt:  "/process/%s/stdin",
+		pathArgs: []any{identifier},
+		wireBody: body, contentType: "application/octet-stream",
 		successCodes: []int{200},
 		successCode:  200,
 		errorCodes:   map[int]errorType{404: errorTypeErrorResponse, 409: errorTypeErrorResponse, 413: errorTypeErrorResponse, 500: errorTypeErrorResponse, 503: errorTypeErrorResponse},
@@ -689,11 +684,11 @@ func (c *Client) PutFilesystem(ctx context.Context, path string, body FileReques
 // Returns [*ResponseErrorResponse] on HTTP 400, 404, 500.
 func (c *Client) PutFilesystemMultipartPart(ctx context.Context, uploadId string, params PutFilesystemMultipartUploadIdPartParams, body io.Reader, contentType string) (*MultipartUploadPartResponse, error) {
 	return doJSON[MultipartUploadPartResponse](c, ctx, apiRequest{
-		method:       "PUT",
-		pathFmt:      "/filesystem-multipart/%s/part",
-		pathArgs:     []any{uploadId},
-		queryParams:  params,
-		raw:          &RawRequestOptions{Body: body, ContentType: contentType},
+		method:      "PUT",
+		pathFmt:     "/filesystem-multipart/%s/part",
+		pathArgs:    []any{uploadId},
+		queryParams: params,
+		wireBody:    body, contentType: contentType,
 		successCodes: []int{200},
 		successCode:  200,
 		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 404: errorTypeErrorResponse, 500: errorTypeErrorResponse},
@@ -746,7 +741,8 @@ type apiRequest struct {
 	body         any
 	successCode  int
 	successCodes []int
-	raw          *RawRequestOptions
+	wireBody     io.Reader
+	contentType  string
 	accept       string
 	headers      http.Header
 	// errorCodes maps HTTP status codes to a typed error schema. Status codes
@@ -765,8 +761,8 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 		}
 	}
 	var bodyReader io.Reader
-	if r.raw != nil {
-		bodyReader = r.raw.Body
+	if r.wireBody != nil {
+		bodyReader = r.wireBody
 	} else if r.body != nil {
 		b, err := json.Marshal(r.body)
 		if err != nil {
@@ -778,39 +774,25 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	if r.body != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
-	if r.accept != "" {
-		req.Header.Set("Accept", r.accept)
-	}
 	for key, vals := range c.Headers {
-		if len(vals) > 0 && strings.EqualFold(key, "Accept") {
-			req.Header.Del(key)
-		}
 		for _, val := range vals {
 			req.Header.Add(key, val)
 		}
 	}
-	for k, values := range r.headers {
-		req.Header.Del(k)
-		for _, v := range values {
-			req.Header.Add(k, v)
+	for key, values := range r.headers {
+		req.Header.Del(key)
+		for _, value := range values {
+			req.Header.Add(key, value)
 		}
 	}
-	if r.raw != nil {
-		for k, values := range r.raw.Headers {
-			req.Header.Del(k)
-			for _, v := range values {
-				req.Header.Add(k, v)
-			}
-		}
-		if r.raw.ContentType != "" {
-			req.Header.Set("Content-Type", r.raw.ContentType)
-		}
-		if r.raw.Accept != "" {
-			req.Header.Set("Accept", r.raw.Accept)
-		}
+	if r.accept != "" {
+		req.Header.Set("Accept", r.accept)
+	}
+	if r.body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	if r.contentType != "" {
+		req.Header.Set("Content-Type", r.contentType)
 	}
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -908,7 +890,6 @@ func encodeQuery(p any) url.Values {
 }
 
 func doJSON[T any](c *Client, ctx context.Context, r apiRequest) (*T, error) {
-	r.accept = "application/json"
 	resp, err := c.do(ctx, r)
 	if err != nil {
 		return nil, err

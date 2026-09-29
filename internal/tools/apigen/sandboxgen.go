@@ -130,6 +130,41 @@ func hasNonJSONResponse(spec, op map[string]any) bool {
 	}
 	return false
 }
+func requestContentType(spec, op map[string]any) string {
+	content := mapNode(resolveRef(spec, mapNode(op["requestBody"]))["content"])
+	if _, ok := content["application/json"]; ok {
+		return "application/json"
+	}
+	types := []string{}
+	for media := range content {
+		types = append(types, media)
+	}
+	sort.Strings(types)
+	if len(types) > 0 {
+		return types[0]
+	}
+	return ""
+}
+func nonJSONResponseTypes(spec, op map[string]any) []string {
+	types := map[string]bool{}
+	for status, raw := range mapNode(op["responses"]) {
+		code, _ := strconv.Atoi(status)
+		if code < 200 || code >= 300 {
+			continue
+		}
+		for media := range mapNode(resolveRef(spec, mapNode(raw))["content"]) {
+			if media != "application/json" {
+				types[media] = true
+			}
+		}
+	}
+	result := []string{}
+	for media := range types {
+		result = append(result, media)
+	}
+	sort.Strings(result)
+	return result
+}
 func renderRawMethod(w *strings.Builder, op apiOperation) {
 	params := []string{"ctx context.Context"}
 	args := []string{}
@@ -146,6 +181,15 @@ func renderRawMethod(w *strings.Builder, op apiOperation) {
 		params = append(params, "params "+op.ParamsType)
 		query = "queryParams: params,"
 	}
+	bodyField := ""
+	if op.HasBody {
+		bodyType := op.ReqBodyRef
+		if bodyType == "" {
+			bodyType = "any"
+		}
+		params = append(params, "body "+bodyType)
+		bodyField = "body: body,"
+	}
 	params = append(params, "options RawRequestOptions")
 	codes := []int{}
 	for c := range op.ErrorCodes {
@@ -156,7 +200,7 @@ func renderRawMethod(w *strings.Builder, op apiOperation) {
 	for _, c := range codes {
 		errors = append(errors, fmt.Sprintf("%d: errorType%s", c, op.ErrorCodes[c]))
 	}
-	fmt.Fprintf(w, "\n// %sRaw sends a request with explicit wire encoding. The caller must close the returned Body.\nfunc (c *Client) %sRaw(%s) (*http.Response,error) {%s return c.do(ctx,apiRequest{method:%q,pathFmt:%q,pathArgs:[]any{%s},%s raw:&options,successCodes:%#v,errorCodes:map[int]errorType{%s}})}\n", op.Name, op.Name, strings.Join(params, ","), renderHeaderParams(op), op.HTTPMethod, pathFmt(op.Path), strings.Join(args, ","), query+headerField, op.SuccessCodes, strings.Join(errors, ","))
+	fmt.Fprintf(w, "\n// %sRaw returns the response unread in the requested content type. The caller must close the returned Body.\nfunc (c *Client) %sRaw(%s) (*http.Response,error) {%s return c.do(ctx,apiRequest{method:%q,pathFmt:%q,pathArgs:[]any{%s},%s accept:options.Accept,successCodes:%#v,errorCodes:map[int]errorType{%s}})}\n", op.Name, op.Name, strings.Join(params, ","), renderHeaderParams(op), op.HTTPMethod, pathFmt(op.Path), strings.Join(args, ","), query+headerField+bodyField, op.SuccessCodes, strings.Join(errors, ","))
 }
 func renderMultiMethod(w *strings.Builder, op apiOperation, params []string, req string) {
 	fmt.Fprintf(w, "// %sResponse retains the status and decoded payload. Close Body if non-nil.\ntype %sResponse struct {StatusCode int;Header http.Header;Body io.ReadCloser\n", op.Name, op.Name)
@@ -166,7 +210,7 @@ func renderMultiMethod(w *strings.Builder, op apiOperation, params []string, req
 		}
 	}
 	fmt.Fprintln(w, "}")
-	fmt.Fprintf(w, "func(c *Client)%s(%s)(*%sResponse,error){%s resp,err:=c.do(ctx,%s);if err!=nil{return nil,err};result:=&%sResponse{StatusCode:resp.StatusCode,Header:resp.Header.Clone()};switch resp.StatusCode{\n", op.Name, strings.Join(params, ","), op.Name, renderHeaderParams(op), strings.Replace(req, "method:", "accept: \"application/json\", method:", 1), op.Name)
+	fmt.Fprintf(w, "func(c *Client)%s(%s)(*%sResponse,error){%s resp,err:=c.do(ctx,%s);if err!=nil{return nil,err};result:=&%sResponse{StatusCode:resp.StatusCode,Header:resp.Header.Clone()};switch resp.StatusCode{\n", op.Name, strings.Join(params, ","), op.Name, renderHeaderParams(op), req, op.Name)
 	for _, code := range op.SuccessCodes {
 		if ref := op.Responses[code]; ref != "" {
 			fmt.Fprintf(w, "case %d: defer resp.Body.Close();if ct:=resp.Header.Get(\"Content-Type\"); !strings.HasPrefix(ct,\"application/json\") { return nil,fmt.Errorf(\"unexpected content type %%q, expected application/json\",ct) };var value %s;if err:=json.NewDecoder(resp.Body).Decode(&value);err!=nil{return nil,err};result.JSON%d=&value\n", code, ref, code)

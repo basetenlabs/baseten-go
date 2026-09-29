@@ -3,13 +3,13 @@ package client_test
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
@@ -54,6 +54,8 @@ func TestSandboxMultipartWire(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{}`)
 	})
+	// The operation encoding overrides an inherited JSON content type.
+	api.Headers.Set("Content-Type", "application/json")
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
 	part, err := writer.CreateFormFile("file", "part.bin")
@@ -80,7 +82,8 @@ func TestSandboxBinaryStdinWire(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{}`)
 	})
-	if _, err := api.PostProcessStdin(t.Context(), "process", bytes.NewReader(payload), "application/octet-stream"); err != nil {
+	api.Headers.Set("Content-Type", "application/json")
+	if _, err := api.PostProcessStdin(t.Context(), "process", bytes.NewReader(payload)); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -107,6 +110,10 @@ func TestSandboxArchiveResponseStatuses(t *testing.T) {
 func TestSandboxStreamArrivesBeforeServerCompletesAndCancels(t *testing.T) {
 	cancelled := make(chan struct{})
 	api := sandboxAPIForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		var body sandboxapi.ProcessRequest
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Command != "echo hello" || r.Header.Get("Content-Type") != "application/json" {
+			t.Errorf("unexpected typed streaming request: body=%+v err=%v headers=%v", body, err, r.Header)
+		}
 		if r.Header.Get("Accept") != "text/event-stream" {
 			t.Error("missing stream Accept")
 		}
@@ -118,7 +125,7 @@ func TestSandboxStreamArrivesBeforeServerCompletesAndCancels(t *testing.T) {
 	})
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
-	resp, err := api.PostProcessRaw(ctx, sandboxapi.RawRequestOptions{Body: strings.NewReader(`{"command":"echo hello"}`), ContentType: "application/json", Accept: "text/event-stream"})
+	resp, err := api.PostProcessRaw(ctx, sandboxapi.ProcessRequest{Command: "echo hello"}, sandboxapi.RawRequestOptions{Accept: "text/event-stream"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -191,5 +198,39 @@ func TestSandboxManagementTeamHeader(t *testing.T) {
 	_, err = c.API().CreateSandbox(t.Context(), managementapi.CreateSandboxParams{XTeamId: &team}, managementapi.CreateSandboxRequest{})
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+// Match the Accept negotiation and query forwarding of the JavaScript client.
+func TestSandboxTextStreams(t *testing.T) {
+	for _, watch := range []bool{false, true} {
+		t.Run(fmt.Sprint(watch), func(t *testing.T) {
+			api := sandboxAPIForTest(t, func(w http.ResponseWriter, r *http.Request) {
+				if r.Header.Get("Accept") != "text/plain" {
+					t.Errorf("Accept = %q", r.Header.Get("Accept"))
+				}
+				if watch && (r.URL.EscapedPath() != "/watch/filesystem/%2Fapp" || r.URL.Query().Get("ignore") != "node_modules,dist") {
+					t.Errorf("unexpected watch URL: %s", r.URL)
+				}
+				w.Header().Set("Content-Type", "text/plain")
+				io.WriteString(w, "event\n")
+			})
+			var resp *http.Response
+			var err error
+			if watch {
+				ignore := "node_modules,dist"
+				resp, err = api.GetWatchFilesystem(t.Context(), "/app", sandboxapi.GetWatchFilesystemPathParams{Ignore: &ignore})
+			} else {
+				resp, err = api.GetProcessLogsStream(t.Context(), "p-1")
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer resp.Body.Close()
+			got, err := io.ReadAll(resp.Body)
+			if err != nil || string(got) != "event\n" {
+				t.Fatalf("raw response = %q, %v", got, err)
+			}
+		})
 	}
 }

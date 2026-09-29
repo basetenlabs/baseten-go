@@ -121,8 +121,8 @@ fmt.Println(result.Stdout, result.ExitCode)
 Import `github.com/basetenlabs/baseten-go/client/sandboxapi` for execution types.
 The caller manages token expiry, sandbox readiness, and deletion.
 
-The execution client performs no token exchange or retries. Binary uploads accept `io.Reader` and
-an explicit content type. For multipart, use the boundary returned by
+The execution client performs no token exchange or retries. Binary uploads accept `io.Reader` with the content type selected from the API spec.
+For multipart, supply the content type and boundary returned by
 `multipart.Writer.FormDataContentType()`. Generated `...Raw` methods accept
 `RawRequestOptions` for content negotiation and return an unread `*http.Response`;
 the caller must close its body. Typed methods negotiate JSON. The archive export

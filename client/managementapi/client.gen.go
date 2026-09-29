@@ -34,15 +34,6 @@ type Client struct {
 	Headers http.Header
 }
 
-// RawRequestOptions selects a wire encoding and transfers response body ownership to the caller.
-// For multipart bodies, ContentType must include the boundary from multipart.Writer.
-type RawRequestOptions struct {
-	Body        io.Reader
-	ContentType string
-	Accept      string
-	Headers     http.Header
-}
-
 // ResponseError represents a non-success HTTP response whose body could not
 // be decoded into a typed error.
 type ResponseError struct {
@@ -3094,7 +3085,8 @@ type apiRequest struct {
 	body         any
 	successCode  int
 	successCodes []int
-	raw          *RawRequestOptions
+	wireBody     io.Reader
+	contentType  string
 	accept       string
 	headers      http.Header
 	// errorCodes maps HTTP status codes to a typed error schema. Status codes
@@ -3113,8 +3105,8 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 		}
 	}
 	var bodyReader io.Reader
-	if r.raw != nil {
-		bodyReader = r.raw.Body
+	if r.wireBody != nil {
+		bodyReader = r.wireBody
 	} else if r.body != nil {
 		b, err := json.Marshal(r.body)
 		if err != nil {
@@ -3126,39 +3118,25 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	if r.body != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
-	if r.accept != "" {
-		req.Header.Set("Accept", r.accept)
-	}
 	for key, vals := range c.Headers {
-		if len(vals) > 0 && strings.EqualFold(key, "Accept") {
-			req.Header.Del(key)
-		}
 		for _, val := range vals {
 			req.Header.Add(key, val)
 		}
 	}
-	for k, values := range r.headers {
-		req.Header.Del(k)
-		for _, v := range values {
-			req.Header.Add(k, v)
+	for key, values := range r.headers {
+		req.Header.Del(key)
+		for _, value := range values {
+			req.Header.Add(key, value)
 		}
 	}
-	if r.raw != nil {
-		for k, values := range r.raw.Headers {
-			req.Header.Del(k)
-			for _, v := range values {
-				req.Header.Add(k, v)
-			}
-		}
-		if r.raw.ContentType != "" {
-			req.Header.Set("Content-Type", r.raw.ContentType)
-		}
-		if r.raw.Accept != "" {
-			req.Header.Set("Accept", r.raw.Accept)
-		}
+	if r.accept != "" {
+		req.Header.Set("Accept", r.accept)
+	}
+	if r.body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	if r.contentType != "" {
+		req.Header.Set("Content-Type", r.contentType)
 	}
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -3251,7 +3229,6 @@ func encodeQuery(p any) url.Values {
 }
 
 func doJSON[T any](c *Client, ctx context.Context, r apiRequest) (*T, error) {
-	r.accept = "application/json"
 	resp, err := c.do(ctx, r)
 	if err != nil {
 		return nil, err

@@ -41,9 +41,12 @@ func TestClientsPreserveAcceptValues(t *testing.T) {
 	}
 	for name, call := range calls {
 		t.Run(name, func(t *testing.T) {
-			for _, key := range []string{"Accept", "accept"} {
+			for _, key := range []string{"Accept", "accept", "unset"} {
 				t.Run(key, func(t *testing.T) {
 					want := []string{"application/octet-stream", "application/json;q=0.5"}
+					if key == "unset" {
+						want = nil
+					}
 					server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						if got := r.Header.Values("Accept"); !reflect.DeepEqual(got, want) {
 							t.Errorf("Accept = %q, want %q", got, want)
@@ -52,7 +55,10 @@ func TestClientsPreserveAcceptValues(t *testing.T) {
 						_, _ = io.WriteString(w, `{}`)
 					}))
 					defer server.Close()
-					headers := http.Header{key: append([]string(nil), want...)}
+					headers := http.Header{}
+					if key != "unset" {
+						headers[key] = append([]string(nil), want...)
+					}
 					if err := call(t.Context(), server.URL, headers); err != nil {
 						t.Fatal(err)
 					}

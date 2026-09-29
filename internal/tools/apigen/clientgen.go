@@ -12,18 +12,20 @@ import (
 )
 
 type apiOperation struct {
-	Name         string
-	HTTPMethod   string
-	Path         string
-	PathParams   []string // original snake_case names from URL
-	HasBody      bool     // spec declares a requestBody
-	ReqBodyRef   string   // Go type name from $ref, empty if untyped/absent
-	RespRef      string   // Go type name from $ref, empty if untyped/absent
-	SuccessCode  int      // primary success status
-	SuccessCodes []int
-	Responses    map[int]string
-	NonJSONBody  bool
-	RawResponse  bool
+	Name            string
+	HTTPMethod      string
+	Path            string
+	PathParams      []string // original snake_case names from URL
+	HasBody         bool     // spec declares a requestBody
+	ReqBodyRef      string   // Go type name from $ref, empty if untyped/absent
+	RespRef         string   // Go type name from $ref, empty if untyped/absent
+	SuccessCode     int      // primary success status
+	SuccessCodes    []int
+	Responses       map[int]string
+	NonJSONBody     bool
+	BodyContentType string
+	RawAccepts      []string
+	RawResponse     bool
 	// ErrorCodes maps status codes to the error schema ref they produce.
 	// Only populated for codes that have a typed schema.
 	ErrorCodes map[int]string
@@ -107,22 +109,24 @@ func extractOperations(spec map[string]any) ([]apiOperation, error) {
 		}
 
 		ops = append(ops, apiOperation{
-			Name:         name,
-			HTTPMethod:   strings.ToUpper(r.httpMethod),
-			Path:         r.path,
-			PathParams:   extractPathParams(r.path),
-			HasBody:      hasBody,
-			ReqBodyRef:   bodySchemaRef(spec, r.op),
-			RespRef:      responseSchemaRef(spec, r.op),
-			SuccessCode:  successCodes[0],
-			SuccessCodes: successCodes,
-			Responses:    successResponseRefs(spec, r.op),
-			NonJSONBody:  hasBody && !hasJSONContent(resolveRef(spec, mapNode(r.op["requestBody"]))),
-			RawResponse:  hasNonJSONResponse(spec, r.op),
-			ErrorCodes:   errorCodeMap(spec, r.op),
-			Summary:      summary,
-			ParamsType:   paramsType,
-			HeaderParams: headers,
+			Name:            name,
+			HTTPMethod:      strings.ToUpper(r.httpMethod),
+			Path:            r.path,
+			PathParams:      extractPathParams(r.path),
+			HasBody:         hasBody,
+			ReqBodyRef:      bodySchemaRef(spec, r.op),
+			RespRef:         responseSchemaRef(spec, r.op),
+			SuccessCode:     successCodes[0],
+			SuccessCodes:    successCodes,
+			Responses:       successResponseRefs(spec, r.op),
+			NonJSONBody:     hasBody && !hasJSONContent(resolveRef(spec, mapNode(r.op["requestBody"]))),
+			RawResponse:     hasNonJSONResponse(spec, r.op),
+			BodyContentType: requestContentType(spec, r.op),
+			RawAccepts:      nonJSONResponseTypes(spec, r.op),
+			ErrorCodes:      errorCodeMap(spec, r.op),
+			Summary:         summary,
+			ParamsType:      paramsType,
+			HeaderParams:    headers,
 		})
 	}
 
@@ -455,10 +459,6 @@ type Client struct {
 	Headers http.Header
 }
 
-// RawRequestOptions selects a wire encoding and transfers response body ownership to the caller.
-// For multipart bodies, ContentType must include the boundary from multipart.Writer.
-type RawRequestOptions struct { Body io.Reader; ContentType string; Accept string; Headers http.Header }
-
 // ResponseError represents a non-success HTTP response whose body could not
 // be decoded into a typed error.
 type ResponseError struct {
@@ -471,6 +471,18 @@ func (e *ResponseError) Error() string {
 	return fmt.Sprintf("baseten API error (HTTP %%d): %%s", e.StatusCode, e.Body)
 }
 `, pkgName)
+
+	for _, op := range ops {
+		if op.RawResponse && op.RespRef != "" {
+			pf(`
+// RawRequestOptions selects the response content type for a content-negotiated operation.
+// The caller must close the returned response Body.
+type RawRequestOptions struct { Accept string }
+
+`)
+			break
+		}
+	}
 
 	// Typed error types — one per unique error schema ref.
 	for _, ref := range sortedErrorRefs {
@@ -533,7 +545,8 @@ type apiRequest struct {
 %s	body        any
 	successCode int
  successCodes []int
- raw *RawRequestOptions
+ wireBody io.Reader
+ contentType string
  accept string
  headers http.Header
 	// errorCodes maps HTTP status codes to a typed error schema. Status codes
@@ -547,7 +560,7 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 	}
 	path := fmt.Sprintf(r.pathFmt, r.pathArgs...)
 %s	var bodyReader io.Reader
-	if r.raw != nil { bodyReader = r.raw.Body } else if r.body != nil {
+	if r.wireBody != nil { bodyReader = r.wireBody } else if r.body != nil {
 		b, err := json.Marshal(r.body)
 		if err != nil {
 			return nil, err
@@ -558,23 +571,16 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	if r.body != nil {
-		req.Header.Set("Content-Type", "application/json")
+	for key, vals := range c.Headers {
+		for _, val := range vals { req.Header.Add(key, val) }
+	}
+	for key, values := range r.headers {
+		req.Header.Del(key)
+		for _, value := range values { req.Header.Add(key, value) }
 	}
 	if r.accept != "" { req.Header.Set("Accept", r.accept) }
-	for key, vals := range c.Headers {
-		if len(vals) > 0 && strings.EqualFold(key, "Accept") {
-			req.Header.Del(key)
-		}
-		for _, val := range vals {
-			req.Header.Add(key, val)
-		}
-	}
-	for k, values := range r.headers { req.Header.Del(k);for _,v:=range values {req.Header.Add(k,v)} }
- if r.raw != nil {
- for k, values := range r.raw.Headers { req.Header.Del(k); for _, v := range values { req.Header.Add(k,v) } }
- if r.raw.ContentType != "" { req.Header.Set("Content-Type", r.raw.ContentType) }; if r.raw.Accept != "" { req.Header.Set("Accept", r.raw.Accept) }
- }
+	if r.body != nil { req.Header.Set("Content-Type", "application/json") }
+	if r.contentType != "" { req.Header.Set("Content-Type", r.contentType) }
  resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -680,7 +686,6 @@ func encodeQuery(p any) url.Values {
 	if hasTypedResp {
 		pf(`
 func doJSON[T any](c *Client, ctx context.Context, r apiRequest) (*T, error) {
- r.accept="application/json"
 	resp, err := c.do(ctx, r)
 	if err != nil {
 		return nil, err
@@ -731,7 +736,10 @@ func renderMethod(w *strings.Builder, op apiOperation) {
 	}
 	if op.HasBody {
 		if op.NonJSONBody {
-			params = append(params, "body io.Reader", "contentType string")
+			params = append(params, "body io.Reader")
+			if op.BodyContentType == "multipart/form-data" {
+				params = append(params, "contentType string")
+			}
 		} else if op.ReqBodyRef != "" {
 			params = append(params, "body "+op.ReqBodyRef)
 		} else {
@@ -818,7 +826,11 @@ func renderMethod(w *strings.Builder, op apiOperation) {
 	}`, op.HTTPMethod, pathFmt(op.Path), pathArgsList, queryLine, bodyArg, op.SuccessCode, errorCodesExpr)
 
 	if op.NonJSONBody {
-		reqLit = strings.Replace(reqLit, "body:        body,", "raw: &RawRequestOptions{Body: body, ContentType: contentType},", 1)
+		contentType := strconv.Quote(op.BodyContentType)
+		if op.BodyContentType == "multipart/form-data" {
+			contentType = "contentType"
+		}
+		reqLit = strings.Replace(reqLit, "body:        body,", "wireBody: body, contentType: "+contentType+",", 1)
 	}
 	if len(op.HeaderParams) > 0 {
 		reqLit = strings.Replace(reqLit, "method:", "headers: headers, method:", 1)
@@ -829,6 +841,9 @@ func renderMethod(w *strings.Builder, op apiOperation) {
 		return
 	}
 	if op.RawResponse && op.RespRef == "" {
+		if len(op.RawAccepts) > 0 {
+			reqLit = strings.Replace(reqLit, "method:", "accept: "+strconv.Quote(op.RawAccepts[0])+", method:", 1)
+		}
 		pf("func (c *Client) %s(%s) (*http.Response, error) { %s return c.do(ctx, %s) }\n", op.Name, strings.Join(params, ", "), renderHeaderParams(op), reqLit)
 		return
 	}
