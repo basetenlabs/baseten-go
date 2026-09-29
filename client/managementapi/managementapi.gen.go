@@ -167,6 +167,9 @@ const (
 	AuditLogEventType_MODEL_DEPLOYMENT_RETRIED                               AuditLogEventType = "MODEL_DEPLOYMENT_RETRIED"
 	AuditLogEventType_MODEL_PROMOTION_CONTROL_ACTION                         AuditLogEventType = "MODEL_PROMOTION_CONTROL_ACTION"
 	AuditLogEventType_MODEL_RENAMED                                          AuditLogEventType = "MODEL_RENAMED"
+	AuditLogEventType_PROVIDER_CONNECTION_CREATED                            AuditLogEventType = "PROVIDER_CONNECTION_CREATED"
+	AuditLogEventType_PROVIDER_CONNECTION_DELETED                            AuditLogEventType = "PROVIDER_CONNECTION_DELETED"
+	AuditLogEventType_PROVIDER_CONNECTION_UPDATED                            AuditLogEventType = "PROVIDER_CONNECTION_UPDATED"
 	AuditLogEventType_REPLICA_TERMINATED                                     AuditLogEventType = "REPLICA_TERMINATED"
 	AuditLogEventType_REQUIRE_GROUP_BASED_ADMINS_ENABLED                     AuditLogEventType = "REQUIRE_GROUP_BASED_ADMINS_ENABLED"
 	AuditLogEventType_SECRET_DELETED                                         AuditLogEventType = "SECRET_DELETED"
@@ -250,6 +253,12 @@ func (e AuditLogEventType) Valid() bool {
 		return true
 	case AuditLogEventType_MODEL_RENAMED:
 		return true
+	case AuditLogEventType_PROVIDER_CONNECTION_CREATED:
+		return true
+	case AuditLogEventType_PROVIDER_CONNECTION_DELETED:
+		return true
+	case AuditLogEventType_PROVIDER_CONNECTION_UPDATED:
+		return true
 	case AuditLogEventType_REPLICA_TERMINATED:
 		return true
 	case AuditLogEventType_REQUIRE_GROUP_BASED_ADMINS_ENABLED:
@@ -292,6 +301,7 @@ const (
 	AuditLogEventTypeGroup_ACTIVATED_DEACTIVATED         AuditLogEventTypeGroup = "ACTIVATED_DEACTIVATED"
 	AuditLogEventTypeGroup_API_KEYS                      AuditLogEventTypeGroup = "API_KEYS"
 	AuditLogEventTypeGroup_AUTOSCALING_SETTINGS          AuditLogEventTypeGroup = "AUTOSCALING_SETTINGS"
+	AuditLogEventTypeGroup_CODE                          AuditLogEventTypeGroup = "CODE"
 	AuditLogEventTypeGroup_DELETED                       AuditLogEventTypeGroup = "DELETED"
 	AuditLogEventTypeGroup_DEPLOYED                      AuditLogEventTypeGroup = "DEPLOYED"
 	AuditLogEventTypeGroup_DIRECTORY_GROUP_MANAGEMENT    AuditLogEventTypeGroup = "DIRECTORY_GROUP_MANAGEMENT"
@@ -316,6 +326,8 @@ func (e AuditLogEventTypeGroup) Valid() bool {
 	case AuditLogEventTypeGroup_API_KEYS:
 		return true
 	case AuditLogEventTypeGroup_AUTOSCALING_SETTINGS:
+		return true
+	case AuditLogEventTypeGroup_CODE:
 		return true
 	case AuditLogEventTypeGroup_DELETED:
 		return true
@@ -1201,23 +1213,17 @@ func (e RouteProvider) Valid() bool {
 
 // Defines values for RouteUsageDimension.
 const (
-	RouteUsageDimension_API_KEY_PREFIX RouteUsageDimension = "API_KEY_PREFIX"
-	RouteUsageDimension_MODEL          RouteUsageDimension = "MODEL"
-	RouteUsageDimension_PROVIDER       RouteUsageDimension = "PROVIDER"
-	RouteUsageDimension_ROUTE          RouteUsageDimension = "ROUTE"
-	RouteUsageDimension_USER           RouteUsageDimension = "USER"
+	RouteUsageDimension_MODEL    RouteUsageDimension = "MODEL"
+	RouteUsageDimension_PROVIDER RouteUsageDimension = "PROVIDER"
+	RouteUsageDimension_USER     RouteUsageDimension = "USER"
 )
 
 // Valid indicates whether the value is a known member of the RouteUsageDimension enum.
 func (e RouteUsageDimension) Valid() bool {
 	switch e {
-	case RouteUsageDimension_API_KEY_PREFIX:
-		return true
 	case RouteUsageDimension_MODEL:
 		return true
 	case RouteUsageDimension_PROVIDER:
-		return true
-	case RouteUsageDimension_ROUTE:
 		return true
 	case RouteUsageDimension_USER:
 		return true
@@ -2259,6 +2265,30 @@ type AuditLogEventModelRenamed struct {
 	PreviousName *string `json:"previous_name"`
 }
 
+// AuditLogEventProviderConnectionCreated defines model for AuditLogEventProviderConnectionCreated.
+type AuditLogEventProviderConnectionCreated struct {
+	EventType            string `json:"event_type"`
+	Provider             string `json:"provider"`
+	ProviderConnectionId string `json:"provider_connection_id"`
+	SecretName           string `json:"secret_name"`
+}
+
+// AuditLogEventProviderConnectionDeleted defines model for AuditLogEventProviderConnectionDeleted.
+type AuditLogEventProviderConnectionDeleted struct {
+	EventType            string `json:"event_type"`
+	Provider             string `json:"provider"`
+	ProviderConnectionId string `json:"provider_connection_id"`
+	SecretName           string `json:"secret_name"`
+}
+
+// AuditLogEventProviderConnectionUpdated defines model for AuditLogEventProviderConnectionUpdated.
+type AuditLogEventProviderConnectionUpdated struct {
+	EventType            string `json:"event_type"`
+	Provider             string `json:"provider"`
+	ProviderConnectionId string `json:"provider_connection_id"`
+	SecretName           string `json:"secret_name"`
+}
+
 // AuditLogEventReplicaTerminated A replica of a model deployment was terminated.
 type AuditLogEventReplicaTerminated struct {
 	DeploymentId   string `json:"deployment_id"`
@@ -3231,6 +3261,9 @@ type CreateLoopsRunResponse struct {
 
 // CreateLoopsSamplerRequest defines model for CreateLoopsSamplerRequest.
 type CreateLoopsSamplerRequest struct {
+	// AvailabilityModel Capacity the sampler runs on. 'spot' allows preemption when its GPUs are reclaimed. Defaults to 'dedicated' for standalone samplers. Paired samplers inherit their run's availability model; an explicit value must match it.
+	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+
 	// BaseModel Base model ID for a standalone sampler (for example, a baseline).
 	BaseModel *string `json:"base_model,omitempty"`
 
@@ -3290,12 +3323,6 @@ type CreateRouteRequest struct {
 
 	// DisplayName Display label. Omit to use the route name; null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
-
-	// MetadataSlug Slug of a metadata row to link. Omit to auto-resolve from the target; required for OPENAI_COMPATIBLE and VERTEX targets.
-	MetadataSlug Optional[string] `json:"metadata_slug,omitzero"`
-
-	// Name Immutable, globally unique route name using an organization-owned prefix.
-	Name string `json:"name"`
 
 	// Target Upstream target for the route.
 	Target CreateRouteRequest_Target `json:"target"`
@@ -4235,12 +4262,7 @@ type EndpointTarget struct {
 	EnvironmentName *string `json:"environment_name,omitempty"`
 
 	// ModelId Baseten model, if any.
-	ModelId *string `json:"model_id,omitempty"`
-
-	// Provider Customer-facing provider for an endpoint target.
-	//
-	// External providers resolve to a fixed upstream host + protocol adapter via
-	// ``external_provider_configs()``; ``BASETEN`` derives its host from the referenced oracle.
+	ModelId  *string         `json:"model_id,omitempty"`
 	Provider GatewayProvider `json:"provider"`
 
 	// SecretId Referenced secret, if any.
@@ -4263,12 +4285,7 @@ type EndpointTargetRequest struct {
 	EnvironmentName *string `json:"environment_name,omitempty"`
 
 	// ModelId Baseten model to route to. Required for and only valid with BASETEN.
-	ModelId *string `json:"model_id,omitempty"`
-
-	// Provider Customer-facing provider for an endpoint target.
-	//
-	// External providers resolve to a fixed upstream host + protocol adapter via
-	// ``external_provider_configs()``; ``BASETEN`` derives its host from the referenced oracle.
+	ModelId  *string         `json:"model_id,omitempty"`
 	Provider GatewayProvider `json:"provider"`
 
 	// SecretId Secret holding the provider credential. Required for external providers.
@@ -4575,10 +4592,7 @@ type GatewayKeyInfo struct {
 	Prefix string `json:"prefix"`
 }
 
-// GatewayProvider Customer-facing provider for an endpoint target.
-//
-// External providers resolve to a fixed upstream host + protocol adapter via
-// “external_provider_configs()“; “BASETEN“ derives its host from the referenced oracle.
+// GatewayProvider defines model for GatewayProvider.
 type GatewayProvider string
 
 // GcpOidcDockerAuth GCP OIDC details for the registry.
@@ -6590,7 +6604,7 @@ type Route struct {
 	// Metadata Resolved model metadata; null when the route has no linked metadata row.
 	Metadata *ExploreMetadata `json:"metadata"`
 
-	// Name Immutable name to send in the inference request's model field.
+	// Name Name to send in the inference request's model field.
 	Name string `json:"name"`
 
 	// Target Configured upstream target.
@@ -6644,34 +6658,6 @@ type RouteTargetOpenAI struct {
 	Type string `json:"type"`
 }
 
-// RouteTargetOpenAICompatible defines model for RouteTargetOpenAICompatible.
-type RouteTargetOpenAICompatible struct {
-	// BaseUrl HTTPS base URL of the OpenAI-compatible provider.
-	BaseUrl string `json:"base_url"`
-
-	// Model Model name sent to the provider.
-	Model string `json:"model"`
-
-	// SecretName Name of a credential secret owned by the route's team.
-	SecretName string `json:"secret_name"`
-
-	// Type Target kind for an OpenAI-compatible provider.
-	Type string `json:"type"`
-}
-
-// RouteTargetVertex defines model for RouteTargetVertex.
-type RouteTargetVertex struct {
-	// Model Model name sent to the provider.
-	Model string `json:"model"`
-
-	// SecretName Name of a credential secret owned by the route's team.
-	SecretName string `json:"secret_name"`
-
-	// Type Target kind for Google Vertex AI.
-	Type         string             `json:"type"`
-	VertexConfig VertexTargetConfig `json:"vertex_config"`
-}
-
 // RouteTargetXAI defines model for RouteTargetXAI.
 type RouteTargetXAI struct {
 	// Model Model name sent to the provider.
@@ -6721,14 +6707,11 @@ type RoutesUsageResponse struct {
 
 // RoutesUsageResult defines model for RoutesUsageResult.
 type RoutesUsageResult struct {
-	// ApiKeyPrefix Prefix of the Routes key. Null when not grouping by API_KEY_PREFIX.
-	ApiKeyPrefix *string `json:"api_key_prefix,omitempty"`
-
 	// CachedInputTokens Input tokens read from the prompt cache.
 	CachedInputTokens int `json:"cached_input_tokens"`
 
-	// CostUsd Estimated cost in USD, returned as an exact decimal string. Null when some usage in this result could not be priced, including all Vertex and OpenAI-compatible usage. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.
-	CostUsd *string `json:"cost_usd"`
+	// CostUsd Estimated cost in USD, returned as an exact decimal string. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.
+	CostUsd string `json:"cost_usd"`
 
 	// InputTokens Input tokens, including cached input tokens.
 	InputTokens int `json:"input_tokens"`
@@ -6739,22 +6722,13 @@ type RoutesUsageResult struct {
 	// OutputTokens Output tokens.
 	OutputTokens int `json:"output_tokens"`
 
-	// Provider Provider that served the requests. Null when not grouping by PROVIDER or when the provider cannot be determined.
+	// Provider Provider that served the requests. Null when not grouping by PROVIDER.
 	Provider *RouteProvider `json:"provider,omitempty"`
-
-	// RequestCount Number of requests.
-	RequestCount int `json:"request_count"`
-
-	// RouteId Route ID. Null when not grouping by ROUTE.
-	RouteId *string `json:"route_id,omitempty"`
-
-	// RouteName Route name. Null when not grouping by ROUTE.
-	RouteName *string `json:"route_name,omitempty"`
 
 	// UncachedInputTokens Input tokens not read from the prompt cache, including tokens written to the cache.
 	UncachedInputTokens int `json:"uncached_input_tokens"`
 
-	// UserId ID of the user who created the Routes key. Null when not grouping by USER or when the creator is unknown.
+	// UserId ID of the user who created the Routes key. Null when not grouping by USER.
 	UserId *string `json:"user_id,omitempty"`
 }
 
@@ -7815,17 +7789,6 @@ type UpdateRouteRequest struct {
 
 	// DisplayName New display label. Omit to keep the current label; null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
-
-	// MetadataSlug Slug of a metadata row to link. Omit to keep the current link, or to re-resolve from the new target when target is provided (OPENAI_COMPATIBLE and VERTEX targets always require an explicit slug). Null is not accepted.
-	MetadataSlug Optional[string] `json:"metadata_slug,omitzero"`
-
-	// Target Replaces the entire target. Omit to keep the current target; null is not accepted.
-	Target *UpdateRouteRequest_Target `json:"target,omitempty"`
-}
-
-// UpdateRouteRequest_Target Replaces the entire target. Omit to keep the current target; null is not accepted.
-type UpdateRouteRequest_Target struct {
-	union json.RawMessage
 }
 
 // UpdateSandboxRequest Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, and network configuration are immutable after creation. Supplying memory or network returns 400, including unchanged, empty, or null values.
@@ -8924,17 +8887,11 @@ type GetV1RoutesUsageParams struct {
 	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included.
 	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
 
-	// GroupBy Dimensions to break usage down by, repeated once per dimension: API_KEY_PREFIX, USER, ROUTE, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.
+	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.
 	GroupBy *[]RouteUsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
-
-	// ApiKeyPrefixes Return only usage for these exact Routes key prefixes, repeated once per prefix.
-	ApiKeyPrefixes *[]string `form:"api_key_prefixes,omitempty" json:"api_key_prefixes,omitempty"`
 
 	// UserIds Return only usage from Routes keys created by these user IDs, repeated once per ID.
 	UserIds *[]string `form:"user_ids,omitempty" json:"user_ids,omitempty"`
-
-	// RouteIds Return only usage for these route IDs, repeated once per ID.
-	RouteIds *[]string `form:"route_ids,omitempty" json:"route_ids,omitempty"`
 
 	// Models Return only usage for these exact model names, repeated once per model.
 	Models *[]string `form:"models,omitempty" json:"models,omitempty"`
@@ -9855,6 +9812,51 @@ func (t *AuditLogEntry_EventData) FromAuditLogEventGatewayEndpointDeleted(v Audi
 	return err
 }
 
+// AsAuditLogEventProviderConnectionCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventProviderConnectionCreated
+func (t AuditLogEntry_EventData) AsAuditLogEventProviderConnectionCreated() (AuditLogEventProviderConnectionCreated, error) {
+	var body AuditLogEventProviderConnectionCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventProviderConnectionCreated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventProviderConnectionCreated
+func (t *AuditLogEntry_EventData) FromAuditLogEventProviderConnectionCreated(v AuditLogEventProviderConnectionCreated) error {
+	v.EventType = "PROVIDER_CONNECTION_CREATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventProviderConnectionUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventProviderConnectionUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventProviderConnectionUpdated() (AuditLogEventProviderConnectionUpdated, error) {
+	var body AuditLogEventProviderConnectionUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventProviderConnectionUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventProviderConnectionUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventProviderConnectionUpdated(v AuditLogEventProviderConnectionUpdated) error {
+	v.EventType = "PROVIDER_CONNECTION_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventProviderConnectionDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventProviderConnectionDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventProviderConnectionDeleted() (AuditLogEventProviderConnectionDeleted, error) {
+	var body AuditLogEventProviderConnectionDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventProviderConnectionDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventProviderConnectionDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventProviderConnectionDeleted(v AuditLogEventProviderConnectionDeleted) error {
+	v.EventType = "PROVIDER_CONNECTION_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 // AsAuditLogEventUserInvited returns the union data inside the AuditLogEntry_EventData as a AuditLogEventUserInvited
 func (t AuditLogEntry_EventData) AsAuditLogEventUserInvited() (AuditLogEventUserInvited, error) {
 	var body AuditLogEventUserInvited
@@ -10216,6 +10218,12 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventModelPromotionControlAction()
 	case "MODEL_RENAMED":
 		return t.AsAuditLogEventModelRenamed()
+	case "PROVIDER_CONNECTION_CREATED":
+		return t.AsAuditLogEventProviderConnectionCreated()
+	case "PROVIDER_CONNECTION_DELETED":
+		return t.AsAuditLogEventProviderConnectionDeleted()
+	case "PROVIDER_CONNECTION_UPDATED":
+		return t.AsAuditLogEventProviderConnectionUpdated()
 	case "REPLICA_TERMINATED":
 		return t.AsAuditLogEventReplicaTerminated()
 	case "REQUIRE_GROUP_BASED_ADMINS_ENABLED":
@@ -10572,36 +10580,6 @@ func (t *CreateRouteRequest_Target) FromRouteTargetXAI(v RouteTargetXAI) error {
 	return err
 }
 
-// AsRouteTargetVertex returns the union data inside the CreateRouteRequest_Target as a RouteTargetVertex
-func (t CreateRouteRequest_Target) AsRouteTargetVertex() (RouteTargetVertex, error) {
-	var body RouteTargetVertex
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetVertex overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetVertex
-func (t *CreateRouteRequest_Target) FromRouteTargetVertex(v RouteTargetVertex) error {
-	v.Type = "VERTEX"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsRouteTargetOpenAICompatible returns the union data inside the CreateRouteRequest_Target as a RouteTargetOpenAICompatible
-func (t CreateRouteRequest_Target) AsRouteTargetOpenAICompatible() (RouteTargetOpenAICompatible, error) {
-	var body RouteTargetOpenAICompatible
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetOpenAICompatible overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetOpenAICompatible
-func (t *CreateRouteRequest_Target) FromRouteTargetOpenAICompatible(v RouteTargetOpenAICompatible) error {
-	v.Type = "OPENAI_COMPATIBLE"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
 func (t CreateRouteRequest_Target) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"type"`
@@ -10622,10 +10600,6 @@ func (t CreateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
 		return t.AsRouteTargetBasetenModelAPI()
 	case "OPENAI":
 		return t.AsRouteTargetOpenAI()
-	case "OPENAI_COMPATIBLE":
-		return t.AsRouteTargetOpenAICompatible()
-	case "VERTEX":
-		return t.AsRouteTargetVertex()
 	case "XAI":
 		return t.AsRouteTargetXAI()
 	default:
@@ -11745,36 +11719,6 @@ func (t *Route_Target) FromRouteTargetXAI(v RouteTargetXAI) error {
 	return err
 }
 
-// AsRouteTargetVertex returns the union data inside the Route_Target as a RouteTargetVertex
-func (t Route_Target) AsRouteTargetVertex() (RouteTargetVertex, error) {
-	var body RouteTargetVertex
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetVertex overwrites any union data inside the Route_Target as the provided RouteTargetVertex
-func (t *Route_Target) FromRouteTargetVertex(v RouteTargetVertex) error {
-	v.Type = "VERTEX"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsRouteTargetOpenAICompatible returns the union data inside the Route_Target as a RouteTargetOpenAICompatible
-func (t Route_Target) AsRouteTargetOpenAICompatible() (RouteTargetOpenAICompatible, error) {
-	var body RouteTargetOpenAICompatible
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetOpenAICompatible overwrites any union data inside the Route_Target as the provided RouteTargetOpenAICompatible
-func (t *Route_Target) FromRouteTargetOpenAICompatible(v RouteTargetOpenAICompatible) error {
-	v.Type = "OPENAI_COMPATIBLE"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
 func (t Route_Target) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"type"`
@@ -11795,10 +11739,6 @@ func (t Route_Target) ValueByDiscriminator() (interface{}, error) {
 		return t.AsRouteTargetBasetenModelAPI()
 	case "OPENAI":
 		return t.AsRouteTargetOpenAI()
-	case "OPENAI_COMPATIBLE":
-		return t.AsRouteTargetOpenAICompatible()
-	case "VERTEX":
-		return t.AsRouteTargetVertex()
 	case "XAI":
 		return t.AsRouteTargetXAI()
 	default:
@@ -12106,137 +12046,6 @@ func (t UpdateAutoscalingScheduleSettings_Schedules_Item) MarshalJSON() ([]byte,
 }
 
 func (t *UpdateAutoscalingScheduleSettings_Schedules_Item) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsRouteTargetBasetenModelAPI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetBasetenModelAPI
-func (t UpdateRouteRequest_Target) AsRouteTargetBasetenModelAPI() (RouteTargetBasetenModelAPI, error) {
-	var body RouteTargetBasetenModelAPI
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetBasetenModelAPI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetBasetenModelAPI
-func (t *UpdateRouteRequest_Target) FromRouteTargetBasetenModelAPI(v RouteTargetBasetenModelAPI) error {
-	v.Type = "BASETEN_MODEL_API"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsRouteTargetAnthropic returns the union data inside the UpdateRouteRequest_Target as a RouteTargetAnthropic
-func (t UpdateRouteRequest_Target) AsRouteTargetAnthropic() (RouteTargetAnthropic, error) {
-	var body RouteTargetAnthropic
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetAnthropic overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetAnthropic
-func (t *UpdateRouteRequest_Target) FromRouteTargetAnthropic(v RouteTargetAnthropic) error {
-	v.Type = "ANTHROPIC"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsRouteTargetOpenAI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetOpenAI
-func (t UpdateRouteRequest_Target) AsRouteTargetOpenAI() (RouteTargetOpenAI, error) {
-	var body RouteTargetOpenAI
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetOpenAI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetOpenAI
-func (t *UpdateRouteRequest_Target) FromRouteTargetOpenAI(v RouteTargetOpenAI) error {
-	v.Type = "OPENAI"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsRouteTargetXAI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetXAI
-func (t UpdateRouteRequest_Target) AsRouteTargetXAI() (RouteTargetXAI, error) {
-	var body RouteTargetXAI
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetXAI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetXAI
-func (t *UpdateRouteRequest_Target) FromRouteTargetXAI(v RouteTargetXAI) error {
-	v.Type = "XAI"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsRouteTargetVertex returns the union data inside the UpdateRouteRequest_Target as a RouteTargetVertex
-func (t UpdateRouteRequest_Target) AsRouteTargetVertex() (RouteTargetVertex, error) {
-	var body RouteTargetVertex
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetVertex overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetVertex
-func (t *UpdateRouteRequest_Target) FromRouteTargetVertex(v RouteTargetVertex) error {
-	v.Type = "VERTEX"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsRouteTargetOpenAICompatible returns the union data inside the UpdateRouteRequest_Target as a RouteTargetOpenAICompatible
-func (t UpdateRouteRequest_Target) AsRouteTargetOpenAICompatible() (RouteTargetOpenAICompatible, error) {
-	var body RouteTargetOpenAICompatible
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetOpenAICompatible overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetOpenAICompatible
-func (t *UpdateRouteRequest_Target) FromRouteTargetOpenAICompatible(v RouteTargetOpenAICompatible) error {
-	v.Type = "OPENAI_COMPATIBLE"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-func (t UpdateRouteRequest_Target) Discriminator() (string, error) {
-	var discriminator struct {
-		Discriminator string `json:"type"`
-	}
-	err := json.Unmarshal(t.union, &discriminator)
-	return discriminator.Discriminator, err
-}
-
-func (t UpdateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
-	discriminator, err := t.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch discriminator {
-	case "ANTHROPIC":
-		return t.AsRouteTargetAnthropic()
-	case "BASETEN_MODEL_API":
-		return t.AsRouteTargetBasetenModelAPI()
-	case "OPENAI":
-		return t.AsRouteTargetOpenAI()
-	case "OPENAI_COMPATIBLE":
-		return t.AsRouteTargetOpenAICompatible()
-	case "VERTEX":
-		return t.AsRouteTargetVertex()
-	case "XAI":
-		return t.AsRouteTargetXAI()
-	default:
-		return nil, errors.New("unknown discriminator value: " + discriminator)
-	}
-}
-
-func (t UpdateRouteRequest_Target) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *UpdateRouteRequest_Target) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
