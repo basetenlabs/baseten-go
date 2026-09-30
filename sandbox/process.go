@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 
 	"github.com/basetenlabs/baseten-go/client/sandboxapi"
@@ -60,14 +61,58 @@ func (p *SandboxProcess) Exec(ctx context.Context, opts *ExecOptions) (*ProcessI
 	return &info, nil
 }
 
-// ExecStream starts a command and yields its state as output arrives, ending
-// with the final state of the exited process. An error yields as the pair's
+// ExecEventType is the kind of one streamed exec event. The values come from
+// the execution API; others may be added, so do not treat the constants as
+// exhaustive.
+type ExecEventType = string
+
+// Values for ExecEventType.
+const (
+	// ExecEventStdout carries one line of the command's standard output.
+	ExecEventStdout ExecEventType = "stdout"
+
+	// ExecEventStderr carries one line of the command's standard error.
+	ExecEventStderr ExecEventType = "stderr"
+
+	// ExecEventResult carries the final record of the exited process.
+	ExecEventResult ExecEventType = "result"
+
+	// ExecEventError carries the server's reason the command could not run.
+	ExecEventError ExecEventType = "error"
+
+	// ExecEventKeepalive is a periodic ping that keeps the connection open.
+	ExecEventKeepalive ExecEventType = "keepalive"
+)
+
+// ExecEvent is one event of a running command's stream.
+type ExecEvent struct {
+	// Type of the event.
+	Type ExecEventType
+
+	// Text is the event's line of output for Stdout and Stderr, without its
+	// newline, or the server's message for Error.
+	Text string
+
+	// Result is the final record of the exited process, set on Result.
+	Result *ProcessInfo
+}
+
+// execStreamEvent is the wire shape the execution API streams: newline
+// delimited {"type": ..., "data": ...}, the data holding an output line, an
+// error message, or the final process record as JSON.
+type execStreamEvent struct {
+	Type string `json:"type"`
+	Data string `json:"data"`
+}
+
+// ExecStream starts a command and yields its output as events arrive, ending
+// with the final record of the exited process. An error yields as the pair's
 // second value and ends the iteration.
-func (p *SandboxProcess) ExecStream(ctx context.Context, opts *ExecOptions) iter.Seq2[ProcessInfo, error] {
-	return func(yield func(ProcessInfo, error) bool) {
+func (p *SandboxProcess) ExecStream(ctx context.Context, opts *ExecOptions) iter.Seq2[ExecEvent, error] {
+	return func(yield func(ExecEvent, error) bool) {
 		response, err := p.api.PostProcessRaw(ctx, execRequest(opts, true), sandboxapi.RawRequestOptions{Accept: acceptEventStream})
 		if err != nil {
-			yield(ProcessInfo{}, toSandboxAPIError(err, "exec"))
+			yield(ExecEvent{}, toSandboxAPIError(err, "exec"))
 			return
 		}
 		defer response.Body.Close()
@@ -79,22 +124,39 @@ func (p *SandboxProcess) ExecStream(ctx context.Context, opts *ExecOptions) iter
 			if len(line) == 0 {
 				continue
 			}
-			var event sandboxapi.ProcessResponse
+			var event execStreamEvent
 			if err := json.Unmarshal(line, &event); err != nil {
-				yield(ProcessInfo{}, err)
+				yield(ExecEvent{}, err)
 				return
 			}
-			info, err := processInfoFromAPI(&event)
-			if err != nil {
-				yield(ProcessInfo{}, err)
+			switch event.Type {
+			case ExecEventResult:
+				var finalResult sandboxapi.ProcessResponse
+				if err := json.Unmarshal([]byte(event.Data), &finalResult); err != nil {
+					yield(ExecEvent{}, err)
+					return
+				}
+				info, err := processInfoFromAPI(&finalResult)
+				if err != nil {
+					yield(ExecEvent{}, err)
+					return
+				}
+				if !yield(ExecEvent{Type: ExecEventResult, Result: &info}, nil) {
+					return
+				}
+			case ExecEventError:
+				yield(ExecEvent{}, fmt.Errorf("sandbox exec: %s", event.Data))
 				return
-			}
-			if !yield(info, nil) {
-				return
+			case ExecEventKeepalive:
+				// A ping, not output; nothing to yield.
+			default:
+				if !yield(ExecEvent{Type: event.Type, Text: event.Data}, nil) {
+					return
+				}
 			}
 		}
 		if err := scanner.Err(); err != nil {
-			yield(ProcessInfo{}, err)
+			yield(ExecEvent{}, err)
 		}
 	}
 }

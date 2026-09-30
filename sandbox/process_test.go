@@ -134,39 +134,76 @@ func TestExecErrorBodyBecomesSandboxError(t *testing.T) {
 	}
 }
 
-func TestExecStreamYieldsEventsUntilCompletion(t *testing.T) {
+func TestExecStreamYieldsEventsUntilResult(t *testing.T) {
 	server := execPlaneForTest(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Accept") != "text/event-stream" {
 			t.Errorf("streaming requires the event-stream accept, got %q", r.Header.Get("Accept"))
 		}
-		w.Header().Set("Content-Type", "text/event-stream")
-		// The execution API answers with newline-delimited JSON despite the
-		// accept header. One RFC1123 timestamp proves both layouts parse.
-		_, _ = io.WriteString(w, `{"command":"count","name":"count","pid":"9","status":"running","exitCode":0,"stdout":"","stderr":"","logs":"","workingDir":"/","startedAt":"Tue, 30 Sep 2026 10:00:01 GMT","completedAt":""}
+		w.Header().Set("Content-Type", "application/x-ndjson")
+		// The wire format the server sends despite the event-stream accept.
+		// The result event's data carries the final record as JSON.
+		_, _ = io.WriteString(w, `{"type":"stdout","data":"counting"}
 `)
-		_, _ = io.WriteString(w, `{"command":"count","name":"count","pid":"9","status":"completed","exitCode":0,"stdout":"1\n","stderr":"","logs":"1\n","workingDir":"/","startedAt":"Tue, 30 Sep 2026 10:00:01 GMT","completedAt":"Tue, 30 Sep 2026 10:00:03 GMT"}
+		_, _ = io.WriteString(w, `{"type":"keepalive","data":""}
+`)
+		_, _ = io.WriteString(w, `{"type":"stderr","data":"to stderr"}
+`)
+		_, _ = io.WriteString(w, `{"type":"result","data":"{\"command\":\"count\",\"name\":\"count\",\"pid\":\"9\",\"status\":\"completed\",\"exitCode\":0,\"stdout\":\"counting\\n\",\"stderr\":\"to stderr\\n\",\"logs\":\"counting\\n\",\"workingDir\":\"/\",\"startedAt\":\"Tue, 30 Sep 2026 10:00:01 GMT\",\"completedAt\":\"Tue, 30 Sep 2026 10:00:03 GMT\"}"}
 `)
 	})
 	instance := sandboxForExecTest(t, server.URL, "exec-token")
 
-	var statuses []string
-	for info, err := range instance.Process().ExecStream(context.Background(), &sandbox.ExecOptions{
-		Command: "count",
-	}) {
+	var events []sandbox.ExecEvent
+	for event, err := range instance.Process().ExecStream(context.Background(), &sandbox.ExecOptions{Command: "count"}) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		statuses = append(statuses, info.Status)
+		events = append(events, event)
 	}
-	if len(statuses) != 2 || statuses[0] != "running" || statuses[1] != "completed" {
-		t.Errorf("stream events %v", statuses)
+	if len(events) != 3 {
+		t.Fatalf("keepalive must not yield; got %d events", len(events))
+	}
+	if events[0].Type != sandbox.ExecEventStdout || events[0].Text != "counting" {
+		t.Errorf("first event %+v", events[0])
+	}
+	if events[1].Type != sandbox.ExecEventStderr || events[1].Text != "to stderr" {
+		t.Errorf("second event %+v", events[1])
+	}
+	finalResult := events[2]
+	if finalResult.Type != sandbox.ExecEventResult || finalResult.Result == nil {
+		t.Fatalf("last event %+v", finalResult)
+	}
+	if finalResult.Result.ExitCode != 0 || finalResult.Result.Status != "completed" {
+		t.Errorf("result record %+v", finalResult.Result)
+	}
+	if finalResult.Result.CompletedAt.IsZero() {
+		t.Errorf("RFC1123 timestamp not parsed: %v", finalResult.Result.CompletedAt)
+	}
+}
+
+func TestExecStreamServerErrorEventFails(t *testing.T) {
+	server := execPlaneForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/x-ndjson")
+		_, _ = io.WriteString(w, `{"type":"error","data":"command is empty"}
+`)
+	})
+	instance := sandboxForExecTest(t, server.URL, "exec-token")
+
+	var streamErr error
+	for _, err := range instance.Process().ExecStream(context.Background(), &sandbox.ExecOptions{Command: ""}) {
+		if err != nil {
+			streamErr = err
+		}
+	}
+	if streamErr == nil || !strings.Contains(streamErr.Error(), "command is empty") {
+		t.Fatalf("want the server error event as an error, got %v", streamErr)
 	}
 }
 
 func TestExecStreamEarlyStopClosesIteration(t *testing.T) {
 	server := execPlaneForTest(t, func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/event-stream")
-		_, _ = io.WriteString(w, `{"command":"yes","name":"yes","pid":"9","status":"running","exitCode":0,"stdout":"y\n","stderr":"","logs":"y\n","workingDir":"/","startedAt":"2026-09-30T10:00:01Z","completedAt":""}
+		w.Header().Set("Content-Type", "application/x-ndjson")
+		_, _ = io.WriteString(w, `{"type":"stdout","data":"y"}
 `)
 	})
 	instance := sandboxForExecTest(t, server.URL, "exec-token")
