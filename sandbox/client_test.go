@@ -499,3 +499,35 @@ func TestControlPlaneGatewayStatusStaysPlainError(t *testing.T) {
 		t.Fatalf("want a plain SandboxAPIError, got %v", err)
 	}
 }
+
+func TestCreateSucceedsWithoutURL(t *testing.T) {
+	// The record as of creation is usually DEPLOYING and has no execution
+	// URL yet, so Create must not require one; exec on the result fails
+	// loudly instead.
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch {
+		case r.URL.Path == "/v1/token":
+			fmt.Fprintf(w, `{"token": "tok-1", "expires_at": %q}`, time.Now().Add(time.Hour).UTC().Format(time.RFC3339))
+		case r.Method == "POST":
+			w.WriteHeader(201)
+			_, _ = io.WriteString(w, `{"name": "sbx-1", "status": "DEPLOYING"}`)
+		default:
+			t.Errorf("unexpected request %s %s", r.Method, r.URL.Path)
+		}
+	}))
+	t.Cleanup(server.Close)
+	client := clientForTest(t, server.URL, nil)
+
+	created, err := client.Create(context.Background(), &sandbox.CreateSandboxRequest{Name: "sbx-1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if created.Info().Status != "DEPLOYING" || created.URL() != "" {
+		t.Errorf("record not carried: %+v", created.Info())
+	}
+	_, err = created.Process().Exec(context.Background(), &sandbox.ExecOptions{Command: "true"})
+	if err == nil || !strings.Contains(err.Error(), "no URL yet") {
+		t.Fatalf("want a no-URL error from exec, got %v", err)
+	}
+}

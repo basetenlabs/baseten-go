@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"iter"
 
@@ -43,6 +44,16 @@ const acceptEventStream = "text/event-stream"
 // SandboxProcess runs and inspects processes in a sandbox.
 type SandboxProcess struct {
 	api *sandboxapi.Client
+	url string
+}
+
+// requireURL rejects exec before a request is built against a sandbox whose
+// record has no execution URL yet, which a freshly created one lacks.
+func (p *SandboxProcess) requireURL() error {
+	if p.url == "" {
+		return errors.New("sandbox has no URL yet; wait for it to deploy")
+	}
+	return nil
 }
 
 // Exec starts a command and returns its state.
@@ -50,6 +61,9 @@ type SandboxProcess struct {
 // Exec is never retried: a command may have side effects even when its
 // response is lost.
 func (p *SandboxProcess) Exec(ctx context.Context, opts *ExecOptions) (*ProcessInfo, error) {
+	if err := p.requireURL(); err != nil {
+		return nil, err
+	}
 	response, err := p.api.PostProcess(ctx, execRequest(opts, opts.WaitForCompletion))
 	if err != nil {
 		return nil, toSandboxAPIError(err, "exec")
@@ -110,6 +124,10 @@ type execStreamEvent struct {
 // second value and ends the iteration.
 func (p *SandboxProcess) ExecStream(ctx context.Context, opts *ExecOptions) iter.Seq2[ExecEvent, error] {
 	return func(yield func(ExecEvent, error) bool) {
+		if err := p.requireURL(); err != nil {
+			yield(ExecEvent{}, err)
+			return
+		}
 		response, err := p.api.PostProcessRaw(ctx, execRequest(opts, true), sandboxapi.RawRequestOptions{Accept: acceptEventStream})
 		if err != nil {
 			yield(ExecEvent{}, toSandboxAPIError(err, "exec"))

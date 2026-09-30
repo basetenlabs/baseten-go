@@ -202,7 +202,19 @@ func (c *SandboxesClient) Create(ctx context.Context, request *CreateSandboxRequ
 	if err != nil {
 		return nil, toSandboxAPIError(err, "control")
 	}
-	return c.sandboxFromAPI(created)
+	// The record as of creation is usually DEPLOYING and without its URL,
+	// so the Sandbox is built without the URL requirement that working in
+	// one needs; exec on it fails loudly until the record has one.
+	info, err := sandboxInfoFromAPI(created)
+	if err != nil {
+		return nil, err
+	}
+	return newSandbox(sandboxOptions{
+		info:       info,
+		tokens:     c.tokens,
+		httpClient: c.httpClient(),
+		headers:    c.options.Headers,
+	}), nil
 }
 
 // GetInfo gets a sandbox's current record.
@@ -342,14 +354,6 @@ func (c *SandboxesClient) httpClient() HTTPDoer {
 		return c.options.HTTPClient
 	}
 	return http.DefaultClient
-}
-
-func (c *SandboxesClient) sandboxFromAPI(record *managementapi.Sandbox) (*Sandbox, error) {
-	info, err := sandboxInfoFromAPI(record)
-	if err != nil {
-		return nil, err
-	}
-	return c.SandboxFromInfo(info)
 }
 
 func optionalString(value string) *string {

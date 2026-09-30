@@ -128,7 +128,7 @@ func (s *Sandbox) URL() string {
 // Process runs and inspects processes in the sandbox.
 func (s *Sandbox) Process() *SandboxProcess {
 	if s.process == nil {
-		s.process = &SandboxProcess{api: s.api}
+		s.process = &SandboxProcess{api: s.api, url: s.info.URL}
 	}
 	return s.process
 }

@@ -53,61 +53,61 @@ type SandboxEnvValue struct {
 type SandboxInfo struct {
 	// Name is the unique name of the sandbox, assigned by the server when not
 	// given at creation.
-	Name string
+	Name string `json:"name"`
 
 	// URL is the base URL of the sandbox's execution API, once it has one.
-	URL string
+	URL string `json:"url"`
 
 	// Status is the deployment status.
-	Status SandboxStatus
+	Status SandboxStatus `json:"status"`
 
 	// State is the execution state when the status is DEPLOYED.
-	State SandboxState
+	State SandboxState `json:"state"`
 
 	// Image is the image reference, including its tag.
-	Image string
+	Image string `json:"image"`
 
 	// Memory is the allocation in megabytes, which also sets the CPU
 	// allocation.
-	Memory int
+	Memory int `json:"memory"`
 
 	// Region is where the sandbox runs.
-	Region string
+	Region string `json:"region"`
 
 	// Enabled is false when the sandbox is disabled and accepts no
 	// connections.
-	Enabled bool
+	Enabled bool `json:"enabled"`
 
 	// Envs are the environment variables injected into the sandbox.
-	Envs map[string]SandboxEnvValue
+	Envs map[string]SandboxEnvValue `json:"envs"`
 
 	// Labels are the key-value pairs for organizing and filtering.
-	Labels map[string]string
+	Labels map[string]string `json:"labels"`
 
 	// DisplayName is the human-readable name for display in the UI.
-	DisplayName string
+	DisplayName string `json:"display_name"`
 
 	// ExternalID is the caller-owned identifier for external lookups.
-	ExternalID string
+	ExternalID string `json:"external_id"`
 
 	// CreatedAt is when the sandbox was created.
-	CreatedAt time.Time
+	CreatedAt time.Time `json:"created_at"`
 
 	// UpdatedAt is when the sandbox was last updated.
-	UpdatedAt time.Time
+	UpdatedAt time.Time `json:"updated_at"`
 
 	// CreatedBy is the user or service account that created the sandbox.
-	CreatedBy string
+	CreatedBy string `json:"created_by"`
 
 	// UpdatedBy is the user or service account that last updated the sandbox.
-	UpdatedBy string
+	UpdatedBy string `json:"updated_by"`
 
 	// LastUsedAt is when the sandbox was last used.
-	LastUsedAt time.Time
+	LastUsedAt time.Time `json:"last_used_at"`
 
 	// ExpiresInSeconds is the time left before automatic deletion, when
 	// expiration is configured. Zero means no expiration is configured.
-	ExpiresInSeconds int
+	ExpiresInSeconds int `json:"expires_in_seconds"`
 }
 
 // ProcessStatus is the status of a process in a sandbox. Other values may be
@@ -126,37 +126,37 @@ const (
 // ProcessInfo is a process in a sandbox.
 type ProcessInfo struct {
 	// Pid identifies the process, usable wherever a process name is.
-	Pid string
+	Pid string `json:"pid"`
 
 	// Name is the caller-assigned name, or a generated one.
-	Name string
+	Name string `json:"name"`
 
 	// Command is the shell command the process runs.
-	Command string
+	Command string `json:"command"`
 
 	// Status is the current process status.
 	Status ProcessStatus
 
 	// ExitCode is the process exit code.
-	ExitCode int
+	ExitCode int `json:"exit_code"`
 
 	// Stdout is the process standard output.
-	Stdout string
+	Stdout string `json:"stdout"`
 
 	// Stderr is the process standard error.
-	Stderr string
+	Stderr string `json:"stderr"`
 
 	// Logs is standard output and standard error, interleaved.
-	Logs string
+	Logs string `json:"logs"`
 
 	// WorkingDir is the directory the command runs in.
-	WorkingDir string
+	WorkingDir string `json:"working_dir"`
 
 	// StartedAt is when the process started.
-	StartedAt time.Time
+	StartedAt time.Time `json:"started_at"`
 
 	// CompletedAt is when the process exited. Zero means it has not exited.
-	CompletedAt time.Time
+	CompletedAt time.Time `json:"completed_at"`
 }
 
 // The exec API sends timestamps in either format; both appear in the wild.
