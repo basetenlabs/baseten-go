@@ -1,6 +1,7 @@
 // Package sandbox is a high-level client for Baseten sandboxes: creating,
-// finding, updating, and deleting sandboxes on the control plane, and
-// running commands in one sandbox through its execution API.
+// finding, updating, and deleting sandboxes on the control plane, the images
+// they are created from, and running commands in one sandbox through its
+// execution API.
 //
 // It exchanges an API key for the short-lived bearer token the sandbox APIs
 // require, caches it until shortly before it expires, and re-authenticates

@@ -152,3 +152,43 @@ func TestExceptionListsNameRealFields(t *testing.T) {
 		}
 	}
 }
+
+// imageRecordUntranslated names generated Image fields the curated record
+// deliberately does not carry, with the reason.
+var imageRecordUntranslated = map[string]string{
+	"Tags": "list and get return only a tag count; tags have their own endpoint",
+}
+
+func TestImageInfoCoversGeneratedRecord(t *testing.T) {
+	collect := func(value any) map[string]bool {
+		fields := map[string]bool{}
+		structType := reflect.TypeOf(value)
+		for i := range structType.NumField() {
+			fields[structType.Field(i).Name] = true
+		}
+		return fields
+	}
+	generated := collect(managementapi.Image{})
+	collated := collect(sandbox.ImageInfo{})
+
+	renames := map[string]string{"Size": "SizeBytes", "LastDeployedAt": "LastDeployedAt"}
+	for name := range generated {
+		if renames[name] != "" || imageRecordUntranslated[name] != "" {
+			continue
+		}
+		if !collated[name] && renames[name] == "" {
+			t.Errorf("generated field %s has neither a curated twin nor an exception", name)
+		}
+	}
+	for name := range collated {
+		_, translated := generated[name]
+		if !translated && name != "SizeBytes" {
+			t.Errorf("curated field %s translates no generated field", name)
+		}
+	}
+	for name := range imageRecordUntranslated {
+		if _, present := reflect.TypeOf(managementapi.Image{}).FieldByName(name); !present {
+			t.Errorf("image exception %q names no generated field", name)
+		}
+	}
+}

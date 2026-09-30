@@ -39,6 +39,9 @@ type ExecOptions struct {
 
 // acceptEventStream is what the execution API requires to stream a command's
 // output, even though it answers with newline-delimited JSON.
+// TODO(server): once the exec plane serves real SSE or accepts an NDJSON
+// accept, send that instead; tracked in the SDK proposal's server-side
+// concerns list.
 const acceptEventStream = "text/event-stream"
 
 // SandboxProcess runs and inspects processes in a sandbox.
