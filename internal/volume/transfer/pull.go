@@ -43,9 +43,8 @@ type PullOptions struct {
 	// rather than dereferencing nil.
 	//
 	// Nothing is staged and nothing resumes, both of which need a file on disk
-	// to compare against, and a file's chunks arrive in order rather than in
-	// parallel, since a sequential reader has nowhere to put a chunk that
-	// arrives before the one in front of it.
+	// to compare against. A file's chunks are prefetched concurrently within
+	// the operation and byte limits, verified, and delivered in file order.
 	//
 	// The reader is valid only for the duration of the call: its buffer and
 	// its share of the in-flight byte budget are handed back as soon as the
@@ -744,36 +743,47 @@ func (p *puller) writeChunk(
 		}
 	}
 
-	req, err := p.origin.request(ctx, chunk.Target, int64(chunk.Length))
-	if err != nil {
-		permit.CompleteUntimed(volume.Neutral)
-		return err
-	}
-	body, err := volume.FetchObjectInto(ctx, p.opts.DownloadObject, p.opts.Decompress, req, int64(chunk.Length), buffer)
-	if err != nil {
-		permit.CompleteUntimed(failureOutcome(ctx, err))
-		return err
-	}
-	permit.Complete(volume.Success)
-
-	// The digest is checked before the bytes reach the file. Writing first and
-	// checking after would leave a wrong file on disk for as long as it took
-	// to notice, and on a failed download, forever.
-	if uint64(len(body)) != chunk.Length {
-		return fmt.Errorf("chunk %s is %d bytes, the manifest says %d", chunk.Digest, len(body), chunk.Length)
-	}
-	digest, err := volume.HashBytes(p.opts.NewHasher, body)
+	body, err := p.downloadVerifiedChunk(ctx, chunk, buffer, permit)
 	if err != nil {
 		return err
-	}
-	if digest != chunk.Digest {
-		return fmt.Errorf("chunk at offset %d hashes to %s, the manifest says %s", chunk.Offset, digest, chunk.Digest)
 	}
 	if _, err := handle.WriteAt(body, int64(chunk.Offset)); err != nil {
 		return err
 	}
 	p.stats.fetched.Add(1)
 	return nil
+}
+
+// downloadVerifiedChunk downloads into caller-owned storage and verifies the
+// decompressed length and digest before returning bytes. It completes the
+// supplied operation permit on every return path. The caller owns the buffer
+// and byte reservation, retaining both until the bytes are written or consumed.
+// Disk resume checks and destination-specific statistics remain with callers.
+func (p *puller) downloadVerifiedChunk(ctx context.Context, chunk volume.ChunkRef, buffer []byte, permit *volume.Permit) ([]byte, error) {
+	req, err := p.origin.request(ctx, chunk.Target, int64(chunk.Length))
+	if err != nil {
+		permit.CompleteUntimed(volume.Neutral)
+		return nil, err
+	}
+	body, err := volume.FetchObjectInto(ctx, p.opts.DownloadObject, p.opts.Decompress, req, int64(chunk.Length), buffer)
+	if err != nil {
+		permit.CompleteUntimed(failureOutcome(ctx, err))
+		return nil, err
+	}
+	permit.Complete(volume.Success)
+
+	// Verify before either caller can publish bytes to its destination.
+	if uint64(len(body)) != chunk.Length {
+		return nil, fmt.Errorf("chunk %s is %d bytes, the manifest says %d", chunk.Digest, len(body), chunk.Length)
+	}
+	digest, err := volume.HashBytes(p.opts.NewHasher, body)
+	if err != nil {
+		return nil, err
+	}
+	if digest != chunk.Digest {
+		return nil, fmt.Errorf("chunk at offset %d hashes to %s, the manifest says %s", chunk.Offset, digest, chunk.Digest)
+	}
+	return body, nil
 }
 
 // destName maps an entry's path within the volume to its name under the

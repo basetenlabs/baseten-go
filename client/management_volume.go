@@ -1073,9 +1073,8 @@ type PullVolumeOptions struct {
 	// read as. Returning an error stops the pull and is what it returns.
 	//
 	// Because there is no destination directory, Overwrite and Restart do not
-	// apply and are refused, and a file's bytes arrive in order rather than
-	// its chunks being fetched in parallel. A caller whose own sink tolerates
-	// concurrency can fan out inside the handler.
+	// apply and are refused. A file's chunks are prefetched concurrently within
+	// the operation and byte limits, verified, and delivered in file order.
 	//
 	// ctx is the one driving the pull, so it carries the caller's values and
 	// is cancelled with it.

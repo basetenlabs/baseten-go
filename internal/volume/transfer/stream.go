@@ -44,7 +44,7 @@ func (p *puller) streamEntries(ctx context.Context, manifest *volume.Manifest) e
 		// Released whatever the handler did, including returning without
 		// draining the stream, which is what a handler wanting only a file's
 		// first bytes does, and what every directory does.
-		stream.release()
+		stream.close()
 		if err != nil {
 			return fmt.Errorf("read %s: %w", entry.Path, err)
 		}
@@ -60,15 +60,29 @@ func (p *puller) streamEntries(ctx context.Context, manifest *volume.Manifest) e
 // reads is always a verified prefix of the file: a corrupted or truncated
 // chunk fails the Read it would have been part of rather than being delivered.
 //
-// Chunks are fetched one at a time, on demand. A file written to disk instead
-// has its chunks fetched in parallel and placed at their offsets, which a
-// sequential reader cannot do, since there is nowhere to put a chunk that
-// arrives before the one in front of it.
+// A bounded window fetches chunks concurrently and delivers them in order.
+// Byte reservations are made in file order so later chunks cannot starve the
+// next chunk the reader needs. Reservations last until consumption or cleanup.
 type chunkStream struct {
+	ctx     context.Context
+	puller  *puller
+	chunks  []volume.ChunkRef
+	cancel  context.CancelFunc
+	pending chan *streamChunk
+	slots   chan struct{}
+	done    chan struct{}
+	current *streamChunk
+
+	// err latches the first failure, including EOF.
+	err error
+}
+
+// streamChunk owns one download and its buffer until the reader consumes it.
+// Closing ready transfers ownership from the fetch goroutine to the reader.
+type streamChunk struct {
 	ctx    context.Context
 	puller *puller
-	chunks []volume.ChunkRef
-	next   int
+	ready  chan struct{}
 
 	// pooled is the buffer backing buf when the current chunk is full-size and
 	// nil otherwise, buf is what remains undelivered of that chunk, and held
@@ -78,45 +92,110 @@ type chunkStream struct {
 	buf    []byte
 	held   int64
 
-	// err latches the first failure. A reader that returned an error once must
-	// not resume delivering bytes if it is read again.
 	err error
+}
+
+// start is lazy: handlers that ignore an entry do not download its contents.
+func (s *chunkStream) start() {
+	s.ctx, s.cancel = context.WithCancel(s.ctx)
+	window := s.puller.limits.ChunkOperations
+	if window <= 0 {
+		window = volume.DefaultFileJobs
+	}
+	s.pending = make(chan *streamChunk, window)
+	s.slots = make(chan struct{}, window)
+	s.done = make(chan struct{})
+	go func() {
+		defer close(s.done)
+		defer close(s.pending)
+		for _, chunk := range s.chunks {
+			if chunk.Length == 0 {
+				continue
+			}
+			select {
+			case s.slots <- struct{}{}:
+			case <-s.ctx.Done():
+				return
+			}
+			if err := s.ctx.Err(); err != nil {
+				return
+			}
+			if err := s.puller.bytes.Acquire(s.ctx, int64(chunk.Length)); err != nil {
+				part := &streamChunk{err: err, ready: make(chan struct{})}
+				close(part.ready)
+				s.pending <- part
+				return
+			}
+			part := &streamChunk{ctx: s.ctx, puller: s.puller, ready: make(chan struct{})}
+			// The slot guarantees room in pending, even during cleanup.
+			s.pending <- part
+			go func() {
+				part.err = part.fetch(chunk)
+				close(part.ready)
+			}()
+		}
+	}()
 }
 
 func (s *chunkStream) Read(p []byte) (int, error) {
 	if s.err != nil {
 		return 0, s.err
 	}
-	for len(s.buf) == 0 {
-		s.release()
-		if s.next == len(s.chunks) {
-			return 0, io.EOF
+	if len(p) == 0 {
+		return 0, nil
+	}
+	if s.cancel == nil {
+		s.start()
+	}
+	for s.current == nil || len(s.current.buf) == 0 {
+		if s.current != nil {
+			s.current.release()
+			s.current = nil
+			<-s.slots
 		}
-		chunk := s.chunks[s.next]
-		s.next++
-		// The empty file's chunk carries no bytes. Sizing a file on disk
-		// produces it for free, so the write path skips it as neither fetched
-		// nor reused; there is nothing to skip here but the fetch itself.
-		if chunk.Length == 0 {
-			continue
+		part, ok := <-s.pending
+		if !ok {
+			s.err = s.ctx.Err()
+			if s.err == nil {
+				s.err = io.EOF
+			}
+			return 0, s.err
 		}
-		if s.err = s.fetch(chunk); s.err != nil {
+		s.current = part
+		<-part.ready
+		if part.err != nil {
+			s.err = part.err
+			s.close()
 			return 0, s.err
 		}
 	}
-	n := copy(p, s.buf)
-	s.buf = s.buf[n:]
+	n := copy(p, s.current.buf)
+	s.current.buf = s.current.buf[n:]
 	return n, nil
 }
 
-// fetch downloads one chunk and verifies it, leaving its bytes in buf.
-func (s *chunkStream) fetch(chunk volume.ChunkRef) error {
+// close cancels outstanding work and waits for every buffer to be returned.
+func (s *chunkStream) close() {
+	if s.cancel == nil {
+		return
+	}
+	s.cancel()
+	if s.current != nil {
+		s.current.release()
+		s.current = nil
+	}
+	for part := range s.pending {
+		<-part.ready
+		part.release()
+	}
+	<-s.done
+}
+
+// fetch owns an already reserved byte budget, and downloads and verifies one chunk.
+func (s *streamChunk) fetch(chunk volume.ChunkRef) error {
 	permit, err := s.puller.limiter.Acquire(s.ctx)
 	if err != nil {
-		return err
-	}
-	if err := s.puller.bytes.Acquire(s.ctx, int64(chunk.Length)); err != nil {
-		permit.CompleteUntimed(volume.Neutral)
+		s.puller.bytes.Release(int64(chunk.Length))
 		return err
 	}
 
@@ -146,28 +225,9 @@ func (s *chunkStream) fetch(chunk volume.ChunkRef) error {
 		s.puller.bytes.Release(int64(chunk.Length))
 	}()
 
-	req, err := s.puller.origin.request(s.ctx, chunk.Target, int64(chunk.Length))
-	if err != nil {
-		permit.CompleteUntimed(volume.Neutral)
-		return err
-	}
-	body, err := volume.FetchObjectInto(
-		s.ctx, s.puller.opts.DownloadObject, s.puller.opts.Decompress, req, int64(chunk.Length), buffer)
-	if err != nil {
-		permit.CompleteUntimed(failureOutcome(s.ctx, err))
-		return err
-	}
-	permit.Complete(volume.Success)
-
-	if uint64(len(body)) != chunk.Length {
-		return fmt.Errorf("chunk %s is %d bytes, the manifest says %d", chunk.Digest, len(body), chunk.Length)
-	}
-	digest, err := volume.HashBytes(s.puller.opts.NewHasher, body)
+	body, err := s.puller.downloadVerifiedChunk(s.ctx, chunk, buffer, permit)
 	if err != nil {
 		return err
-	}
-	if digest != chunk.Digest {
-		return fmt.Errorf("chunk at offset %d hashes to %s, the manifest says %s", chunk.Offset, digest, chunk.Digest)
 	}
 
 	s.pooled, s.buf, s.held = pooled, body, int64(chunk.Length)
@@ -176,10 +236,9 @@ func (s *chunkStream) fetch(chunk volume.ChunkRef) error {
 	return nil
 }
 
-// release hands back the current chunk's buffer and its share of the byte
-// budget. Idempotent, which is what lets Read call it between chunks and the
-// caller call it again once the handler has returned.
-func (s *chunkStream) release() {
+// release hands back the chunk's buffer and byte reservation. It is safe to
+// call again during cleanup after the reader has consumed the chunk.
+func (s *streamChunk) release() {
 	if s.pooled != nil {
 		volume.ReleaseChunkBuffer(s.pooled)
 		s.pooled = nil
