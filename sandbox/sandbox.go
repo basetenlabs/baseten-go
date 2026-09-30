@@ -90,7 +90,7 @@ func NewSandbox(opts SandboxOptions) (*Sandbox, error) {
 func newSandbox(opts sandboxOptions) *Sandbox {
 	httpClient := opts.httpClient
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = newDefaultHTTPClient()
 	}
 	headers := opts.headers.Clone()
 	if headers == nil {

@@ -151,7 +151,7 @@ func NewSandboxesClient(opts SandboxesClientOptions) (*SandboxesClient, error) {
 	}
 	httpClient := opts.HTTPClient
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = newDefaultHTTPClient()
 	}
 	tokens, err := newTokenSource(opts.APIKey, opts.TokenProvider, managementBaseURL, httpClient, opts.Headers)
 	if err != nil {
@@ -353,7 +353,7 @@ func (c *SandboxesClient) httpClient() HTTPDoer {
 	if c.options.HTTPClient != nil {
 		return c.options.HTTPClient
 	}
-	return http.DefaultClient
+	return newDefaultHTTPClient()
 }
 
 func optionalString(value string) *string {
