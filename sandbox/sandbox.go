@@ -98,7 +98,7 @@ func newSandbox(opts sandboxOptions) *Sandbox {
 	}
 	client.ApplyUserAgentHeader(headers)
 	url := strings.TrimRight(opts.info.URL, "/")
-	return &Sandbox{
+	sandbox := &Sandbox{
 		info:    opts.info,
 		options: SandboxOptions{Name: opts.info.Name, URL: url},
 		api: &sandboxapi.Client{
@@ -107,6 +107,9 @@ func newSandbox(opts sandboxOptions) *Sandbox {
 			Headers:    headers,
 		},
 	}
+	// Built eagerly, so the accessor needs no lazy-init synchronization.
+	sandbox.process = &SandboxProcess{api: sandbox.api, url: opts.info.URL}
+	return sandbox
 }
 
 // Info is the sandbox's record as of when this Sandbox was built. It does not
@@ -127,9 +130,6 @@ func (s *Sandbox) URL() string {
 
 // Process runs and inspects processes in the sandbox.
 func (s *Sandbox) Process() *SandboxProcess {
-	if s.process == nil {
-		s.process = &SandboxProcess{api: s.api, url: s.info.URL}
-	}
 	return s.process
 }
 

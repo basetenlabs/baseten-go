@@ -330,3 +330,22 @@ func TestInfoTimestampsParseFromRecord(t *testing.T) {
 		t.Errorf("secret env not converted: %+v", info.Envs)
 	}
 }
+
+func TestExecStreamEndedWithoutResultErrors(t *testing.T) {
+	server := execPlaneForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/x-ndjson")
+		_, _ = io.WriteString(w, `{"type":"stdout","data":"y"}
+`)
+	})
+	instance := sandboxForExecTest(t, server.URL, "exec-token")
+
+	var streamErr error
+	for _, err := range instance.Process().ExecStream(context.Background(), &sandbox.ExecOptions{Command: "yes"}) {
+		if err != nil {
+			streamErr = err
+		}
+	}
+	if streamErr == nil || !strings.Contains(streamErr.Error(), "without a result") {
+		t.Fatalf("want a stream-truncation error, got %v", streamErr)
+	}
+}

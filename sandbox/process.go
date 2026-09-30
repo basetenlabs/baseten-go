@@ -58,8 +58,9 @@ func (p *SandboxProcess) requireURL() error {
 
 // Exec starts a command and returns its state.
 //
-// Exec is never retried: a command may have side effects even when its
-// response is lost.
+// Exec is never retried on a lost response: a command may have side effects
+// even then. The one re-send is a revoked token, which the server rejected
+// before any work was done, so repeating the request repeats no side effect.
 func (p *SandboxProcess) Exec(ctx context.Context, opts *ExecOptions) (*ProcessInfo, error) {
 	if err := p.requireURL(); err != nil {
 		return nil, err
@@ -137,6 +138,7 @@ func (p *SandboxProcess) ExecStream(ctx context.Context, opts *ExecOptions) iter
 		scanner := bufio.NewScanner(response.Body)
 		// One event per line, and a line can carry arbitrarily much output.
 		scanner.Buffer(make([]byte, 64*1024), 64*1024*1024)
+		sawResult := false
 		for scanner.Scan() {
 			line := bytes.TrimSpace(scanner.Bytes())
 			if len(line) == 0 {
@@ -159,9 +161,13 @@ func (p *SandboxProcess) ExecStream(ctx context.Context, opts *ExecOptions) iter
 					yield(ExecEvent{}, err)
 					return
 				}
+				sawResult = true
+				// The result is the stream's last event; stop reading there
+				// rather than at whatever follows the server's shutdown.
 				if !yield(ExecEvent{Type: ExecEventResult, Result: &info}, nil) {
 					return
 				}
+				return
 			case ExecEventError:
 				yield(ExecEvent{}, fmt.Errorf("sandbox exec: %s", event.Data))
 				return
@@ -175,6 +181,10 @@ func (p *SandboxProcess) ExecStream(ctx context.Context, opts *ExecOptions) iter
 		}
 		if err := scanner.Err(); err != nil {
 			yield(ExecEvent{}, err)
+			return
+		}
+		if !sawResult {
+			yield(ExecEvent{}, errors.New("exec stream ended without a result event"))
 		}
 	}
 }

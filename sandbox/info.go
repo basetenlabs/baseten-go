@@ -125,8 +125,8 @@ const (
 
 // ProcessInfo is a process in a sandbox.
 type ProcessInfo struct {
-	// Pid identifies the process, usable wherever a process name is.
-	Pid string `json:"pid"`
+	// PID identifies the process, usable wherever a process name is.
+	PID string `json:"pid"`
 
 	// Name is the caller-assigned name, or a generated one.
 	Name string `json:"name"`
@@ -135,7 +135,7 @@ type ProcessInfo struct {
 	Command string `json:"command"`
 
 	// Status is the current process status.
-	Status ProcessStatus
+	Status ProcessStatus `json:"status"`
 
 	// ExitCode is the process exit code.
 	ExitCode int `json:"exit_code"`
@@ -213,7 +213,7 @@ func processInfoFromAPI(api *sandboxapi.ProcessResponse) (ProcessInfo, error) {
 		return ProcessInfo{}, err
 	}
 	info := ProcessInfo{
-		Pid:        api.Pid,
+		PID:        api.Pid,
 		Name:       api.Name,
 		Command:    api.Command,
 		Status:     string(api.Status),
@@ -278,10 +278,11 @@ func envsFromAPI(envs *[]managementapi.SandboxEnv) map[string]SandboxEnvValue {
 	return result
 }
 
-// envsToAPI returns nil for an empty map: an explicit empty array would
-// replace values on update, where omitting them leaves values unchanged.
+// envsToAPI keeps nil and empty apart: nil omits the field so an update
+// leaves values unchanged, an allocated empty map sends [] which replaces
+// the previous values with none.
 func envsToAPI(envs map[string]SandboxEnvValue) *[]managementapi.SandboxEnv {
-	if len(envs) == 0 {
+	if envs == nil {
 		return nil
 	}
 	result := make([]managementapi.SandboxEnv, 0, len(envs))
@@ -306,10 +307,9 @@ func labelsFromAPI(labels *managementapi.SandboxMetadataLabels) map[string]strin
 	return result
 }
 
-// labelsToAPI returns nil for an empty map, for the same reason as
-// envsToAPI.
+// labelsToAPI keeps nil and empty apart, for the same reason as envsToAPI.
 func labelsToAPI(labels map[string]string) *managementapi.SandboxMetadataLabels {
-	if len(labels) == 0 {
+	if labels == nil {
 		return nil
 	}
 	result := managementapi.SandboxMetadataLabels(labels)

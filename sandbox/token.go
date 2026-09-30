@@ -1,9 +1,7 @@
 package sandbox
 
 import (
-	"bytes"
 	"context"
-	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -129,25 +127,24 @@ type tokenAuthClient struct {
 }
 
 func (c *tokenAuthClient) Do(req *http.Request) (*http.Response, error) {
-	// The body can be read only once, so it is buffered here for a re-send.
-	var body []byte
-	if req.Body != nil {
-		var err error
-		body, err = io.ReadAll(req.Body)
-		if err != nil {
-			return nil, err
-		}
-	}
+	// A bodyless request is trivially re-sent; a body re-sends only through
+	// GetBody, so a streaming raw body, which can be read once, is returned
+	// with its revoked response rather than retried.
+	bodyless := req.Body == nil
+	var sentToken string
 	for attempt := 0; ; attempt++ {
-		if body != nil {
-			req.Body = io.NopCloser(bytes.NewReader(body))
-		}
 		token, err := c.tokens.token(req.Context())
 		if err != nil {
 			return nil, err
 		}
 		if token != "" {
 			req.Header.Set("Authorization", "Bearer "+token)
+			sentToken = token
+		} else if sentToken != "" {
+			// A provider that stops returning a token must not leave the
+			// previous attempt's header on the re-send.
+			req.Header.Del("Authorization")
+			sentToken = ""
 		}
 		resp, err := c.inner.Do(req)
 		if err != nil {
@@ -156,10 +153,18 @@ func (c *tokenAuthClient) Do(req *http.Request) (*http.Response, error) {
 		revoked := token != "" &&
 			resp.StatusCode == http.StatusUnauthorized &&
 			resp.Header.Get("x-blaxel-error-code") == tokenRevokedCode
+		replayable := bodyless || req.GetBody != nil
 		// The last attempt's response is returned even when still revoked,
 		// so the caller gets a meaningful error.
-		if !revoked || attempt == tokenInvalidationMaxRetries {
+		if !revoked || attempt == tokenInvalidationMaxRetries || !replayable {
 			return resp, nil
+		}
+		if !bodyless {
+			replayed, err := req.GetBody()
+			if err != nil {
+				return nil, err
+			}
+			req.Body = replayed
 		}
 		c.tokens.invalidate(token)
 		resp.Body.Close()

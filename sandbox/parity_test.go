@@ -89,6 +89,12 @@ func collatedFromRenamed(collatedName string) bool {
 	return false
 }
 
+// processRecordRenames maps generated ProcessResponse fields to their
+// curated ProcessInfo names.
+var processRecordRenames = map[string]string{
+	"Pid": "PID",
+}
+
 func TestProcessInfoCoversGeneratedRecord(t *testing.T) {
 	collect := func(value any) map[string]bool {
 		fields := map[string]bool{}
@@ -101,8 +107,15 @@ func TestProcessInfoCoversGeneratedRecord(t *testing.T) {
 	generated := collect(sandboxapi.ProcessResponse{})
 	collated := collect(sandbox.ProcessInfo{})
 
+	renames := map[string]bool{}
+	for generatedName, collatedName := range processRecordRenames {
+		if !collated[collatedName] {
+			t.Errorf("renamed field %s has no curated twin", collatedName)
+		}
+		renames[generatedName] = true
+	}
 	for name := range generated {
-		if processRecordUntranslated[name] != "" {
+		if renames[name] || processRecordUntranslated[name] != "" {
 			continue
 		}
 		if !collated[name] {
@@ -110,10 +123,21 @@ func TestProcessInfoCoversGeneratedRecord(t *testing.T) {
 		}
 	}
 	for name := range collated {
-		if !generated[name] {
+		_, translated := generated[name]
+		_, renamed := processRecordRenames[name]
+		if !translated && !renamed && !processRenameTarget(name) {
 			t.Errorf("curated field %s translates no generated field", name)
 		}
 	}
+}
+
+func processRenameTarget(collatedName string) bool {
+	for _, renamed := range processRecordRenames {
+		if renamed == collatedName {
+			return true
+		}
+	}
+	return false
 }
 
 func TestExceptionListsNameRealFields(t *testing.T) {

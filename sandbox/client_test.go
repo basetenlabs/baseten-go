@@ -531,3 +531,28 @@ func TestCreateSucceedsWithoutURL(t *testing.T) {
 		t.Fatalf("want a no-URL error from exec, got %v", err)
 	}
 }
+
+func TestUpdateEmptyEnvsClears(t *testing.T) {
+	recorder := &controlPlaneRecorder{}
+	server := recorder.serve(t, testSandboxRecord)
+	client := clientForTest(t, server.URL, nil)
+
+	// An allocated empty map replaces the previous envs with none, where a
+	// nil map would leave them unchanged.
+	if _, err := client.Update(context.Background(), "sbx-1", &sandbox.UpdateSandboxRequest{
+		Envs: map[string]sandbox.SandboxEnvValue{},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	var body map[string]any
+	if err := json.Unmarshal([]byte(recorder.requests[len(recorder.requests)-1].body), &body); err != nil {
+		t.Fatal(err)
+	}
+	envs, present := body["envs"]
+	if !present {
+		t.Fatal("an allocated empty map must send envs, not omit them")
+	}
+	if list, ok := envs.([]any); !ok || len(list) != 0 {
+		t.Errorf("envs must serialize as an empty array, got %v", envs)
+	}
+}

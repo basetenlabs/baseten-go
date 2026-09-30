@@ -135,6 +135,7 @@ type ListSandboxesRequest struct {
 type SandboxesClient struct {
 	options SandboxesClientOptions
 	tokens  *tokenSource
+	headers http.Header
 	api     *managementapi.Client
 }
 
@@ -165,6 +166,7 @@ func NewSandboxesClient(opts SandboxesClientOptions) (*SandboxesClient, error) {
 	return &SandboxesClient{
 		options: opts,
 		tokens:  tokens,
+		headers: headers,
 		api: &managementapi.Client{
 			BaseURL:    sandboxesBaseURL,
 			HTTPClient: &tokenAuthClient{inner: httpClient, tokens: tokens},
@@ -185,7 +187,7 @@ func (c *SandboxesClient) RawAPI() *managementapi.Client {
 	return c.api
 }
 
-// Create creates a sandbox. The returned Sandbox's Info is the record as of
+// Create creates a sandbox. The Info of the returned Sandbox is the record as of
 // creation; the sandbox reaches it URL and DEPLOYED status asynchronously.
 func (c *SandboxesClient) Create(ctx context.Context, request *CreateSandboxRequest) (*Sandbox, error) {
 	body := managementapi.CreateSandboxRequest{
@@ -213,7 +215,7 @@ func (c *SandboxesClient) Create(ctx context.Context, request *CreateSandboxRequ
 		info:       info,
 		tokens:     c.tokens,
 		httpClient: c.httpClient(),
-		headers:    c.options.Headers,
+		headers:    c.headers,
 	}), nil
 }
 
@@ -249,7 +251,7 @@ func (c *SandboxesClient) SandboxFromInfo(info SandboxInfo) (*Sandbox, error) {
 		info:       info,
 		tokens:     c.tokens,
 		httpClient: c.httpClient(),
-		headers:    c.options.Headers,
+		headers:    c.headers,
 	}), nil
 }
 
