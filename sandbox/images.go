@@ -184,17 +184,17 @@ type ImageListOptions struct {
 // ImageClient manages the images sandboxes are created from, on the control
 // plane. Get one from SandboxesClient.Images.
 type ImageClient struct {
-	api    *managementapi.Client
-	teamID func() *string
-	do     func(err error) error
+	api            *managementapi.Client
+	teamID         func() *string
+	toControlError func(err error) error
 }
 
 // Images returns the client for managing images.
 func (c *SandboxesClient) Images() *ImageClient {
 	return &ImageClient{
-		api:    c.api,
-		teamID: c.teamID,
-		do:     func(err error) error { return toSandboxAPIError(err, "control") },
+		api:            c.api,
+		teamID:         c.teamID,
+		toControlError: func(err error) error { return toSandboxAPIError(err, "control") },
 	}
 }
 
@@ -222,7 +222,7 @@ func (c *ImageClient) Push(ctx context.Context, opts *ImagePushOptions) (*ImageI
 			DockerConfig: optionalString(opts.DockerConfig),
 		})
 	if err != nil {
-		return nil, c.do(err)
+		return nil, c.toControlError(err)
 	}
 	if sourceZip != nil {
 		if pushed.UploadUrl == nil || *pushed.UploadUrl == "" {
@@ -250,7 +250,7 @@ func (c *ImageClient) WaitBuilt(ctx context.Context, opts *ImageWaitOptions) (*I
 func (c *ImageClient) GetInfo(ctx context.Context, name string) (*ImageInfo, error) {
 	image, err := c.api.GetImage(ctx, name, managementapi.GetImageParams{TeamId: c.teamID()})
 	if err != nil {
-		return nil, c.do(err)
+		return nil, c.toControlError(err)
 	}
 	info := imageInfoFromAPI(image)
 	return &info, nil
@@ -269,7 +269,7 @@ func (c *ImageClient) List(ctx context.Context, opts *ImageListOptions) iter.Seq
 		for {
 			page, err := c.api.ListImages(ctx, params)
 			if err != nil {
-				yield(nil, c.do(err))
+				yield(nil, c.toControlError(err))
 				return
 			}
 			for i := range page.Items {
@@ -295,7 +295,7 @@ func (c *ImageClient) List(ctx context.Context, opts *ImageListOptions) iter.Seq
 func (c *ImageClient) Delete(ctx context.Context, name string) (*ImageInfo, error) {
 	image, err := c.api.DeleteImage(ctx, name, managementapi.DeleteImageParams{TeamId: c.teamID()})
 	if err != nil {
-		return nil, c.do(err)
+		return nil, c.toControlError(err)
 	}
 	info := imageInfoFromAPI(image)
 	return &info, nil
@@ -305,7 +305,7 @@ func (c *ImageClient) Delete(ctx context.Context, name string) (*ImageInfo, erro
 func (c *ImageClient) Cleanup(ctx context.Context) (*ImageCleanupResult, error) {
 	result, err := c.api.CleanupImages(ctx, managementapi.CleanupImagesParams{TeamId: c.teamID()})
 	if err != nil {
-		return nil, c.do(err)
+		return nil, c.toControlError(err)
 	}
 	return &ImageCleanupResult{Deleted: result.Deleted, Message: result.Message}, nil
 }
@@ -430,9 +430,18 @@ func zipImageSource(directory string) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		if entry.content != nil {
-			if _, err := file.Write(entry.content); err != nil {
+		if entry.source != "" {
+			opened, err := os.Open(entry.source)
+			if err != nil {
 				return nil, err
+			}
+			_, copyErr := io.Copy(file, opened)
+			closeErr := opened.Close()
+			if copyErr != nil {
+				return nil, copyErr
+			}
+			if closeErr != nil {
+				return nil, closeErr
 			}
 		}
 	}
@@ -443,9 +452,10 @@ func zipImageSource(directory string) ([]byte, error) {
 }
 
 type imageSourceEntry struct {
-	path    string
-	mode    fs.FileMode
-	content []byte
+	path string
+	mode fs.FileMode
+	// source is the file to stream into the archive, empty for a directory.
+	source string
 }
 
 func imageSourceEntries(directory string) ([]imageSourceEntry, error) {
@@ -474,11 +484,7 @@ func imageSourceEntries(directory string) ([]imageSourceEntry, error) {
 		if archivePath == "Dockerfile" {
 			hasDockerfile = true
 		}
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		entries = append(entries, imageSourceEntry{path: archivePath, mode: info.Mode(), content: content})
+		entries = append(entries, imageSourceEntry{path: archivePath, mode: info.Mode(), source: path})
 		return nil
 	})
 	if err != nil {
