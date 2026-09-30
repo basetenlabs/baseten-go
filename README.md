@@ -127,3 +127,29 @@ For multipart, supply the content type and boundary returned by
 `RawRequestOptions` for content negotiation and return an unread `*http.Response`;
 the caller must close its body. Typed methods negotiate JSON. The archive export
 response retains `StatusCode` and separate `JSON200`/`JSON202` payloads.
+
+#### High-level sandbox client
+
+`github.com/basetenlabs/baseten-go/sandbox` wraps both planes. It exchanges the
+API key for the short-lived token the sandbox APIs require, caches it until
+shortly before it expires, and re-authenticates when the server revokes it:
+
+```go
+client, err := sandbox.NewSandboxesClient(sandbox.SandboxesClientOptions{
+    APIKey: apiKey,
+})
+created, err := client.Create(ctx, &sandbox.CreateSandboxRequest{Name: "worker"})
+info, err := client.GetInfo(ctx, "worker")
+instance, err := client.SandboxFromInfo(*info)
+executed, err := instance.Process().Exec(ctx, &sandbox.ExecOptions{
+    Command:           "echo hello",
+    WaitForCompletion: true,
+})
+for candidate, err := range client.List(ctx, &sandbox.ListSandboxesRequest{}) {
+    _ = candidate
+}
+client.Delete(ctx, "worker")
+```
+
+`Sandbox.Process().ExecStream` yields process events as output arrives. Both
+generated clients stay reachable through `RawAPI()`.
