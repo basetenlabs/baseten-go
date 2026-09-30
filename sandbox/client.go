@@ -133,10 +133,11 @@ type ListSandboxesRequest struct {
 
 // SandboxesClient works with sandboxes on the control plane.
 type SandboxesClient struct {
-	options SandboxesClientOptions
-	tokens  *tokenSource
-	headers http.Header
-	api     *managementapi.Client
+	options    SandboxesClientOptions
+	tokens     *tokenSource
+	headers    http.Header
+	httpClient HTTPDoer
+	api        *managementapi.Client
 }
 
 // NewSandboxesClient creates a SandboxesClient without making a network
@@ -163,10 +164,13 @@ func NewSandboxesClient(opts SandboxesClientOptions) (*SandboxesClient, error) {
 		headers = http.Header{}
 	}
 	client.ApplyUserAgentHeader(headers)
+	// Resolved once: each sandbox built from this client shares the same
+	// connection pool instead of cloning its own transport.
 	return &SandboxesClient{
-		options: opts,
-		tokens:  tokens,
-		headers: headers,
+		options:    opts,
+		tokens:     tokens,
+		headers:    headers,
+		httpClient: httpClient,
 		api: &managementapi.Client{
 			BaseURL:    sandboxesBaseURL,
 			HTTPClient: &tokenAuthClient{inner: httpClient, tokens: tokens},
@@ -214,7 +218,7 @@ func (c *SandboxesClient) Create(ctx context.Context, request *CreateSandboxRequ
 	return newSandbox(sandboxOptions{
 		info:       info,
 		tokens:     c.tokens,
-		httpClient: c.httpClient(),
+		httpClient: c.httpClient,
 		headers:    c.headers,
 	}), nil
 }
@@ -250,7 +254,7 @@ func (c *SandboxesClient) SandboxFromInfo(info SandboxInfo) (*Sandbox, error) {
 	return newSandbox(sandboxOptions{
 		info:       info,
 		tokens:     c.tokens,
-		httpClient: c.httpClient(),
+		httpClient: c.httpClient,
 		headers:    c.headers,
 	}), nil
 }
@@ -349,13 +353,6 @@ func (c *SandboxesClient) teamID() *string {
 	}
 	teamID := c.options.TeamID
 	return &teamID
-}
-
-func (c *SandboxesClient) httpClient() HTTPDoer {
-	if c.options.HTTPClient != nil {
-		return c.options.HTTPClient
-	}
-	return newDefaultHTTPClient()
 }
 
 func optionalString(value string) *string {

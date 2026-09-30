@@ -153,6 +153,11 @@ func (c *tokenAuthClient) Do(req *http.Request) (*http.Response, error) {
 		revoked := token != "" &&
 			resp.StatusCode == http.StatusUnauthorized &&
 			resp.Header.Get("x-blaxel-error-code") == tokenRevokedCode
+		// Every revoked token leaves the cache, including the last attempt's,
+		// so the next request never reuses a token the server just rejected.
+		if revoked {
+			c.tokens.invalidate(token)
+		}
 		replayable := bodyless || req.GetBody != nil
 		// The last attempt's response is returned even when still revoked,
 		// so the caller gets a meaningful error.
@@ -162,11 +167,11 @@ func (c *tokenAuthClient) Do(req *http.Request) (*http.Response, error) {
 		if !bodyless {
 			replayed, err := req.GetBody()
 			if err != nil {
+				resp.Body.Close()
 				return nil, err
 			}
 			req.Body = replayed
 		}
-		c.tokens.invalidate(token)
 		resp.Body.Close()
 	}
 }

@@ -112,20 +112,6 @@ func sandboxAPIError(status int, body any) SandboxAPIError {
 	return SandboxAPIError{Status: status, Code: code, Details: details, Body: body}
 }
 
-func errorStatus(err error) int {
-	var managementResponseError *managementapi.ResponseError
-	var sandboxResponseError *sandboxapi.ResponseError
-	var typedErrorResponse *sandboxapi.ResponseErrorResponse
-	switch {
-	case errors.As(err, &managementResponseError):
-		return managementResponseError.StatusCode
-	case errors.As(err, &sandboxResponseError):
-		return sandboxResponseError.StatusCode
-	default:
-		return typedErrorResponse.StatusCode
-	}
-}
-
 func parseErrorBody(body string) any {
 	var parsed any
 	if err := json.Unmarshal([]byte(body), &parsed); err != nil {
