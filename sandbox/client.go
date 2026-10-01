@@ -99,10 +99,6 @@ type UpdateSandboxRequest struct {
 	// leaves it unchanged.
 	DisplayName string
 
-	// Enabled is false to disable the sandbox (it accepts no connections),
-	// true to enable it. Nil leaves it unchanged.
-	Enabled *bool
-
 	// Envs replace the sandbox's environment variables. Nil leaves them
 	// unchanged.
 	Envs map[string]SandboxEnvValue
@@ -282,7 +278,6 @@ func (c *SandboxesClient) SandboxFromInfo(info SandboxInfo) (*Sandbox, error) {
 func (c *SandboxesClient) Update(ctx context.Context, name string, request *UpdateSandboxRequest) (*SandboxInfo, error) {
 	body := managementapi.UpdateSandboxRequest{
 		DisplayName: optionalString(request.DisplayName),
-		Enabled:     request.Enabled,
 		Envs:        envsToAPI(request.Envs),
 		Labels:      labelsToAPI(request.Labels),
 		Image:       optionalString(request.Image),

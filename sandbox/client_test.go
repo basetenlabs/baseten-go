@@ -347,24 +347,6 @@ func TestUpdateSendsOnlySetFields(t *testing.T) {
 	}
 }
 
-func TestUpdateEnabledFalseDisables(t *testing.T) {
-	recorder := &controlPlaneRecorder{}
-	server := recorder.serve(t, testSandboxRecord)
-	client := clientForTest(t, server.URL, nil)
-
-	disabled := false
-	if _, err := client.Update(context.Background(), "sbx-1", &sandbox.UpdateSandboxRequest{Enabled: &disabled}); err != nil {
-		t.Fatal(err)
-	}
-	var body map[string]any
-	if err := json.Unmarshal([]byte(recorder.requests[len(recorder.requests)-1].body), &body); err != nil {
-		t.Fatal(err)
-	}
-	if body["enabled"] != false {
-		t.Errorf("enabled must serialize as false, got %v", body["enabled"])
-	}
-}
-
 func TestDeleteReturnsRecord(t *testing.T) {
 	recorder := &controlPlaneRecorder{}
 	server := recorder.serve(t, testSandboxRecord)
