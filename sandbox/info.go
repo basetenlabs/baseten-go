@@ -159,6 +159,18 @@ type ProcessInfo struct {
 	CompletedAt time.Time `json:"completed_at"`
 }
 
+// ProcessLogs is one process's captured output.
+type ProcessLogs struct {
+	// Stdout is the process standard output.
+	Stdout string `json:"stdout"`
+
+	// Stderr is the process standard error.
+	Stderr string `json:"stderr"`
+
+	// Logs is standard output and standard error, interleaved.
+	Logs string `json:"logs"`
+}
+
 // The exec API sends timestamps in either format; both appear in the wild.
 var execTimestampLayouts = []string{time.RFC3339, time.RFC1123, time.RFC1123Z}
 

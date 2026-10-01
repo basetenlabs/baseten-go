@@ -100,6 +100,44 @@ func TestExecSendsWaitForCompletion(t *testing.T) {
 	}
 }
 
+func TestProcessListConvertsRecords(t *testing.T) {
+	server := execPlaneForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" || r.URL.Path != "/process" {
+			t.Errorf("unexpected request %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, "["+testProcessRecord+"]")
+	})
+	instance := sandboxForExecTest(t, server.URL, "exec-token")
+
+	infos, err := instance.Process().List(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(infos) != 1 || infos[0].PID != "123" || infos[0].Status != "completed" {
+		t.Errorf("processes not converted: %+v", infos)
+	}
+}
+
+func TestProcessLogsReturnsCapturedOutput(t *testing.T) {
+	server := execPlaneForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" || r.URL.Path != "/process/123/logs" {
+			t.Errorf("unexpected request %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"logs": "hi\n", "stdout": "hi\n", "stderr": ""}`)
+	})
+	instance := sandboxForExecTest(t, server.URL, "exec-token")
+
+	logs, err := instance.Process().Logs(context.Background(), "123")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if logs.Stdout != "hi\n" || logs.Logs != "hi\n" {
+		t.Errorf("logs not converted: %+v", logs)
+	}
+}
+
 func TestExecGatewayErrorTyped(t *testing.T) {
 	server := execPlaneForTest(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(502)

@@ -79,6 +79,38 @@ func (p *SandboxProcess) Exec(ctx context.Context, opts *ExecOptions) (*ProcessI
 	return &info, nil
 }
 
+// List returns the sandbox's processes.
+func (p *SandboxProcess) List(ctx context.Context) ([]ProcessInfo, error) {
+	if err := p.requireURL(); err != nil {
+		return nil, err
+	}
+	processes, err := p.api.GetProcess(ctx)
+	if err != nil {
+		return nil, toSandboxAPIError(err, "exec")
+	}
+	infos := make([]ProcessInfo, 0, len(*processes))
+	for i := range *processes {
+		info, err := processInfoFromAPI(&(*processes)[i])
+		if err != nil {
+			return nil, err
+		}
+		infos = append(infos, info)
+	}
+	return infos, nil
+}
+
+// Logs returns one process's captured output, by pid or name.
+func (p *SandboxProcess) Logs(ctx context.Context, identifier string) (*ProcessLogs, error) {
+	if err := p.requireURL(); err != nil {
+		return nil, err
+	}
+	logs, err := p.api.GetProcessLogs(ctx, identifier)
+	if err != nil {
+		return nil, toSandboxAPIError(err, "exec")
+	}
+	return &ProcessLogs{Stdout: logs.Stdout, Stderr: logs.Stderr, Logs: logs.Logs}, nil
+}
+
 // ExecEventType is the kind of one streamed exec event. The values come from
 // the execution API; others may be added, so do not treat the constants as
 // exhaustive.
