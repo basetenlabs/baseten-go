@@ -612,9 +612,9 @@ func intOrZero(value *int) int {
 	return *value
 }
 
-// HubImage is one starter image from the platform's sandbox hub, available
+// LibraryImage is one starter image from the platform's starter-image library, available
 // to any sandbox without building or pushing.
-type HubImage struct {
+type LibraryImage struct {
 	// Name is the stable identifier of the starter image.
 	Name string `json:"name"`
 
@@ -643,7 +643,7 @@ type HubImage struct {
 
 	// Ports are the image's own services, for reference in a sandbox's
 	// ports list.
-	Ports []HubImagePort `json:"ports"`
+	Ports []LibraryImagePort `json:"ports"`
 
 	// IconURL is the image's icon for display.
 	IconURL string `json:"icon_url"`
@@ -656,8 +656,8 @@ type HubImage struct {
 	Enterprise bool `json:"enterprise"`
 }
 
-// HubImagePort is one port a starter image's services listen on.
-type HubImagePort struct {
+// LibraryImagePort is one port a starter image's services listen on.
+type LibraryImagePort struct {
 	// Name of the port.
 	Name string `json:"name"`
 
@@ -668,15 +668,15 @@ type HubImagePort struct {
 	Protocol string `json:"protocol"`
 }
 
-// HubImages lists the platform's starter images from the sandbox hub catalog.
+// LibraryImages lists the platform's starter images from the starter-image library.
 // Hidden and coming-soon entries are dropped, matching what the console's
 // create form shows.
-func (c *SandboxesClient) HubImages(ctx context.Context) ([]HubImage, error) {
-	catalog, err := c.api.ListSandboxHubImages(ctx)
+func (c *SandboxesClient) LibraryImages(ctx context.Context) ([]LibraryImage, error) {
+	catalog, err := c.api.ListSandboxLibraryImages(ctx)
 	if err != nil {
 		return nil, toSandboxAPIError(err, "control")
 	}
-	images := make([]HubImage, 0, len(*catalog))
+	images := make([]LibraryImage, 0, len(*catalog))
 	for _, entry := range *catalog {
 		if entry.Hidden != nil && *entry.Hidden {
 			continue
@@ -689,8 +689,8 @@ func (c *SandboxesClient) HubImages(ctx context.Context) ([]HubImage, error) {
 	return images, nil
 }
 
-func hubImageFromAPI(entry *managementapi.SandboxHubImage) HubImage {
-	image := HubImage{
+func hubImageFromAPI(entry *managementapi.SandboxLibraryImage) LibraryImage {
+	image := LibraryImage{
 		Name:        entry.Name,
 		Image:       entry.Image,
 		Description: stringOrEmpty(entry.Description),
@@ -719,7 +719,7 @@ func hubImageFromAPI(entry *managementapi.SandboxHubImage) HubImage {
 	}
 	if entry.Ports != nil {
 		for _, port := range *entry.Ports {
-			image.Ports = append(image.Ports, HubImagePort{
+			image.Ports = append(image.Ports, LibraryImagePort{
 				Name:     stringOrEmpty(port.Name),
 				Target:   intOrZero(port.Target),
 				Protocol: stringOrEmpty(port.Protocol),

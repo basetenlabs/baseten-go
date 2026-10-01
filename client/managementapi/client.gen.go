@@ -1834,9 +1834,9 @@ func (c *Client) ListImages(ctx context.Context, params ListImagesParams) (*List
 	})
 }
 
-// ListSandboxHubImages: List starter sandbox images
-func (c *Client) ListSandboxHubImages(ctx context.Context) (*SandboxHubImageList, error) {
-	return doJSON[SandboxHubImageList](c, ctx, apiRequest{
+// ListSandboxLibraryImages: List starter sandbox images
+func (c *Client) ListSandboxLibraryImages(ctx context.Context) (*SandboxLibraryImageList, error) {
+	return doJSON[SandboxLibraryImageList](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v0/sandbox/hub",
 		pathArgs:     nil,

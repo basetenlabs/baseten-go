@@ -11132,7 +11132,7 @@
     },
     "/v0/sandbox/hub": {
       "get": {
-        "operationId": "ListSandboxHubImages",
+        "operationId": "ListSandboxLibraryImages",
         "summary": "List starter sandbox images",
         "description": "Lists the platform's starter images from the sandbox hub catalog, available to any sandbox without building or pushing. The catalog is workspace-global. Hidden and coming-soon entries arrive unfiltered; callers that display catalogs drop them. Pass an entry's image as image when creating a sandbox.",
         "responses": {
@@ -11141,7 +11141,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboxHubImageList"
+                  "$ref": "#/components/schemas/SandboxLibraryImageList"
                 }
               }
             }
@@ -34851,7 +34851,7 @@
           }
         }
       },
-      "SandboxHubImage": {
+      "SandboxLibraryImage": {
         "type": "object",
         "required": [
           "name",
@@ -34950,10 +34950,10 @@
           }
         }
       },
-      "SandboxHubImageList": {
+      "SandboxLibraryImageList": {
         "type": "array",
         "items": {
-          "$ref": "#/components/schemas/SandboxHubImage"
+          "$ref": "#/components/schemas/SandboxLibraryImage"
         },
         "description": "The starter-image catalog."
       }

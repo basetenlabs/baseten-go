@@ -6899,8 +6899,8 @@ type SandboxExpirationPolicy struct {
 	union json.RawMessage
 }
 
-// SandboxHubImage defines model for SandboxHubImage.
-type SandboxHubImage struct {
+// SandboxLibraryImage defines model for SandboxLibraryImage.
+type SandboxLibraryImage struct {
 	// Categories Categories the image is filed under, for filtering.
 	Categories *[]string `json:"categories,omitempty"`
 
@@ -6959,8 +6959,8 @@ type SandboxHubImage struct {
 	Url *string `json:"url,omitempty"`
 }
 
-// SandboxHubImageList The starter-image catalog.
-type SandboxHubImageList = []SandboxHubImage
+// SandboxLibraryImageList The starter-image catalog.
+type SandboxLibraryImageList = []SandboxLibraryImage
 
 // SandboxLifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
 type SandboxLifecycle struct {

@@ -621,7 +621,7 @@ func TestUpdateEnabledNilOmittedSetSent(t *testing.T) {
 	}
 }
 
-func TestHubImagesFiltersHiddenAndComingSoon(t *testing.T) {
+func TestLibraryImagesFiltersHiddenAndComingSoon(t *testing.T) {
 	controlServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		switch r.URL.Path {
@@ -640,7 +640,7 @@ func TestHubImagesFiltersHiddenAndComingSoon(t *testing.T) {
 	t.Cleanup(controlServer.Close)
 	client := clientForTest(t, controlServer.URL, nil)
 
-	images, err := client.HubImages(context.Background())
+	images, err := client.LibraryImages(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

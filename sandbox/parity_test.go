@@ -204,8 +204,8 @@ func TestImageInfoCoversGeneratedRecord(t *testing.T) {
 	}
 }
 
-// hubRecordUntranslated names generated SandboxHubImage fields the curated
-// HubImage deliberately does not carry, with the reason.
+// hubRecordUntranslated names generated SandboxLibraryImage fields the curated
+// LibraryImage deliberately does not carry, with the reason.
 var hubRecordUntranslated = map[string]string{
 	"IconDark":   "display variant the CLI does not render",
 	"IconLight":  "display variant the CLI does not render",
@@ -213,8 +213,8 @@ var hubRecordUntranslated = map[string]string{
 	"ComingSoon": "filtered out before the curated record exists",
 }
 
-// hubRecordRenames maps generated SandboxHubImage fields to their curated
-// HubImage names.
+// hubRecordRenames maps generated SandboxLibraryImage fields to their curated
+// LibraryImage names.
 var hubRecordRenames = map[string]string{
 	"DisplayName":     "DisplayName",
 	"LongDescription": "LongDescription",
@@ -223,7 +223,7 @@ var hubRecordRenames = map[string]string{
 	"Url":             "ProjectURL",
 }
 
-func TestHubImageCoversGeneratedRecord(t *testing.T) {
+func TestLibraryImageCoversGeneratedRecord(t *testing.T) {
 	collect := func(value any) map[string]bool {
 		fields := map[string]bool{}
 		structType := reflect.TypeOf(value)
@@ -232,8 +232,8 @@ func TestHubImageCoversGeneratedRecord(t *testing.T) {
 		}
 		return fields
 	}
-	generated := collect(managementapi.SandboxHubImage{})
-	collated := collect(sandbox.HubImage{})
+	generated := collect(managementapi.SandboxLibraryImage{})
+	collated := collect(sandbox.LibraryImage{})
 
 	for generatedName, collatedName := range hubRecordRenames {
 		if !collated[collatedName] {
@@ -262,7 +262,7 @@ func TestHubImageCoversGeneratedRecord(t *testing.T) {
 		}
 	}
 	for name := range hubRecordUntranslated {
-		if _, present := reflect.TypeOf(managementapi.SandboxHubImage{}).FieldByName(name); !present {
+		if _, present := reflect.TypeOf(managementapi.SandboxLibraryImage{}).FieldByName(name); !present {
 			t.Errorf("hub exception %q names no generated field", name)
 		}
 	}
