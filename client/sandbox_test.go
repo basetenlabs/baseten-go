@@ -15,9 +15,42 @@ import (
 func newSandboxClient(t *testing.T, srv *httptest.Server, opts client.SandboxClientOptions) *sandboxapi.Client {
 	t.Helper()
 	opts.BaseURL = srv.URL
+	if opts.Token == "" && !opts.DeferAuth {
+		opts.Token = "test-token"
+	}
 	cl, err := client.NewSandboxClient(opts)
 	require.NoError(t, err)
 	return cl.API()
+}
+
+func TestNewSandboxClient(t *testing.T) {
+	t.Run("RequiresToken", func(t *testing.T) {
+		_, err := client.NewSandboxClient(client.SandboxClientOptions{BaseURL: "https://sandbox.example.com"})
+		require.Error(t, err)
+	})
+
+	t.Run("TokenMutuallyExclusiveWithDeferAuth", func(t *testing.T) {
+		_, err := client.NewSandboxClient(client.SandboxClientOptions{
+			Token:     "test-token",
+			BaseURL:   "https://sandbox.example.com",
+			DeferAuth: true,
+		})
+		require.Error(t, err)
+	})
+
+	t.Run("RequiresBaseURL", func(t *testing.T) {
+		_, err := client.NewSandboxClient(client.SandboxClientOptions{Token: "test-token"})
+		require.Error(t, err)
+	})
+
+	t.Run("TrimsTrailingSlash", func(t *testing.T) {
+		c, err := client.NewSandboxClient(client.SandboxClientOptions{
+			Token:   "test-token",
+			BaseURL: "https://sandbox.example.com/",
+		})
+		require.NoError(t, err)
+		require.Equal(t, "https://sandbox.example.com", c.API().BaseURL)
+	})
 }
 
 func TestSandboxClientAuth(t *testing.T) {
@@ -31,10 +64,10 @@ func TestSandboxClientAuth(t *testing.T) {
 		require.Regexp(t, `^baseten-go/\S+`, capture.Header.Get("User-Agent"))
 	})
 
-	t.Run("EmptyTokenOmitsAuthorization", func(t *testing.T) {
+	t.Run("DeferAuthOmitsAuthorization", func(t *testing.T) {
 		var capture requestCapture
 		srv := newTestServer(t, 200, map[string]any{"status": "ok"}, &capture)
-		_, err := newSandboxClient(t, srv, client.SandboxClientOptions{}).GetHealth(t.Context())
+		_, err := newSandboxClient(t, srv, client.SandboxClientOptions{DeferAuth: true}).GetHealth(t.Context())
 		require.NoError(t, err)
 		require.Equal(t, "", capture.Header.Get("Authorization"))
 	})
