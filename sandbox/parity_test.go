@@ -171,18 +171,29 @@ func TestImageInfoCoversGeneratedRecord(t *testing.T) {
 	generated := collect(managementapi.Image{})
 	collated := collect(sandbox.ImageInfo{})
 
-	renames := map[string]string{"Size": "SizeBytes", "LastDeployedAt": "LastDeployedAt"}
+	renames := map[string]string{"Size": "SizeBytes"}
+	for _, collatedName := range renames {
+		if !collated[collatedName] {
+			t.Errorf("renamed field %s has no curated twin", collatedName)
+		}
+	}
 	for name := range generated {
 		if renames[name] != "" || imageRecordUntranslated[name] != "" {
 			continue
 		}
-		if !collated[name] && renames[name] == "" {
+		if !collated[name] {
 			t.Errorf("generated field %s has neither a curated twin nor an exception", name)
 		}
 	}
 	for name := range collated {
 		_, translated := generated[name]
-		if !translated && name != "SizeBytes" {
+		renamedInto := false
+		for _, collatedName := range renames {
+			if collatedName == name {
+				renamedInto = true
+			}
+		}
+		if !translated && !renamedInto {
 			t.Errorf("curated field %s translates no generated field", name)
 		}
 	}

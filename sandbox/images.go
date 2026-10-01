@@ -2,7 +2,6 @@ package sandbox
 
 import (
 	"archive/zip"
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -11,6 +10,7 @@ import (
 	"iter"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -196,6 +196,7 @@ type ImageListOptions struct {
 // plane. Get one from SandboxesClient.Images.
 type ImageClient struct {
 	api            *managementapi.Client
+	doer           HTTPDoer
 	teamID         func() *string
 	toControlError func(err error) error
 }
@@ -204,6 +205,7 @@ type ImageClient struct {
 func (c *SandboxesClient) Images() *ImageClient {
 	return &ImageClient{
 		api:            c.api,
+		doer:           c.httpClient,
 		teamID:         c.teamID,
 		toControlError: func(err error) error { return toSandboxAPIError(err, "control") },
 	}
@@ -218,13 +220,14 @@ func (c *ImageClient) Push(ctx context.Context, opts *ImagePushOptions) (*ImageI
 	if opts.DockerConfig != "" && opts.RegistryImage == "" {
 		return nil, errors.New("DockerConfig applies only to RegistryImage")
 	}
-	var sourceZip []byte
+	var sourceArchive string
 	if opts.Directory != "" {
 		var err error
-		sourceZip, err = zipImageSource(opts.Directory)
+		sourceArchive, err = zipImageSource(opts.Directory)
 		if err != nil {
 			return nil, err
 		}
+		defer os.Remove(sourceArchive)
 	}
 	pushed, err := c.api.PushImage(ctx, managementapi.PushImageParams{TeamId: c.teamID()},
 		managementapi.PushImageRequest{
@@ -235,18 +238,22 @@ func (c *ImageClient) Push(ctx context.Context, opts *ImagePushOptions) (*ImageI
 	if err != nil {
 		return nil, c.toControlError(err)
 	}
-	if sourceZip != nil {
+	if sourceArchive != "" {
 		if pushed.UploadUrl == nil || *pushed.UploadUrl == "" {
 			return nil, fmt.Errorf("pushing image %s returned no upload URL", opts.Name)
 		}
-		if err := c.uploadSource(ctx, opts.Name, *pushed.UploadUrl, sourceZip); err != nil {
+		if err := c.uploadSource(ctx, opts.Name, *pushed.UploadUrl, sourceArchive); err != nil {
 			return nil, err
 		}
 	}
 	if !opts.WaitForBuilt {
 		return &ImageInfo{Name: pushed.Name, Status: string(pushed.Status)}, nil
 	}
-	return c.waitBuilt(ctx, opts.Name, opts.TimeoutSeconds, opts.PollIntervalSeconds, true)
+	// The 202's status is this push's own, so a non-terminal one seeds the
+	// wait's progress: a build that fails before the first poll is terminal
+	// at once instead of looking stale.
+	return c.waitBuilt(ctx, opts.Name, string(pushed.Status), opts.TimeoutSeconds,
+		opts.PollIntervalSeconds, true)
 }
 
 // WaitBuilt waits until the image is ready, failing on a failed build or a
@@ -254,7 +261,7 @@ func (c *ImageClient) Push(ctx context.Context, opts *ImagePushOptions) (*ImageI
 // pushing a new version of an already built image it may return before the
 // new version is processed; Push with WaitForBuilt avoids that.
 func (c *ImageClient) WaitBuilt(ctx context.Context, opts *ImageWaitOptions) (*ImageInfo, error) {
-	return c.waitBuilt(ctx, opts.Name, opts.TimeoutSeconds, opts.PollIntervalSeconds, false)
+	return c.waitBuilt(ctx, opts.Name, "", opts.TimeoutSeconds, opts.PollIntervalSeconds, false)
 }
 
 // GetInfo gets an image's current record.
@@ -321,15 +328,27 @@ func (c *ImageClient) Cleanup(ctx context.Context) (*ImageCleanupResult, error) 
 	return &ImageCleanupResult{Deleted: result.Deleted, Message: result.Message}, nil
 }
 
-// uploadSource PUTs the zipped source to the URL the API signed for storage,
-// so none of the API's headers or credentials go with it.
-func (c *ImageClient) uploadSource(ctx context.Context, name, url string, sourceZip []byte) error {
-	request, err := http.NewRequestWithContext(ctx, http.MethodPut, url, bytes.NewReader(sourceZip))
+// uploadSource PUTs the spooled archive to the URL the API signed for
+// storage, so none of the API's headers or credentials go with it. The
+// client's resolved doer carries it, so a caller's proxy or TLS setup
+// applies here too.
+func (c *ImageClient) uploadSource(ctx context.Context, name, url, sourceArchive string) error {
+	archive, err := os.Open(sourceArchive)
+	if err != nil {
+		return err
+	}
+	defer archive.Close()
+	archiveInfo, err := archive.Stat()
+	if err != nil {
+		return err
+	}
+	request, err := http.NewRequestWithContext(ctx, http.MethodPut, url, archive)
 	if err != nil {
 		return err
 	}
 	request.Header.Set("Content-Type", "application/zip")
-	response, err := http.DefaultClient.Do(request)
+	request.ContentLength = archiveInfo.Size()
+	response, err := c.doer.Do(request)
 	if err != nil {
 		return err
 	}
@@ -346,7 +365,7 @@ func (c *ImageClient) uploadSource(ctx context.Context, name, url string, source
 // repository and can still show the previous version's outcome right after a
 // push; 404 and gateway statuses are ridden out, since the image may not be
 // visible yet or the edge may briefly fail.
-func (c *ImageClient) waitBuilt(ctx context.Context, name string, timeoutSeconds, pollIntervalSeconds int, requireProgress bool) (*ImageInfo, error) {
+func (c *ImageClient) waitBuilt(ctx context.Context, name, initialStatus string, timeoutSeconds, pollIntervalSeconds int, requireProgress bool) (*ImageInfo, error) {
 	deadline := time.Now().Add(imageWaitTimeout)
 	if timeoutSeconds > 0 {
 		deadline = time.Now().Add(time.Duration(timeoutSeconds) * time.Second)
@@ -356,7 +375,13 @@ func (c *ImageClient) waitBuilt(ctx context.Context, name string, timeoutSeconds
 		interval = time.Duration(pollIntervalSeconds) * time.Second
 	}
 	progressed := !requireProgress
+	if requireProgress && initialStatus != "" && initialStatus != ImageStatusBuilt && initialStatus != ImageStatusFailed {
+		progressed = true
+	}
 	lastStatus := ImageStatus("unknown")
+	if initialStatus != "" {
+		lastStatus = initialStatus
+	}
 	for {
 		image, err := c.api.GetImage(ctx, name, managementapi.GetImageParams{TeamId: c.teamID()})
 		if err != nil {
@@ -422,45 +447,65 @@ func imageInfoFromAPI(image *managementapi.Image) ImageInfo {
 	return info
 }
 
-// zipImageSource zips a directory as the image source: relative paths with
-// forward slashes, directories as entries, Unix permission bits kept, and a
-// Dockerfile required at the root.
-func zipImageSource(directory string) ([]byte, error) {
+// zipImageSource zips a directory into a spooled temporary file and returns
+// its path, so the source never sits in memory. The caller removes the file.
+// Symlinks are preserved as links, validated the way modelarchive validates
+// them: absolute targets and targets escaping the directory are rejected
+// rather than followed.
+func zipImageSource(directory string) (string, error) {
 	entries, err := imageSourceEntries(directory)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	var archive bytes.Buffer
-	writer := zip.NewWriter(&archive)
-	for _, entry := range entries {
-		header := &zip.FileHeader{
-			Name:     entry.path,
-			Modified: time.Unix(0, 0),
-		}
-		header.SetMode(entry.mode)
-		file, err := writer.CreateHeader(header)
-		if err != nil {
-			return nil, err
-		}
-		if entry.source != "" {
-			opened, err := os.Open(entry.source)
+	spool, err := os.CreateTemp("", "baseten-image-source-*.zip")
+	if err != nil {
+		return "", err
+	}
+	spoolName := spool.Name()
+	zipWriter := zip.NewWriter(spool)
+	writeErr := func() error {
+		for _, entry := range entries {
+			header := &zip.FileHeader{
+				Name:     entry.path,
+				Modified: time.Unix(0, 0),
+			}
+			header.SetMode(entry.mode)
+			file, err := zipWriter.CreateHeader(header)
 			if err != nil {
-				return nil, err
+				return err
 			}
-			_, copyErr := io.Copy(file, opened)
-			closeErr := opened.Close()
-			if copyErr != nil {
-				return nil, copyErr
+			if entry.source != "" {
+				opened, err := os.Open(entry.source)
+				if err != nil {
+					return err
+				}
+				_, copyErr := io.Copy(file, opened)
+				closeErr := opened.Close()
+				if copyErr != nil {
+					return copyErr
+				}
+				if closeErr != nil {
+					return closeErr
+				}
 			}
-			if closeErr != nil {
-				return nil, closeErr
+			if entry.linkTarget != "" {
+				if _, err := file.Write([]byte(entry.linkTarget)); err != nil {
+					return err
+				}
 			}
 		}
+		return zipWriter.Close()
+	}()
+	if writeErr != nil {
+		spool.Close()
+		os.Remove(spoolName)
+		return "", writeErr
 	}
-	if err := writer.Close(); err != nil {
-		return nil, err
+	if err := spool.Close(); err != nil {
+		os.Remove(spoolName)
+		return "", err
 	}
-	return archive.Bytes(), nil
+	return spoolName, nil
 }
 
 type imageSourceEntry struct {
@@ -468,6 +513,9 @@ type imageSourceEntry struct {
 	mode fs.FileMode
 	// source is the file to stream into the archive, empty for a directory.
 	source string
+	// linkTarget is a symlink's target, written as the entry's content; the
+	// entry never opens the link.
+	linkTarget string
 }
 
 func imageSourceEntries(directory string) ([]imageSourceEntry, error) {
@@ -496,6 +544,18 @@ func imageSourceEntries(directory string) ([]imageSourceEntry, error) {
 		if archivePath == "Dockerfile" {
 			hasDockerfile = true
 		}
+		// A symlink is preserved as a link, never followed: opening one
+		// could read from outside the directory.
+		if info.Mode()&fs.ModeSymlink != 0 {
+			target, err := validateImageLink(archivePath, path)
+			if err != nil {
+				return err
+			}
+			entries = append(entries, imageSourceEntry{
+				path: archivePath, mode: info.Mode(), linkTarget: target,
+			})
+			return nil
+		}
 		entries = append(entries, imageSourceEntry{path: archivePath, mode: info.Mode(), source: path})
 		return nil
 	})
@@ -510,6 +570,24 @@ func imageSourceEntries(directory string) ([]imageSourceEntry, error) {
 		return strings.Compare(a.path, b.path)
 	})
 	return entries, nil
+}
+
+// validateImageLink keeps the modelarchive rule, lexically: an absolute
+// target, or one reaching outside the directory from the link's archive
+// path, is rejected instead of stored.
+func validateImageLink(archivePath, sourcePath string) (string, error) {
+	target, err := os.Readlink(sourcePath)
+	if err != nil {
+		return "", fmt.Errorf("image source: read symlink %s: %w", sourcePath, err)
+	}
+	slashed := filepath.ToSlash(target)
+	if filepath.IsAbs(target) || strings.HasPrefix(slashed, "/") {
+		return "", fmt.Errorf("image source: symlink %s has an absolute target %s", archivePath, target)
+	}
+	if dest := path.Join(path.Dir(archivePath), slashed); dest == ".." || strings.HasPrefix(dest, "../") {
+		return "", fmt.Errorf("image source: symlink %s escapes the source directory via %s", archivePath, target)
+	}
+	return target, nil
 }
 
 // buildFailureLogs reads the recorded build logs so a failed build can say

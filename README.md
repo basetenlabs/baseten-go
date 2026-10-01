@@ -138,17 +138,38 @@ shortly before it expires, and re-authenticates when the server revokes it:
 client, err := sandbox.NewSandboxesClient(sandbox.SandboxesClientOptions{
     APIKey: apiKey,
 })
+if err != nil {
+    log.Fatal(err)
+}
 created, err := client.Create(ctx, &sandbox.CreateSandboxRequest{Name: "worker"})
-info, err := client.GetInfo(ctx, "worker")
+if err != nil {
+    log.Fatal(err)
+}
+info, err := client.GetInfo(ctx, created.Name(), nil)
+if err != nil {
+    log.Fatal(err)
+}
 instance, err := client.SandboxFromInfo(*info)
+if err != nil {
+    log.Fatal(err)
+}
 executed, err := instance.Process().Exec(ctx, &sandbox.ExecOptions{
     Command:           "echo hello",
     WaitForCompletion: true,
 })
-for candidate, err := range client.List(ctx, &sandbox.ListSandboxesRequest{}) {
-    _ = candidate
+if err != nil {
+    log.Fatal(err)
 }
-client.Delete(ctx, "worker")
+fmt.Println(executed.Stdout, executed.ExitCode)
+for candidate, err := range client.List(ctx, &sandbox.ListSandboxesRequest{}) {
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Println(candidate.Name, candidate.Status)
+}
+if _, err := client.Delete(ctx, "worker"); err != nil {
+    log.Fatal(err)
+}
 ```
 
 `Sandbox.Process().ExecStream` yields process events as output arrives. Both

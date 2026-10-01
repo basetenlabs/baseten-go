@@ -21,7 +21,7 @@ type SandboxOptions struct {
 	URL string
 
 	// Token is a static bearer token for the sandbox APIs. The caller
-	// manages its expiry. TokenProvider takes precedence.
+	// manages its expiry. Setting both Token and TokenProvider is rejected.
 	Token string
 
 	// TokenProvider returns the bearer token for each request, instead of a
@@ -40,7 +40,11 @@ type SandboxOptions struct {
 // source shared with the SandboxesClient the record came from, so a token
 // revoked here is dropped from that client's cache too.
 type sandboxOptions struct {
-	info       SandboxInfo
+	info SandboxInfo
+	// options is what Options() reports: the caller's original options for
+	// a directly constructed sandbox, the derived name and URL for one
+	// built from a client.
+	options    SandboxOptions
 	tokens     *tokenSource
 	httpClient HTTPDoer
 	headers    http.Header
@@ -81,6 +85,7 @@ func NewSandbox(opts SandboxOptions) (*Sandbox, error) {
 	}
 	return newSandbox(sandboxOptions{
 		info:       SandboxInfo{Name: opts.Name, URL: opts.URL},
+		options:    opts,
 		tokens:     tokens,
 		httpClient: opts.HTTPClient,
 		headers:    opts.Headers,
@@ -99,8 +104,11 @@ func newSandbox(opts sandboxOptions) *Sandbox {
 	client.ApplyUserAgentHeader(headers)
 	url := strings.TrimRight(opts.info.URL, "/")
 	sandbox := &Sandbox{
-		info:    opts.info,
-		options: SandboxOptions{Name: opts.info.Name, URL: url},
+		info: opts.info,
+		options: SandboxOptions{
+			Name: opts.info.Name, URL: url,
+			HTTPClient: opts.httpClient, Headers: opts.headers,
+		},
 		api: &sandboxapi.Client{
 			BaseURL:    url,
 			HTTPClient: &tokenAuthClient{inner: httpClient, tokens: opts.tokens},

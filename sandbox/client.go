@@ -26,7 +26,7 @@ import (
 // SandboxesClientOptions configures a SandboxesClient.
 type SandboxesClientOptions struct {
 	// APIKey is the Baseten API key exchanged for the sandbox token. Empty
-	// together with TokenProvider is the advanced opt-out of authentication.
+	// with TokenProvider unset is the advanced opt-out of authentication.
 	APIKey string
 
 	// TokenProvider returns the bearer token for each request, instead of

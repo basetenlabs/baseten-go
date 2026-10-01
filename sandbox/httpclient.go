@@ -13,17 +13,20 @@ import (
 const responseHeaderTimeout = 30 * time.Second
 
 // newDefaultHTTPClient builds the client used when the caller supplies none.
-// http.DefaultClient carries no timeout of any kind, and the timeout lives
-// only on a transport, so the default transport is cloned to carry one — at
-// the cost of this client's connections not sharing the process-wide pool.
-// A default transport that is not a plain *http.Transport is a wrapper such
-// as a tracer, and is used as-is so its instrumentation survives.
+// It copies http.DefaultClient so process-wide configuration on the client
+// itself - timeout, redirect policy, cookie jar - survives, and swaps in a
+// clone of the default transport carrying the response-header timeout, at the
+// cost of this client's connections not sharing the process-wide pool. A
+// default transport that is not a plain *http.Transport is a wrapper such as
+// a tracer, and DefaultClient is used as-is so its instrumentation survives.
 func newDefaultHTTPClient() *http.Client {
 	transport, isPlain := http.DefaultTransport.(*http.Transport)
 	if !isPlain {
 		return http.DefaultClient
 	}
+	client := *http.DefaultClient
 	cloned := transport.Clone()
 	cloned.ResponseHeaderTimeout = responseHeaderTimeout
-	return &http.Client{Transport: cloned}
+	client.Transport = cloned
+	return &client
 }

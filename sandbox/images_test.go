@@ -177,11 +177,11 @@ func TestImageWaitBuiltRidesOutMissingImage(t *testing.T) {
 	}
 }
 
-func TestImagePushWaitRejectsStaleBuilt(t *testing.T) {
-	// The repository still shows the previous version's outcome right after
-	// a push, so BUILT without observed processing must not end the wait;
-	// here the wait then times out, proving the guard held.
-	var imageCalls int
+func TestImagePushSeedsProgressFromAcceptedStatus(t *testing.T) {
+	// The 202 answers UPLOADING, so the wait has seen this push processing
+	// before its first poll; a BUILT that is already visible on the first
+	// poll is therefore terminal at once, not stale-looking.
+	imageCalls := 0
 	controlServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		switch {
@@ -212,28 +212,23 @@ func TestImagePushWaitRejectsStaleBuilt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = client.Images().Push(context.Background(), &sandbox.ImagePushOptions{
+	info, err := client.Images().Push(context.Background(), &sandbox.ImagePushOptions{
 		Name: "my-image", RegistryImage: "registry.example/my-image:v1", WaitForBuilt: true,
-		TimeoutSeconds: 1, PollIntervalSeconds: 1,
+		TimeoutSeconds: 2, PollIntervalSeconds: 1,
 	})
-	var buildError *sandbox.ImageBuildError
-	if !errors.As(err, &buildError) || !buildError.TimedOut {
-		t.Fatalf("want a timed-out ImageBuildError, got %v", err)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if imageCalls < 2 {
-		t.Errorf("stale BUILT must not end the wait; %d checks", imageCalls)
+	if info.Status != sandbox.ImageStatusBuilt || imageCalls != 1 {
+		t.Errorf("seeded wait must accept the first BUILT; status %q after %d checks",
+			info.Status, imageCalls)
 	}
 }
 
-func TestImagePushUploadFailureIsTyped(t *testing.T) {
-	storageServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(500)
-		_, _ = io.WriteString(w, "storage exploded")
-	}))
-	t.Cleanup(storageServer.Close)
-	sourceDir := t.TempDir()
-	writeTestFile(t, filepath.Join(sourceDir, "Dockerfile"), "FROM scratch\n")
-
+func TestImagePushFastFailureIsTerminal(t *testing.T) {
+	// The build fails before the first poll; the seeded progress makes that
+	// FAILED terminal at once, and the error carries the fetched build logs.
+	imageCalls := 0
 	controlServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		switch {
@@ -245,7 +240,19 @@ func TestImagePushUploadFailureIsTyped(t *testing.T) {
 			w.WriteHeader(202)
 			_ = json.NewEncoder(w).Encode(map[string]any{
 				"name": "my-image", "status": "UPLOADING",
-				"upload_url": storageServer.URL + "/upload",
+			})
+		case r.URL.Path == "/v1/sandboxes/images/my-image/logs":
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"logs": []any{map[string]any{
+					"message": "Step 1/2: failed to pull base image", "severity": 9,
+					"timestamp": "2026-09-30T12:00:00Z",
+				}},
+				"total_count": 1,
+			})
+		case r.URL.Path == "/v1/sandboxes/images/my-image":
+			imageCalls++
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"name": "my-image", "status": "FAILED",
 			})
 		default:
 			t.Errorf("unexpected request %s %s", r.Method, r.URL.Path)
@@ -261,11 +268,18 @@ func TestImagePushUploadFailureIsTyped(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = client.Images().Push(context.Background(), &sandbox.ImagePushOptions{
-		Name: "my-image", Directory: sourceDir,
+		Name: "my-image", RegistryImage: "registry.example/my-image:v1", WaitForBuilt: true,
+		TimeoutSeconds: 2, PollIntervalSeconds: 1,
 	})
-	var uploadError *sandbox.ImageUploadError
-	if !errors.As(err, &uploadError) || uploadError.Status != 500 {
-		t.Fatalf("want an ImageUploadError, got %v", err)
+	var buildError *sandbox.ImageBuildError
+	if !errors.As(err, &buildError) || buildError.TimedOut {
+		t.Fatalf("want a failed ImageBuildError, got %v", err)
+	}
+	if imageCalls != 1 {
+		t.Errorf("seeded wait must fail on the first poll; %d checks", imageCalls)
+	}
+	if !strings.Contains(err.Error(), "failed to pull base image") {
+		t.Errorf("error must carry the build log reason: %v", err)
 	}
 }
 
@@ -322,4 +336,47 @@ func writeTestFile(t *testing.T, path, content string) {
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestImageSourceSymlinks(t *testing.T) {
+	sourceDir := t.TempDir()
+	writeTestFile(t, filepath.Join(sourceDir, "Dockerfile"), "FROM scratch\n")
+	writeTestFile(t, filepath.Join(sourceDir, "secret.txt"), "token\n")
+	if err := os.Symlink("secret.txt", filepath.Join(sourceDir, "in-tree-link")); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("/etc/hostname", filepath.Join(sourceDir, "absolute-link")); err != nil {
+		t.Fatal(err)
+	}
+	// From nested/, "../../secrets" reaches past the source root: the
+	// lexical check must reject it before anything is uploaded.
+	if err := os.MkdirAll(filepath.Join(sourceDir, "nested"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("../../secrets", filepath.Join(sourceDir, "nested", "escaping-link")); err != nil {
+		t.Fatal(err)
+	}
+
+	client, err := sandbox.NewSandboxesClient(sandbox.SandboxesClientOptions{APIKey: "test-key"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = client.Images().Push(context.Background(), &sandbox.ImagePushOptions{
+		Name: "x", Directory: sourceDir,
+	})
+	if err == nil || !strings.Contains(err.Error(), "absolute target") {
+		t.Fatalf("want an absolute-target rejection, got %v", err)
+	}
+
+	// Without the absolute link, the escaping one is rejected instead.
+	if err := os.Remove(filepath.Join(sourceDir, "absolute-link")); err != nil {
+		t.Fatal(err)
+	}
+	_, err = client.Images().Push(context.Background(), &sandbox.ImagePushOptions{
+		Name: "x", Directory: sourceDir,
+	})
+	if err == nil || !strings.Contains(err.Error(), "escapes the source directory") {
+		t.Fatalf("want an escaping-target rejection, got %v", err)
+	}
+
 }
