@@ -4,22 +4,34 @@ import (
 	"encoding/json"
 	"fmt"
 	"go/format"
+	"maps"
 	"os"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
 )
 
+const jsonContentType = "application/json"
+
 type apiOperation struct {
-	Name        string
-	HTTPMethod  string
-	Path        string
-	PathParams  []string // original snake_case names from URL
-	HasBody     bool     // spec declares a requestBody
-	ReqBodyRef  string   // Go type name from $ref, empty if untyped/absent
-	RespRef     string   // Go type name from $ref, empty if untyped/absent
-	SuccessCode int      // single 2xx status code
+	Name       string
+	HTTPMethod string
+	Path       string
+	PathParams []string // original snake_case names from URL
+	HasBody    bool     // spec declares a requestBody
+	// BodyContentType is the declared request body content type. Empty when
+	// the operation has no body.
+	BodyContentType string
+	ReqBodyRef      string // Go type name from $ref, empty if untyped/absent or non-JSON
+	// JSONResponses are the typed JSON success responses, ascending by status
+	// code.
+	JSONResponses []jsonResponse
+	// RawAccepts are the non-JSON 2xx content types, e.g. text/plain or
+	// application/octet-stream.
+	RawAccepts   []string
+	SuccessCodes []int // 2xx status codes, ascending
 	// ErrorCodes maps status codes to the error schema ref they produce.
 	// Only populated for codes that have a typed schema.
 	ErrorCodes map[int]string
@@ -28,6 +40,11 @@ type apiOperation struct {
 	// parameters, e.g. "GetV1BillingUsageSummaryParams". Empty if the
 	// operation has no query parameters.
 	ParamsType string
+}
+
+type jsonResponse struct {
+	Code int
+	Ref  string
 }
 
 func generateClient(specData []byte, outFile, pkgName string) error {
@@ -40,6 +57,12 @@ func generateClient(specData []byte, outFile, pkgName string) error {
 	if err != nil {
 		return err
 	}
+	schemas := componentSchemas(spec)
+	for _, op := range ops {
+		if _, exists := schemas[op.Name+"Response"]; exists && len(op.JSONResponses) > 1 {
+			return fmt.Errorf("result type %sResponse collides with an existing schema name", op.Name)
+		}
+	}
 	src := renderClient(pkgName, ops)
 
 	formatted, err := format.Source([]byte(src))
@@ -49,66 +72,95 @@ func generateClient(specData []byte, outFile, pkgName string) error {
 	return os.WriteFile(outFile, formatted, 0o644)
 }
 
-func extractOperations(spec map[string]any) ([]apiOperation, error) {
-	paths, _ := spec["paths"].(map[string]any)
+// specOperation is one operation in a spec's paths.
+type specOperation struct {
+	path, httpMethod string
+	op               map[string]any
+}
 
-	// Collect raw operation data with short names (all params stripped).
-	type rawOp struct {
-		path, httpMethod string
-		op               map[string]any
-	}
-	var raw []rawOp
-	shortNameCounts := map[string]int{}
+func specOperations(spec map[string]any) []specOperation {
+	paths, _ := spec["paths"].(map[string]any)
+	var ops []specOperation
 	for path, pathItem := range paths {
 		methods, _ := pathItem.(map[string]any)
 		for httpMethod, opData := range methods {
 			if httpMethod == "parameters" {
 				continue
 			}
-			op, ok := opData.(map[string]any)
-			if !ok {
-				continue
+			if op, ok := opData.(map[string]any); ok {
+				ops = append(ops, specOperation{path, httpMethod, op})
 			}
-			raw = append(raw, rawOp{path, httpMethod, op})
-			short := deriveMethodName(httpMethod, path, op, false)
-			shortNameCounts[short]++
 		}
 	}
+	return ops
+}
 
-	// Build operations, using trailing param only where needed to disambiguate.
+// methodKey identifies an operation in the map from resolveMethodNames.
+func methodKey(httpMethod, path string) string {
+	return httpMethod + " " + path
+}
+
+// resolveMethodNames returns the client method name for every operation, keyed
+// by methodKey. Names drop path params, keeping the trailing one only where
+// needed to disambiguate. Shared with preprocessing, which names hoisted
+// schemas after their method.
+func resolveMethodNames(spec map[string]any) map[string]string {
+	ops := specOperations(spec)
+	shortNameCounts := map[string]int{}
+	for _, o := range ops {
+		shortNameCounts[deriveMethodName(o.httpMethod, o.path, o.op, false)]++
+	}
+	names := map[string]string{}
+	for _, o := range ops {
+		name := deriveMethodName(o.httpMethod, o.path, o.op, false)
+		if shortNameCounts[name] > 1 {
+			name = deriveMethodName(o.httpMethod, o.path, o.op, true)
+		}
+		names[methodKey(o.httpMethod, o.path)] = name
+	}
+	return names
+}
+
+func extractOperations(spec map[string]any) ([]apiOperation, error) {
+	paths, _ := spec["paths"].(map[string]any)
+	names := resolveMethodNames(spec)
+
 	var ops []apiOperation
-	for _, r := range raw {
-		summary, _ := r.op["summary"].(string)
-		_, hasBody := r.op["requestBody"]
+	for _, o := range specOperations(spec) {
+		summary, _ := o.op["summary"].(string)
+		_, hasBody := o.op["requestBody"]
 
-		successCode, err := extractSuccessCode(r.op, r.httpMethod, r.path)
-		if err != nil {
-			return nil, err
+		successCodes := successStatusCodes(o.op)
+		if len(successCodes) == 0 {
+			return nil, fmt.Errorf("expected at least one 2xx response for %s %s", strings.ToUpper(o.httpMethod), o.path)
 		}
 
-		short := deriveMethodName(r.httpMethod, r.path, r.op, false)
-		name := short
-		if shortNameCounts[short] > 1 {
-			name = deriveMethodName(r.httpMethod, r.path, r.op, true)
+		// A Raw method requests the one non-JSON content type, so several would
+		// need a way for the caller to choose, which no spec has needed yet.
+		rawAccepts := rawResponseAccepts(spec, o.op, successCodes)
+		if len(rawAccepts) > 1 {
+			return nil, fmt.Errorf("%s %s has several non-JSON response content types %v, Raw methods support one", strings.ToUpper(o.httpMethod), o.path, rawAccepts)
 		}
 
 		paramsType := ""
-		if hasQueryParams(spec, paths, r.path, r.op) {
-			paramsType = oapiParamsTypeName(r.httpMethod, r.path)
+		if hasQueryParams(spec, paths, o.path, o.op) {
+			paramsType = oapiParamsTypeName(o.httpMethod, o.path, o.op)
 		}
 
 		ops = append(ops, apiOperation{
-			Name:        name,
-			HTTPMethod:  strings.ToUpper(r.httpMethod),
-			Path:        r.path,
-			PathParams:  extractPathParams(r.path),
-			HasBody:     hasBody,
-			ReqBodyRef:  bodySchemaRef(spec, r.op),
-			RespRef:     responseSchemaRef(spec, r.op),
-			SuccessCode: successCode,
-			ErrorCodes:  errorCodeMap(spec, r.op),
-			Summary:     summary,
-			ParamsType:  paramsType,
+			Name:            names[methodKey(o.httpMethod, o.path)],
+			HTTPMethod:      strings.ToUpper(o.httpMethod),
+			Path:            o.path,
+			PathParams:      extractPathParams(o.path),
+			HasBody:         hasBody,
+			BodyContentType: bodyContentType(spec, o.op),
+			ReqBodyRef:      bodySchemaRef(spec, o.op),
+			JSONResponses:   jsonResponseRefs(spec, o.op, successCodes),
+			RawAccepts:      rawAccepts,
+			SuccessCodes:    successCodes,
+			ErrorCodes:      errorCodeMap(spec, o.op),
+			Summary:         summary,
+			ParamsType:      paramsType,
 		})
 	}
 
@@ -116,9 +168,8 @@ func extractOperations(spec map[string]any) ([]apiOperation, error) {
 	return ops, nil
 }
 
-// extractSuccessCode finds the single 2xx status code for an operation.
-// Fails if there isn't exactly one.
-func extractSuccessCode(op map[string]any, httpMethod, path string) (int, error) {
+// successStatusCodes returns an operation's 2xx status codes, ascending.
+func successStatusCodes(op map[string]any) []int {
 	responses, _ := op["responses"].(map[string]any)
 	var codes []int
 	for codeStr := range responses {
@@ -130,10 +181,8 @@ func extractSuccessCode(op map[string]any, httpMethod, path string) (int, error)
 			codes = append(codes, code)
 		}
 	}
-	if len(codes) != 1 {
-		return 0, fmt.Errorf("expected exactly one 2xx response for %s %s, got %v", httpMethod, path, codes)
-	}
-	return codes[0], nil
+	slices.Sort(codes)
+	return codes
 }
 
 // hasQueryParams reports whether the operation has any `in: query` parameters,
@@ -159,9 +208,14 @@ func hasQueryParams(spec map[string]any, paths map[string]any, path string, op m
 }
 
 // oapiParamsTypeName mirrors oapi-codegen's default naming for the Params
-// struct emitted for an operation with parameters. E.g. GET /v1/billing/usage_summary
-// → GetV1BillingUsageSummaryParams.
-func oapiParamsTypeName(httpMethod, path string) string {
+// struct emitted for an operation with parameters: from the operationId when
+// set (ListSandboxes becomes ListSandboxesParams), otherwise from the method
+// and path (GET /v1/billing/usage_summary becomes
+// GetV1BillingUsageSummaryParams).
+func oapiParamsTypeName(httpMethod, path string, op map[string]any) string {
+	if opID, ok := op["operationId"].(string); ok && opID != "" {
+		return toPascalCase(opID) + "Params"
+	}
 	cleanPath := strings.TrimPrefix(path, "/")
 	segments := strings.Split(cleanPath, "/")
 	var parts []string
@@ -250,27 +304,66 @@ func bodySchemaRef(spec, op map[string]any) string {
 	return jsonContentSchemaRef(spec, rb)
 }
 
-func responseSchemaRef(spec, op map[string]any) string {
+// jsonResponseRefs returns the typed JSON success responses, one per 2xx code
+// that declares a JSON body.
+func jsonResponseRefs(spec, op map[string]any, successCodes []int) []jsonResponse {
 	responses, _ := op["responses"].(map[string]any)
-	for _, code := range []string{"200", "201", "202"} {
-		respNode, _ := responses[code].(map[string]any)
+	var result []jsonResponse
+	for _, code := range successCodes {
+		respNode, _ := responses[strconv.Itoa(code)].(map[string]any)
 		if respNode == nil {
 			continue
 		}
 		resolved := resolveRef(spec, respNode)
 		// If the schema itself is a $ref to components/schemas, use that.
-		if ref := jsonContentSchemaRef(spec, resolved); ref != "" {
-			return ref
-		}
+		ref := jsonContentSchemaRef(spec, resolved)
 		// Otherwise, if the response was a $ref to components/responses and
 		// has JSON content, oapi-codegen generates a type named after the
 		// response component (e.g. AsyncPredictOutput).
-		if ref, _ := respNode["$ref"].(string); ref != "" && hasJSONContent(resolved) {
-			parts := strings.Split(ref, "/")
-			return parts[len(parts)-1]
+		if respRef, _ := respNode["$ref"].(string); ref == "" && respRef != "" && hasJSONContent(resolved) {
+			parts := strings.Split(respRef, "/")
+			ref = parts[len(parts)-1]
+		}
+		if ref != "" {
+			result = append(result, jsonResponse{Code: code, Ref: ref})
 		}
 	}
-	return ""
+	return result
+}
+
+// rawResponseAccepts returns the non-JSON content types declared on 2xx
+// responses, deduplicated and sorted.
+func rawResponseAccepts(spec, op map[string]any, successCodes []int) []string {
+	responses, _ := op["responses"].(map[string]any)
+	accepts := map[string]bool{}
+	for _, code := range successCodes {
+		respNode, _ := responses[strconv.Itoa(code)].(map[string]any)
+		resolved := resolveRef(spec, respNode)
+		content, _ := resolved["content"].(map[string]any)
+		for contentType := range content {
+			if contentType != jsonContentType {
+				accepts[contentType] = true
+			}
+		}
+	}
+	return slices.Sorted(maps.Keys(accepts))
+}
+
+// bodyContentType returns the declared request body content type, preferring
+// JSON when an operation declares several encodings. Empty when the operation
+// has no body.
+func bodyContentType(spec, op map[string]any) string {
+	rb, _ := op["requestBody"].(map[string]any)
+	rb = resolveRef(spec, rb)
+	content, _ := rb["content"].(map[string]any)
+	if _, ok := content[jsonContentType]; ok {
+		return jsonContentType
+	}
+	types := slices.Sorted(maps.Keys(content))
+	if len(types) == 0 {
+		return ""
+	}
+	return types[0]
 }
 
 func hasJSONContent(node map[string]any) bool {
@@ -349,11 +442,15 @@ func pathFmt(path string) string {
 
 func renderClient(pkgName string, ops []apiOperation) string {
 	hasTypedResp := false
+	hasMultiResp := false
 	hasNoResp := false
 	for _, op := range ops {
-		if op.RespRef != "" {
+		switch {
+		case len(op.JSONResponses) == 1:
 			hasTypedResp = true
-		} else {
+		case len(op.JSONResponses) > 1:
+			hasMultiResp = true
+		case len(op.RawAccepts) == 0:
 			hasNoResp = true
 		}
 	}
@@ -387,7 +484,18 @@ func renderClient(pkgName string, ops []apiOperation) string {
 		"io":            true,
 		"net/http":      true,
 		"net/url":       true,
+		"slices":        true,
 		"strings":       true,
+	}
+	hasRawBody := false
+	for _, op := range ops {
+		if op.HasBody && op.BodyContentType != jsonContentType && op.BodyContentType != "" {
+			hasRawBody = true
+			break
+		}
+	}
+	if hasRawBody {
+		imports["cmp"] = true
 	}
 	if hasQuery {
 		imports["reflect"] = true
@@ -443,6 +551,19 @@ func (e *ResponseError) Error() string {
 }
 `, pkgName)
 
+	if hasRawBody {
+		pf(`
+// AdvancedRequest is the request body for an operation whose body is not JSON.
+type AdvancedRequest struct {
+	// Body is sent as is.
+	Body io.Reader
+	// ContentType overrides the content type the operation declares. Required
+	// for multipart/form-data, since it carries the boundary.
+	ContentType string
+}
+`)
+	}
+
 	// Typed error types — one per unique error schema ref.
 	for _, ref := range sortedErrorRefs {
 		pf(`
@@ -462,8 +583,17 @@ func (e *Response%s) Error() string {
 
 	// Methods.
 	for _, op := range ops {
+		// An operation with no JSON success body returns the response directly,
+		// since there is nothing to deserialize into.
+		rawOnly := len(op.JSONResponses) == 0 && len(op.RawAccepts) > 0
 		pf("\n")
-		renderMethod(&w, op)
+		renderMethod(&w, op, rawOnly)
+		// A content-negotiated operation also gets a sibling returning the raw
+		// response, since Accept changes the body's type entirely.
+		if len(op.JSONResponses) > 0 && len(op.RawAccepts) > 0 {
+			pf("\n")
+			renderMethod(&w, op, true)
+		}
 	}
 
 	// Internal request struct and helpers at bottom.
@@ -490,8 +620,14 @@ type apiRequest struct {
 	method   string
 	pathFmt  string
 	pathArgs []any
-%s	body        any
-	successCode int
+%s	// body is marshaled as JSON. rawBody is sent as is, with bodyContentType.
+	// At most one of them is set.
+	body            any
+	rawBody         io.Reader
+	bodyContentType string
+	// accept is the Accept header to send. Empty when the response is JSON.
+	accept       string
+	successCodes []int
 	// errorCodes maps HTTP status codes to a typed error schema. Status codes
 	// not in this map (or decode failures) fall back to [*ResponseError].
 	errorCodes  map[int]errorType
@@ -502,31 +638,34 @@ func (c *Client) do(ctx context.Context, r apiRequest) (*http.Response, error) {
 		r.pathArgs[i] = url.PathEscape(fmt.Sprint(p))
 	}
 	path := fmt.Sprintf(r.pathFmt, r.pathArgs...)
-%s	var bodyReader io.Reader
+%s	bodyReader, contentType := r.rawBody, r.bodyContentType
 	if r.body != nil {
 		b, err := json.Marshal(r.body)
 		if err != nil {
 			return nil, err
 		}
-		bodyReader = bytes.NewReader(b)
+		bodyReader, contentType = bytes.NewReader(b), "application/json"
 	}
 	req, err := http.NewRequestWithContext(ctx, r.method, c.BaseURL+path, bodyReader)
 	if err != nil {
 		return nil, err
-	}
-	if r.body != nil {
-		req.Header.Set("Content-Type", "application/json")
 	}
 	for key, vals := range c.Headers {
 		for _, val := range vals {
 			req.Header.Add(key, val)
 		}
 	}
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	if r.accept != "" {
+		req.Header.Set("Accept", r.accept)
+	}
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != r.successCode {
+	if !slices.Contains(r.successCodes, resp.StatusCode) {
 		defer resp.Body.Close()
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 		if et, ok := r.errorCodes[resp.StatusCode]; ok {
@@ -646,6 +785,28 @@ func doJSON[T any](c *Client, ctx context.Context, r apiRequest) (*T, error) {
 `)
 	}
 
+	if hasMultiResp {
+		pf(`
+// doJSONWithStatus reads a JSON body and pairs it with the status, for
+// operations whose success statuses return different types.
+func (c *Client) doJSONWithStatus(ctx context.Context, r apiRequest) (int, []byte, error) {
+	resp, err := c.do(ctx, r)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer resp.Body.Close()
+	if ct := resp.Header.Get("Content-Type"); !strings.HasPrefix(ct, "application/json") {
+		return 0, nil, fmt.Errorf("unexpected content type %%q, expected application/json", ct)
+	}
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, nil, err
+	}
+	return resp.StatusCode, respBody, nil
+}
+`)
+	}
+
 	if hasNoResp {
 		pf(`
 func (c *Client) doNoResponse(ctx context.Context, r apiRequest) error {
@@ -662,8 +823,20 @@ func (c *Client) doNoResponse(ctx context.Context, r apiRequest) error {
 	return w.String()
 }
 
-func renderMethod(w *strings.Builder, op apiOperation) {
+// renderMethod renders one method. With raw, it renders a method returning the
+// response unread instead, named with a Raw suffix and requesting the
+// operation's non-JSON content type.
+func renderMethod(w *strings.Builder, op apiOperation, raw bool) {
 	pf := func(f string, a ...any) { fmt.Fprintf(w, f, a...) }
+
+	// Every method returning the response unread is suffixed, so the name alone
+	// says the caller must close the body.
+	name := op.Name
+	if raw {
+		name += "Raw"
+	}
+
+	jsonBody := op.BodyContentType == jsonContentType || op.BodyContentType == ""
 
 	// Signature params.
 	params := []string{"ctx context.Context"}
@@ -674,19 +847,38 @@ func renderMethod(w *strings.Builder, op apiOperation) {
 		params = append(params, "params "+op.ParamsType)
 	}
 	if op.HasBody {
-		if op.ReqBodyRef != "" {
+		switch {
+		case jsonBody && op.ReqBodyRef != "":
 			params = append(params, "body "+op.ReqBodyRef)
-		} else {
+		case jsonBody:
 			params = append(params, "body any")
+		default:
+			params = append(params, "req AdvancedRequest")
 		}
 	}
 
+	multiResp := !raw && len(op.JSONResponses) > 1
+	if multiResp {
+		pf("// %sResponse is the result of [Client.%s]. Only the JSON field for\n", op.Name, op.Name)
+		pf("// StatusCode is set.\n")
+		pf("type %sResponse struct {\n\tStatusCode int\n", op.Name)
+		for _, r := range op.JSONResponses {
+			pf("\tJSON%d *%s\n", r.Code, r.Ref)
+		}
+		pf("}\n\n")
+	}
+
 	// Doc comment.
-	pf("// %s", op.Name)
+	pf("// %s", name)
 	if op.Summary != "" {
 		pf(": %s", op.Summary)
 	}
 	pf("\n")
+	if raw {
+		pf("//\n")
+		pf("// Requests %s and returns the response unread. The caller must close\n", op.RawAccepts[0])
+		pf("// the response body.\n")
+	}
 
 	// Document typed errors per status code.
 	if len(op.ErrorCodes) > 0 {
@@ -704,12 +896,6 @@ func renderMethod(w *strings.Builder, op apiOperation) {
 			}
 			pf("// Returns [*Response%s] on HTTP %s.\n", ref, strings.Join(codeStrs, ", "))
 		}
-	}
-
-	// Body arg.
-	bodyArg := "nil"
-	if op.HasBody {
-		bodyArg = "body"
 	}
 
 	// Path args.
@@ -739,25 +925,59 @@ func renderMethod(w *strings.Builder, op apiOperation) {
 		errorCodesExpr = "map[int]errorType{" + strings.Join(entries, ", ") + "}"
 	}
 
-	queryLine := ""
-	if op.ParamsType != "" {
-		queryLine = "\n\t\tqueryParams: params,"
+	fields := []string{
+		fmt.Sprintf("method: %q", op.HTTPMethod),
+		fmt.Sprintf("pathFmt: %q", pathFmt(op.Path)),
+		"pathArgs: " + pathArgsList,
 	}
+	if op.ParamsType != "" {
+		fields = append(fields, "queryParams: params")
+	}
+	switch {
+	case !op.HasBody:
+	case jsonBody:
+		fields = append(fields, "body: body")
+	default:
+		fields = append(fields, "rawBody: req.Body", fmt.Sprintf("bodyContentType: cmp.Or(req.ContentType, %q)", op.BodyContentType))
+	}
+	if raw {
+		fields = append(fields, fmt.Sprintf("accept: %q", op.RawAccepts[0]))
+	}
+	codeStrs := make([]string, len(op.SuccessCodes))
+	for i, c := range op.SuccessCodes {
+		codeStrs[i] = strconv.Itoa(c)
+	}
+	fields = append(fields,
+		"successCodes: []int{"+strings.Join(codeStrs, ", ")+"}",
+		"errorCodes: "+errorCodesExpr,
+	)
+	reqLit := "apiRequest{\n" + strings.Join(fields, ",\n") + ",\n}"
 
-	reqLit := fmt.Sprintf(`apiRequest{
-		method:      %q,
-		pathFmt:     %q,
-		pathArgs:    %s,%s
-		body:        %s,
-		successCode: %d,
-		errorCodes:  %s,
-	}`, op.HTTPMethod, pathFmt(op.Path), pathArgsList, queryLine, bodyArg, op.SuccessCode, errorCodesExpr)
-
-	if op.RespRef != "" {
-		pf("func (c *Client) %s(%s) (*%s, error) {\n", op.Name, strings.Join(params, ", "), op.RespRef)
-		pf("\treturn doJSON[%s](c, ctx, %s)\n", op.RespRef, reqLit)
-	} else {
-		pf("func (c *Client) %s(%s) error {\n", op.Name, strings.Join(params, ", "))
+	sig := strings.Join(params, ", ")
+	switch {
+	case raw:
+		pf("func (c *Client) %s(%s) (*http.Response, error) {\n", name, sig)
+		pf("\treturn c.do(ctx, %s)\n", reqLit)
+	case multiResp:
+		pf("func (c *Client) %s(%s) (*%sResponse, error) {\n", name, sig, op.Name)
+		pf("\tstatus, respBody, err := c.doJSONWithStatus(ctx, %s)\n", reqLit)
+		pf("\tif err != nil {\n\t\treturn nil, err\n\t}\n")
+		pf("\tresult := &%sResponse{StatusCode: status}\n", op.Name)
+		pf("\tswitch status {\n")
+		for _, r := range op.JSONResponses {
+			pf("\tcase %d:\n", r.Code)
+			pf("\t\tresult.JSON%d = new(%s)\n", r.Code, r.Ref)
+			pf("\t\terr = json.Unmarshal(respBody, result.JSON%d)\n", r.Code)
+		}
+		pf("\t}\n")
+		pf("\tif err != nil {\n\t\treturn nil, err\n\t}\n")
+		pf("\treturn result, nil\n")
+	case len(op.JSONResponses) == 1:
+		ref := op.JSONResponses[0].Ref
+		pf("func (c *Client) %s(%s) (*%s, error) {\n", name, sig, ref)
+		pf("\treturn doJSON[%s](c, ctx, %s)\n", ref, reqLit)
+	default:
+		pf("func (c *Client) %s(%s) error {\n", name, sig)
 		pf("\treturn c.doNoResponse(ctx, %s)\n", reqLit)
 	}
 

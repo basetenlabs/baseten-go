@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 )
 
@@ -52,9 +54,16 @@ func preprocessSpec(data []byte) (*preprocessedSpec, error) {
 	if err := inlineComponentParameters(doc); err != nil {
 		return nil, err
 	}
+	removeHeaderParameters(doc)
+	if err := injectResponseSchemas(doc); err != nil {
+		return nil, err
+	}
 
-	// Build V1-suffix rename map from schema names before walking.
-	schemaRenames := buildSchemaRenames(doc)
+	// Build the schema rename map from schema names before walking.
+	schemaRenames, err := buildSchemaRenames(doc)
+	if err != nil {
+		return nil, err
+	}
 
 	discriminatorValues := map[string][]string{}
 	if err := preprocessNode(doc, schemaRenames, discriminatorValues); err != nil {
@@ -284,6 +293,101 @@ func inlineComponentParameters(doc map[string]any) error {
 	return nil
 }
 
+// removeHeaderParameters drops `in: header` parameters from the path items and
+// operations. oapi-codegen would otherwise add them to the operation's Params
+// struct, where encodeQuery skips them since they carry no form tag, leaving
+// fields that are silently never sent. Header values are set through
+// [Client.Headers] instead. Must run after inlineComponentParameters so
+// referenced parameters can be told apart by location.
+func removeHeaderParameters(doc map[string]any) {
+	paths, _ := doc["paths"].(map[string]any)
+	for _, item := range paths {
+		itemMap, _ := item.(map[string]any)
+		for key, node := range itemMap {
+			target := itemMap
+			if key != "parameters" {
+				opMap, _ := node.(map[string]any)
+				if opMap == nil {
+					continue
+				}
+				target = opMap
+			}
+			list, ok := target["parameters"].([]any)
+			if !ok {
+				continue
+			}
+			kept := slices.DeleteFunc(list, func(entry any) bool {
+				entryMap, _ := entry.(map[string]any)
+				return entryMap["in"] == "header"
+			})
+			if len(kept) == 0 {
+				delete(target, "parameters")
+			} else {
+				target["parameters"] = kept
+			}
+		}
+	}
+}
+
+// injectResponseSchemas hoists inline 2xx `application/json` response schemas
+// into components/schemas so oapi-codegen emits a named type the client can
+// return. Responses that are already a $ref are left alone. The schema name
+// matches the client method name (e.g. GetProcess becomes GetProcessResponse).
+//
+// Without this, an operation whose success response is an inline oneOf, array,
+// or free-form object has no resolvable type name and the client would fall
+// back to discarding the body.
+func injectResponseSchemas(doc map[string]any) error {
+	components, _ := doc["components"].(map[string]any)
+	if components == nil {
+		components = map[string]any{}
+		doc["components"] = components
+	}
+	schemas, _ := components["schemas"].(map[string]any)
+	if schemas == nil {
+		schemas = map[string]any{}
+		components["schemas"] = schemas
+	}
+	names := resolveMethodNames(doc)
+	paths, _ := doc["paths"].(map[string]any)
+	for path, item := range paths {
+		itemMap, _ := item.(map[string]any)
+		for httpMethod, node := range itemMap {
+			op, _ := node.(map[string]any)
+			if httpMethod == "parameters" || op == nil {
+				continue
+			}
+			responses, _ := op["responses"].(map[string]any)
+			successCodes := successStatusCodes(op)
+			for _, code := range successCodes {
+				response, _ := responses[strconv.Itoa(code)].(map[string]any)
+				content, _ := response["content"].(map[string]any)
+				jsonContent, _ := content["application/json"].(map[string]any)
+				schema, _ := jsonContent["schema"].(map[string]any)
+				if schema == nil {
+					continue
+				}
+				if _, isRef := schema["$ref"]; isRef {
+					continue
+				}
+				// Only the first success code gets the bare name, so an operation
+				// with several 2xx bodies yields one schema per code rather than
+				// colliding.
+				schemaName := names[methodKey(httpMethod, path)] + "Response"
+				if code != successCodes[0] {
+					schemaName += strconv.Itoa(code)
+				}
+				if _, exists := schemas[schemaName]; exists {
+					return fmt.Errorf("injected response schema %s collides with an existing schema name", schemaName)
+				}
+				schemas[schemaName] = schema
+				jsonContent["schema"] = map[string]any{"$ref": "#/components/schemas/" + schemaName}
+			}
+		}
+	}
+	return nil
+}
+
 func clone(node any) (any, error) {
 	data, err := json.Marshal(node)
 	if err != nil {
@@ -305,22 +409,43 @@ func componentSchemas(doc map[string]any) map[string]any {
 	return schemas
 }
 
-// buildSchemaRenames returns a map from old schema name to new name for
-// schemas whose names end with "V1". This produces cleaner Go type names
-// (e.g. "Model" instead of "ModelV1").
-func buildSchemaRenames(doc map[string]any) map[string]string {
+// buildSchemaRenames returns a map from old schema name to new name. A
+// trailing "V1" is dropped for cleaner Go type names (e.g. "Model" instead of
+// "ModelV1"), and a name that is not a valid Go identifier is folded into
+// PascalCase (archive.Change becomes ArchiveChange) so clientgen can refer to
+// it by the same name oapi-codegen emits.
+func buildSchemaRenames(doc map[string]any) (map[string]string, error) {
 	schemas := componentSchemas(doc)
 	if schemas == nil {
-		return nil
+		return nil, nil
 	}
 	renames := map[string]string{}
 	for name := range schemas {
-		if trimmed, ok := strings.CutSuffix(name, "V1"); ok {
-			renames[name] = trimmed
+		renamed := strings.TrimSuffix(name, "V1")
+		if !goIdentifierRe.MatchString(renamed) {
+			renamed = toPascalCase(renamed)
+		}
+		if renamed != name {
+			renames[name] = renamed
 		}
 	}
-	return renames
+	taken := map[string]bool{}
+	for name := range schemas {
+		if _, ok := renames[name]; !ok {
+			taken[name] = true
+		}
+	}
+	for _, from := range slices.Sorted(maps.Keys(renames)) {
+		to := renames[from]
+		if taken[to] {
+			return nil, fmt.Errorf("schema rename %s -> %s collides with an existing schema name", from, to)
+		}
+		taken[to] = true
+	}
+	return renames, nil
 }
+
+var goIdentifierRe = regexp.MustCompile(`^[A-Za-z_]\w*$`)
 
 func preprocessNode(node any, schemaRenames map[string]string, discriminatorValues map[string][]string) error {
 	switch v := node.(type) {
