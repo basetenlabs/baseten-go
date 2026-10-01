@@ -203,3 +203,67 @@ func TestImageInfoCoversGeneratedRecord(t *testing.T) {
 		}
 	}
 }
+
+// hubRecordUntranslated names generated SandboxHubImage fields the curated
+// HubImage deliberately does not carry, with the reason.
+var hubRecordUntranslated = map[string]string{
+	"IconDark":   "display variant the CLI does not render",
+	"IconLight":  "display variant the CLI does not render",
+	"Hidden":     "filtered out before the curated record exists",
+	"ComingSoon": "filtered out before the curated record exists",
+}
+
+// hubRecordRenames maps generated SandboxHubImage fields to their curated
+// HubImage names.
+var hubRecordRenames = map[string]string{
+	"DisplayName":     "DisplayName",
+	"LongDescription": "LongDescription",
+	"Memory":          "MemoryMB",
+	"Icon":            "IconURL",
+	"Url":             "ProjectURL",
+}
+
+func TestHubImageCoversGeneratedRecord(t *testing.T) {
+	collect := func(value any) map[string]bool {
+		fields := map[string]bool{}
+		structType := reflect.TypeOf(value)
+		for i := range structType.NumField() {
+			fields[structType.Field(i).Name] = true
+		}
+		return fields
+	}
+	generated := collect(managementapi.SandboxHubImage{})
+	collated := collect(sandbox.HubImage{})
+
+	for generatedName, collatedName := range hubRecordRenames {
+		if !collated[collatedName] {
+			t.Errorf("renamed field %s has no curated twin", collatedName)
+		}
+		_ = generatedName
+	}
+	for name := range generated {
+		if hubRecordRenames[name] != "" || hubRecordUntranslated[name] != "" {
+			continue
+		}
+		if !collated[name] {
+			t.Errorf("generated field %s has neither a curated twin nor an exception", name)
+		}
+	}
+	for name := range collated {
+		_, translated := generated[name]
+		renamedInto := false
+		for _, collatedName := range hubRecordRenames {
+			if collatedName == name {
+				renamedInto = true
+			}
+		}
+		if !translated && !renamedInto {
+			t.Errorf("curated field %s translates no generated field", name)
+		}
+	}
+	for name := range hubRecordUntranslated {
+		if _, present := reflect.TypeOf(managementapi.SandboxHubImage{}).FieldByName(name); !present {
+			t.Errorf("hub exception %q names no generated field", name)
+		}
+	}
+}

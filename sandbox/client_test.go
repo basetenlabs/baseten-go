@@ -620,3 +620,34 @@ func TestUpdateEnabledNilOmittedSetSent(t *testing.T) {
 		t.Errorf("set Enabled must serialize: %v", body)
 	}
 }
+
+func TestHubImagesFiltersHiddenAndComingSoon(t *testing.T) {
+	controlServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch r.URL.Path {
+		case "/v1/token":
+			fmt.Fprintf(w, `{"token": "tok-1", "expires_at": %q}`, time.Now().Add(time.Hour).UTC().Format(time.RFC3339))
+		case "/v0/sandbox/hub":
+			_, _ = io.WriteString(w, `[
+				{"name": "visible", "image": "blaxel/visible:latest", "memory": 2048, "hidden": false, "coming_soon": false},
+				{"name": "gone", "image": "blaxel/gone:latest", "hidden": true},
+				{"name": "soon", "image": "blaxel/soon:latest", "coming_soon": true}
+			]`)
+		default:
+			t.Errorf("unexpected request %s %s", r.Method, r.URL.Path)
+		}
+	}))
+	t.Cleanup(controlServer.Close)
+	client := clientForTest(t, controlServer.URL, nil)
+
+	images, err := client.HubImages(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(images) != 1 || images[0].Name != "visible" {
+		t.Fatalf("only the visible entry survives: %+v", images)
+	}
+	if images[0].MemoryMB != 2048 || images[0].Image != "blaxel/visible:latest" {
+		t.Errorf("record not converted: %+v", images[0])
+	}
+}

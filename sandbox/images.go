@@ -604,3 +604,127 @@ func (c *ImageClient) buildFailureLogs(ctx context.Context, name string) []strin
 	}
 	return messages
 }
+
+func intOrZero(value *int) int {
+	if value == nil {
+		return 0
+	}
+	return *value
+}
+
+// HubImage is one starter image from the platform's sandbox hub, available
+// to any sandbox without building or pushing.
+type HubImage struct {
+	// Name is the stable identifier of the starter image.
+	Name string `json:"name"`
+
+	// DisplayName is the human-readable name for display.
+	DisplayName string `json:"display_name"`
+
+	// Image is the reference including its tag. Pass it as the image when
+	// creating a sandbox.
+	Image string `json:"image"`
+
+	// Description is the one-line summary of what the image contains.
+	Description string `json:"description"`
+
+	// LongDescription is the longer description of the image's contents.
+	LongDescription string `json:"long_description"`
+
+	// MemoryMB is the default memory allocation in megabytes. Zero means no
+	// default.
+	MemoryMB int `json:"memory_mb"`
+
+	// Categories are what the image is filed under, for filtering.
+	Categories []string `json:"categories"`
+
+	// Tags are free-form.
+	Tags []string `json:"tags"`
+
+	// Ports are the image's own services, for reference in a sandbox's
+	// ports list.
+	Ports []HubImagePort `json:"ports"`
+
+	// IconURL is the image's icon for display.
+	IconURL string `json:"icon_url"`
+
+	// ProjectURL is the project page for the image's stack.
+	ProjectURL string `json:"project_url"`
+
+	// Enterprise reports whether the image is gated to enterprise
+	// workspaces.
+	Enterprise bool `json:"enterprise"`
+}
+
+// HubImagePort is one port a starter image's services listen on.
+type HubImagePort struct {
+	// Name of the port.
+	Name string `json:"name"`
+
+	// Target is the port number inside the sandbox.
+	Target int `json:"target"`
+
+	// Protocol the port serves.
+	Protocol string `json:"protocol"`
+}
+
+// HubImages lists the platform's starter images from the sandbox hub catalog.
+// Hidden and coming-soon entries are dropped, matching what the console's
+// create form shows.
+func (c *SandboxesClient) HubImages(ctx context.Context) ([]HubImage, error) {
+	catalog, err := c.api.ListSandboxHubImages(ctx)
+	if err != nil {
+		return nil, toSandboxAPIError(err, "control")
+	}
+	images := make([]HubImage, 0, len(*catalog))
+	for _, entry := range *catalog {
+		if entry.Hidden != nil && *entry.Hidden {
+			continue
+		}
+		if entry.ComingSoon != nil && *entry.ComingSoon {
+			continue
+		}
+		images = append(images, hubImageFromAPI(&entry))
+	}
+	return images, nil
+}
+
+func hubImageFromAPI(entry *managementapi.SandboxHubImage) HubImage {
+	image := HubImage{
+		Name:        entry.Name,
+		Image:       entry.Image,
+		Description: stringOrEmpty(entry.Description),
+		Enterprise:  entry.Enterprise != nil && *entry.Enterprise,
+	}
+	if entry.DisplayName != nil {
+		image.DisplayName = *entry.DisplayName
+	}
+	if entry.LongDescription != nil {
+		image.LongDescription = *entry.LongDescription
+	}
+	if entry.Memory != nil {
+		image.MemoryMB = *entry.Memory
+	}
+	if entry.Icon != nil {
+		image.IconURL = *entry.Icon
+	}
+	if entry.Url != nil {
+		image.ProjectURL = *entry.Url
+	}
+	if entry.Categories != nil {
+		image.Categories = *entry.Categories
+	}
+	if entry.Tags != nil {
+		image.Tags = *entry.Tags
+	}
+	if entry.Ports != nil {
+		for _, port := range *entry.Ports {
+			image.Ports = append(image.Ports, HubImagePort{
+				Name:     stringOrEmpty(port.Name),
+				Target:   intOrZero(port.Target),
+				Protocol: stringOrEmpty(port.Protocol),
+			})
+		}
+	}
+	return image
+}
