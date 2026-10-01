@@ -58,7 +58,7 @@ func TestE2ESandboxLifecycleAndExec(t *testing.T) {
 	var instance *sandbox.Sandbox
 	deadline := time.Now().Add(5 * time.Minute)
 	for {
-		info, err := client.GetInfo(ctx, name)
+		info, err := client.GetInfo(ctx, name, nil)
 		if err != nil {
 			t.Fatal(err)
 		}

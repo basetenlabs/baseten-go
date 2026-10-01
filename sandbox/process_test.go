@@ -228,7 +228,7 @@ func TestStaticTokenSandboxFromClientSharesRevocation(t *testing.T) {
 	controlServer := recorder.serve(t, testSandboxRecord)
 	client := clientForTest(t, controlServer.URL, nil)
 
-	if _, err := client.GetInfo(context.Background(), "sbx-1"); err != nil {
+	if _, err := client.GetInfo(context.Background(), "sbx-1", nil); err != nil {
 		t.Fatal(err)
 	}
 	execServer := execPlaneForTest(t, func(w http.ResponseWriter, r *http.Request) {
@@ -319,7 +319,7 @@ func TestInfoTimestampsParseFromRecord(t *testing.T) {
 	server := recorder.serve(t, testSandboxRecord)
 	client := clientForTest(t, server.URL, nil)
 
-	info, err := client.GetInfo(context.Background(), "sbx-1")
+	info, err := client.GetInfo(context.Background(), "sbx-1", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

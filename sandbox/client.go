@@ -84,6 +84,11 @@ type CreateSandboxRequest struct {
 
 	// ExternalID is the caller-owned identifier for external lookups.
 	ExternalID string
+
+	// CreateIfNotExist returns the existing live sandbox with this name
+	// instead of conflicting, or recreates one that is failed, terminated,
+	// or being deleted. Requires Name.
+	CreateIfNotExist bool
 }
 
 // UpdateSandboxRequest updates a sandbox. The API is a partial update: unset
@@ -196,14 +201,15 @@ func (c *SandboxesClient) RawAPI() *managementapi.Client {
 // creation; the sandbox reaches it URL and DEPLOYED status asynchronously.
 func (c *SandboxesClient) Create(ctx context.Context, request *CreateSandboxRequest) (*Sandbox, error) {
 	body := managementapi.CreateSandboxRequest{
-		Name:        optionalString(request.Name),
-		Image:       optionalString(request.Image),
-		Memory:      optionalInt(request.Memory),
-		Region:      optionalString(request.Region),
-		Envs:        envsToAPI(request.Envs),
-		Labels:      labelsToAPI(request.Labels),
-		DisplayName: optionalString(request.DisplayName),
-		ExternalId:  optionalString(request.ExternalID),
+		Name:              optionalString(request.Name),
+		CreateIfNotExists: optionalBool(request.CreateIfNotExist),
+		Image:             optionalString(request.Image),
+		Memory:            optionalInt(request.Memory),
+		Region:            optionalString(request.Region),
+		Envs:              envsToAPI(request.Envs),
+		Labels:            labelsToAPI(request.Labels),
+		DisplayName:       optionalString(request.DisplayName),
+		ExternalId:        optionalString(request.ExternalID),
 	}
 	created, err := c.api.CreateSandbox(ctx, managementapi.CreateSandboxParams{TeamId: c.teamID()}, body)
 	if err != nil {
@@ -224,9 +230,21 @@ func (c *SandboxesClient) Create(ctx context.Context, request *CreateSandboxRequ
 	}), nil
 }
 
+// GetInfoOptions tunes GetInfo. Nil applies every default.
+type GetInfoOptions struct {
+	// ShowSecrets reveals environment variable values. Requires the
+	// workspace administrator role; other callers receive masked values
+	// even when true.
+	ShowSecrets bool
+}
+
 // GetInfo gets a sandbox's current record.
-func (c *SandboxesClient) GetInfo(ctx context.Context, name string) (*SandboxInfo, error) {
-	record, err := c.api.GetSandbox(ctx, name, managementapi.GetSandboxParams{TeamId: c.teamID()})
+func (c *SandboxesClient) GetInfo(ctx context.Context, name string, opts *GetInfoOptions) (*SandboxInfo, error) {
+	params := managementapi.GetSandboxParams{TeamId: c.teamID()}
+	if opts != nil && opts.ShowSecrets {
+		params.ShowSecrets = &opts.ShowSecrets
+	}
+	record, err := c.api.GetSandbox(ctx, name, params)
 	if err != nil {
 		return nil, toSandboxAPIError(err, "control")
 	}
@@ -239,7 +257,7 @@ func (c *SandboxesClient) GetInfo(ctx context.Context, name string) (*SandboxInf
 
 // Get gets a Sandbox to work in, fetching the sandbox's record first.
 func (c *SandboxesClient) Get(ctx context.Context, name string) (*Sandbox, error) {
-	info, err := c.GetInfo(ctx, name)
+	info, err := c.GetInfo(ctx, name, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -365,6 +383,13 @@ func optionalString(value string) *string {
 
 func optionalInt(value int) *int {
 	if value == 0 {
+		return nil
+	}
+	return &value
+}
+
+func optionalBool(value bool) *bool {
+	if !value {
 		return nil
 	}
 	return &value

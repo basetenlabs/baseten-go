@@ -3338,6 +3338,9 @@ type CreateRouteRequest_Target struct {
 
 // CreateSandboxRequest Configuration for a new sandbox. The client may provide a name; otherwise the server generates one. The name is immutable after creation.
 type CreateSandboxRequest struct {
+	// CreateIfNotExists When true, return the existing live sandbox with this name or recreate it if it is failed, terminated, or being deleted. The server handles concurrent creation and deletion races with a bounded wait; persistent contention returns a conflict. Requires name. Existing configuration is preserved. Defaults to false when omitted.
+	CreateIfNotExists *bool `json:"create_if_not_exists,omitempty"`
+
 	// DisplayName Human-readable name for display in the UI. Can contain spaces and special characters, max 63 characters.
 	DisplayName *string `json:"display_name,omitempty"`
 
@@ -4999,6 +5002,23 @@ type Image struct {
 
 	// UpdatedAt Time the image was last updated.
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+}
+
+// ImageBuildLog defines model for ImageBuildLog.
+type ImageBuildLog struct {
+	Message string `json:"message"`
+
+	// Severity Numeric OpenTelemetry severity level.
+	Severity  int       `json:"severity"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+// ImageBuildLogsResponse defines model for ImageBuildLogsResponse.
+type ImageBuildLogsResponse struct {
+	Logs []ImageBuildLog `json:"logs"`
+
+	// TotalCount Number of matching log entries in the requested time range.
+	TotalCount int64 `json:"total_count"`
 }
 
 // ImageStatus Image processing status. Only BUILT images are ready to use.
@@ -8957,6 +8977,27 @@ type GetImageParams struct {
 	XTeamId *string `json:"X-Team-Id,omitempty"`
 }
 
+// GetImageBuildLogsParams defines parameters for GetImageBuildLogs.
+type GetImageBuildLogsParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// StartTime Inclusive RFC 3339 start time. Defaults to 24 hours before end_time.
+	StartTime *time.Time `form:"start_time,omitempty" json:"start_time,omitempty"`
+
+	// EndTime RFC 3339 end time. Defaults to the current time.
+	EndTime *time.Time `form:"end_time,omitempty" json:"end_time,omitempty"`
+
+	// Limit Maximum number of log entries to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Offset Number of log entries to skip. Narrow the time range beyond 10000 entries.
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+
+	// XTeamId Optional team ID. Must match the team_id query parameter when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	XTeamId *string `json:"X-Team-Id,omitempty"`
+}
+
 // ListImageTagsParams defines parameters for ListImageTags.
 type ListImageTagsParams struct {
 	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
@@ -9036,6 +9077,9 @@ type DeleteSandboxParams struct {
 type GetSandboxParams struct {
 	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// ShowSecrets Reveal environment variable values for workspace administrators. Defaults to false. Callers without the admin role receive masked values even when true.
+	ShowSecrets *bool `form:"show_secrets,omitempty" json:"show_secrets,omitempty"`
 
 	// XTeamId Optional team ID. Must match the team_id query parameter when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
 	XTeamId *string `json:"X-Team-Id,omitempty"`

@@ -105,10 +105,6 @@ func (e *ImageUploadError) Error() string {
 
 // ImageBuildError is an image that did not become ready to use: either its
 // build failed, or it was still processing when the wait ran out of time.
-//
-// The API exposes no build reason yet, so a FAILED build carries no
-// explanation; the build-log endpoint exists server-side but is not in the
-// Baseten API spec.
 type ImageBuildError struct {
 	// ImageName is the image.
 	ImageName string
@@ -119,13 +115,28 @@ type ImageBuildError struct {
 	// TimedOut reports whether the wait ran out of time. Processing
 	// continues regardless.
 	TimedOut bool
+
+	// Logs are the recorded build log messages, newest last, fetched from
+	// the build-log endpoint. Nil when the build never got there or the
+	// log service did not answer; the build outcome is the primary fact,
+	// so fetching logs is best-effort.
+	Logs []string
 }
 
 func (e *ImageBuildError) Error() string {
 	if e.TimedOut {
 		return fmt.Sprintf("image %s was still %s when the wait timed out; it may still finish", e.ImageName, e.Status)
 	}
-	return fmt.Sprintf("image %s failed to build (status %s)", e.ImageName, e.Status)
+	message := fmt.Sprintf("image %s failed to build (status %s)", e.ImageName, e.Status)
+	if len(e.Logs) > 0 {
+		const tail = 10
+		logs := e.Logs
+		if len(logs) > tail {
+			logs = logs[len(logs)-tail:]
+		}
+		message += "\nlast build logs:\n" + strings.Join(logs, "\n")
+	}
+	return message
 }
 
 const imageWaitTimeout = 900 * time.Second
@@ -368,7 +379,8 @@ func (c *ImageClient) waitBuilt(ctx context.Context, name string, timeoutSeconds
 				}
 			case ImageStatusFailed:
 				if progressed {
-					return nil, &ImageBuildError{ImageName: name, Status: ImageStatusFailed}
+					return nil, &ImageBuildError{ImageName: name, Status: ImageStatusFailed,
+						Logs: c.buildFailureLogs(ctx, name)}
 				}
 			default:
 				// UPLOADING, BUILDING, or a status added later: all still
@@ -498,4 +510,19 @@ func imageSourceEntries(directory string) ([]imageSourceEntry, error) {
 		return strings.Compare(a.path, b.path)
 	})
 	return entries, nil
+}
+
+// buildFailureLogs reads the recorded build logs so a failed build can say
+// why. Best-effort: the failed status is already established, so a log service
+// that does not answer must not mask it.
+func (c *ImageClient) buildFailureLogs(ctx context.Context, name string) []string {
+	logs, err := c.api.GetImageBuildLogs(ctx, name, managementapi.GetImageBuildLogsParams{TeamId: c.teamID()})
+	if err != nil {
+		return nil
+	}
+	messages := make([]string, 0, len(logs.Logs))
+	for _, entry := range logs.Logs {
+		messages = append(messages, entry.Message)
+	}
+	return messages
 }

@@ -28,22 +28,24 @@ type controlPlaneRecorder struct {
 }
 
 type recordedRequest struct {
-	method        string
-	path          string
-	authorization string
-	body          string
-	teamIDQuery   string
+	method           string
+	path             string
+	authorization    string
+	body             string
+	teamIDQuery      string
+	showSecretsQuery string
 }
 
 func (r *controlPlaneRecorder) record(req *http.Request, body string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.requests = append(r.requests, recordedRequest{
-		method:        req.Method,
-		path:          req.URL.Path,
-		authorization: req.Header.Get("Authorization"),
-		body:          body,
-		teamIDQuery:   req.URL.Query().Get("team_id"),
+		method:           req.Method,
+		path:             req.URL.Path,
+		authorization:    req.Header.Get("Authorization"),
+		body:             body,
+		teamIDQuery:      req.URL.Query().Get("team_id"),
+		showSecretsQuery: req.URL.Query().Get("show_secrets"),
 	})
 }
 
@@ -151,7 +153,7 @@ func TestTokenMintedOnceAndSent(t *testing.T) {
 	server := recorder.serve(t, testSandboxRecord)
 	client := clientForTest(t, server.URL, nil)
 
-	info, err := client.GetInfo(context.Background(), "sbx-1")
+	info, err := client.GetInfo(context.Background(), "sbx-1", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -168,7 +170,7 @@ func TestTokenMintedOnceAndSent(t *testing.T) {
 		t.Errorf("expected one mint, got %d", recorder.countByPath("/v1/token"))
 	}
 	// A second call reuses the cached token.
-	if _, err := client.GetInfo(context.Background(), "sbx-1"); err != nil {
+	if _, err := client.GetInfo(context.Background(), "sbx-1", nil); err != nil {
 		t.Fatal(err)
 	}
 	if recorder.countByPath("/v1/token") != 1 {
@@ -186,7 +188,7 @@ func TestTokenRevocationRemintsAndResends(t *testing.T) {
 	recorder.revoke("Bearer tok-1")
 	client := clientForTest(t, server.URL, nil)
 
-	info, err := client.GetInfo(context.Background(), "sbx-1")
+	info, err := client.GetInfo(context.Background(), "sbx-1", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,7 +213,7 @@ func TestTokenRevocationExhaustionReturnsLastError(t *testing.T) {
 	recorder.revoke("Bearer tok-2")
 	recorder.revoke("Bearer tok-3")
 
-	_, err := client.GetInfo(context.Background(), "sbx-1")
+	_, err := client.GetInfo(context.Background(), "sbx-1", nil)
 	var apiError *sandbox.SandboxAPIError
 	if !errors.As(err, &apiError) {
 		t.Fatalf("want SandboxAPIError, got %v", err)
@@ -247,7 +249,7 @@ func TestTokenProviderSentWithoutMint(t *testing.T) {
 		opts.TokenProvider = func(context.Context) (string, error) { return "provided-token", nil }
 	})
 
-	if _, err := client.GetInfo(context.Background(), "sbx-1"); err != nil {
+	if _, err := client.GetInfo(context.Background(), "sbx-1", nil); err != nil {
 		t.Fatal(err)
 	}
 	if recorder.countByPath("/v1/token") != 0 {
@@ -469,7 +471,7 @@ func TestControlPlaneErrorCarriesCode(t *testing.T) {
 	t.Cleanup(server.Close)
 	client := clientForTest(t, server.URL, nil)
 
-	_, err := client.GetInfo(context.Background(), "sbx-1")
+	_, err := client.GetInfo(context.Background(), "sbx-1", nil)
 	var apiError *sandbox.SandboxAPIError
 	if !errors.As(err, &apiError) {
 		t.Fatalf("want SandboxAPIError, got %v", err)
@@ -489,7 +491,7 @@ func TestControlPlaneGatewayStatusStaysPlainError(t *testing.T) {
 	t.Cleanup(server.Close)
 	client := clientForTest(t, server.URL, nil)
 
-	_, err := client.GetInfo(context.Background(), "sbx-1")
+	_, err := client.GetInfo(context.Background(), "sbx-1", nil)
 	var gatewayError *sandbox.SandboxGatewayError
 	if errors.As(err, &gatewayError) {
 		t.Error("the control plane does not sit behind the edge, so 502 must stay a plain error")
@@ -554,5 +556,50 @@ func TestUpdateEmptyEnvsClears(t *testing.T) {
 	}
 	if list, ok := envs.([]any); !ok || len(list) != 0 {
 		t.Errorf("envs must serialize as an empty array, got %v", envs)
+	}
+}
+
+func TestCreateIfNotExistReachesTheWire(t *testing.T) {
+	recorder := &controlPlaneRecorder{}
+	server := recorder.serve(t, testSandboxRecord)
+	client := clientForTest(t, server.URL, nil)
+
+	if _, err := client.Create(context.Background(), &sandbox.CreateSandboxRequest{
+		Name: "sbx-1", CreateIfNotExist: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	var body map[string]any
+	if err := json.Unmarshal([]byte(recorder.requests[len(recorder.requests)-1].body), &body); err != nil {
+		t.Fatal(err)
+	}
+	if body["create_if_not_exists"] != true {
+		t.Errorf("create_if_not_exists not sent: %v", body)
+	}
+
+	// Unset stays off the wire, like every other unset field.
+	if _, err := client.Create(context.Background(), &sandbox.CreateSandboxRequest{}); err != nil {
+		t.Fatal(err)
+	}
+	body = map[string]any{}
+	if err := json.Unmarshal([]byte(recorder.requests[len(recorder.requests)-1].body), &body); err != nil {
+		t.Fatal(err)
+	}
+	if _, present := body["create_if_not_exists"]; present {
+		t.Errorf("unset create_if_not_exists must be omitted: %v", body)
+	}
+}
+
+func TestGetInfoShowSecretsReachesTheWire(t *testing.T) {
+	recorder := &controlPlaneRecorder{}
+	server := recorder.serve(t, testSandboxRecord)
+	client := clientForTest(t, server.URL, nil)
+
+	if _, err := client.GetInfo(context.Background(), "sbx-1", &sandbox.GetInfoOptions{ShowSecrets: true}); err != nil {
+		t.Fatal(err)
+	}
+	last := recorder.requests[len(recorder.requests)-1]
+	if last.showSecretsQuery != "true" {
+		t.Errorf("show_secrets query %q", last.showSecretsQuery)
 	}
 }

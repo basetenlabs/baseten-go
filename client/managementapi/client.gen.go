@@ -721,6 +721,26 @@ func (c *Client) GetImage(ctx context.Context, imageName string, params GetImage
 	})
 }
 
+// GetImageBuildLogs
+func (c *Client) GetImageBuildLogs(ctx context.Context, imageName string, params GetImageBuildLogsParams) (*ImageBuildLogsResponse, error) {
+	headers := http.Header{}
+	{
+		if params.XTeamId != nil {
+			headers.Set("X-Team-Id", fmt.Sprint(*params.XTeamId))
+		}
+	}
+	return doJSON[ImageBuildLogsResponse](c, ctx, apiRequest{
+		headers: headers, method: "GET",
+		pathFmt:      "/v1/sandboxes/images/%s/logs",
+		pathArgs:     []any{imageName},
+		queryParams:  params,
+		body:         nil,
+		successCodes: []int{200},
+		successCode:  200,
+		errorCodes:   nil,
+	})
+}
+
 // GetInstanceTypePrices: Gets prices for available instance types
 func (c *Client) GetInstanceTypePrices(ctx context.Context) (*InstanceTypePrices, error) {
 	return doJSON[InstanceTypePrices](c, ctx, apiRequest{
