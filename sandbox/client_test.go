@@ -585,3 +585,38 @@ func TestGetInfoShowSecretsReachesTheWire(t *testing.T) {
 		t.Errorf("show_secrets query %q", last.showSecretsQuery)
 	}
 }
+
+func TestUpdateEnabledNilOmittedSetSent(t *testing.T) {
+	recorder := &controlPlaneRecorder{}
+	server := recorder.serve(t, testSandboxRecord)
+	client := clientForTest(t, server.URL, nil)
+
+	// Nil leaves the field out entirely.
+	if _, err := client.Update(context.Background(), "sbx-1", &sandbox.UpdateSandboxRequest{
+		DisplayName: "x",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	body := map[string]any{}
+	if err := json.Unmarshal([]byte(recorder.requests[len(recorder.requests)-1].body), &body); err != nil {
+		t.Fatal(err)
+	}
+	if _, present := body["enabled"]; present {
+		t.Errorf("nil Enabled must be omitted: %v", body)
+	}
+
+	// Set reaches the wire.
+	cutoff := false
+	if _, err := client.Update(context.Background(), "sbx-1", &sandbox.UpdateSandboxRequest{
+		Enabled: &cutoff,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	body = map[string]any{}
+	if err := json.Unmarshal([]byte(recorder.requests[len(recorder.requests)-1].body), &body); err != nil {
+		t.Fatal(err)
+	}
+	if body["enabled"] != false {
+		t.Errorf("set Enabled must serialize: %v", body)
+	}
+}
