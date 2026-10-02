@@ -43,6 +43,12 @@ var (
 // error, and [ImageBuilder.Dockerfile] and the push return every recorded
 // error.
 //
+// Package helpers such as [ImageBuilder.PipInstall] pass each argument to the
+// shell unquoted if it has only letters, digits, and ._-+=:/@~^*, and
+// single-quote it otherwise. So * and ~ still expand, as in
+// PipInstall("dist/*.whl"), while characters such as >, ;, $, and spaces stay
+// literal. Use [ImageBuilder.RunCommands] for full control.
+//
 // The Dockerfile it pushes ends by copying in the sandbox API binary and
 // making it the entrypoint, unless the builder already did either, since a
 // sandbox needs it running to be reached. [ImageBuilder.Dockerfile] shows the
@@ -383,9 +389,10 @@ type ImageBuilderAddLocalDirOptions struct {
 // ["<name>", "<destination>"], where name is its name in the context. As with
 // any COPY of a directory, its contents are copied into the destination, not
 // the directory itself. It is read when pushed, with files keeping their
-// permissions, a link to a file stored as the file, and a link to a directory
-// stored as an empty directory. See [ImageBuilder.AddLocalDirWithOptions] for
-// more options.
+// permissions, a link to a file within the directory stored as a copy of the
+// file, a link to a file outside it failing the push, and a link to a
+// directory stored as an empty directory. See
+// [ImageBuilder.AddLocalDirWithOptions] for more options.
 func (b *ImageBuilder) AddLocalDir(source, destination string) *ImageBuilder {
 	return b.AddLocalDirWithOptions(ImageBuilderAddLocalDirOptions{Source: source, Destination: destination})
 }
@@ -394,8 +401,9 @@ func (b *ImageBuilder) AddLocalDir(source, destination string) *ImageBuilder {
 // appends COPY ["<name>", "<destination>"], where name is its name in the
 // context. As with any COPY of a directory, its contents are copied into the
 // destination, not the directory itself. It is read when pushed, with files
-// keeping their permissions, a link to a file stored as the file, and a link
-// to a directory stored as an empty directory.
+// keeping their permissions, a link to a file within the directory stored as
+// a copy of the file, a link to a file outside it failing the push, and a
+// link to a directory stored as an empty directory.
 func (b *ImageBuilder) AddLocalDirWithOptions(opts ImageBuilderAddLocalDirOptions) *ImageBuilder {
 	return b.addLocal("AddLocalDir", true, opts.Source, opts.Destination, opts.ContextName)
 }

@@ -50,25 +50,35 @@ var dockerfileOnly = map[string][]byte{"Dockerfile": []byte("FROM debian\n")}
 func TestImagePush(t *testing.T) {
 	fast := ImagePushOptions{Name: "img", SourceFiles: dockerfileOnly, PollInterval: time.Millisecond}
 
-	t.Run("UploadsThenWaitsForProgress", func(t *testing.T) {
+	t.Run("UploadsThenWaits", func(t *testing.T) {
 		cp := newControlPlane(t)
 		store := newStorage(t, http.StatusOK)
 		cp.respond("POST", "/v1/sandboxes/images", 202, `{"name":"img","status":"UPLOADING","upload_url":"`+store.URL+`/put"}`)
-		// The previous version's outcome shows before the new one is seen
-		// processing, and must not end the wait.
-		cp.respond("GET", "/v1/sandboxes/images/img", 200, image("BUILT"))
+		// A new image can be missing right after its push.
 		cp.respond("GET", "/v1/sandboxes/images/img", 404, `{"code":"NOT_FOUND","message":"image not found"}`)
 		cp.respond("GET", "/v1/sandboxes/images/img", 200, image("BUILDING"))
 		cp.respond("GET", "/v1/sandboxes/images/img", 200, image("BUILT"))
 		info, err := cp.client(t, ClientOptions{}).Images().Push(t.Context(), fast)
 		require.NoError(t, err)
 		require.Equal(t, ImageStatusBuilt, info.Status)
-		require.Len(t, cp.requests, 5)
+		require.Len(t, cp.requests, 4)
 		require.Equal(t, `{"name":"img"}`, cp.requests[0].body)
 		require.Equal(t, "application/zip", store.contentType)
 		require.Equal(t, "", store.authorization)
 		contents, _ := readZip(t, store.body)
 		require.MapEqual(t, contents, "Dockerfile", "FROM debian\n")
+	})
+
+	t.Run("BuiltAtFirstPoll", func(t *testing.T) {
+		cp := newControlPlane(t)
+		store := newStorage(t, http.StatusOK)
+		cp.respond("POST", "/v1/sandboxes/images", 202, `{"name":"img","status":"UPLOADING","upload_url":"`+store.URL+`/put"}`)
+		// A build that finished before the first poll, such as one reusing an
+		// identical context's build.
+		cp.respond("GET", "/v1/sandboxes/images/img", 200, image("BUILT"))
+		info, err := cp.client(t, ClientOptions{}).Images().Push(t.Context(), fast)
+		require.NoError(t, err)
+		require.Equal(t, ImageStatusBuilt, info.Status)
 	})
 
 	t.Run("RegistryHasNoUpload", func(t *testing.T) {
@@ -144,6 +154,19 @@ func TestImageWaitBuilt(t *testing.T) {
 		buildErr := require.ErrorAs[*ImageBuildError](t, err)
 		require.True(t, buildErr.TimedOut, "expected a timeout")
 		require.Equal(t, ImageStatusBuilding, buildErr.Status)
+	})
+
+	t.Run("NegativeTimeoutWaitsWithNoLimit", func(t *testing.T) {
+		cp := newControlPlane(t)
+		cp.respond("GET", "/v1/sandboxes/images/img", 200, image("BUILDING"))
+		cp.respond("GET", "/v1/sandboxes/images/img", 200, image("BUILT"))
+		info, err := cp.client(t, ClientOptions{}).Images().WaitBuilt(t.Context(), ImageWaitBuiltOptions{
+			Name:         "img",
+			Timeout:      -1,
+			PollInterval: time.Millisecond,
+		})
+		require.NoError(t, err)
+		require.Equal(t, ImageStatusBuilt, info.Status)
 	})
 
 	t.Run("CallerCancelIsNotTimeout", func(t *testing.T) {

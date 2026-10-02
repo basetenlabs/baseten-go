@@ -185,6 +185,25 @@ func TestTokenSource(t *testing.T) {
 		require.Equal(t, "token-1", token)
 	})
 
+	t.Run("StalledMintTimesOutAndIsNotCached", func(t *testing.T) {
+		timeout := tokenMintTimeout
+		tokenMintTimeout = 50 * time.Millisecond
+		t.Cleanup(func() { tokenMintTimeout = timeout })
+		srv := newTokenServer(t)
+		srv.mintGate = make(chan struct{})
+		// Released before the server closes, even if the test fails first.
+		release := sync.OnceFunc(func() { close(srv.mintGate) })
+		t.Cleanup(release)
+		tokens := srv.tokens(t)
+		// No deadline of its own, so only the mint's timeout ends the wait.
+		_, err := tokens.token(context.Background(), "")
+		require.True(t, errors.Is(err, context.DeadlineExceeded), "expected context.DeadlineExceeded, got %v", err)
+		release()
+		token, err := tokens.token(t.Context(), "")
+		require.NoError(t, err)
+		require.True(t, strings.HasPrefix(token, "token-"), "token %q", token)
+	})
+
 	t.Run("InvalidateKeepsNewerToken", func(t *testing.T) {
 		srv := newTokenServer(t)
 		tokens := srv.tokens(t)

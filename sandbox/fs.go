@@ -26,8 +26,9 @@ const (
 	defaultCopyTimeout = 180 * time.Second
 	copyPollInterval   = 100 * time.Millisecond
 
-	multipartThreshold = 5 << 20
-	multipartPartSize  = 5 << 20
+	multipartThreshold    = 5 << 20
+	multipartPartSize     = 5 << 20
+	multipartAbortTimeout = 10 * time.Second
 
 	// Most upload parts in flight at once per sandbox, across all of its
 	// uploads. Many at once on one HTTP/2 connection can trip the server's
@@ -699,9 +700,12 @@ func (f *FileSystemService) writeMultipart(ctx context.Context, path string, con
 		}
 		err = sandboxError(err)
 	}
-	// Sent even when ctx is done, which may be what ended the upload. Its own
+	// Sent even when ctx is done, which may be what ended the upload, but with
+	// its own timeout, so a stalled abort cannot hold up the return. Its own
 	// failure is dropped in favor of the error that ended the upload.
-	_, _ = f.sandbox.api.DeleteFilesystemMultipartAbort(context.WithoutCancel(ctx), uploadID)
+	abortCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), multipartAbortTimeout)
+	defer cancel()
+	_, _ = f.sandbox.api.DeleteFilesystemMultipartAbort(abortCtx, uploadID)
 	return err
 }
 

@@ -55,11 +55,12 @@ func checkZipDockerfile(archive []byte) error {
 		return fmt.Errorf("the zip source is not a readable zip: %w", err)
 	}
 	for _, file := range reader.File {
-		if file.Name == "Dockerfile" {
+		// A link named Dockerfile would only fail later, in the build.
+		if file.Name == "Dockerfile" && file.Mode().IsRegular() {
 			return nil
 		}
 	}
-	return errors.New("the zip source has no Dockerfile at its root")
+	return errors.New("the zip source has no Dockerfile file at its root")
 }
 
 // filesZipEntries builds entries from in-memory files, each with mode 0644.
@@ -90,7 +91,8 @@ func filesZipEntries(files map[string][]byte) ([]zipEntry, error) {
 }
 
 // directoryZipEntries builds entries from everything under a local
-// directory. Files keep their modes, a link to a file stores the file, a link
+// directory. Files keep their modes, a link to a file within the directory
+// stores a copy of the file, a link to a file outside it is an error, a link
 // to a directory stores an empty directory, and a broken link is left out.
 func directoryZipEntries(root string) ([]zipEntry, error) {
 	// Checked before reading anything, so a mistaken directory, such as a
@@ -105,7 +107,18 @@ func directoryZipEntries(root string) ([]zipEntry, error) {
 	return entries, nil
 }
 
+// addDirectoryZipEntries adds everything under dir to entries, each path
+// prefixed with prefix. A link to a file outside dir is an error.
 func addDirectoryZipEntries(dir, prefix string, entries *[]zipEntry) error {
+	// Resolved, so a link's resolved target can be checked against it.
+	root, err := filepath.EvalSymlinks(dir)
+	if err != nil {
+		return err
+	}
+	return addTreeZipEntries(root, dir, prefix, entries)
+}
+
+func addTreeZipEntries(root, dir, prefix string, entries *[]zipEntry) error {
 	// Sorted by name, so the same directory always zips the same way.
 	children, err := os.ReadDir(dir)
 	if err != nil {
@@ -129,10 +142,22 @@ func addDirectoryZipEntries(dir, prefix string, entries *[]zipEntry) error {
 			*entries = append(*entries, zipEntry{path: archivePath, mode: info.Mode().Perm()})
 		case info.IsDir():
 			*entries = append(*entries, zipEntry{path: archivePath, mode: info.Mode().Perm()})
-			if err := addDirectoryZipEntries(fullPath, archivePath+"/", entries); err != nil {
+			if err := addTreeZipEntries(root, fullPath, archivePath+"/", entries); err != nil {
 				return err
 			}
 		case info.Mode().IsRegular():
+			// A link to a file is stored as a copy of the file, but only
+			// one within the directory, so a link cannot pull in a file
+			// from elsewhere on the machine.
+			if child.Type()&fs.ModeSymlink != 0 {
+				target, err := filepath.EvalSymlinks(fullPath)
+				if err != nil {
+					return err
+				}
+				if rel, err := filepath.Rel(root, target); err != nil || !filepath.IsLocal(rel) {
+					return fmt.Errorf("%s is a link to %s, outside %s; only links to files within it can be pushed", fullPath, target, root)
+				}
+			}
 			data, err := os.ReadFile(fullPath)
 			if err != nil {
 				return err

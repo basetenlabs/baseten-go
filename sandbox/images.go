@@ -110,8 +110,10 @@ type ImagePushOptions struct {
 	SourceZip []byte
 
 	// SourceDirectory is a local directory to zip as the build context.
-	// Files keep their modes, a link to a file stores the file, a link to a
-	// directory stores an empty directory, and a broken link is left out.
+	// Files keep their modes, a link to a file within the directory stores
+	// a copy of the file, a link to a file outside it fails the push, a link
+	// to a directory stores an empty directory, and a broken link is left
+	// out.
 	SourceDirectory string
 
 	// SourceFiles are the build context's files, by forward-slashed path
@@ -123,7 +125,8 @@ type ImagePushOptions struct {
 	NoWait bool
 
 	// Timeout is how long to wait for the image to be ready to use. Zero
-	// uses 15 minutes. The build continues regardless.
+	// uses 15 minutes, and a negative value waits with no limit. The build
+	// continues regardless.
 	Timeout time.Duration
 
 	// PollInterval is how often to check the image's status while waiting.
@@ -177,7 +180,7 @@ func (c *ImageClient) Push(ctx context.Context, opts ImagePushOptions) (*ImageIn
 	if opts.NoWait {
 		return &ImageInfo{Name: response.Name, Status: ImageStatus(response.Status)}, nil
 	}
-	return c.waitBuilt(ctx, opts.Name, opts.Timeout, opts.PollInterval, true)
+	return c.waitBuilt(ctx, opts.Name, opts.Timeout, opts.PollInterval)
 }
 
 // ImageWaitBuiltOptions are the options for [ImageClient.WaitBuilt].
@@ -185,8 +188,8 @@ type ImageWaitBuiltOptions struct {
 	// Name is the image's name. Required.
 	Name string
 
-	// Timeout is how long to wait. Zero uses 15 minutes. The build
-	// continues regardless.
+	// Timeout is how long to wait. Zero uses 15 minutes, and a negative
+	// value waits with no limit. The build continues regardless.
 	Timeout time.Duration
 
 	// PollInterval is how often to check the image's status. Zero uses 3
@@ -203,7 +206,7 @@ func (c *ImageClient) WaitBuilt(ctx context.Context, opts ImageWaitBuiltOptions)
 	if opts.Name == "" {
 		return nil, errors.New("Name is required")
 	}
-	return c.waitBuilt(ctx, opts.Name, opts.Timeout, opts.PollInterval, false)
+	return c.waitBuilt(ctx, opts.Name, opts.Timeout, opts.PollInterval)
 }
 
 // ImageGetInfoOptions are the options for [ImageClient.GetInfo].
@@ -240,7 +243,7 @@ const (
 // ImageListOptions are the options for [ImageClient.List].
 type ImageListOptions struct {
 	// NamePrefix keeps only images whose names start with this,
-	// case-sensitively, and sorts by name ascending.
+	// case-sensitively.
 	NamePrefix string
 
 	// Sort is the order of the listing. Empty uses [ImageSortCreatedAtDesc].
@@ -599,38 +602,33 @@ func (c *ImageClient) upload(ctx context.Context, name, url string, archive []by
 	return nil
 }
 
-// waitBuilt polls an image until it is built or failed. With requireProgress,
-// BUILT and FAILED count only once the image has been seen processing, since
-// the status is per image and can still show the previous version's outcome
-// right after a push.
-func (c *ImageClient) waitBuilt(ctx context.Context, name string, timeout, pollInterval time.Duration, requireProgress bool) (*ImageInfo, error) {
+// waitBuilt polls an image until it is built or failed. A push resets the
+// image's status, so after one, BUILT or FAILED is that push's outcome.
+func (c *ImageClient) waitBuilt(ctx context.Context, name string, timeout, pollInterval time.Duration) (*ImageInfo, error) {
 	if timeout == 0 {
 		timeout = defaultImageWaitTimeout
 	}
 	if pollInterval == 0 {
 		pollInterval = defaultImagePollInterval
 	}
-	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	// A negative timeout waits with no limit.
+	waitCtx, cancel := ctx, context.CancelFunc(func() {})
+	if timeout > 0 {
+		waitCtx, cancel = context.WithTimeout(ctx, timeout)
+	}
 	defer cancel()
-	progressed := !requireProgress
 	lastStatus := ImageStatus("unknown")
 	for {
 		image, err := c.client.api.GetImage(waitCtx, name, managementapi.GetImageParams{TeamId: c.client.teamID()})
 		if err == nil {
-			lastStatus = ImageStatus(image.Status)
-			switch lastStatus {
-			case ImageStatusBuilt, ImageStatusFailed:
-				if progressed {
-					if lastStatus == ImageStatusFailed {
-						return nil, &ImageBuildError{ImageName: name, Status: lastStatus}
-					}
-					info := imageInfoFromAPI(image)
-					return &info, nil
-				}
-			default:
-				// UPLOADING, BUILDING, or a status added later, all still
-				// processing.
-				progressed = true
+			// Anything else, such as UPLOADING, BUILDING, or a status added
+			// later, is still processing.
+			switch lastStatus = ImageStatus(image.Status); lastStatus {
+			case ImageStatusFailed:
+				return nil, &ImageBuildError{ImageName: name, Status: lastStatus}
+			case ImageStatusBuilt:
+				info := imageInfoFromAPI(image)
+				return &info, nil
 			}
 		} else if err = controlPlaneError(err); waitCtx.Err() == nil && !isRetryableWaitError(err) {
 			return nil, err

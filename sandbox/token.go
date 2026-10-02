@@ -49,6 +49,10 @@ const tokenInvalidationMaxRetries = 2
 // so tests can shorten it.
 var tokenRevokedRetryDelay = time.Second
 
+// tokenMintTimeout bounds one token exchange, which no caller's cancellation
+// reaches. A variable so tests can shorten it.
+var tokenMintTimeout = 30 * time.Second
+
 // tokenSource is where each request's bearer token comes from: a caller's
 // token provider, or a token minted through a management client, cached until
 // shortly before it expires.
@@ -119,11 +123,14 @@ func (s *tokenSource) token(ctx context.Context, revokedToken string) (string, e
 
 // startMint starts an exchange. It runs without the caller's cancellation,
 // since one caller giving up must not fail the others waiting on it; each only
-// stops waiting on its own. Must be called with mu held.
+// stops waiting on its own. It has its own timeout instead, so a stalled
+// exchange cannot hold every caller. Must be called with mu held.
 func (s *tokenSource) startMint(ctx context.Context) *tokenMint {
 	mint := &tokenMint{done: make(chan struct{})}
 	go func() {
-		minted, err := s.management.API().PostToken(context.WithoutCancel(ctx), managementapi.CreateTokenRequest{
+		mintCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), tokenMintTimeout)
+		defer cancel()
+		minted, err := s.management.API().PostToken(mintCtx, managementapi.CreateTokenRequest{
 			Scopes: []managementapi.TokenScope{managementapi.TokenScope_sandboxes},
 		})
 		if err != nil {

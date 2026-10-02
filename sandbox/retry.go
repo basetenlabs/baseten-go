@@ -149,8 +149,11 @@ func retryIdempotent[T any](ctx context.Context, maxRetries, gatewayMaxRetries i
 		timer := time.NewTimer(delay)
 		select {
 		case <-ctx.Done():
+			// The caller's cancellation or deadline, not the error being
+			// retried, is why the call ends.
 			timer.Stop()
-			return result, err
+			var zero T
+			return zero, ctx.Err()
 		case <-timer.C:
 		}
 	}

@@ -77,7 +77,7 @@ func TestDirectoryZipEntries(t *testing.T) {
 	// other platforms only.
 	links := runtime.GOOS != "windows"
 	if links {
-		require.NoError(t, os.Symlink(filepath.Join(outside, "secret"), filepath.Join(root, "file-link")))
+		require.NoError(t, os.Symlink(filepath.Join(root, "bin", "run"), filepath.Join(root, "file-link")))
 		require.NoError(t, os.Symlink(outside, filepath.Join(root, "dir-link")))
 		require.NoError(t, os.Symlink(filepath.Join(root, "missing"), filepath.Join(root, "broken-link")))
 	}
@@ -95,15 +95,28 @@ func TestDirectoryZipEntries(t *testing.T) {
 		require.Equal(t, fs.FileMode(0o755), modes["bin/run"])
 	}
 	if links {
-		// A file link stores the file, a directory link an empty directory,
-		// and a broken link nothing.
-		require.MapEqual(t, contents, "file-link", "linked")
+		// A file link within the directory stores a copy of the file, a
+		// directory link an empty directory, and a broken link nothing.
+		require.MapEqual(t, contents, "file-link", "#!/bin/sh\n")
 		require.MapEqual(t, contents, "dir-link/", "<dir>")
 		_, hasSecret := contents["dir-link/secret"]
 		require.False(t, hasSecret, "directory links must not be followed")
 		_, hasBroken := contents["broken-link"]
 		require.False(t, hasBroken, "broken links are left out")
 	}
+
+	t.Run("FileLinkOutsideFails", func(t *testing.T) {
+		if !links {
+			t.Skip("Windows needs privileges to create links")
+		}
+		escaping := t.TempDir()
+		require.NoError(t, os.WriteFile(filepath.Join(escaping, "Dockerfile"), []byte("FROM debian\n"), 0o644))
+		require.NoError(t, os.Mkdir(filepath.Join(escaping, "sub"), 0o755))
+		require.NoError(t, os.Symlink(filepath.Join(outside, "secret"), filepath.Join(escaping, "sub", "secret")))
+		_, err := directoryZipEntries(escaping)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "only links to files within it can be pushed")
+	})
 
 	t.Run("RequiresDockerfile", func(t *testing.T) {
 		_, err := directoryZipEntries(t.TempDir())
@@ -116,5 +129,8 @@ func TestCheckZipDockerfile(t *testing.T) {
 	archive, err := writeZip([]zipEntry{{path: "sub/Dockerfile", data: []byte("FROM x")}})
 	require.NoError(t, err)
 	require.Error(t, checkZipDockerfile(archive))
+	link, err := writeZip([]zipEntry{{path: "Dockerfile", data: []byte("elsewhere/Dockerfile"), mode: fs.ModeSymlink | 0o777}})
+	require.NoError(t, err)
+	require.Error(t, checkZipDockerfile(link))
 	require.Error(t, checkZipDockerfile([]byte("not a zip")))
 }

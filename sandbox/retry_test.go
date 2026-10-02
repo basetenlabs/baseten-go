@@ -186,6 +186,20 @@ func TestRetryIdempotent(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, 1, calls)
 	})
+
+	t.Run("DeadlineDuringBackoffReturnsContextError", func(t *testing.T) {
+		// A backoff far longer than the deadline, so the deadline passes
+		// while waiting to retry.
+		base, maxDelay := backoffBase, backoffMax
+		backoffBase, backoffMax = time.Hour, time.Hour
+		t.Cleanup(func() { backoffBase, backoffMax = base, maxDelay })
+		ctx, cancel := context.WithTimeout(t.Context(), 20*time.Millisecond)
+		defer cancel()
+		_, err := retryIdempotent(ctx, 5, 0, func() (int, error) {
+			return 0, reset
+		})
+		require.True(t, errors.Is(err, context.DeadlineExceeded), "expected context.DeadlineExceeded, got %v", err)
+	})
 }
 
 // hijackServer starts an HTTP/1.1 server whose handler takes over each
