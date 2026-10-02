@@ -60,9 +60,13 @@ func removeMergeMethods(s string) string {
 	return mergeFuncRe.ReplaceAllString(s, "")
 }
 
+// removeRuntimeImport drops the oapi-codegen runtime imports. The one runtime
+// type that survives into models, openapi_types.File for a `format: binary`
+// string (e.g. a oneOf branch of a file download), becomes []byte.
 func removeRuntimeImport(s string) string {
 	s = strings.ReplaceAll(s, "\t\"github.com/oapi-codegen/runtime\"\n", "")
 	s = strings.ReplaceAll(s, "\topenapi_types \"github.com/oapi-codegen/runtime/types\"\n", "")
+	s = strings.ReplaceAll(s, "openapi_types.File", "[]byte")
 	return s
 }
 
