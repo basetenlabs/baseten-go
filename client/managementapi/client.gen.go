@@ -1093,6 +1093,30 @@ func (c *Client) GetRoutesRouteId(ctx context.Context, routeId string) (*Route, 
 	})
 }
 
+// GetRoutesSettingsTeams: Gets a team's route settings
+func (c *Client) GetRoutesSettingsTeams(ctx context.Context, teamId string) (*RouteTeamSettings, error) {
+	return doJSON[RouteTeamSettings](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/routes/settings/teams/%s",
+		pathArgs:    []any{teamId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// GetRoutesSettingsUsers: Gets a user's route settings
+func (c *Client) GetRoutesSettingsUsers(ctx context.Context, userId string) (*RouteUserSettings, error) {
+	return doJSON[RouteUserSettings](c, ctx, apiRequest{
+		method:      "GET",
+		pathFmt:     "/v1/routes/settings/users/%s",
+		pathArgs:    []any{userId},
+		body:        nil,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // GetRoutesUsage: Gets daily route usage and estimated costs
 func (c *Client) GetRoutesUsage(ctx context.Context, params GetV1RoutesUsageParams) (*RoutesUsageResponse, error) {
 	return doJSON[RoutesUsageResponse](c, ctx, apiRequest{
@@ -1706,6 +1730,30 @@ func (c *Client) PatchRoutes(ctx context.Context, routeId string, body UpdateRou
 	})
 }
 
+// PatchRoutesSettingsTeams: Updates a team's route settings
+func (c *Client) PatchRoutesSettingsTeams(ctx context.Context, teamId string, body UpdateRouteTeamSettingsRequest) (*RouteTeamSettings, error) {
+	return doJSON[RouteTeamSettings](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/routes/settings/teams/%s",
+		pathArgs:    []any{teamId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PatchRoutesSettingsUsers: Updates a user's route settings
+func (c *Client) PatchRoutesSettingsUsers(ctx context.Context, userId string, body UpdateRouteUserSettingsRequest) (*RouteUserSettings, error) {
+	return doJSON[RouteUserSettings](c, ctx, apiRequest{
+		method:      "PATCH",
+		pathFmt:     "/v1/routes/settings/users/%s",
+		pathArgs:    []any{userId},
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PatchTeamsEnvironmentGroups: Updates an environment group's restriction settings
 func (c *Client) PatchTeamsEnvironmentGroups(ctx context.Context, teamId string, envName string, body UpdateEnvironmentGroupRequest) (*EnvironmentGroup, error) {
 	return doJSON[EnvironmentGroup](c, ctx, apiRequest{
@@ -1910,6 +1958,18 @@ func (c *Client) PostLlmModelsDeployments(ctx context.Context, modelId string, b
 	})
 }
 
+// PostLoopsCheckpointsDeploy: Deploys Loops checkpoints
+func (c *Client) PostLoopsCheckpointsDeploy(ctx context.Context, body DeployLoopsCheckpointRequest) (*DeployLoopsCheckpointResponse, error) {
+	return doJSON[DeployLoopsCheckpointResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/loops/checkpoints/deploy",
+		pathArgs:    nil,
+		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
 // PostLoopsCheckpointsValidate: Validates a Loops checkpoint bt:// URI
 func (c *Client) PostLoopsCheckpointsValidate(ctx context.Context, body ValidateLoopsCheckpointRequest) (*ValidateLoopsCheckpointResponse, error) {
 	return doJSON[ValidateLoopsCheckpointResponse](c, ctx, apiRequest{
@@ -1977,6 +2037,18 @@ func (c *Client) PostLoopsSamplers(ctx context.Context, body CreateLoopsSamplerR
 		pathFmt:     "/v1/loops/samplers",
 		pathArgs:    nil,
 		body:        body,
+		successCode: 200,
+		errorCodes:  nil,
+	})
+}
+
+// PostLoopsSamplersDeactivate: Deactivates a standalone Loops sampler
+func (c *Client) PostLoopsSamplersDeactivate(ctx context.Context, samplerId string) (*DeactivateLoopsSamplerResponse, error) {
+	return doJSON[DeactivateLoopsSamplerResponse](c, ctx, apiRequest{
+		method:      "POST",
+		pathFmt:     "/v1/loops/samplers/%s/deactivate",
+		pathArgs:    []any{samplerId},
+		body:        nil,
 		successCode: 200,
 		errorCodes:  nil,
 	})
