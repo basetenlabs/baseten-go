@@ -1554,6 +1554,18 @@ func (c *Client) ListImages(ctx context.Context, params ListImagesParams) (*List
 	})
 }
 
+// ListSandboxLibraryImages: List built-in sandbox images
+func (c *Client) ListSandboxLibraryImages(ctx context.Context, params ListSandboxLibraryImagesParams) (*ListSandboxLibraryImagesResponse, error) {
+	return doJSON[ListSandboxLibraryImagesResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/sandboxes/library_images",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // ListSandboxes: List sandboxes
 func (c *Client) ListSandboxes(ctx context.Context, params ListSandboxesParams) (*ListSandboxesResponse, error) {
 	return doJSON[ListSandboxesResponse](c, ctx, apiRequest{

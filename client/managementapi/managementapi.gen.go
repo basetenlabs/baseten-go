@@ -1271,24 +1271,6 @@ func (e RouteUsageDimension) Valid() bool {
 	}
 }
 
-// Defines values for SandboxState.
-const (
-	SandboxState_RUNNING SandboxState = "RUNNING"
-	SandboxState_STANDBY SandboxState = "STANDBY"
-)
-
-// Valid indicates whether the value is a known member of the SandboxState enum.
-func (e SandboxState) Valid() bool {
-	switch e {
-	case SandboxState_RUNNING:
-		return true
-	case SandboxState_STANDBY:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for SandboxDateExpirationPolicyAction.
 const (
 	SandboxDateExpirationPolicyAction_DELETE SandboxDateExpirationPolicyAction = "DELETE"
@@ -5445,6 +5427,12 @@ type ListLoopsSamplersResponse struct {
 	Samplers []LoopsSampler `json:"samplers"`
 }
 
+// ListSandboxLibraryImagesResponse Built-in sandbox images.
+type ListSandboxLibraryImagesResponse struct {
+	// Items Built-in images.
+	Items []SandboxLibraryImage `json:"items"`
+}
+
 // ListSandboxesResponse One page of sandboxes.
 type ListSandboxesResponse struct {
 	// Items Resources on this page.
@@ -6927,9 +6915,6 @@ type Sandbox struct {
 	// Region Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.
 	Region *string `json:"region,omitempty"`
 
-	// State Current execution state when available. Control-plane enum values use uppercase; the execution API uses its own lowercase enum values.
-	State *SandboxState `json:"state,omitempty"`
-
 	// Status Sandbox deployment status.
 	Status SandboxStatus `json:"status"`
 
@@ -6942,9 +6927,6 @@ type Sandbox struct {
 	// Url Base URL of this sandbox's execution API, always present on successful creation. The URL is assigned before deployment completes; inspect status for readiness. Use this exact returned URL; do not reconstruct its hostname. Authenticate requests with your authentication token using Authorization: Bearer <token>. Do not send the Baseten API key directly. No additional routing headers are required. Fetch GET {url}/swagger/doc.json with that header for the API reference served by this sandbox. For example, POST {url}/process with Content-Type: application/json and {"command":"echo hello","waitForCompletion":true} executes a command and waits for its result. Execution API fields use camelCase, independently of this API's snake_case fields.
 	Url *string `json:"url,omitempty"`
 }
-
-// SandboxState Current execution state when available. Control-plane enum values use uppercase; the execution API uses its own lowercase enum values.
-type SandboxState string
 
 // SandboxApiPagination Cursor pagination information. The cursor is present only when another page is available.
 type SandboxApiPagination struct {
@@ -7019,6 +7001,87 @@ type SandboxEnv struct {
 // SandboxExpirationPolicy Expiration policy. The type determines whether value is a duration or an absolute timestamp.
 type SandboxExpirationPolicy struct {
 	union json.RawMessage
+}
+
+// SandboxLibraryImage Built-in sandbox image usable directly as a sandbox image.
+type SandboxLibraryImage struct {
+	// Categories Categories of the image.
+	Categories *[]string `json:"categories,omitempty"`
+
+	// ComingSoon Whether the image is not yet available. Always false in listings.
+	ComingSoon *bool `json:"coming_soon,omitempty"`
+
+	// CreationOptions Optional settings suggested when creating a sandbox from this image.
+	CreationOptions *SandboxLibraryImageCreationOptions `json:"creation_options,omitempty"`
+
+	// Description Short description.
+	Description *string `json:"description,omitempty"`
+
+	// DisplayName Human-readable name.
+	DisplayName *string `json:"display_name,omitempty"`
+
+	// Enterprise Whether the image requires an enterprise plan.
+	Enterprise *bool `json:"enterprise,omitempty"`
+
+	// Hidden Whether the image is hidden. Always false in listings.
+	Hidden *bool `json:"hidden,omitempty"`
+
+	// Icon Icon URL.
+	Icon *string `json:"icon,omitempty"`
+
+	// IconDark Dark-mode icon URL.
+	IconDark *string `json:"icon_dark,omitempty"`
+
+	// IconLight Light-mode icon URL.
+	IconLight *string `json:"icon_light,omitempty"`
+
+	// Image Image reference including its tag, usable as the image of a sandbox.
+	Image string `json:"image"`
+
+	// LongDescription Detailed description.
+	LongDescription *string `json:"long_description,omitempty"`
+
+	// Memory Recommended memory allocation in megabytes.
+	Memory *int `json:"memory,omitempty"`
+
+	// Name Stable identifier of the built-in image.
+	Name string `json:"name"`
+
+	// Ports Set of ports for a resource
+	Ports *SandboxPorts `json:"ports,omitempty"`
+
+	// Tags Tags of the image.
+	Tags *[]string `json:"tags,omitempty"`
+
+	// Url Documentation URL.
+	Url *string `json:"url,omitempty"`
+}
+
+// SandboxLibraryImageCreationOptions Optional settings suggested when creating a sandbox from this image.
+type SandboxLibraryImageCreationOptions struct {
+	// ExtraArgs Kernel selection arguments.
+	ExtraArgs *map[string]string `json:"extra_args,omitempty"`
+
+	// Volumes Volume attachments.
+	Volumes *[]SandboxLibraryImageVolume `json:"volumes,omitempty"`
+}
+
+// SandboxLibraryImageVolume Volume attachment suggested by a built-in image.
+type SandboxLibraryImageVolume struct {
+	// MountPath Absolute filesystem path where the volume is mounted.
+	MountPath string `json:"mount_path"`
+
+	// Name Volume name, or an internal identifier for ephemeral volumes.
+	Name string `json:"name"`
+
+	// ReadOnly Whether the volume is mounted read-only.
+	ReadOnly *bool `json:"read_only,omitempty"`
+
+	// SizeMb Storage capacity in megabytes for ephemeral volumes.
+	SizeMb *int `json:"size_mb,omitempty"`
+
+	// Type Volume type, persistent when empty.
+	Type *string `json:"type,omitempty"`
 }
 
 // SandboxLifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
@@ -9273,6 +9336,12 @@ type GetSandboxParams struct {
 
 // UpdateSandboxParams defines parameters for UpdateSandbox.
 type UpdateSandboxParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// ListSandboxLibraryImagesParams defines parameters for ListSandboxLibraryImages.
+type ListSandboxLibraryImagesParams struct {
 	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }

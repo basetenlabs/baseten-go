@@ -10709,7 +10709,7 @@
             "get": {
                 "operationId": "GetSandbox",
                 "summary": "Get a sandbox",
-                "description": "Return the sandbox configuration and current state.",
+                "description": "Return the sandbox configuration and status.",
                 "tags": [
                     "Sandboxes"
                 ],
@@ -10884,6 +10884,54 @@
                     },
                     "409": {
                         "$ref": "#/components/responses/SandboxError409"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/sandboxes/library_images": {
+            "get": {
+                "operationId": "ListSandboxLibraryImages",
+                "summary": "List built-in sandbox images",
+                "description": "Return the built-in sandbox images available to every team. Use the image field directly as the image of a sandbox, without building or pushing it. Hidden and upcoming images are excluded.",
+                "tags": [
+                    "Images"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListSandboxLibraryImagesResponseV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxLibraryImages"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
                     },
                     "429": {
                         "$ref": "#/components/responses/SandboxError429"
@@ -35034,16 +35082,6 @@
                                 ],
                                 "example": "DEPLOYED"
                             },
-                            "state": {
-                                "type": "string",
-                                "description": "Current execution state when available. Control-plane enum values use uppercase; the execution API uses its own lowercase enum values.",
-                                "enum": [
-                                    "RUNNING",
-                                    "STANDBY"
-                                ],
-                                "readOnly": true,
-                                "example": "RUNNING"
-                            },
                             "created_at": {
                                 "type": "string",
                                 "description": "Time the sandbox was created.",
@@ -35095,7 +35133,6 @@
                             "name": "baseten-api-review-0916",
                             "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run",
                             "status": "DEPLOYED",
-                            "state": "RUNNING",
                             "created_at": "2026-09-16T21:26:58.545765901Z",
                             "updated_at": "2026-09-16T21:31:13Z",
                             "created_by": "sandbox-automation",
@@ -35189,7 +35226,6 @@
                     "name": "baseten-api-review-0916",
                     "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run",
                     "status": "DEPLOYED",
-                    "state": "RUNNING",
                     "created_at": "2026-09-16T21:26:58.545765901Z",
                     "updated_at": "2026-09-16T21:31:13Z",
                     "created_by": "sandbox-automation",
@@ -35337,7 +35373,6 @@
                                 "name": "baseten-api-review-0916",
                                 "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run",
                                 "status": "DEPLOYED",
-                                "state": "RUNNING",
                                 "created_at": "2026-09-16T21:26:58.545765901Z",
                                 "updated_at": "2026-09-16T21:31:13Z",
                                 "created_by": "sandbox-automation",
@@ -35450,7 +35485,6 @@
                             "name": "baseten-api-review-0916",
                             "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run",
                             "status": "DEPLOYED",
-                            "state": "RUNNING",
                             "created_at": "2026-09-16T21:26:58.545765901Z",
                             "updated_at": "2026-09-16T21:31:13Z",
                             "created_by": "sandbox-automation",
@@ -35733,6 +35767,167 @@
                     "status": "BUILDING",
                     "image": "b10/base-image:latest"
                 }
+            },
+            "SandboxLibraryImageVolumeV1": {
+                "type": "object",
+                "description": "Volume attachment suggested by a built-in image.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Volume name, or an internal identifier for ephemeral volumes.",
+                        "example": "scratch"
+                    },
+                    "mount_path": {
+                        "type": "string",
+                        "description": "Absolute filesystem path where the volume is mounted.",
+                        "example": "/mnt/data"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "Volume type, persistent when empty.",
+                        "example": "ephemeral"
+                    },
+                    "size_mb": {
+                        "type": "integer",
+                        "description": "Storage capacity in megabytes for ephemeral volumes.",
+                        "example": 10240
+                    },
+                    "read_only": {
+                        "type": "boolean",
+                        "description": "Whether the volume is mounted read-only.",
+                        "example": false
+                    }
+                },
+                "required": [
+                    "name",
+                    "mount_path"
+                ]
+            },
+            "SandboxLibraryImageCreationOptionsV1": {
+                "type": "object",
+                "description": "Optional settings suggested when creating a sandbox from this image.",
+                "properties": {
+                    "extra_args": {
+                        "type": "object",
+                        "description": "Kernel selection arguments.",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "volumes": {
+                        "type": "array",
+                        "description": "Volume attachments.",
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxLibraryImageVolumeV1"
+                        }
+                    }
+                }
+            },
+            "SandboxLibraryImageV1": {
+                "type": "object",
+                "description": "Built-in sandbox image usable directly as a sandbox image.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Stable identifier of the built-in image.",
+                        "example": "base-image"
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "description": "Human-readable name.",
+                        "example": "Base Image"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Short description.",
+                        "example": "A minimal sandbox environment with the sandbox execution API."
+                    },
+                    "long_description": {
+                        "type": "string",
+                        "description": "Detailed description."
+                    },
+                    "image": {
+                        "type": "string",
+                        "description": "Image reference including its tag, usable as the image of a sandbox.",
+                        "example": "baseten/base-image:latest"
+                    },
+                    "memory": {
+                        "type": "integer",
+                        "description": "Recommended memory allocation in megabytes.",
+                        "example": 4096
+                    },
+                    "ports": {
+                        "$ref": "#/components/schemas/SandboxPortsV1"
+                    },
+                    "categories": {
+                        "type": "array",
+                        "description": "Categories of the image.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "tags": {
+                        "type": "array",
+                        "description": "Tags of the image.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "Documentation URL."
+                    },
+                    "icon": {
+                        "type": "string",
+                        "description": "Icon URL."
+                    },
+                    "icon_light": {
+                        "type": "string",
+                        "description": "Light-mode icon URL."
+                    },
+                    "icon_dark": {
+                        "type": "string",
+                        "description": "Dark-mode icon URL."
+                    },
+                    "enterprise": {
+                        "type": "boolean",
+                        "description": "Whether the image requires an enterprise plan.",
+                        "example": false
+                    },
+                    "hidden": {
+                        "type": "boolean",
+                        "description": "Whether the image is hidden. Always false in listings.",
+                        "example": false
+                    },
+                    "coming_soon": {
+                        "type": "boolean",
+                        "description": "Whether the image is not yet available. Always false in listings.",
+                        "example": false
+                    },
+                    "creation_options": {
+                        "$ref": "#/components/schemas/SandboxLibraryImageCreationOptionsV1"
+                    }
+                },
+                "required": [
+                    "name",
+                    "image"
+                ]
+            },
+            "ListSandboxLibraryImagesResponseV1": {
+                "type": "object",
+                "description": "Built-in sandbox images.",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "description": "Built-in images.",
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxLibraryImageV1"
+                        }
+                    }
+                },
+                "required": [
+                    "items"
+                ]
             },
             "CleanupImagesResponseV1": {
                 "type": "object",
@@ -36409,7 +36604,6 @@
                     "name": "baseten-api-review-0916",
                     "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run",
                     "status": "DEPLOYED",
-                    "state": "RUNNING",
                     "created_at": "2026-09-16T21:26:58.545765901Z",
                     "updated_at": "2026-09-16T21:31:13Z",
                     "created_by": "sandbox-automation",
@@ -36506,7 +36700,6 @@
                     "name": "baseten-api-review-0916",
                     "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run",
                     "status": "DEPLOYED",
-                    "state": "RUNNING",
                     "created_at": "2026-09-16T21:26:58.545765901Z",
                     "updated_at": "2026-09-16T21:36:13Z",
                     "created_by": "sandbox-automation",
@@ -36601,7 +36794,6 @@
                     "name": "baseten-api-review-0916",
                     "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run",
                     "status": "DELETING",
-                    "state": "RUNNING",
                     "created_at": "2026-09-16T21:26:58.545765901Z",
                     "updated_at": "2026-09-16T21:41:13Z",
                     "created_by": "sandbox-automation",
@@ -36698,7 +36890,6 @@
                             "name": "baseten-api-review-0916",
                             "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run",
                             "status": "DEPLOYED",
-                            "state": "RUNNING",
                             "created_at": "2026-09-16T21:26:58.545765901Z",
                             "updated_at": "2026-09-16T21:31:13Z",
                             "created_by": "sandbox-automation",
@@ -36802,7 +36993,6 @@
                             "name": "baseten-api-review-0916",
                             "url": "https://sbx-baseten-api-review-0916-esb1qo.us-pdx-1.b10.run",
                             "status": "DEPLOYED",
-                            "state": "RUNNING",
                             "created_at": "2026-09-16T21:26:58.545765901Z",
                             "updated_at": "2026-09-16T21:31:13Z",
                             "created_by": "sandbox-automation",
@@ -36925,6 +37115,37 @@
                     "image": "b10/base-image:latest"
                 },
                 "description": "No upload_url is returned for registry imports."
+            },
+            "SandboxLibraryImages": {
+                "summary": "Built-in sandbox images",
+                "value": {
+                    "items": [
+                        {
+                            "name": "base-image",
+                            "display_name": "Base Image",
+                            "description": "A minimal sandbox environment with the sandbox execution API.",
+                            "long_description": "",
+                            "image": "baseten/base-image:latest",
+                            "memory": 4096,
+                            "ports": [
+                                {
+                                    "name": "sandbox-api",
+                                    "protocol": "HTTP",
+                                    "target": 8080
+                                }
+                            ],
+                            "categories": [],
+                            "tags": [],
+                            "url": "",
+                            "icon": "https://example.com/base-image.png",
+                            "icon_light": "https://example.com/base-image.png",
+                            "icon_dark": "https://example.com/base-image.png",
+                            "enterprise": false,
+                            "hidden": false,
+                            "coming_soon": false
+                        }
+                    ]
+                }
             },
             "CleanupImages": {
                 "summary": "Unused image versions removed",
