@@ -6594,7 +6594,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs/{run_id}/deactivate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Shuts down a Loops run by ID, tearing down both the run and its paired sampler. Saved checkpoints remain accessible.",
+                "description": "Shuts down a Loops run by ID, tearing down both the run and its paired sampler. Succeeds if the run is already inactive. Saved checkpoints remain accessible.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -6772,6 +6772,39 @@
                 }
             }
         },
+        "/v1/loops/samplers/{sampler_id}/deactivate": {
+            "post": {
+                "summary": "Deactivates a standalone Loops sampler",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/samplers/{sampler_id}/deactivate \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers/{sampler_id}/deactivate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Shuts down a standalone Loops sampler by ID. Succeeds if it is already inactive. A sampler paired to a run always returns 409 with the run's ID, even if it is inactive.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeactivateLoopsSamplerResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/sampler_id"
+                }
+            ]
+        },
         "/v1/loops/samplers/{sampler_id}": {
             "get": {
                 "summary": "Gets a Loops sampler",
@@ -6929,6 +6962,44 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ValidateLoopsCheckpointResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/loops/checkpoints/deploy": {
+            "post": {
+                "summary": "Deploys Loops checkpoints",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/checkpoints/deploy \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"checkpoint_ids\": null,\n  \"model_name\": null,\n  \"instance_type_id\": null,\n  \"hf_secret_name\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/checkpoints/deploy\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'checkpoint_ids': None, 'model_name': None, 'instance_type_id': None, 'hf_secret_name': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Creates an inference deployment from one or more Loops sampler checkpoints. Confirm the user intends to create billable resources before calling it. This operation is not idempotent; repeating the request can create another deployment.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeployLoopsCheckpointRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeployLoopsCheckpointResponseV1"
                                 }
                             }
                         }
@@ -9677,6 +9748,148 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/RoutesUsageResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/routes/settings/users/{user_id}": {
+            "get": {
+                "summary": "Gets a user's route settings",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns the settings that apply to the user, including the spend limit that caps what they can spend on Baseten Code each month. Use `me` as the user ID for your own settings. Users can read their own settings; only organization admins can read other users' settings or change them.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteUserSettingsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/user_id"
+                }
+            ],
+            "patch": {
+                "summary": "Updates a user's route settings",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/settings/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"spend_limit\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'spend_limit': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Changes only the fields in the request. Once the user's metered spend in a month reaches the spend limit, requests with Routes keys they created are rejected until the limit is raised or the next month starts. A limit of 0 blocks the user after their first metered request. Spend is metered every 15 minutes and can lag, so a user can go over the limit. If the user has spend this month, changes take effect within seconds; otherwise at the next metering run.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateRouteUserSettingsRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteUserSettingsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/routes/settings/teams/{team_id}": {
+            "get": {
+                "summary": "Gets a team's route settings",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/teams/{team_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns the settings that apply to the team, including the default models for each coding harness. Any member who can invoke the team's routes can read them.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteTeamSettingsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/team_id"
+                }
+            ],
+            "patch": {
+                "summary": "Updates a team's route settings",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/settings/teams/{team_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"harness_defaults\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'harness_defaults': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Changes only the fields in the request, all or nothing. Requires team admin.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateRouteTeamSettingsRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteTeamSettingsV1"
                                 }
                             }
                         }
@@ -24832,6 +25045,32 @@
                 "title": "CreateLoopsSamplerResponseV1",
                 "type": "object"
             },
+            "DeactivateLoopsSamplerResponseV1": {
+                "description": "Response for ``POST /v1/loops/samplers/<sampler_id>/deactivate``.",
+                "properties": {
+                    "id": {
+                        "description": "The deactivated Loops sampler ID.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "base_model": {
+                        "description": "The base model the deactivated sampler was serving.",
+                        "title": "Base Model",
+                        "type": "string"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/UserV1",
+                        "description": "The user who owns the Loops sampler."
+                    }
+                },
+                "required": [
+                    "id",
+                    "base_model",
+                    "user"
+                ],
+                "title": "DeactivateLoopsSamplerResponseV1",
+                "type": "object"
+            },
             "GetLoopsSamplerResponseV1": {
                 "description": "Response for ``GET /v1/loops/samplers/<sampler_id>``.",
                 "properties": {
@@ -25041,6 +25280,64 @@
                 "description": "Response for ``POST /v1/loops/checkpoints/validate``. Empty on success;\ninaccessible or malformed paths raise 400.",
                 "properties": {},
                 "title": "ValidateLoopsCheckpointResponseV1",
+                "type": "object"
+            },
+            "DeployLoopsCheckpointRequestV1": {
+                "properties": {
+                    "checkpoint_ids": {
+                        "description": "Sampler checkpoint IDs to deploy together.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "minItems": 1,
+                        "title": "Checkpoint Ids",
+                        "type": "array"
+                    },
+                    "model_name": {
+                        "description": "Name for the created model.",
+                        "minLength": 1,
+                        "title": "Model Name",
+                        "type": "string"
+                    },
+                    "instance_type_id": {
+                        "description": "Instance type ID for the deployment.",
+                        "title": "Instance Type Id",
+                        "type": "string"
+                    },
+                    "hf_secret_name": {
+                        "description": "Name of the team-scoped secret that supplies HF_TOKEN.",
+                        "minLength": 1,
+                        "title": "Hf Secret Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "checkpoint_ids",
+                    "model_name",
+                    "instance_type_id",
+                    "hf_secret_name"
+                ],
+                "title": "DeployLoopsCheckpointRequestV1",
+                "type": "object"
+            },
+            "DeployLoopsCheckpointResponseV1": {
+                "properties": {
+                    "model_id": {
+                        "description": "ID of the created or updated model.",
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "description": "ID of the created model version deployment.",
+                        "title": "Deployment Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "model_id",
+                    "deployment_id"
+                ],
+                "title": "DeployLoopsCheckpointResponseV1",
                 "type": "object"
             },
             "LoopsCheckpointFilesResponseV1": {
@@ -26775,9 +27072,9 @@
                         "default": null,
                         "description": "Family the underlying model belongs to.",
                         "examples": [
-                            "META",
-                            "DEEPSEEK",
-                            "QWEN"
+                            "Meta",
+                            "DeepSeek",
+                            "Qwen"
                         ],
                         "title": "Model Family"
                     },
@@ -29079,7 +29376,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Model family (e.g., llama, mistral)",
+                        "description": "Model family (e.g., Meta, DeepSeek)",
                         "title": "Model Family"
                     },
                     "subtotal": {
@@ -30824,6 +31121,387 @@
                     }
                 },
                 "title": "RoutesUsageRequestV1",
+                "type": "object"
+            },
+            "RouteSettingSourceV1": {
+                "enum": [
+                    "user",
+                    "team"
+                ],
+                "title": "RouteSettingSourceV1",
+                "type": "string"
+            },
+            "RouteSpendLimitSettingV1": {
+                "properties": {
+                    "monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Standing spend limit in USD for each UTC calendar month, returned as an exact decimal string. Null when no limit applies.",
+                        "examples": [
+                            "200"
+                        ],
+                        "title": "Monthly Limit Usd"
+                    },
+                    "source": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteSettingSourceV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Where the limit comes from: `user` when it is set on the user. Null when no limit applies."
+                    }
+                },
+                "required": [
+                    "monthly_limit_usd",
+                    "source"
+                ],
+                "title": "RouteSpendLimitSettingV1",
+                "type": "object"
+            },
+            "RouteUserSettingsV1": {
+                "properties": {
+                    "user_id": {
+                        "description": "ID of the user.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "User Id",
+                        "type": "string"
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Email address of the user.",
+                        "examples": [
+                            "dev@example.com"
+                        ],
+                        "title": "Email"
+                    },
+                    "spend_limit": {
+                        "$ref": "#/components/schemas/RouteSpendLimitSettingV1",
+                        "description": "Spend limit for Baseten Code. Applies to requests with Routes keys the user created; personal API keys are not limited."
+                    }
+                },
+                "required": [
+                    "user_id",
+                    "email",
+                    "spend_limit"
+                ],
+                "title": "RouteUserSettingsV1",
+                "type": "object"
+            },
+            "UpdateRouteSpendLimitSettingV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Standing spend limit in USD for each UTC calendar month, as a non-negative decimal string with at most 9 decimal places. Send null to remove the limit; omit to leave it unchanged.",
+                        "examples": [
+                            "200"
+                        ],
+                        "title": "Monthly Limit Usd",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdateRouteSpendLimitSettingV1",
+                "type": "object"
+            },
+            "UpdateRouteUserSettingsRequestV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "spend_limit": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateRouteSpendLimitSettingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Spend limit fields to change. Pass null to remove the user's limit; omit to leave it unchanged.",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdateRouteUserSettingsRequestV1",
+                "type": "object"
+            },
+            "BackgroundHarnessDefaultsV1": {
+                "properties": {
+                    "primary": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteHarnessModelV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Route for the primary model, which new sessions use. Null when the team has no route to use."
+                    },
+                    "background": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteHarnessModelV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Route for background tasks, such as session titles. Null when the team has no route to use."
+                    }
+                },
+                "required": [
+                    "primary",
+                    "background"
+                ],
+                "title": "BackgroundHarnessDefaultsV1",
+                "type": "object"
+            },
+            "PrimaryHarnessDefaultsV1": {
+                "properties": {
+                    "primary": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteHarnessModelV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Route for the primary model, which new sessions use. Null when the team has no route to use."
+                    }
+                },
+                "required": [
+                    "primary"
+                ],
+                "title": "PrimaryHarnessDefaultsV1",
+                "type": "object"
+            },
+            "RouteHarnessDefaultsV1": {
+                "properties": {
+                    "claude_code": {
+                        "$ref": "#/components/schemas/BackgroundHarnessDefaultsV1",
+                        "description": "Default models for Claude Code."
+                    },
+                    "opencode": {
+                        "$ref": "#/components/schemas/BackgroundHarnessDefaultsV1",
+                        "description": "Default models for OpenCode."
+                    },
+                    "codex": {
+                        "$ref": "#/components/schemas/PrimaryHarnessDefaultsV1",
+                        "description": "Default models for Codex."
+                    }
+                },
+                "required": [
+                    "claude_code",
+                    "opencode",
+                    "codex"
+                ],
+                "title": "RouteHarnessDefaultsV1",
+                "type": "object"
+            },
+            "RouteHarnessModelV1": {
+                "properties": {
+                    "source": {
+                        "$ref": "#/components/schemas/RouteSettingSourceV1",
+                        "description": "Where this role's route comes from. `team` covers both a route a team admin set and the default chosen from the team's Model API routes."
+                    },
+                    "route": {
+                        "$ref": "#/components/schemas/RouteV1",
+                        "description": "Route to use for this role."
+                    }
+                },
+                "required": [
+                    "source",
+                    "route"
+                ],
+                "title": "RouteHarnessModelV1",
+                "type": "object"
+            },
+            "RouteTeamSettingsV1": {
+                "properties": {
+                    "team_id": {
+                        "description": "ID of the team.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "harness_defaults": {
+                        "$ref": "#/components/schemas/RouteHarnessDefaultsV1",
+                        "description": "Route for each model role of each coding harness. A role with no route set by a team admin uses the default chosen from the team's Model API routes: the recommended model for `primary` and the lowest-priced model for `background`. These defaults never use external-provider routes."
+                    }
+                },
+                "required": [
+                    "team_id",
+                    "harness_defaults"
+                ],
+                "title": "RouteTeamSettingsV1",
+                "type": "object"
+            },
+            "UpdateBackgroundHarnessModelsV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "primary": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Primary",
+                        "x-null-distinct": true
+                    },
+                    "background": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route ID for background tasks, such as session titles. Omit to keep the current route, or pass null to use the team's default.",
+                        "examples": [
+                            "def5678"
+                        ],
+                        "title": "Background",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdateBackgroundHarnessModelsV1",
+                "type": "object"
+            },
+            "UpdatePrimaryHarnessModelsV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "primary": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Primary",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdatePrimaryHarnessModelsV1",
+                "type": "object"
+            },
+            "UpdateRouteHarnessDefaultsV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "claude_code": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateBackgroundHarnessModelsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
+                        "x-null-distinct": true
+                    },
+                    "opencode": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateBackgroundHarnessModelsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
+                        "x-null-distinct": true
+                    },
+                    "codex": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdatePrimaryHarnessModelsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdateRouteHarnessDefaultsV1",
+                "type": "object"
+            },
+            "UpdateRouteTeamSettingsRequestV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "harness_defaults": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateRouteHarnessDefaultsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Harnesses to change; harnesses left out are unchanged. Pass null to clear every harness, so each role uses the team's default.",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdateRouteTeamSettingsRequestV1",
                 "type": "object"
             },
             "RouteTombstoneV1": {

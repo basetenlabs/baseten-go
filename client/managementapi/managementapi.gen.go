@@ -1187,6 +1187,24 @@ func (e RouteProvider) Valid() bool {
 	}
 }
 
+// Defines values for RouteSettingSource.
+const (
+	RouteSettingSource_team RouteSettingSource = "team"
+	RouteSettingSource_user RouteSettingSource = "user"
+)
+
+// Valid indicates whether the value is a known member of the RouteSettingSource enum.
+func (e RouteSettingSource) Valid() bool {
+	switch e {
+	case RouteSettingSource_team:
+		return true
+	case RouteSettingSource_user:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for RouteUsageDimension.
 const (
 	RouteUsageDimension_MODEL    RouteUsageDimension = "MODEL"
@@ -2453,6 +2471,15 @@ type AwsOidcDockerAuth struct {
 	RoleArn string `json:"role_arn"`
 }
 
+// BackgroundHarnessDefaults defines model for BackgroundHarnessDefaults.
+type BackgroundHarnessDefaults struct {
+	// Background Route for background tasks, such as session titles. Null when the team has no route to use.
+	Background *RouteHarnessModel `json:"background"`
+
+	// Primary Route for the primary model, which new sessions use. Null when the team has no route to use.
+	Primary *RouteHarnessModel `json:"primary"`
+}
+
 // BasetenLatestCheckpointConfig defines model for BasetenLatestCheckpointConfig.
 type BasetenLatestCheckpointConfig struct {
 	// JobId ID of the job to load the checkpoint from
@@ -3467,6 +3494,18 @@ type DeactivateLoopsRunResponse struct {
 	User User `json:"user"`
 }
 
+// DeactivateLoopsSamplerResponse Response for “POST /v1/loops/samplers/<sampler_id>/deactivate“.
+type DeactivateLoopsSamplerResponse struct {
+	// BaseModel The base model the deactivated sampler was serving.
+	BaseModel string `json:"base_model"`
+
+	// Id The deactivated Loops sampler ID.
+	Id string `json:"id"`
+
+	// User A user.
+	User User `json:"user"`
+}
+
 // DeactivateResponse The response to a request to deactivate a deployment.
 type DeactivateResponse struct {
 	// NoOp Whether the request did nothing because the deployment was already inactive
@@ -3632,6 +3671,30 @@ type DeleteVolumeVersionResponse struct {
 
 	// VolumeSequence Revision of the volume after the delete.
 	VolumeSequence int `json:"volume_sequence"`
+}
+
+// DeployLoopsCheckpointRequest defines model for DeployLoopsCheckpointRequest.
+type DeployLoopsCheckpointRequest struct {
+	// CheckpointIds Sampler checkpoint IDs to deploy together.
+	CheckpointIds []string `json:"checkpoint_ids"`
+
+	// HfSecretName Name of the team-scoped secret that supplies HF_TOKEN.
+	HfSecretName string `json:"hf_secret_name"`
+
+	// InstanceTypeId Instance type ID for the deployment.
+	InstanceTypeId string `json:"instance_type_id"`
+
+	// ModelName Name for the created model.
+	ModelName string `json:"model_name"`
+}
+
+// DeployLoopsCheckpointResponse defines model for DeployLoopsCheckpointResponse.
+type DeployLoopsCheckpointResponse struct {
+	// DeploymentId ID of the created model version deployment.
+	DeploymentId string `json:"deployment_id"`
+
+	// ModelId ID of the created or updated model.
+	ModelId string `json:"model_id"`
 }
 
 // Deployment A deployment of a model.
@@ -5536,7 +5599,7 @@ type ModelApiItem struct {
 	// InputTokens Total input tokens for this model
 	InputTokens int `json:"input_tokens"`
 
-	// ModelFamily Model family (e.g., llama, mistral)
+	// ModelFamily Model family (e.g., Meta, DeepSeek)
 	ModelFamily *string `json:"model_family,omitempty"`
 
 	// ModelName Model name
@@ -6020,6 +6083,12 @@ type PrepareModelUploadResponse struct {
 	S3Region *string `json:"s3_region,omitempty"`
 }
 
+// PrimaryHarnessDefaults defines model for PrimaryHarnessDefaults.
+type PrimaryHarnessDefaults struct {
+	// Primary Route for the primary model, which new sessions use. Null when the team has no route to use.
+	Primary *RouteHarnessModel `json:"primary"`
+}
+
 // PromoteRequest A request to promote a deployment to production.
 type PromoteRequest struct {
 	// PreserveEnvInstanceType Whether to use the promoting deployment's instance type or preserve target environment's instance type
@@ -6272,8 +6341,33 @@ type Route_Target struct {
 	union json.RawMessage
 }
 
+// RouteHarnessDefaults defines model for RouteHarnessDefaults.
+type RouteHarnessDefaults struct {
+	ClaudeCode BackgroundHarnessDefaults `json:"claude_code"`
+	Codex      PrimaryHarnessDefaults    `json:"codex"`
+	Opencode   BackgroundHarnessDefaults `json:"opencode"`
+}
+
+// RouteHarnessModel defines model for RouteHarnessModel.
+type RouteHarnessModel struct {
+	Route  Route              `json:"route"`
+	Source RouteSettingSource `json:"source"`
+}
+
 // RouteProvider Upstream provider of a route target, named like the route target types.
 type RouteProvider string
+
+// RouteSettingSource defines model for RouteSettingSource.
+type RouteSettingSource string
+
+// RouteSpendLimitSetting defines model for RouteSpendLimitSetting.
+type RouteSpendLimitSetting struct {
+	// MonthlyLimitUsd Standing spend limit in USD for each UTC calendar month, returned as an exact decimal string. Null when no limit applies.
+	MonthlyLimitUsd *string `json:"monthly_limit_usd"`
+
+	// Source Where the limit comes from: `user` when it is set on the user. Null when no limit applies.
+	Source *RouteSettingSource `json:"source"`
+}
 
 // RouteTargetAnthropic defines model for RouteTargetAnthropic.
 type RouteTargetAnthropic struct {
@@ -6320,6 +6414,14 @@ type RouteTargetXAI struct {
 	Type string `json:"type"`
 }
 
+// RouteTeamSettings defines model for RouteTeamSettings.
+type RouteTeamSettings struct {
+	HarnessDefaults RouteHarnessDefaults `json:"harness_defaults"`
+
+	// TeamId ID of the team.
+	TeamId string `json:"team_id"`
+}
+
 // RouteTombstone defines model for RouteTombstone.
 type RouteTombstone struct {
 	// Id Stable identifier of the deleted route.
@@ -6331,6 +6433,16 @@ type RouteTombstone struct {
 
 // RouteUsageDimension defines model for RouteUsageDimension.
 type RouteUsageDimension string
+
+// RouteUserSettings defines model for RouteUserSettings.
+type RouteUserSettings struct {
+	// Email Email address of the user.
+	Email      *string                `json:"email"`
+	SpendLimit RouteSpendLimitSetting `json:"spend_limit"`
+
+	// UserId ID of the user.
+	UserId string `json:"user_id"`
+}
 
 // RoutesResponse defines model for RoutesResponse.
 type RoutesResponse struct {
@@ -6993,6 +7105,15 @@ type UpdateAutoscalingSettingsResponse struct {
 // UpdateAutoscalingSettingsStatus The status of a request to update autoscaling settings.
 type UpdateAutoscalingSettingsStatus string
 
+// UpdateBackgroundHarnessModels defines model for UpdateBackgroundHarnessModels.
+type UpdateBackgroundHarnessModels struct {
+	// Background Route ID for background tasks, such as session titles. Omit to keep the current route, or pass null to use the team's default.
+	Background Optional[string] `json:"background,omitzero"`
+
+	// Primary Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.
+	Primary Optional[string] `json:"primary,omitzero"`
+}
+
 // UpdateChainEnvironmentRequest A request to update a chain environment.
 type UpdateChainEnvironmentRequest struct {
 	// PromotionSettings Promotion settings for the environment
@@ -7138,6 +7259,12 @@ type UpdateModelRequest struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// UpdatePrimaryHarnessModels defines model for UpdatePrimaryHarnessModels.
+type UpdatePrimaryHarnessModels struct {
+	// Primary Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.
+	Primary Optional[string] `json:"primary,omitzero"`
+}
+
 // UpdatePromotionSettings Promotion settings for model promotion
 type UpdatePromotionSettings struct {
 	// PromotionCleanupStrategy The cleanup strategy to use after a promotion completes.
@@ -7183,6 +7310,18 @@ type UpdateRollingDeployConfig struct {
 	StabilizationTimeSeconds *int `json:"stabilization_time_seconds,omitempty"`
 }
 
+// UpdateRouteHarnessDefaults defines model for UpdateRouteHarnessDefaults.
+type UpdateRouteHarnessDefaults struct {
+	// ClaudeCode Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
+	ClaudeCode Optional[UpdateBackgroundHarnessModels] `json:"claude_code,omitzero"`
+
+	// Codex Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
+	Codex Optional[UpdatePrimaryHarnessModels] `json:"codex,omitzero"`
+
+	// Opencode Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
+	Opencode Optional[UpdateBackgroundHarnessModels] `json:"opencode,omitzero"`
+}
+
 // UpdateRouteRequest defines model for UpdateRouteRequest.
 type UpdateRouteRequest struct {
 	// Description New description. Omit to keep the current description; use an empty string to clear it. Null is not accepted.
@@ -7190,6 +7329,24 @@ type UpdateRouteRequest struct {
 
 	// DisplayName New display label. Omit to keep the current label; null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
+}
+
+// UpdateRouteSpendLimitSetting defines model for UpdateRouteSpendLimitSetting.
+type UpdateRouteSpendLimitSetting struct {
+	// MonthlyLimitUsd Standing spend limit in USD for each UTC calendar month, as a non-negative decimal string with at most 9 decimal places. Send null to remove the limit; omit to leave it unchanged.
+	MonthlyLimitUsd Optional[string] `json:"monthly_limit_usd,omitzero"`
+}
+
+// UpdateRouteTeamSettingsRequest defines model for UpdateRouteTeamSettingsRequest.
+type UpdateRouteTeamSettingsRequest struct {
+	// HarnessDefaults Harnesses to change; harnesses left out are unchanged. Pass null to clear every harness, so each role uses the team's default.
+	HarnessDefaults Optional[UpdateRouteHarnessDefaults] `json:"harness_defaults,omitzero"`
+}
+
+// UpdateRouteUserSettingsRequest defines model for UpdateRouteUserSettingsRequest.
+type UpdateRouteUserSettingsRequest struct {
+	// SpendLimit Spend limit fields to change. Pass null to remove the user's limit; omit to leave it unchanged.
+	SpendLimit Optional[UpdateRouteSpendLimitSetting] `json:"spend_limit,omitzero"`
 }
 
 // UpdateTrainingJobRequest A request to update mutable fields on a training job.
@@ -8427,6 +8584,9 @@ type PostV1LlmModelsJSONRequestBody = CreateLLMModelRequest
 // PostV1LlmModelsModelIdDeploymentsJSONRequestBody defines body for PostV1LlmModelsModelIdDeployments for application/json ContentType.
 type PostV1LlmModelsModelIdDeploymentsJSONRequestBody = CreateLLMModelVersionRequest
 
+// PostV1LoopsCheckpointsDeployJSONRequestBody defines body for PostV1LoopsCheckpointsDeploy for application/json ContentType.
+type PostV1LoopsCheckpointsDeployJSONRequestBody = DeployLoopsCheckpointRequest
+
 // PostV1LoopsCheckpointsValidateJSONRequestBody defines body for PostV1LoopsCheckpointsValidate for application/json ContentType.
 type PostV1LoopsCheckpointsValidateJSONRequestBody = ValidateLoopsCheckpointRequest
 
@@ -8501,6 +8661,12 @@ type PostV1PrepareModelUploadJSONRequestBody = PrepareModelUploadRequest
 
 // PostV1RoutesJSONRequestBody defines body for PostV1Routes for application/json ContentType.
 type PostV1RoutesJSONRequestBody = CreateRouteRequest
+
+// PatchV1RoutesSettingsTeamsTeamIdJSONRequestBody defines body for PatchV1RoutesSettingsTeamsTeamId for application/json ContentType.
+type PatchV1RoutesSettingsTeamsTeamIdJSONRequestBody = UpdateRouteTeamSettingsRequest
+
+// PatchV1RoutesSettingsUsersUserIdJSONRequestBody defines body for PatchV1RoutesSettingsUsersUserId for application/json ContentType.
+type PatchV1RoutesSettingsUsersUserIdJSONRequestBody = UpdateRouteUserSettingsRequest
 
 // PatchV1RoutesRouteIdJSONRequestBody defines body for PatchV1RoutesRouteId for application/json ContentType.
 type PatchV1RoutesRouteIdJSONRequestBody = UpdateRouteRequest
