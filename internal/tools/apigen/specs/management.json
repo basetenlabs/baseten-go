@@ -11451,6 +11451,28 @@
                 },
                 "x-stability": "unstable"
             }
+        },
+        "/v0/sandbox/hub": {
+            "get": {
+                "operationId": "ListSandboxLibraryImages",
+                "summary": "List starter sandbox images",
+                "description": "Lists the platform's starter images from the sandbox hub catalog, available to any sandbox without building or pushing. The catalog is workspace-global. Hidden and coming-soon entries arrive unfiltered; callers that display catalogs drop them. Pass an entry's image as image when creating a sandbox.",
+                "responses": {
+                    "200": {
+                        "description": "The starter-image catalog.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxLibraryImageList"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    }
+                }
+            }
         }
     },
     "openapi": "3.1.0",
@@ -35758,6 +35780,112 @@
                     "deleted": 3,
                     "message": "Removed 3 unused image versions. Image versions used by active sandboxes were retained."
                 }
+            },
+            "SandboxLibraryImage": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "image"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Stable identifier of the starter image."
+                    },
+                    "displayName": {
+                        "type": "string",
+                        "description": "Human-readable name for display."
+                    },
+                    "image": {
+                        "type": "string",
+                        "description": "Image reference including its tag. Pass it as image when creating a sandbox.",
+                        "examples": [
+                            "blaxel/expo:latest"
+                        ]
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "One-line summary of what the image contains."
+                    },
+                    "longDescription": {
+                        "type": "string",
+                        "description": "Longer description of the image's contents."
+                    },
+                    "memory": {
+                        "type": "integer",
+                        "description": "Default memory allocation in megabytes."
+                    },
+                    "categories": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Categories the image is filed under, for filtering."
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Free-form tags."
+                    },
+                    "ports": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Name of the port."
+                                },
+                                "target": {
+                                    "type": "integer",
+                                    "description": "Port number inside the sandbox."
+                                },
+                                "protocol": {
+                                    "type": "string",
+                                    "description": "Protocol the port serves."
+                                }
+                            }
+                        },
+                        "description": "Ports the image's services listen on, for reference in a sandbox's ports list."
+                    },
+                    "icon": {
+                        "type": "string",
+                        "description": "Icon for display."
+                    },
+                    "iconLight": {
+                        "type": "string",
+                        "description": "Light-mode icon for display."
+                    },
+                    "iconDark": {
+                        "type": "string",
+                        "description": "Dark-mode icon for display."
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "Project page for the image's stack."
+                    },
+                    "enterprise": {
+                        "type": "boolean",
+                        "description": "Whether the image is gated to enterprise workspaces."
+                    },
+                    "hidden": {
+                        "type": "boolean",
+                        "description": "Whether the entry is hidden from catalogs."
+                    },
+                    "coming_soon": {
+                        "type": "boolean",
+                        "description": "Whether the image is announced but not yet available."
+                    }
+                }
+            },
+            "SandboxLibraryImageList": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/SandboxLibraryImage"
+                },
+                "description": "The starter-image catalog."
             }
         },
         "parameters": {

@@ -7021,6 +7021,69 @@ type SandboxExpirationPolicy struct {
 	union json.RawMessage
 }
 
+// SandboxLibraryImage defines model for SandboxLibraryImage.
+type SandboxLibraryImage struct {
+	// Categories Categories the image is filed under, for filtering.
+	Categories *[]string `json:"categories,omitempty"`
+
+	// ComingSoon Whether the image is announced but not yet available.
+	ComingSoon *bool `json:"coming_soon,omitempty"`
+
+	// Description One-line summary of what the image contains.
+	Description *string `json:"description,omitempty"`
+
+	// DisplayName Human-readable name for display.
+	DisplayName *string `json:"displayName,omitempty"`
+
+	// Enterprise Whether the image is gated to enterprise workspaces.
+	Enterprise *bool `json:"enterprise,omitempty"`
+
+	// Hidden Whether the entry is hidden from catalogs.
+	Hidden *bool `json:"hidden,omitempty"`
+
+	// Icon Icon for display.
+	Icon *string `json:"icon,omitempty"`
+
+	// IconDark Dark-mode icon for display.
+	IconDark *string `json:"iconDark,omitempty"`
+
+	// IconLight Light-mode icon for display.
+	IconLight *string `json:"iconLight,omitempty"`
+
+	// Image Image reference including its tag. Pass it as image when creating a sandbox.
+	Image string `json:"image"`
+
+	// LongDescription Longer description of the image's contents.
+	LongDescription *string `json:"longDescription,omitempty"`
+
+	// Memory Default memory allocation in megabytes.
+	Memory *int `json:"memory,omitempty"`
+
+	// Name Stable identifier of the starter image.
+	Name string `json:"name"`
+
+	// Ports Ports the image's services listen on, for reference in a sandbox's ports list.
+	Ports *[]struct {
+		// Name Name of the port.
+		Name *string `json:"name,omitempty"`
+
+		// Protocol Protocol the port serves.
+		Protocol *string `json:"protocol,omitempty"`
+
+		// Target Port number inside the sandbox.
+		Target *int `json:"target,omitempty"`
+	} `json:"ports,omitempty"`
+
+	// Tags Free-form tags.
+	Tags *[]string `json:"tags,omitempty"`
+
+	// Url Project page for the image's stack.
+	Url *string `json:"url,omitempty"`
+}
+
+// SandboxLibraryImageList The starter-image catalog.
+type SandboxLibraryImageList = []SandboxLibraryImage
+
 // SandboxLifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
 type SandboxLifecycle struct {
 	// ExpirationPolicies List of expiration policies. Multiple policies can be combined; whichever condition is met first triggers the action.
