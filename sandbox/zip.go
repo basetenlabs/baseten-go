@@ -3,8 +3,10 @@ package sandbox
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -15,36 +17,53 @@ import (
 // zipEntry is one file or directory of a build context.
 type zipEntry struct {
 	path string
-	// data is nil for a directory.
+	dir  bool
+	// data is a file's content, unless sourcePath is set.
 	data []byte
-	mode fs.FileMode
+	// sourcePath is a local file read while zipping, so a large build context
+	// is never held in memory whole.
+	sourcePath string
+	mode       fs.FileMode
 }
 
-// writeZip zips entries, in order, into one archive.
-func writeZip(entries []zipEntry) ([]byte, error) {
-	var buf bytes.Buffer
-	writer := zip.NewWriter(&buf)
+// writeZip zips entries, in order, into w.
+func writeZip(ctx context.Context, w io.Writer, entries []zipEntry) error {
+	writer := zip.NewWriter(w)
 	for _, entry := range entries {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		header := &zip.FileHeader{Name: entry.path, Method: zip.Deflate}
-		if entry.data == nil {
+		if entry.dir {
 			header.Name += "/"
 			header.Method = zip.Store
 			header.SetMode(entry.mode | fs.ModeDir)
 		} else {
 			header.SetMode(entry.mode)
 		}
-		w, err := writer.CreateHeader(header)
+		fileWriter, err := writer.CreateHeader(header)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		if _, err := w.Write(entry.data); err != nil {
-			return nil, err
+		if entry.sourcePath != "" {
+			if err := copyFileTo(fileWriter, entry.sourcePath); err != nil {
+				return err
+			}
+		} else if _, err := fileWriter.Write(entry.data); err != nil {
+			return err
 		}
 	}
-	if err := writer.Close(); err != nil {
-		return nil, err
+	return writer.Close()
+}
+
+func copyFileTo(w io.Writer, path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
 	}
-	return buf.Bytes(), nil
+	defer file.Close()
+	_, err = io.Copy(w, file)
+	return err
 }
 
 // checkZipDockerfile checks that a caller's archive has a Dockerfile at its
@@ -80,45 +99,55 @@ func filesZipEntries(files map[string][]byte) ([]zipEntry, error) {
 	slices.Sort(paths)
 	entries := make([]zipEntry, 0, len(paths))
 	for _, path := range paths {
-		data := files[path]
-		if data == nil {
-			// A nil file is still a file, just an empty one.
-			data = []byte{}
-		}
-		entries = append(entries, zipEntry{path: path, data: data, mode: 0o644})
+		entries = append(entries, zipEntry{path: path, data: files[path], mode: 0o644})
 	}
 	return entries, nil
 }
 
-// directoryZipEntries builds entries from everything under a local
-// directory. Files keep their modes, a link to a file within the directory
-// stores a copy of the file, a link to a file outside it is an error, a link
-// to a directory stores an empty directory, and a broken link is left out.
-func directoryZipEntries(root string) ([]zipEntry, error) {
+// directoryZipEntries builds entries from everything under a local directory
+// that ignore does not exclude. Files keep their modes, a link to a file
+// within the directory stores a copy of the file, a link to a file outside it
+// is an error, a link to a directory stores an empty directory, and a broken
+// link is left out. The root Dockerfile and .dockerignore are always kept, as
+// Docker keeps them in a build context.
+func directoryZipEntries(ctx context.Context, root string, ignore ImageIgnoreFileFunc) ([]zipEntry, error) {
 	// Checked before reading anything, so a mistaken directory, such as a
 	// home directory, fails fast instead of being read in full.
 	if info, err := os.Stat(filepath.Join(root, "Dockerfile")); err != nil || !info.Mode().IsRegular() {
 		return nil, fmt.Errorf("directory %s has no Dockerfile at its root", root)
 	}
 	var entries []zipEntry
-	if err := addDirectoryZipEntries(root, "", &entries); err != nil {
+	if err := addDirectoryZipEntries(ctx, root, "", ignore, &entries); err != nil {
 		return nil, err
 	}
 	return entries, nil
 }
 
-// addDirectoryZipEntries adds everything under dir to entries, each path
-// prefixed with prefix. A link to a file outside dir is an error.
-func addDirectoryZipEntries(dir, prefix string, entries *[]zipEntry) error {
+// addDirectoryZipEntries adds everything under dir that ignore does not
+// exclude to entries, each path prefixed with prefix. A nil ignore keeps
+// everything. A link to a file outside dir is an error.
+func addDirectoryZipEntries(ctx context.Context, dir, prefix string, ignore ImageIgnoreFileFunc, entries *[]zipEntry) error {
 	// Resolved, so a link's resolved target can be checked against it.
 	root, err := filepath.EvalSymlinks(dir)
 	if err != nil {
 		return err
 	}
-	return addTreeZipEntries(root, dir, prefix, entries)
+	walk := treeWalk{ctx: ctx, root: root, prefix: prefix, ignore: ignore, entries: entries}
+	return walk.add(dir, "")
 }
 
-func addTreeZipEntries(root, dir, prefix string, entries *[]zipEntry) error {
+// treeWalk adds one local directory tree to a build context's entries.
+type treeWalk struct {
+	ctx     context.Context
+	root    string
+	prefix  string
+	ignore  ImageIgnoreFileFunc
+	entries *[]zipEntry
+}
+
+// add adds the children of dir, whose path relative to the walked directory
+// is relDir ("" for the walked directory itself).
+func (w *treeWalk) add(dir, relDir string) error {
 	// Sorted by name, so the same directory always zips the same way.
 	children, err := os.ReadDir(dir)
 	if err != nil {
@@ -126,7 +155,17 @@ func addTreeZipEntries(root, dir, prefix string, entries *[]zipEntry) error {
 	}
 	for _, child := range children {
 		fullPath := filepath.Join(dir, child.Name())
-		archivePath := prefix + child.Name()
+		relPath := relDir + child.Name()
+		if w.ignore != nil && !(relDir == "" && (child.Name() == "Dockerfile" || child.Name() == dockerignoreFileName)) {
+			ignored, err := w.ignore(w.ctx, ImageIgnoreFileOptions{RelPath: relPath, Entry: child})
+			if err != nil {
+				return err
+			}
+			if ignored {
+				continue
+			}
+		}
+		archivePath := w.prefix + relPath
 		info, err := os.Stat(fullPath)
 		if err != nil {
 			if child.Type()&fs.ModeSymlink != 0 && errors.Is(err, fs.ErrNotExist) {
@@ -139,30 +178,26 @@ func addTreeZipEntries(root, dir, prefix string, entries *[]zipEntry) error {
 		case info.IsDir() && child.Type()&fs.ModeSymlink != 0:
 			// A link to a directory is stored as an empty directory, not
 			// followed, so a link cannot pull in the rest of the machine.
-			*entries = append(*entries, zipEntry{path: archivePath, mode: info.Mode().Perm()})
+			*w.entries = append(*w.entries, zipEntry{path: archivePath, dir: true, mode: info.Mode().Perm()})
 		case info.IsDir():
-			*entries = append(*entries, zipEntry{path: archivePath, mode: info.Mode().Perm()})
-			if err := addTreeZipEntries(root, fullPath, archivePath+"/", entries); err != nil {
+			*w.entries = append(*w.entries, zipEntry{path: archivePath, dir: true, mode: info.Mode().Perm()})
+			if err := w.add(fullPath, relPath+"/"); err != nil {
 				return err
 			}
 		case info.Mode().IsRegular():
-			// A link to a file is stored as a copy of the file, but only
-			// one within the directory, so a link cannot pull in a file
-			// from elsewhere on the machine.
+			// A link to a file is stored as a copy of the file, but only one
+			// within the directory, so a link cannot pull in a file from
+			// elsewhere on the machine.
 			if child.Type()&fs.ModeSymlink != 0 {
 				target, err := filepath.EvalSymlinks(fullPath)
 				if err != nil {
 					return err
 				}
-				if rel, err := filepath.Rel(root, target); err != nil || !filepath.IsLocal(rel) {
-					return fmt.Errorf("%s is a link to %s, outside %s; only links to files within it can be pushed", fullPath, target, root)
+				if rel, err := filepath.Rel(w.root, target); err != nil || !filepath.IsLocal(rel) {
+					return fmt.Errorf("%s is a link to %s, outside %s; only links to files within it can be pushed", fullPath, target, w.root)
 				}
 			}
-			data, err := os.ReadFile(fullPath)
-			if err != nil {
-				return err
-			}
-			*entries = append(*entries, zipEntry{path: archivePath, data: data, mode: info.Mode().Perm()})
+			*w.entries = append(*w.entries, zipEntry{path: archivePath, sourcePath: fullPath, mode: info.Mode().Perm()})
 		}
 		// Anything else, such as a socket, has no content to archive.
 	}

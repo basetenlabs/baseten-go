@@ -276,7 +276,7 @@ func TestImageBuilderZipEntries(t *testing.T) {
 		require.NoError(t, os.WriteFile(tool, []byte("after"), 0o755))
 		content[0] = 9
 
-		entries, err := b.zipEntries()
+		entries, err := b.zipEntries(t.Context())
 		require.NoError(t, err)
 		var paths []string
 		byPath := map[string]zipEntry{}
@@ -291,9 +291,9 @@ func TestImageBuilderZipEntries(t *testing.T) {
 		require.Equal(t, 0o644, int(byPath["text.txt"].mode))
 		require.Equal(t, "\x00\xff", string(byPath["bytes.bin"].data))
 		require.Equal(t, 0o755, int(byPath["run"].mode))
-		require.Equal(t, "after", string(byPath["tool.sh"].data))
-		require.True(t, byPath["conf"].data == nil, "directory has data")
-		require.Equal(t, "a", string(byPath["conf/nested/a.txt"].data))
+		require.Equal(t, "after", zipEntryContent(t, byPath["tool.sh"]))
+		require.True(t, byPath["conf"].dir, "conf is not a directory")
+		require.Equal(t, "a", zipEntryContent(t, byPath["conf/nested/a.txt"]))
 		// Windows has no exec bits to keep.
 		if runtime.GOOS != "windows" {
 			require.Equal(t, 0o755, int(byPath["tool.sh"].mode))
@@ -308,12 +308,12 @@ func TestImageBuilderZipEntries(t *testing.T) {
 		require.NoError(t, os.WriteFile(gone, []byte("x"), 0o644))
 		b := baseBuilder().AddLocalFile(gone, "/gone.txt")
 		require.NoError(t, os.Remove(gone))
-		_, err := b.zipEntries()
+		_, err := b.zipEntries(t.Context())
 		require.Error(t, err)
-		_, err = baseBuilder().AddLocalDir(filepath.Join(dir, "missing"), "/m").zipEntries()
+		_, err = baseBuilder().AddLocalDir(filepath.Join(dir, "missing"), "/m").zipEntries(t.Context())
 		require.Error(t, err)
 		require.NoError(t, os.WriteFile(gone, []byte("x"), 0o644))
-		_, err = baseBuilder().AddLocalDir(gone, "/m").zipEntries()
+		_, err = baseBuilder().AddLocalDir(gone, "/m").zipEntries(t.Context())
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "is not a directory")
 	})

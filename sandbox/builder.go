@@ -3,6 +3,7 @@ package sandbox
 import (
 	"bytes"
 	"cmp"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -391,7 +392,8 @@ type ImageBuilderAddLocalDirOptions struct {
 // the directory itself. It is read when pushed, with files keeping their
 // permissions, a link to a file within the directory stored as a copy of the
 // file, a link to a file outside it failing the push, and a link to a
-// directory stored as an empty directory. See
+// directory stored as an empty directory. Everything in it is added: no
+// .dockerignore or default ignore rules apply. See
 // [ImageBuilder.AddLocalDirWithOptions] for more options.
 func (b *ImageBuilder) AddLocalDir(source, destination string) *ImageBuilder {
 	return b.AddLocalDirWithOptions(ImageBuilderAddLocalDirOptions{Source: source, Destination: destination})
@@ -403,7 +405,8 @@ func (b *ImageBuilder) AddLocalDir(source, destination string) *ImageBuilder {
 // destination, not the directory itself. It is read when pushed, with files
 // keeping their permissions, a link to a file within the directory stored as
 // a copy of the file, a link to a file outside it failing the push, and a
-// link to a directory stored as an empty directory.
+// link to a directory stored as an empty directory. Everything in it is
+// added: no .dockerignore or default ignore rules apply.
 func (b *ImageBuilder) AddLocalDirWithOptions(opts ImageBuilderAddLocalDirOptions) *ImageBuilder {
 	return b.addLocal("AddLocalDir", true, opts.Source, opts.Destination, opts.ContextName)
 }
@@ -522,8 +525,8 @@ func (b *ImageBuilder) contextName(requested, defaultName string) (string, error
 }
 
 // zipEntries is the build context to zip: the Dockerfile, then each added
-// entry, with local ones read now.
-func (b *ImageBuilder) zipEntries() ([]zipEntry, error) {
+// entry, with local ones checked now and read while zipping.
+func (b *ImageBuilder) zipEntries(ctx context.Context) ([]zipEntry, error) {
 	dockerfile, err := b.Dockerfile()
 	if err != nil {
 		return nil, err
@@ -542,8 +545,10 @@ func (b *ImageBuilder) zipEntries() ([]zipEntry, error) {
 			if !info.IsDir() {
 				return nil, fmt.Errorf("local directory %s is not a directory", entry.sourcePath)
 			}
-			entries = append(entries, zipEntry{path: entry.name, mode: info.Mode().Perm()})
-			if err := addDirectoryZipEntries(entry.sourcePath, entry.name+"/", &entries); err != nil {
+			entries = append(entries, zipEntry{path: entry.name, dir: true, mode: info.Mode().Perm()})
+			// No ignore rules: adding a directory is an explicit choice of
+			// its files, as Docker's COPY of a directory takes them all.
+			if err := addDirectoryZipEntries(ctx, entry.sourcePath, entry.name+"/", nil, &entries); err != nil {
 				return nil, err
 			}
 			continue
@@ -551,11 +556,7 @@ func (b *ImageBuilder) zipEntries() ([]zipEntry, error) {
 		if !info.Mode().IsRegular() {
 			return nil, fmt.Errorf("local file %s is not a file", entry.sourcePath)
 		}
-		data, err := os.ReadFile(entry.sourcePath)
-		if err != nil {
-			return nil, err
-		}
-		entries = append(entries, zipEntry{path: entry.name, data: data, mode: info.Mode().Perm()})
+		entries = append(entries, zipEntry{path: entry.name, sourcePath: entry.sourcePath, mode: info.Mode().Perm()})
 	}
 	return entries, nil
 }

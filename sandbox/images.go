@@ -8,6 +8,7 @@ import (
 	"io"
 	"iter"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 	"time"
@@ -114,11 +115,33 @@ type ImagePushOptions struct {
 	// a copy of the file, a link to a file outside it fails the push, a link
 	// to a directory stores an empty directory, and a broken link is left
 	// out.
+	//
+	// Paths are left out as a .dockerignore at the directory's root says,
+	// read through IgnoreFileProcessor, or else by DefaultIgnoreFile. The
+	// root Dockerfile and .dockerignore are always kept, as Docker keeps them.
 	SourceDirectory string
 
 	// SourceFiles are the build context's files, by forward-slashed path
 	// relative to its root, each with mode 0644.
 	SourceFiles map[string][]byte
+
+	// IgnoreFileProcessor parses the .dockerignore at the root of
+	// SourceDirectory into an [ImageIgnoreFileFunc], which should match
+	// Docker's .dockerignore semantics. Required if SourceDirectory has a
+	// .dockerignore; otherwise the push fails before anything is sent. This
+	// package has no .dockerignore parser of its own.
+	IgnoreFileProcessor func(context.Context, ImageIgnoreFileProcessorOptions) (ImageIgnoreFileFunc, error)
+
+	// DefaultIgnoreFile filters SourceDirectory when it has no
+	// .dockerignore. If nil, [DefaultImageIgnoreFile] is used. Pass a
+	// function that always returns false to push everything.
+	DefaultIgnoreFile ImageIgnoreFileFunc
+
+	// NoTempFile zips a build context read from local files, from
+	// SourceDirectory or a builder's local files and directories, in memory
+	// instead of in a temporary file. Other build contexts are always zipped
+	// in memory.
+	NoTempFile bool
 
 	// NoWait returns as soon as the image is pushed, instead of waiting for
 	// it to be ready to use.
@@ -148,18 +171,21 @@ type ImageRegistrySource struct {
 // into one. Waits for the image to be ready to use unless NoWait is set,
 // returning an [*ImageBuildError] if its build fails or the wait times out.
 //
-// A build context is zipped in memory and uploaded in one attempt. If the
-// upload fails, with an [*ImageUploadError], the image is left as the service
-// has it, so push again or delete it.
+// A build context read from local files is zipped into a temporary file,
+// removed when Push returns, unless NoTempFile is set; any other is zipped in
+// memory. It is uploaded in one attempt. If the upload fails, with an
+// [*ImageUploadError], the image is left as the service has it, so push again
+// or delete it.
 func (c *ImageClient) Push(ctx context.Context, opts ImagePushOptions) (*ImageInfo, error) {
 	if opts.Name == "" {
 		return nil, errors.New("Name is required")
 	}
 	// Zipped before anything is sent, so a bad source leaves nothing behind.
-	archive, err := pushSourceZip(opts)
+	archive, err := pushSourceZip(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
+	defer archive.close()
 	request := managementapi.PushImageRequest{Name: opts.Name}
 	if registry := opts.SourceRegistry; registry != nil {
 		request.Image = &registry.Image
@@ -169,7 +195,7 @@ func (c *ImageClient) Push(ctx context.Context, opts ImagePushOptions) (*ImageIn
 	if err != nil {
 		return nil, controlPlaneError(err)
 	}
-	if archive != nil {
+	if archive.present() {
 		if response.UploadUrl == nil {
 			return nil, fmt.Errorf("pushing image %s returned no upload URL", opts.Name)
 		}
@@ -579,13 +605,17 @@ func (c *ImageClient) ListLibrary(ctx context.Context, opts ImageListLibraryOpti
 }
 
 // upload puts a build context to the signed storage URL a push returned.
-func (c *ImageClient) upload(ctx context.Context, name, url string, archive []byte) error {
+func (c *ImageClient) upload(ctx context.Context, name, url string, archive *pushArchive) error {
 	// The URL is signed for storage, so none of the API's headers or
 	// credentials go with it.
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, bytes.NewReader(archive))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, archive.newBody())
 	if err != nil {
 		return err
 	}
+	// Set explicitly, since the request cannot tell a file's length, and
+	// storage rejects an upload without one.
+	req.ContentLength = archive.size
+	req.GetBody = func() (io.ReadCloser, error) { return io.NopCloser(archive.newBody()), nil }
 	req.Header.Set("Content-Type", "application/zip")
 	resp, err := c.client.httpClient.Do(req)
 	if err != nil {
@@ -661,9 +691,68 @@ func isRetryableWaitError(err error) bool {
 	return isTransientResetError(err)
 }
 
+// pushArchive is a zipped build context, in memory or in a temporary file. A
+// nil pushArchive is none, for a registry image.
+type pushArchive struct {
+	data []byte
+	file *os.File
+	size int64
+}
+
+func (a *pushArchive) present() bool {
+	return a != nil
+}
+
+// newBody returns a reader over the whole archive, a new one per call so a
+// request can be resent.
+func (a *pushArchive) newBody() io.Reader {
+	if a.file != nil {
+		// A section reader, not the file, so the request never closes it.
+		return io.NewSectionReader(a.file, 0, a.size)
+	}
+	return bytes.NewReader(a.data)
+}
+
+// close removes a temporary file, if any.
+func (a *pushArchive) close() {
+	if a == nil || a.file == nil {
+		return
+	}
+	_ = a.file.Close()
+	_ = os.Remove(a.file.Name())
+}
+
+// zipPushArchive zips entries into a temporary file when toFile is set, or
+// else in memory.
+func zipPushArchive(ctx context.Context, entries []zipEntry, toFile bool) (*pushArchive, error) {
+	if !toFile {
+		var buf bytes.Buffer
+		if err := writeZip(ctx, &buf, entries); err != nil {
+			return nil, err
+		}
+		return &pushArchive{data: buf.Bytes(), size: int64(buf.Len())}, nil
+	}
+	file, err := os.CreateTemp("", "baseten-image-*.zip")
+	if err != nil {
+		return nil, err
+	}
+	archive := &pushArchive{file: file}
+	if err := writeZip(ctx, file, entries); err != nil {
+		archive.close()
+		return nil, err
+	}
+	info, err := file.Stat()
+	if err != nil {
+		archive.close()
+		return nil, err
+	}
+	archive.size = info.Size()
+	return archive, nil
+}
+
 // pushSourceZip checks that a push has exactly one source, and zips it unless
 // it is a registry image.
-func pushSourceZip(opts ImagePushOptions) ([]byte, error) {
+func pushSourceZip(ctx context.Context, opts ImagePushOptions) (*pushArchive, error) {
 	var sources []string
 	for name, set := range map[string]bool{
 		"SourceBuilder":   opts.SourceBuilder != nil,
@@ -686,11 +775,11 @@ func pushSourceZip(opts ImagePushOptions) ([]byte, error) {
 	}
 	switch {
 	case opts.SourceBuilder != nil:
-		entries, err := opts.SourceBuilder.zipEntries()
+		entries, err := opts.SourceBuilder.zipEntries(ctx)
 		if err != nil {
 			return nil, err
 		}
-		return writeZip(entries)
+		return zipPushArchive(ctx, entries, !opts.NoTempFile && slices.ContainsFunc(entries, func(e zipEntry) bool { return e.sourcePath != "" }))
 	case opts.SourceRegistry != nil:
 		if opts.SourceRegistry.Image == "" {
 			return nil, errors.New("SourceRegistry.Image is required")
@@ -700,19 +789,23 @@ func pushSourceZip(opts ImagePushOptions) ([]byte, error) {
 		if err := checkZipDockerfile(opts.SourceZip); err != nil {
 			return nil, err
 		}
-		return opts.SourceZip, nil
+		return &pushArchive{data: opts.SourceZip, size: int64(len(opts.SourceZip))}, nil
 	case opts.SourceDirectory != "":
-		entries, err := directoryZipEntries(opts.SourceDirectory)
+		ignore, err := resolveImageIgnoreFile(ctx, opts)
 		if err != nil {
 			return nil, err
 		}
-		return writeZip(entries)
+		entries, err := directoryZipEntries(ctx, opts.SourceDirectory, ignore)
+		if err != nil {
+			return nil, err
+		}
+		return zipPushArchive(ctx, entries, !opts.NoTempFile)
 	case opts.SourceFiles != nil:
 		entries, err := filesZipEntries(opts.SourceFiles)
 		if err != nil {
 			return nil, err
 		}
-		return writeZip(entries)
+		return zipPushArchive(ctx, entries, false)
 	}
 	return nil, nil
 }

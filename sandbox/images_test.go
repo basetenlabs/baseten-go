@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"testing"
@@ -21,6 +23,7 @@ type storage struct {
 	mu            sync.Mutex
 	contentType   string
 	authorization string
+	contentLength int64
 	body          []byte
 }
 
@@ -32,6 +35,7 @@ func newStorage(t *testing.T, status int) *storage {
 		s.mu.Lock()
 		s.contentType = r.Header.Get("Content-Type")
 		s.authorization = r.Header.Get("Authorization")
+		s.contentLength = r.ContentLength
 		s.body = body
 		s.mu.Unlock()
 		w.WriteHeader(status)
@@ -130,6 +134,65 @@ func TestImagePush(t *testing.T) {
 		require.Equal(t, ImageStatusFailed, buildErr.Status)
 		require.False(t, buildErr.TimedOut, "a failed build is not a timeout")
 	})
+
+	t.Run("DirectorySpoolsToRemovedTempFile", func(t *testing.T) {
+		source := dockerfileDir(t)
+		tempDir := setTempDir(t, t.TempDir())
+		for _, status := range []int{http.StatusOK, http.StatusForbidden} {
+			cp := newControlPlane(t)
+			store := newStorage(t, status)
+			cp.respond("POST", "/v1/sandboxes/images", 202, `{"name":"img","status":"UPLOADING","upload_url":"`+store.URL+`"}`)
+			_, err := cp.client(t, ClientOptions{}).Images().Push(t.Context(), ImagePushOptions{Name: "img", SourceDirectory: source, NoWait: true})
+			if status == http.StatusOK {
+				require.NoError(t, err)
+			} else {
+				require.ErrorAs[*ImageUploadError](t, err)
+			}
+			// Storage needs the length up front, and the temporary file is
+			// gone whether or not the upload worked.
+			require.Equal(t, int64(len(store.body)), store.contentLength)
+			contents, _ := readZip(t, store.body)
+			require.MapEqual(t, contents, "Dockerfile", "FROM debian\n")
+			left, err := os.ReadDir(tempDir)
+			require.NoError(t, err)
+			require.Len(t, left, 0)
+		}
+	})
+
+	t.Run("NoTempFileZipsInMemory", func(t *testing.T) {
+		// A temporary directory that does not exist fails a spooled push, so
+		// a push that works did not spool.
+		source := dockerfileDir(t)
+		setTempDir(t, filepath.Join(t.TempDir(), "missing"))
+		cp := newControlPlane(t)
+		images := cp.client(t, ClientOptions{}).Images()
+		_, err := images.Push(t.Context(), ImagePushOptions{Name: "img", SourceDirectory: source, NoWait: true})
+		require.Error(t, err)
+		require.Len(t, cp.requests, 0)
+		store := newStorage(t, http.StatusOK)
+		cp.respond("POST", "/v1/sandboxes/images", 202, `{"name":"img","status":"UPLOADING","upload_url":"`+store.URL+`"}`)
+		_, err = images.Push(t.Context(), ImagePushOptions{Name: "img", SourceDirectory: source, NoWait: true, NoTempFile: true})
+		require.NoError(t, err)
+		require.Equal(t, int64(len(store.body)), store.contentLength)
+	})
+}
+
+// setTempDir points os.TempDir at dir for the test, returning dir.
+func setTempDir(t *testing.T, dir string) string {
+	t.Helper()
+	// TMPDIR on Unix, TMP and TEMP on Windows.
+	t.Setenv("TMPDIR", dir)
+	t.Setenv("TMP", dir)
+	t.Setenv("TEMP", dir)
+	return dir
+}
+
+// dockerfileDir creates a directory with only a Dockerfile.
+func dockerfileDir(t *testing.T) string {
+	t.Helper()
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "Dockerfile"), []byte("FROM debian\n"), 0o644))
+	return dir
 }
 
 func TestImageWaitBuilt(t *testing.T) {
