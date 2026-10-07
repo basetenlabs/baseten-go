@@ -808,6 +808,7 @@ const ModelTRTLLMRuntimeConfigurationWebserverDefaultRoutePredict ModelTRTLLMRun
 const ModelTRTLLMRuntimeConfigurationWebserverDefaultRoutePredictTokens ModelTRTLLMRuntimeConfigurationWebserverDefaultRoute = "/predict_tokens"
 const ModelTRTLLMRuntimeConfigurationWebserverDefaultRouteRerank ModelTRTLLMRuntimeConfigurationWebserverDefaultRoute = "/rerank"
 const ModelTRTLLMRuntimeConfigurationWebserverDefaultRouteV1Embeddings ModelTRTLLMRuntimeConfigurationWebserverDefaultRoute = "/v1/embeddings"
+const ModelTRTLLMRuntimeConfigurationWebserverDefaultRouteV1Systemone ModelTRTLLMRuntimeConfigurationWebserverDefaultRoute = "/v1/systemone"
 
 // Configuration for quantization of TRT models
 //

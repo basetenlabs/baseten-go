@@ -6549,11 +6549,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"sampler_num_replicas\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'sampler_num_replicas': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a Loops run with an associated sampler in the given session.",
@@ -6665,7 +6665,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/CreateLoopsRunRequestV1"
+                                "$ref": "#/components/schemas/CreateLoopsTrainerRequestV1"
                             }
                         }
                     },
@@ -6740,11 +6740,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"availability_model\": null,\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"availability_model\": null,\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null,\n  \"num_replicas\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'availability_model': None, 'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'availability_model': None, 'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None, 'num_replicas': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a standalone Loops sampler not linked to a run.",
@@ -7585,11 +7585,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"sampler_num_replicas\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'sampler_num_replicas': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a Loops run with an associated sampler in the given session; the run's infrastructure belongs to the given team.",
@@ -7635,7 +7635,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/CreateLoopsRunRequestV1"
+                                "$ref": "#/components/schemas/CreateLoopsTrainerRequestV1"
                             }
                         }
                     },
@@ -7720,11 +7720,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"availability_model\": null,\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"availability_model\": null,\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null,\n  \"num_replicas\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'availability_model': None, 'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'availability_model': None, 'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None, 'num_replicas': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a standalone Loops sampler not linked to a run; the sampler belongs to the given team.",
@@ -26037,6 +26037,206 @@
                 "type": "object"
             },
             "CreateLoopsRunRequestV1": {
+                "description": "Request to create a Loops run together with its paired sampler.",
+                "properties": {
+                    "session_id": {
+                        "description": "ID of the Loops session this run belongs to.",
+                        "title": "Session Id",
+                        "type": "string"
+                    },
+                    "base_model": {
+                        "description": "Base model ID (e.g. 'Qwen/Qwen3-8B').",
+                        "title": "Base Model",
+                        "type": "string"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "maxLength": 255,
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional display name for the run. Defaults to the base model name when omitted.",
+                        "title": "Name"
+                    },
+                    "max_seq_len": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Maximum prompt length (in tokens) the run must handle. Set this to the longest training example you plan to send. Defaults to the maximum supported by the model configuration.",
+                        "title": "Max Seq Len"
+                    },
+                    "lora_rank": {
+                        "default": 64,
+                        "description": "LoRA rank.",
+                        "minimum": 1,
+                        "title": "Lora Rank",
+                        "type": "integer"
+                    },
+                    "seed": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Random seed for reproducibility.",
+                        "title": "Seed"
+                    },
+                    "scale_down_delay_seconds": {
+                        "default": 900,
+                        "description": "Seconds of inactivity before the run scales to zero. Must be between 1 and 3600 (1 hour). Defaults to 900 (15 minutes).",
+                        "exclusiveMinimum": 0,
+                        "maximum": 3600,
+                        "title": "Scale Down Delay Seconds",
+                        "type": "integer"
+                    },
+                    "availability_model": {
+                        "$ref": "#/components/schemas/V1AvailabilityModel",
+                        "default": "dedicated",
+                        "description": "Capacity the trainer runs on. 'dedicated' is not preempted. 'spot' runs below inference and reaches idle reserved capacity, but the run is stopped if its GPUs are reclaimed and cannot be resumed.",
+                        "examples": [
+                            "spot"
+                        ]
+                    },
+                    "replicas": {
+                        "default": 1,
+                        "description": "Number of data-parallel trainer replicas. Each replica is one full copy of the model's preset node group, so the trainer deployment runs (preset node_count * replicas) nodes (e.g. replicas=4 on a 4-node preset \u2192 16 nodes, 4 DP workers). Must be a positive integer. Defaults to 1.",
+                        "minimum": 1,
+                        "title": "Replicas",
+                        "type": "integer"
+                    },
+                    "path": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional bt:// URI of an existing checkpoint to load weights from on startup. Form: bt://loops:<run_id>/weights/<checkpoint_name>.",
+                        "examples": [
+                            "bt://loops:k4q95w5/weights/step-100"
+                        ],
+                        "title": "Path"
+                    },
+                    "reuse_from_run_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional ID of a prior Loops run whose trainer and/or sampler should be reused for this run instead of provisioning fresh. The prior run must use the same base model and belong to the same team.",
+                        "title": "Reuse From Run Id"
+                    },
+                    "reuse_from_session_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional ID of a prior Loops session whose trainer and/or sampler should be reused for this run. Deprecated in favor of reuse_from_run_id.",
+                        "title": "Reuse From Session Id"
+                    },
+                    "sampler_num_replicas": {
+                        "anyOf": [
+                            {
+                                "minimum": 1,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Number of replicas the run's sampler runs, applied as both its minimum and maximum. Must be at least 1. If omitted, a new sampler uses the platform defaults and a sampler reused from an earlier run keeps its settings. A run that already has a sampler keeps it unchanged. When the run ends, its sampler is scaled down.",
+                        "title": "Sampler Num Replicas"
+                    }
+                },
+                "required": [
+                    "session_id",
+                    "base_model"
+                ],
+                "title": "CreateLoopsRunRequestV1",
+                "type": "object"
+            },
+            "CreateLoopsRunResponseV1": {
+                "properties": {
+                    "run": {
+                        "$ref": "#/components/schemas/LoopsRunV1"
+                    }
+                },
+                "required": [
+                    "run"
+                ],
+                "title": "CreateLoopsRunResponseV1",
+                "type": "object"
+            },
+            "DeactivateLoopsRunResponseV1": {
+                "description": "Response for ``POST /v1/loops/runs/<run_id>/deactivate``.",
+                "properties": {
+                    "id": {
+                        "description": "The deactivated Loops run ID.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "base_model": {
+                        "description": "The base model whose Loops run was deactivated.",
+                        "title": "Base Model",
+                        "type": "string"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/UserV1",
+                        "description": "The user who owns the Loops run."
+                    }
+                },
+                "required": [
+                    "id",
+                    "base_model",
+                    "user"
+                ],
+                "title": "DeactivateLoopsRunResponseV1",
+                "type": "object"
+            },
+            "GetLoopsRunResponseV1": {
+                "description": "Response for ``GET /v1/loops/runs/<run_id>``.",
+                "properties": {
+                    "run": {
+                        "$ref": "#/components/schemas/LoopsRunV1",
+                        "description": "The Loops run with its associated sampler."
+                    }
+                },
+                "required": [
+                    "run"
+                ],
+                "title": "GetLoopsRunResponseV1",
+                "type": "object"
+            },
+            "CreateLoopsTrainerRequestV1": {
                 "properties": {
                     "session_id": {
                         "description": "ID of the Loops session this run belongs to.",
@@ -26166,59 +26366,7 @@
                     "session_id",
                     "base_model"
                 ],
-                "title": "CreateLoopsRunRequestV1",
-                "type": "object"
-            },
-            "CreateLoopsRunResponseV1": {
-                "properties": {
-                    "run": {
-                        "$ref": "#/components/schemas/LoopsRunV1"
-                    }
-                },
-                "required": [
-                    "run"
-                ],
-                "title": "CreateLoopsRunResponseV1",
-                "type": "object"
-            },
-            "DeactivateLoopsRunResponseV1": {
-                "description": "Response for ``POST /v1/loops/runs/<run_id>/deactivate``.",
-                "properties": {
-                    "id": {
-                        "description": "The deactivated Loops run ID.",
-                        "title": "Id",
-                        "type": "string"
-                    },
-                    "base_model": {
-                        "description": "The base model whose Loops run was deactivated.",
-                        "title": "Base Model",
-                        "type": "string"
-                    },
-                    "user": {
-                        "$ref": "#/components/schemas/UserV1",
-                        "description": "The user who owns the Loops run."
-                    }
-                },
-                "required": [
-                    "id",
-                    "base_model",
-                    "user"
-                ],
-                "title": "DeactivateLoopsRunResponseV1",
-                "type": "object"
-            },
-            "GetLoopsRunResponseV1": {
-                "description": "Response for ``GET /v1/loops/runs/<run_id>``.",
-                "properties": {
-                    "run": {
-                        "$ref": "#/components/schemas/LoopsRunV1",
-                        "description": "The Loops run with its associated sampler."
-                    }
-                },
-                "required": [
-                    "run"
-                ],
-                "title": "GetLoopsRunResponseV1",
+                "title": "CreateLoopsTrainerRequestV1",
                 "type": "object"
             },
             "ListLoopsSamplersResponseV1": {
@@ -26348,6 +26496,20 @@
                         "default": null,
                         "description": "Optional ID of a prior Loops session to reuse a trainer and/or sampler from. Deprecated.",
                         "title": "Reuse From Session Id"
+                    },
+                    "num_replicas": {
+                        "anyOf": [
+                            {
+                                "minimum": 1,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Number of replicas the sampler runs, applied as both its minimum and maximum. Must be at least 1. If omitted, a new sampler uses the platform defaults and a paired sampler reused from an earlier run keeps its settings. A run that already has a sampler keeps it unchanged, and when a run ends, its sampler is scaled down.",
+                        "title": "Num Replicas"
                     }
                 },
                 "required": [

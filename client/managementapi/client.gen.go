@@ -2158,7 +2158,7 @@ func (c *Client) PostLoopsSessions(ctx context.Context) (*CreateLoopsSessionResp
 }
 
 // PostLoopsTrainers: Creates a Loops trainer
-func (c *Client) PostLoopsTrainers(ctx context.Context, body CreateLoopsRunRequest) (*CreateLoopsRunResponse, error) {
+func (c *Client) PostLoopsTrainers(ctx context.Context, body CreateLoopsTrainerRequest) (*CreateLoopsRunResponse, error) {
 	return doJSON[CreateLoopsRunResponse](c, ctx, apiRequest{
 		method:       "POST",
 		pathFmt:      "/v1/loops/trainers",
@@ -2573,7 +2573,7 @@ func (c *Client) PostTeamsLoopsSessions(ctx context.Context, teamId string) (*Cr
 }
 
 // PostTeamsLoopsTrainers: Creates a Loops trainer
-func (c *Client) PostTeamsLoopsTrainers(ctx context.Context, teamId string, body CreateLoopsRunRequest) (*CreateLoopsRunResponse, error) {
+func (c *Client) PostTeamsLoopsTrainers(ctx context.Context, teamId string, body CreateLoopsTrainerRequest) (*CreateLoopsRunResponse, error) {
 	return doJSON[CreateLoopsRunResponse](c, ctx, apiRequest{
 		method:       "POST",
 		pathFmt:      "/v1/teams/%s/loops/trainers",
