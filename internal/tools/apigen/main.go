@@ -9,12 +9,15 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+
+	"github.com/oasdiff/yaml"
 )
 
 const (
 	defaultManagementSpecURL = "https://api.baseten.co/v1/spec"
 	defaultInferenceSpecURL  = "https://api.baseten.co/inference-spec"
 	trussConfigSchemaURL     = "https://raw.githubusercontent.com/basetenlabs/truss/main/truss/config.schema.json"
+	sandboxSpecURL           = "https://raw.githubusercontent.com/blaxel-ai/sandbox/main/sandbox-api/docs/openapi.yml"
 )
 
 func main() {
@@ -37,6 +40,7 @@ func run() error {
 	managementSpecFile := filepath.Join(specsDir, "management.json")
 	inferenceSpecFile := filepath.Join(specsDir, "inference.json")
 	configSchemaFile := filepath.Join(specsDir, "config.schema.json")
+	sandboxSpecFile := filepath.Join(specsDir, "sandbox.yml")
 
 	if *updateSpecs {
 		fmt.Println("Updating specs from remote URLs...")
@@ -52,6 +56,10 @@ func run() error {
 			return fmt.Errorf("updating truss config schema: %w", err)
 		}
 		fmt.Printf("  %s -> %s\n", trussConfigSchemaURL, configSchemaFile)
+		if err := downloadSpecToFile(sandboxSpecURL, sandboxSpecFile); err != nil {
+			return fmt.Errorf("updating sandbox spec: %w", err)
+		}
+		fmt.Printf("  %s -> %s\n", sandboxSpecURL, sandboxSpecFile)
 	}
 
 	if err := generateAPI(apigenDir, managementSpecFile, clientDir, "managementapi"); err != nil {
@@ -59,6 +67,9 @@ func run() error {
 	}
 	if err := generateAPI(apigenDir, inferenceSpecFile, clientDir, "inferenceapi"); err != nil {
 		return fmt.Errorf("generating inference API: %w", err)
+	}
+	if err := generateAPI(apigenDir, sandboxSpecFile, clientDir, "sandboxapi"); err != nil {
+		return fmt.Errorf("generating sandbox API: %w", err)
 	}
 	if err := generateModelConfig(apigenDir, configSchemaFile, clientDir); err != nil {
 		return fmt.Errorf("generating modelconfig: %w", err)
@@ -189,6 +200,13 @@ func resolveSpec(source string) (*resolvedSpec, func(), error) {
 	data, err := os.ReadFile(source)
 	if err != nil {
 		return nil, noop, err
+	}
+	// Specs are committed exactly as the upstream serves them, so a YAML spec is
+	// converted here rather than at download time.
+	if ext := filepath.Ext(source); ext == ".yml" || ext == ".yaml" {
+		if data, err = yaml.YAMLToJSON(data); err != nil {
+			return nil, noop, fmt.Errorf("converting %s to JSON: %w", source, err)
+		}
 	}
 
 	pre, err := preprocessSpec(data)

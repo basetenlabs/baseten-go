@@ -2,7 +2,7 @@
 
 ## Regenerating API Clients
 
-Generated code lives in `client/managementapi/` and `client/inferenceapi/`. To regenerate from the checked-in OpenAPI specs:
+Generated code lives in `client/managementapi/`, `client/inferenceapi/`, and `client/sandboxapi/`. To regenerate from the checked-in OpenAPI specs:
 
 ```sh
 cd internal/tools/apigen && go run .

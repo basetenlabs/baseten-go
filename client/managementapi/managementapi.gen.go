@@ -1187,6 +1187,24 @@ func (e RouteProvider) Valid() bool {
 	}
 }
 
+// Defines values for RouteSettingSource.
+const (
+	RouteSettingSource_team RouteSettingSource = "team"
+	RouteSettingSource_user RouteSettingSource = "user"
+)
+
+// Valid indicates whether the value is a known member of the RouteSettingSource enum.
+func (e RouteSettingSource) Valid() bool {
+	switch e {
+	case RouteSettingSource_team:
+		return true
+	case RouteSettingSource_user:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for RouteUsageDimension.
 const (
 	RouteUsageDimension_MODEL    RouteUsageDimension = "MODEL"
@@ -1202,6 +1220,207 @@ func (e RouteUsageDimension) Valid() bool {
 	case RouteUsageDimension_PROVIDER:
 		return true
 	case RouteUsageDimension_USER:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxDateExpirationPolicyAction.
+const (
+	SandboxDateExpirationPolicyAction_DELETE SandboxDateExpirationPolicyAction = "DELETE"
+)
+
+// Valid indicates whether the value is a known member of the SandboxDateExpirationPolicyAction enum.
+func (e SandboxDateExpirationPolicyAction) Valid() bool {
+	switch e {
+	case SandboxDateExpirationPolicyAction_DELETE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxDateExpirationPolicyType.
+const (
+	SandboxDateExpirationPolicyType_DATE SandboxDateExpirationPolicyType = "DATE"
+)
+
+// Valid indicates whether the value is a known member of the SandboxDateExpirationPolicyType enum.
+func (e SandboxDateExpirationPolicyType) Valid() bool {
+	switch e {
+	case SandboxDateExpirationPolicyType_DATE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxImageStatus.
+const (
+	SandboxImageStatus_BUILDING  SandboxImageStatus = "BUILDING"
+	SandboxImageStatus_BUILT     SandboxImageStatus = "BUILT"
+	SandboxImageStatus_FAILED    SandboxImageStatus = "FAILED"
+	SandboxImageStatus_UPLOADING SandboxImageStatus = "UPLOADING"
+)
+
+// Valid indicates whether the value is a known member of the SandboxImageStatus enum.
+func (e SandboxImageStatus) Valid() bool {
+	switch e {
+	case SandboxImageStatus_BUILDING:
+		return true
+	case SandboxImageStatus_BUILT:
+		return true
+	case SandboxImageStatus_FAILED:
+		return true
+	case SandboxImageStatus_UPLOADING:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxPortProtocol.
+const (
+	SandboxPortProtocol_HTTP SandboxPortProtocol = "HTTP"
+	SandboxPortProtocol_TCP  SandboxPortProtocol = "TCP"
+	SandboxPortProtocol_TLS  SandboxPortProtocol = "TLS"
+	SandboxPortProtocol_UDP  SandboxPortProtocol = "UDP"
+)
+
+// Valid indicates whether the value is a known member of the SandboxPortProtocol enum.
+func (e SandboxPortProtocol) Valid() bool {
+	switch e {
+	case SandboxPortProtocol_HTTP:
+		return true
+	case SandboxPortProtocol_TCP:
+		return true
+	case SandboxPortProtocol_TLS:
+		return true
+	case SandboxPortProtocol_UDP:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxRegionInfoGeneration.
+const (
+	SandboxRegionInfoGeneration_CARBON SandboxRegionInfoGeneration = "CARBON"
+)
+
+// Valid indicates whether the value is a known member of the SandboxRegionInfoGeneration enum.
+func (e SandboxRegionInfoGeneration) Valid() bool {
+	switch e {
+	case SandboxRegionInfoGeneration_CARBON:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxStatus.
+const (
+	SandboxStatus_ARCHIVED     SandboxStatus = "ARCHIVED"
+	SandboxStatus_ARCHIVING    SandboxStatus = "ARCHIVING"
+	SandboxStatus_BUILDING     SandboxStatus = "BUILDING"
+	SandboxStatus_DEACTIVATED  SandboxStatus = "DEACTIVATED"
+	SandboxStatus_DEACTIVATING SandboxStatus = "DEACTIVATING"
+	SandboxStatus_DELETING     SandboxStatus = "DELETING"
+	SandboxStatus_DEPLOYED     SandboxStatus = "DEPLOYED"
+	SandboxStatus_DEPLOYING    SandboxStatus = "DEPLOYING"
+	SandboxStatus_FAILED       SandboxStatus = "FAILED"
+	SandboxStatus_TERMINATED   SandboxStatus = "TERMINATED"
+	SandboxStatus_UNARCHIVING  SandboxStatus = "UNARCHIVING"
+	SandboxStatus_UPLOADING    SandboxStatus = "UPLOADING"
+)
+
+// Valid indicates whether the value is a known member of the SandboxStatus enum.
+func (e SandboxStatus) Valid() bool {
+	switch e {
+	case SandboxStatus_ARCHIVED:
+		return true
+	case SandboxStatus_ARCHIVING:
+		return true
+	case SandboxStatus_BUILDING:
+		return true
+	case SandboxStatus_DEACTIVATED:
+		return true
+	case SandboxStatus_DEACTIVATING:
+		return true
+	case SandboxStatus_DELETING:
+		return true
+	case SandboxStatus_DEPLOYED:
+		return true
+	case SandboxStatus_DEPLOYING:
+		return true
+	case SandboxStatus_FAILED:
+		return true
+	case SandboxStatus_TERMINATED:
+		return true
+	case SandboxStatus_UNARCHIVING:
+		return true
+	case SandboxStatus_UPLOADING:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxTTLIdleExpirationPolicyAction.
+const (
+	SandboxTTLIdleExpirationPolicyAction_DELETE SandboxTTLIdleExpirationPolicyAction = "DELETE"
+)
+
+// Valid indicates whether the value is a known member of the SandboxTTLIdleExpirationPolicyAction enum.
+func (e SandboxTTLIdleExpirationPolicyAction) Valid() bool {
+	switch e {
+	case SandboxTTLIdleExpirationPolicyAction_DELETE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxTTLIdleExpirationPolicyType.
+const (
+	SandboxTTLIdleExpirationPolicyType_TTL_IDLE SandboxTTLIdleExpirationPolicyType = "TTL_IDLE"
+)
+
+// Valid indicates whether the value is a known member of the SandboxTTLIdleExpirationPolicyType enum.
+func (e SandboxTTLIdleExpirationPolicyType) Valid() bool {
+	switch e {
+	case SandboxTTLIdleExpirationPolicyType_TTL_IDLE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxTTLMaxAgeExpirationPolicyAction.
+const (
+	SandboxTTLMaxAgeExpirationPolicyAction_DELETE SandboxTTLMaxAgeExpirationPolicyAction = "DELETE"
+)
+
+// Valid indicates whether the value is a known member of the SandboxTTLMaxAgeExpirationPolicyAction enum.
+func (e SandboxTTLMaxAgeExpirationPolicyAction) Valid() bool {
+	switch e {
+	case SandboxTTLMaxAgeExpirationPolicyAction_DELETE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxTTLMaxAgeExpirationPolicyType.
+const (
+	SandboxTTLMaxAgeExpirationPolicyType_TTL_MAX_AGE SandboxTTLMaxAgeExpirationPolicyType = "TTL_MAX_AGE"
+)
+
+// Valid indicates whether the value is a known member of the SandboxTTLMaxAgeExpirationPolicyType enum.
+func (e SandboxTTLMaxAgeExpirationPolicyType) Valid() bool {
+	switch e {
+	case SandboxTTLMaxAgeExpirationPolicyType_TTL_MAX_AGE:
 		return true
 	default:
 		return false
@@ -1457,6 +1676,36 @@ func (e VolumeTokenScope) Valid() bool {
 	case VolumeTokenScope_PUSH:
 		return true
 	case VolumeTokenScope_TAG:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetSandboxMetricsParamsIntervalSeconds.
+const (
+	GetSandboxMetricsParamsIntervalSecondsN10   GetSandboxMetricsParamsIntervalSeconds = 10
+	GetSandboxMetricsParamsIntervalSecondsN30   GetSandboxMetricsParamsIntervalSeconds = 30
+	GetSandboxMetricsParamsIntervalSecondsN300  GetSandboxMetricsParamsIntervalSeconds = 300
+	GetSandboxMetricsParamsIntervalSecondsN3600 GetSandboxMetricsParamsIntervalSeconds = 3600
+	GetSandboxMetricsParamsIntervalSecondsN60   GetSandboxMetricsParamsIntervalSeconds = 60
+	GetSandboxMetricsParamsIntervalSecondsN900  GetSandboxMetricsParamsIntervalSeconds = 900
+)
+
+// Valid indicates whether the value is a known member of the GetSandboxMetricsParamsIntervalSeconds enum.
+func (e GetSandboxMetricsParamsIntervalSeconds) Valid() bool {
+	switch e {
+	case GetSandboxMetricsParamsIntervalSecondsN10:
+		return true
+	case GetSandboxMetricsParamsIntervalSecondsN30:
+		return true
+	case GetSandboxMetricsParamsIntervalSecondsN300:
+		return true
+	case GetSandboxMetricsParamsIntervalSecondsN3600:
+		return true
+	case GetSandboxMetricsParamsIntervalSecondsN60:
+		return true
+	case GetSandboxMetricsParamsIntervalSecondsN900:
 		return true
 	default:
 		return false
@@ -2453,6 +2702,15 @@ type AwsOidcDockerAuth struct {
 	RoleArn string `json:"role_arn"`
 }
 
+// BackgroundHarnessDefaults defines model for BackgroundHarnessDefaults.
+type BackgroundHarnessDefaults struct {
+	// Background Route for background tasks, such as session titles. Null when the team has no route to use.
+	Background *RouteHarnessModel `json:"background"`
+
+	// Primary Route for the primary model, which new sessions use. Null when the team has no route to use.
+	Primary *RouteHarnessModel `json:"primary"`
+}
+
 // BasetenLatestCheckpointConfig defines model for BasetenLatestCheckpointConfig.
 type BasetenLatestCheckpointConfig struct {
 	// JobId ID of the job to load the checkpoint from
@@ -2743,6 +3001,15 @@ type CheckpointFile struct {
 // CheckpointSyncStatus Lifecycle state for the checkpoint uploader.
 type CheckpointSyncStatus string
 
+// CleanupSandboxImagesResponse Result of cleaning up unused sandbox images.
+type CleanupSandboxImagesResponse struct {
+	// Deleted Number of image versions removed.
+	Deleted int `json:"deleted"`
+
+	// Message Human-readable cleanup result.
+	Message string `json:"message"`
+}
+
 // CreateAPIKeyRequest Request to create an API key.
 type CreateAPIKeyRequest struct {
 	// ModelIds List of model IDs to scope the API key to, only present if type is 'WORKSPACE_EXPORT_METRICS' or 'WORKSPACE_INVOKE'
@@ -2996,8 +3263,98 @@ type CreateLibraryListingVersionRequest struct {
 	VersionTag string `json:"version_tag"`
 }
 
-// CreateLoopsRunRequest defines model for CreateLoopsRunRequest.
+// CreateLoopsRunRequest Request to create a Loops run together with its paired sampler.
 type CreateLoopsRunRequest struct {
+	// AvailabilityModel Capacity guarantee under which a training job is scheduled.
+	//
+	// ``DEDICATED`` is on-demand capacity that is not preempted (the default). ``SPOT`` is
+	// interruptible capacity that may be preempted; the user is responsible for checkpointing
+	// their own progress. A managed/resumable model where the platform handles
+	// checkpoint/resume on its own is intentionally not defined yet; it is planned for a
+	// future milestone.
+	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+
+	// BaseModel Base model ID (e.g. 'Qwen/Qwen3-8B').
+	BaseModel string `json:"base_model"`
+
+	// LoraRank LoRA rank.
+	LoraRank *int `json:"lora_rank,omitempty"`
+
+	// MaxSeqLen Maximum prompt length (in tokens) the run must handle. Set this to the longest training example you plan to send. Defaults to the maximum supported by the model configuration.
+	MaxSeqLen *int `json:"max_seq_len,omitempty"`
+
+	// Name Optional display name for the run. Defaults to the base model name when omitted.
+	Name *string `json:"name,omitempty"`
+
+	// Path Optional bt:// URI of an existing checkpoint to load weights from on startup. Form: bt://loops:<run_id>/weights/<checkpoint_name>.
+	Path *string `json:"path,omitempty"`
+
+	// Replicas Number of data-parallel trainer replicas. Each replica is one full copy of the model's preset node group, so the trainer deployment runs (preset node_count * replicas) nodes (e.g. replicas=4 on a 4-node preset → 16 nodes, 4 DP workers). Must be a positive integer. Defaults to 1.
+	Replicas *int `json:"replicas,omitempty"`
+
+	// ReuseFromRunId Optional ID of a prior Loops run whose trainer and/or sampler should be reused for this run instead of provisioning fresh. The prior run must use the same base model and belong to the same team.
+	ReuseFromRunId *string `json:"reuse_from_run_id,omitempty"`
+
+	// ReuseFromSessionId Optional ID of a prior Loops session whose trainer and/or sampler should be reused for this run. Deprecated in favor of reuse_from_run_id.
+	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
+
+	// SamplerNumReplicas Number of replicas the run's sampler runs, applied as both its minimum and maximum. Must be at least 1. If omitted, a new sampler uses the platform defaults and a sampler reused from an earlier run keeps its settings. A run that already has a sampler keeps it unchanged. When the run ends, its sampler is scaled down.
+	SamplerNumReplicas *int `json:"sampler_num_replicas,omitempty"`
+
+	// ScaleDownDelaySeconds Seconds of inactivity before the run scales to zero. Must be between 1 and 3600 (1 hour). Defaults to 900 (15 minutes).
+	ScaleDownDelaySeconds *int `json:"scale_down_delay_seconds,omitempty"`
+
+	// Seed Random seed for reproducibility.
+	Seed *int `json:"seed,omitempty"`
+
+	// SessionId ID of the Loops session this run belongs to.
+	SessionId string `json:"session_id"`
+}
+
+// CreateLoopsRunResponse defines model for CreateLoopsRunResponse.
+type CreateLoopsRunResponse struct {
+	Run LoopsRun `json:"run"`
+}
+
+// CreateLoopsSamplerRequest defines model for CreateLoopsSamplerRequest.
+type CreateLoopsSamplerRequest struct {
+	// AvailabilityModel Capacity the sampler runs on. 'spot' allows preemption when its GPUs are reclaimed. Defaults to 'dedicated' for standalone samplers. Paired samplers inherit their run's availability model; an explicit value must match it.
+	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+
+	// BaseModel Base model ID for a standalone sampler (for example, a baseline).
+	BaseModel *string `json:"base_model,omitempty"`
+
+	// MaxSeqLength Maximum prompt length (in tokens) the sampler must handle. Set this to the longest prompt you plan to send.
+	MaxSeqLength *int `json:"max_seq_length,omitempty"`
+
+	// ModelPath bt:// URI of an existing sampler checkpoint to serve. Form: bt://loops:<run_id>/sampler_weights/<checkpoint_name>.
+	ModelPath *string `json:"model_path,omitempty"`
+
+	// NumReplicas Number of replicas the sampler runs, applied as both its minimum and maximum. Must be at least 1. If omitted, a new sampler uses the platform defaults and a paired sampler reused from an earlier run keeps its settings. A run that already has a sampler keeps it unchanged, and when a run ends, its sampler is scaled down.
+	NumReplicas *int `json:"num_replicas,omitempty"`
+
+	// ReuseFromSessionId Optional ID of a prior Loops session to reuse a trainer and/or sampler from. Deprecated.
+	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
+
+	// RunId ID of an existing run to attach this sampler to. When set, the sampler is paired to the run and weight-syncs from its trainer, and base_model is inherited from the run. Omit to create a standalone sampler.
+	RunId *string `json:"run_id,omitempty"`
+
+	// SessionId ID of the Loops session this sampler belongs to.
+	SessionId string `json:"session_id"`
+}
+
+// CreateLoopsSamplerResponse defines model for CreateLoopsSamplerResponse.
+type CreateLoopsSamplerResponse struct {
+	Sampler LoopsSampler `json:"sampler"`
+}
+
+// CreateLoopsSessionResponse defines model for CreateLoopsSessionResponse.
+type CreateLoopsSessionResponse struct {
+	Session LoopsSession `json:"session"`
+}
+
+// CreateLoopsTrainerRequest defines model for CreateLoopsTrainerRequest.
+type CreateLoopsTrainerRequest struct {
 	// AvailabilityModel Capacity guarantee under which a training job is scheduled.
 	//
 	// ``DEDICATED`` is on-demand capacity that is not preempted (the default). ``SPOT`` is
@@ -3041,45 +3398,6 @@ type CreateLoopsRunRequest struct {
 	SessionId string `json:"session_id"`
 }
 
-// CreateLoopsRunResponse defines model for CreateLoopsRunResponse.
-type CreateLoopsRunResponse struct {
-	Run LoopsRun `json:"run"`
-}
-
-// CreateLoopsSamplerRequest defines model for CreateLoopsSamplerRequest.
-type CreateLoopsSamplerRequest struct {
-	// AvailabilityModel Capacity the sampler runs on. 'spot' allows preemption when its GPUs are reclaimed. Defaults to 'dedicated' for standalone samplers. Paired samplers inherit their run's availability model; an explicit value must match it.
-	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
-
-	// BaseModel Base model ID for a standalone sampler (for example, a baseline).
-	BaseModel *string `json:"base_model,omitempty"`
-
-	// MaxSeqLength Maximum prompt length (in tokens) the sampler must handle. Set this to the longest prompt you plan to send.
-	MaxSeqLength *int `json:"max_seq_length,omitempty"`
-
-	// ModelPath bt:// URI of an existing sampler checkpoint to serve. Form: bt://loops:<run_id>/sampler_weights/<checkpoint_name>.
-	ModelPath *string `json:"model_path,omitempty"`
-
-	// ReuseFromSessionId Optional ID of a prior Loops session to reuse a trainer and/or sampler from. Deprecated.
-	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
-
-	// RunId ID of an existing run to attach this sampler to. When set, the sampler is paired to the run and weight-syncs from its trainer, and base_model is inherited from the run. Omit to create a standalone sampler.
-	RunId *string `json:"run_id,omitempty"`
-
-	// SessionId ID of the Loops session this sampler belongs to.
-	SessionId string `json:"session_id"`
-}
-
-// CreateLoopsSamplerResponse defines model for CreateLoopsSamplerResponse.
-type CreateLoopsSamplerResponse struct {
-	Sampler LoopsSampler `json:"sampler"`
-}
-
-// CreateLoopsSessionResponse defines model for CreateLoopsSessionResponse.
-type CreateLoopsSessionResponse struct {
-	Session LoopsSession `json:"session"`
-}
-
 // CreateModelDeploymentRequest Body for adding a deployment to an existing model via
 // `POST /v1/models/{model_id}/deployments`.
 type CreateModelDeploymentRequest struct {
@@ -3103,6 +3421,20 @@ type CreateModelRequest_Source struct {
 	union json.RawMessage
 }
 
+// CreateRouteConnectionRequest defines model for CreateRouteConnectionRequest.
+type CreateRouteConnectionRequest struct {
+	// Config Provider the connection authenticates with, and the team secret holding its API key.
+	Config CreateRouteConnectionRequest_Config `json:"config"`
+
+	// TeamId Identifier of the team that owns the connection.
+	TeamId *string `json:"team_id,omitempty"`
+}
+
+// CreateRouteConnectionRequest_Config Provider the connection authenticates with, and the team secret holding its API key.
+type CreateRouteConnectionRequest_Config struct {
+	union json.RawMessage
+}
+
 // CreateRouteRequest defines model for CreateRouteRequest.
 type CreateRouteRequest struct {
 	// Description Short description of the route. Omit for no description; null is not accepted.
@@ -3114,13 +3446,49 @@ type CreateRouteRequest struct {
 	// Target Upstream target for the route.
 	Target CreateRouteRequest_Target `json:"target"`
 
-	// TeamId Identifier of the team that owns the route. When omitted, uses your organization's default team.
+	// TeamId Identifier of the team that owns the route.
 	TeamId *string `json:"team_id,omitempty"`
 }
 
 // CreateRouteRequest_Target Upstream target for the route.
 type CreateRouteRequest_Target struct {
 	union json.RawMessage
+}
+
+// CreateSandboxRequest Configuration for a new sandbox. The client may provide a name; otherwise the server generates one. The name is immutable after creation.
+type CreateSandboxRequest struct {
+	// CreateIfNotExists When true, return the existing live sandbox with this name or recreate it if it is failed, terminated, or being deleted. The server handles concurrent creation and deletion races with a bounded wait; persistent contention returns a conflict. Requires name. Existing configuration is preserved. Defaults to false when omitted.
+	CreateIfNotExists *bool `json:"create_if_not_exists,omitempty"`
+
+	// Envs Environment variables injected into the sandbox.
+	Envs *[]SandboxEnv `json:"envs,omitempty"`
+
+	// ExternalId Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.
+	ExternalId *string `json:"external_id,omitempty"`
+
+	// Image Image reference including its tag. Defaults to baseten/base-image:latest, the built-in sandbox execution API. This image is available directly without building, pushing, or listing images through GET /v1/sandboxes/images.
+	Image *string `json:"image,omitempty"`
+
+	// Labels Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.
+	Labels *SandboxMetadataLabels `json:"labels,omitempty"`
+
+	// Lifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
+	Lifecycle *SandboxLifecycle `json:"lifecycle,omitempty"`
+
+	// Memory Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Defaults to 4096.
+	Memory *int `json:"memory,omitempty"`
+
+	// Name Optional unique sandbox name. Generated by the server when omitted; immutable after creation.
+	Name *string `json:"name,omitempty"`
+
+	// Network Network configuration for a sandbox including subnet, domain filtering, and proxy settings
+	Network *SandboxNetwork `json:"network,omitempty"`
+
+	// Ports Set of ports for a resource
+	Ports *SandboxPorts `json:"ports,omitempty"`
+
+	// Region Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.
+	Region *string `json:"region,omitempty"`
 }
 
 // CreateTokenRequest defines model for CreateTokenRequest.
@@ -3467,6 +3835,18 @@ type DeactivateLoopsRunResponse struct {
 	User User `json:"user"`
 }
 
+// DeactivateLoopsSamplerResponse Response for “POST /v1/loops/samplers/<sampler_id>/deactivate“.
+type DeactivateLoopsSamplerResponse struct {
+	// BaseModel The base model the deactivated sampler was serving.
+	BaseModel string `json:"base_model"`
+
+	// Id The deactivated Loops sampler ID.
+	Id string `json:"id"`
+
+	// User A user.
+	User User `json:"user"`
+}
+
 // DeactivateResponse The response to a request to deactivate a deployment.
 type DeactivateResponse struct {
 	// NoOp Whether the request did nothing because the deployment was already inactive
@@ -3632,6 +4012,30 @@ type DeleteVolumeVersionResponse struct {
 
 	// VolumeSequence Revision of the volume after the delete.
 	VolumeSequence int `json:"volume_sequence"`
+}
+
+// DeployLoopsCheckpointRequest defines model for DeployLoopsCheckpointRequest.
+type DeployLoopsCheckpointRequest struct {
+	// CheckpointIds Sampler checkpoint IDs to deploy together.
+	CheckpointIds []string `json:"checkpoint_ids"`
+
+	// HfSecretName Name of the team-scoped secret that supplies HF_TOKEN.
+	HfSecretName string `json:"hf_secret_name"`
+
+	// InstanceTypeId Instance type ID for the deployment.
+	InstanceTypeId string `json:"instance_type_id"`
+
+	// ModelName Name for the created model.
+	ModelName string `json:"model_name"`
+}
+
+// DeployLoopsCheckpointResponse defines model for DeployLoopsCheckpointResponse.
+type DeployLoopsCheckpointResponse struct {
+	// DeploymentId ID of the created model version deployment.
+	DeploymentId string `json:"deployment_id"`
+
+	// ModelId ID of the created or updated model.
+	ModelId string `json:"model_id"`
 }
 
 // Deployment A deployment of a model.
@@ -4538,6 +4942,12 @@ type GetModelMetricsResponse struct {
 	StepSeconds *int `json:"step_seconds"`
 }
 
+// GetSandboxConfigurationResponse defines model for GetSandboxConfigurationResponse.
+type GetSandboxConfigurationResponse struct {
+	// Regions Available Carbon-compatible regions, sorted by name. Empty when none are available.
+	Regions []SandboxRegion `json:"regions"`
+}
+
 // GetTrainingGpuCapacityResponse Response for the training GPU capacity endpoint.
 type GetTrainingGpuCapacityResponse struct {
 	// GpuCapacities Org-level GPU capacity limits and current usage per GPU type
@@ -5031,6 +5441,38 @@ type ListLoopsRunsResponse struct {
 type ListLoopsSamplersResponse struct {
 	// Samplers List of samplers.
 	Samplers []LoopsSampler `json:"samplers"`
+}
+
+// ListSandboxImageTagsResponse One page of image tags.
+type ListSandboxImageTagsResponse struct {
+	Items []SandboxImageTag `json:"items"`
+
+	// Pagination Cursor pagination information. The cursor is present only when another page is available.
+	Pagination SandboxApiPagination `json:"pagination"`
+}
+
+// ListSandboxImagesResponse One page of image repository summaries. Fetch tags through the separate tag listing endpoint.
+type ListSandboxImagesResponse struct {
+	// Items Image repositories on this page.
+	Items []SandboxImageSummary `json:"items"`
+
+	// Pagination Cursor pagination information. The cursor is present only when another page is available.
+	Pagination SandboxApiPagination `json:"pagination"`
+}
+
+// ListSandboxLibraryImagesResponse Built-in sandbox images.
+type ListSandboxLibraryImagesResponse struct {
+	// Items Built-in images.
+	Items []SandboxLibraryImage `json:"items"`
+}
+
+// ListSandboxesResponse One page of sandboxes.
+type ListSandboxesResponse struct {
+	// Items Resources on this page.
+	Items []Sandbox `json:"items"`
+
+	// Pagination Cursor pagination information. The cursor is present only when another page is available.
+	Pagination SandboxApiPagination `json:"pagination"`
 }
 
 // ListTrainingJobsResponse A response to list training jobs.
@@ -5536,7 +5978,7 @@ type ModelApiItem struct {
 	// InputTokens Total input tokens for this model
 	InputTokens int `json:"input_tokens"`
 
-	// ModelFamily Model family (e.g., llama, mistral)
+	// ModelFamily Model family (e.g., Meta, DeepSeek)
 	ModelFamily *string `json:"model_family,omitempty"`
 
 	// ModelName Model name
@@ -6020,6 +6462,12 @@ type PrepareModelUploadResponse struct {
 	S3Region *string `json:"s3_region,omitempty"`
 }
 
+// PrimaryHarnessDefaults defines model for PrimaryHarnessDefaults.
+type PrimaryHarnessDefaults struct {
+	// Primary Route for the primary model, which new sessions use. Null when the team has no route to use.
+	Primary *RouteHarnessModel `json:"primary"`
+}
+
 // PromoteRequest A request to promote a deployment to production.
 type PromoteRequest struct {
 	// PreserveEnvInstanceType Whether to use the promoting deployment's instance type or preserve target environment's instance type
@@ -6072,6 +6520,33 @@ type PromotionSettings struct {
 
 	// RollingDeployConfig Rolling deploy configuration for promotions
 	RollingDeployConfig *RollingDeployConfig `json:"rolling_deploy_config,omitempty"`
+}
+
+// PushSandboxImageRequest Push a sandbox image from a source archive or an existing registry image.
+type PushSandboxImageRequest struct {
+	// DockerConfig Optional serialized registry authentication configuration for importing a private image. Used only when image is supplied; never returned.
+	DockerConfig *string `json:"docker_config,omitempty"`
+
+	// Image Optional source registry image reference including a registry hostname. When omitted, the response provides an archive upload URL. The uploaded ZIP archive must not exceed 5 GB.
+	Image *string `json:"image,omitempty"`
+
+	// Name Target image repository name. Reusing a name pushes a new version to the existing repository.
+	Name string `json:"name"`
+}
+
+// PushSandboxImageResponse Accepted image push. Acceptance does not imply readiness; poll GET /sandboxes/images/{image_name} until status is BUILT or FAILED.
+type PushSandboxImageResponse struct {
+	// Image Registered image reference including its tag, when available. Tags are assigned by the service; GET /sandboxes/images/{image_name} returns the available tags once processing completes.
+	Image *string `json:"image,omitempty"`
+
+	// Name Target image repository name.
+	Name string `json:"name"`
+
+	// Status Image processing status. Only BUILT images are ready to use.
+	Status SandboxImageStatus `json:"status"`
+
+	// UploadUrl Temporary signed URL for uploading the source ZIP archive with HTTP PUT. Present only when no source image was supplied. The uploaded ZIP archive must not exceed 5 GB. Uploading starts asynchronous processing. This storage upload is separate from the API endpoints.
+	UploadUrl *string `json:"upload_url,omitempty"`
 }
 
 // QueueEvent A single “TrainingJobStatus“ row inside the queue-context window.
@@ -6251,7 +6726,7 @@ type Route struct {
 	// InvokeUrl Base URL for inference requests using this route.
 	InvokeUrl string `json:"invoke_url"`
 
-	// Metadata Resolved model metadata; null when the route has no linked metadata row.
+	// Metadata Resolved model metadata; for a router, the envelope of its allowed routes' metadata. Null when nothing is linked.
 	Metadata *ExploreMetadata `json:"metadata"`
 
 	// Name Name to send in the inference request's model field.
@@ -6272,8 +6747,162 @@ type Route_Target struct {
 	union json.RawMessage
 }
 
+// RouteConnection defines model for RouteConnection.
+type RouteConnection struct {
+	// Config Provider the connection authenticates with, and the team secret holding its API key.
+	Config RouteConnection_Config `json:"config"`
+
+	// CreatedAt Creation time, ISO 8601.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id Stable connection identifier.
+	Id string `json:"id"`
+
+	// TeamId Identifier of the team that owns the connection.
+	TeamId string `json:"team_id"`
+
+	// UpdatedAt Last update time, ISO 8601.
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// RouteConnection_Config Provider the connection authenticates with, and the team secret holding its API key.
+type RouteConnection_Config struct {
+	union json.RawMessage
+}
+
+// RouteConnectionAnthropic defines model for RouteConnectionAnthropic.
+type RouteConnectionAnthropic struct {
+	// Provider Provider kind for Anthropic.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of the team secret holding the provider API key.
+	SecretId string `json:"secret_id"`
+
+	// SecretName Name of the team secret holding the provider API key.
+	SecretName string `json:"secret_name"`
+}
+
+// RouteConnectionConfigAnthropic defines model for RouteConnectionConfigAnthropic.
+type RouteConnectionConfigAnthropic struct {
+	// Provider Provider kind for Anthropic.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of an existing secret, owned by the same team, that holds the provider API key.
+	SecretId string `json:"secret_id"`
+}
+
+// RouteConnectionConfigOpenAI defines model for RouteConnectionConfigOpenAI.
+type RouteConnectionConfigOpenAI struct {
+	// Provider Provider kind for OpenAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of an existing secret, owned by the same team, that holds the provider API key.
+	SecretId string `json:"secret_id"`
+}
+
+// RouteConnectionConfigXAI defines model for RouteConnectionConfigXAI.
+type RouteConnectionConfigXAI struct {
+	// Provider Provider kind for xAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of an existing secret, owned by the same team, that holds the provider API key.
+	SecretId string `json:"secret_id"`
+}
+
+// RouteConnectionOpenAI defines model for RouteConnectionOpenAI.
+type RouteConnectionOpenAI struct {
+	// Provider Provider kind for OpenAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of the team secret holding the provider API key.
+	SecretId string `json:"secret_id"`
+
+	// SecretName Name of the team secret holding the provider API key.
+	SecretName string `json:"secret_name"`
+}
+
+// RouteConnectionTombstone defines model for RouteConnectionTombstone.
+type RouteConnectionTombstone struct {
+	// Id Stable identifier of the deleted connection.
+	Id string `json:"id"`
+}
+
+// RouteConnectionXAI defines model for RouteConnectionXAI.
+type RouteConnectionXAI struct {
+	// Provider Provider kind for xAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of the team secret holding the provider API key.
+	SecretId string `json:"secret_id"`
+
+	// SecretName Name of the team secret holding the provider API key.
+	SecretName string `json:"secret_name"`
+}
+
+// RouteConnectionsResponse defines model for RouteConnectionsResponse.
+type RouteConnectionsResponse struct {
+	// Items Items in this page.
+	Items      []RouteConnection  `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
+// RouteEffectiveSpendLimit defines model for RouteEffectiveSpendLimit.
+type RouteEffectiveSpendLimit struct {
+	// MonthlyLimitUsd Spend limit in USD enforced for the current UTC calendar month: the user's own limit, else the team default. Null when no limit applies.
+	MonthlyLimitUsd *string `json:"monthly_limit_usd"`
+
+	// Source Where the limit comes from: `user` when it is set on the user, `team` when it is the team default. Null when no limit applies.
+	Source *RouteSettingSource `json:"source"`
+}
+
+// RouteHarnessDefaults defines model for RouteHarnessDefaults.
+type RouteHarnessDefaults struct {
+	ClaudeCode BackgroundHarnessDefaults `json:"claude_code"`
+	Codex      PrimaryHarnessDefaults    `json:"codex"`
+	Opencode   BackgroundHarnessDefaults `json:"opencode"`
+	Pi         PrimaryHarnessDefaults    `json:"pi"`
+}
+
+// RouteHarnessModel defines model for RouteHarnessModel.
+type RouteHarnessModel struct {
+	Route  Route              `json:"route"`
+	Source RouteSettingSource `json:"source"`
+}
+
 // RouteProvider Upstream provider of a route target, named like the route target types.
 type RouteProvider string
+
+// RouteRef defines model for RouteRef.
+type RouteRef struct {
+	// Id Stable route identifier.
+	Id string `json:"id"`
+
+	// Slug Name of the route to send in the inference request's model field.
+	Slug string `json:"slug"`
+}
+
+// RouteSettingSource defines model for RouteSettingSource.
+type RouteSettingSource string
+
+// RouteSpendLimitSetting defines model for RouteSpendLimitSetting.
+type RouteSpendLimitSetting struct {
+	Effective RouteEffectiveSpendLimit `json:"effective"`
+
+	// TeamDefault Per-member limit of the team the user's active Code key belongs to. This limit applies when the user has no limit of their own. Null when there is none.
+	TeamDefault *RouteSpendLimitTeamDefault `json:"team_default"`
+
+	// UserMonthlyLimitUsd Standing spend limit in USD for each UTC calendar month set on the user. Null when the user has no limit of their own.
+	UserMonthlyLimitUsd *string `json:"user_monthly_limit_usd"`
+}
+
+// RouteSpendLimitTeamDefault defines model for RouteSpendLimitTeamDefault.
+type RouteSpendLimitTeamDefault struct {
+	// PerMemberMonthlyLimitUsd The team's per-member spend limit in USD for each UTC calendar month.
+	PerMemberMonthlyLimitUsd string `json:"per_member_monthly_limit_usd"`
+
+	// TeamId ID of the team the user's active Code key belongs to.
+	TeamId string `json:"team_id"`
+}
 
 // RouteTargetAnthropic defines model for RouteTargetAnthropic.
 type RouteTargetAnthropic struct {
@@ -6293,6 +6922,85 @@ type RouteTargetBasetenModelAPI struct {
 	Model string `json:"model"`
 
 	// Type Target kind for a Baseten Model API.
+	Type string `json:"type"`
+}
+
+// RouteTargetClassifierModelBased defines model for RouteTargetClassifierModelBased.
+type RouteTargetClassifierModelBased struct {
+	// AllowedRoutes Routes the classifier may pick, in creation order.
+	AllowedRoutes []RouteRef `json:"allowed_routes"`
+
+	// ClassifierEnvironmentName Environment of the classifier model. Null for production.
+	ClassifierEnvironmentName *string `json:"classifier_environment_name"`
+
+	// ClassifierModelId ID of the Baseten model that picks a route for each request.
+	ClassifierModelId string   `json:"classifier_model_id"`
+	DefaultRoute      RouteRef `json:"default_route"`
+
+	// Type Target kind for a classifier-model-based route.
+	Type string `json:"type"`
+}
+
+// RouteTargetConfigAnthropic defines model for RouteTargetConfigAnthropic.
+type RouteTargetConfigAnthropic struct {
+	// Model Model name sent to the provider.
+	Model string `json:"model"`
+
+	// SecretName Name of a credential secret owned by the route's team.
+	SecretName string `json:"secret_name"`
+
+	// Type Target kind for Anthropic.
+	Type string `json:"type"`
+}
+
+// RouteTargetConfigBasetenModelAPI defines model for RouteTargetConfigBasetenModelAPI.
+type RouteTargetConfigBasetenModelAPI struct {
+	// Model Name of the target Model API.
+	Model string `json:"model"`
+
+	// Type Target kind for a Baseten Model API.
+	Type string `json:"type"`
+}
+
+// RouteTargetConfigClassifierModelBased defines model for RouteTargetConfigClassifierModelBased.
+type RouteTargetConfigClassifierModelBased struct {
+	// AllowedRouteIds IDs of the routes the classifier may pick. All must belong to the route's team and must not be routers themselves.
+	AllowedRouteIds []string `json:"allowed_route_ids"`
+
+	// ClassifierEnvironmentName Environment of the classifier model. Omit for production, which is returned as null.
+	ClassifierEnvironmentName *string `json:"classifier_environment_name,omitempty"`
+
+	// ClassifierModelId ID of the Baseten model that picks a route for each request. Only classifiers deployed by Baseten's post-training team are supported.
+	ClassifierModelId string `json:"classifier_model_id"`
+
+	// DefaultRouteId ID of the allowed route used when the classifier picks none.
+	DefaultRouteId string `json:"default_route_id"`
+
+	// Type Target kind for a classifier-model-based route. Not intended for general use: classifiers are deployed by Baseten's post-training team.
+	Type string `json:"type"`
+}
+
+// RouteTargetConfigOpenAI defines model for RouteTargetConfigOpenAI.
+type RouteTargetConfigOpenAI struct {
+	// Model Model name sent to the provider.
+	Model string `json:"model"`
+
+	// SecretName Name of a credential secret owned by the route's team.
+	SecretName string `json:"secret_name"`
+
+	// Type Target kind for OpenAI.
+	Type string `json:"type"`
+}
+
+// RouteTargetConfigXAI defines model for RouteTargetConfigXAI.
+type RouteTargetConfigXAI struct {
+	// Model Model name sent to the provider.
+	Model string `json:"model"`
+
+	// SecretName Name of a credential secret owned by the route's team.
+	SecretName string `json:"secret_name"`
+
+	// Type Target kind for xAI.
 	Type string `json:"type"`
 }
 
@@ -6320,6 +7028,21 @@ type RouteTargetXAI struct {
 	Type string `json:"type"`
 }
 
+// RouteTeamSettings defines model for RouteTeamSettings.
+type RouteTeamSettings struct {
+	HarnessDefaults RouteHarnessDefaults       `json:"harness_defaults"`
+	SpendLimit      RouteTeamSpendLimitSetting `json:"spend_limit"`
+
+	// TeamId ID of the team.
+	TeamId string `json:"team_id"`
+}
+
+// RouteTeamSpendLimitSetting defines model for RouteTeamSpendLimitSetting.
+type RouteTeamSpendLimitSetting struct {
+	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member whose active Code key belongs to this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.
+	PerMemberMonthlyLimitUsd *string `json:"per_member_monthly_limit_usd"`
+}
+
 // RouteTombstone defines model for RouteTombstone.
 type RouteTombstone struct {
 	// Id Stable identifier of the deleted route.
@@ -6331,6 +7054,16 @@ type RouteTombstone struct {
 
 // RouteUsageDimension defines model for RouteUsageDimension.
 type RouteUsageDimension string
+
+// RouteUserSettings defines model for RouteUserSettings.
+type RouteUserSettings struct {
+	// Email Email address of the user.
+	Email      *string                `json:"email"`
+	SpendLimit RouteSpendLimitSetting `json:"spend_limit"`
+
+	// UserId ID of the user.
+	UserId string `json:"user_id"`
+}
 
 // RoutesResponse defines model for RoutesResponse.
 type RoutesResponse struct {
@@ -6381,6 +7114,477 @@ type RoutesUsageResult struct {
 	// UserId ID of the user who created the Routes key. Null when not grouping by USER.
 	UserId *string `json:"user_id,omitempty"`
 }
+
+// Sandbox defines model for Sandbox.
+type Sandbox struct {
+	// CreatedAt Time the sandbox was created.
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// CreatedBy User or service account that created the sandbox.
+	CreatedBy *string `json:"created_by,omitempty"`
+
+	// Envs Environment variables injected into the sandbox.
+	Envs *[]SandboxEnv `json:"envs,omitempty"`
+
+	// ExpiresIn Seconds remaining before automatic deletion, when expiration is configured.
+	ExpiresIn *int `json:"expires_in,omitempty"`
+
+	// ExternalId Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.
+	ExternalId *string `json:"external_id,omitempty"`
+
+	// Image Image reference including its tag. Built-in image references are returned in the canonical baseten/ namespace. Use baseten/base-image:latest to get started with the built-in sandbox execution API. This image is available directly without building, pushing, or listing images through GET /v1/sandboxes/images.
+	Image *string `json:"image,omitempty"`
+
+	// Labels Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.
+	Labels *SandboxMetadataLabels `json:"labels,omitempty"`
+
+	// LastUsedAt Time the sandbox was last used.
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+
+	// Lifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
+	Lifecycle *SandboxLifecycle `json:"lifecycle,omitempty"`
+
+	// Memory Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs).
+	Memory *int `json:"memory,omitempty"`
+
+	// Name Immutable sandbox name, provided by the client or generated by the server, used in sandbox_name path parameters.
+	Name *string `json:"name,omitempty"`
+
+	// Network Network configuration for a sandbox including subnet, domain filtering, and proxy settings
+	Network *SandboxNetwork `json:"network,omitempty"`
+
+	// Ports Set of ports for a resource
+	Ports *SandboxPorts `json:"ports,omitempty"`
+
+	// Region Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.
+	Region *string `json:"region,omitempty"`
+
+	// Status Sandbox deployment status.
+	Status SandboxStatus `json:"status"`
+
+	// UpdatedAt Time the sandbox was last updated.
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+
+	// UpdatedBy User or service account that last updated the sandbox.
+	UpdatedBy *string `json:"updated_by,omitempty"`
+
+	// Url Base URL of this sandbox's execution API, always present on successful creation. The URL is assigned before deployment completes; inspect status for readiness. Use this exact returned URL; do not reconstruct its hostname. Authenticate requests with your authentication token using Authorization: Bearer <token>. Do not send the Baseten API key directly. No additional routing headers are required. Fetch GET {url}/swagger/doc.json with that header for the API reference served by this sandbox. For example, POST {url}/process with Content-Type: application/json and {"command":"echo hello","waitForCompletion":true} executes a command and waits for its result. Execution API fields use camelCase, independently of this API's snake_case fields.
+	Url *string `json:"url,omitempty"`
+}
+
+// SandboxApiPagination Cursor pagination information. The cursor is present only when another page is available.
+type SandboxApiPagination struct {
+	// Cursor Opaque cursor to pass to the next list request. Keep the same filters.
+	Cursor *string `json:"cursor,omitempty"`
+
+	// HasMore Whether another page is available.
+	HasMore bool `json:"has_more"`
+}
+
+// SandboxConfiguration Writable sandbox configuration. Fields are serialized at the root of the request or resource.
+type SandboxConfiguration struct {
+	// Envs Environment variables injected into the sandbox.
+	Envs *[]SandboxEnv `json:"envs,omitempty"`
+
+	// ExternalId Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.
+	ExternalId *string `json:"external_id,omitempty"`
+
+	// Image Image reference including its tag. Built-in image references are returned in the canonical baseten/ namespace. Use baseten/base-image:latest to get started with the built-in sandbox execution API. This image is available directly without building, pushing, or listing images through GET /v1/sandboxes/images.
+	Image *string `json:"image,omitempty"`
+
+	// Labels Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.
+	Labels *SandboxMetadataLabels `json:"labels,omitempty"`
+
+	// Lifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
+	Lifecycle *SandboxLifecycle `json:"lifecycle,omitempty"`
+
+	// Memory Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs).
+	Memory *int `json:"memory,omitempty"`
+
+	// Network Network configuration for a sandbox including subnet, domain filtering, and proxy settings
+	Network *SandboxNetwork `json:"network,omitempty"`
+
+	// Ports Set of ports for a resource
+	Ports *SandboxPorts `json:"ports,omitempty"`
+
+	// Region Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.
+	Region *string `json:"region,omitempty"`
+}
+
+// SandboxDateExpirationPolicy Delete at the specified absolute timestamp.
+type SandboxDateExpirationPolicy struct {
+	Action SandboxDateExpirationPolicyAction `json:"action"`
+	Type   SandboxDateExpirationPolicyType   `json:"type"`
+	Value  time.Time                         `json:"value"`
+}
+
+// SandboxDateExpirationPolicyAction defines model for SandboxDateExpirationPolicy.Action.
+type SandboxDateExpirationPolicyAction string
+
+// SandboxDateExpirationPolicyType defines model for SandboxDateExpirationPolicy.Type.
+type SandboxDateExpirationPolicyType string
+
+// SandboxDuration Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w, where d is 24h and w is 7 × 24h. Days and weeks cannot be combined with other units, so 1d12h is rejected; use 36h instead. Values are returned exactly as sent, without normalization.
+type SandboxDuration = string
+
+// SandboxEnv Environment variable with name and value
+type SandboxEnv struct {
+	// Name Name of the environment variable
+	Name *string `json:"name,omitempty"`
+
+	// Secret Whether the value is a secret. Defaults to true; secret values are returned as "****". Set false explicitly to return the original value.
+	Secret *bool `json:"secret,omitempty"`
+
+	// Value Value of the environment variable
+	Value *string `json:"value,omitempty"`
+}
+
+// SandboxExpirationPolicy Expiration policy. The type determines whether value is a duration or an absolute timestamp.
+type SandboxExpirationPolicy struct {
+	union json.RawMessage
+}
+
+// SandboxImage defines model for SandboxImage.
+type SandboxImage struct {
+	// CreatedAt Time the image was created.
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// LastDeployedAt Most recent deployment time across all tags, if deployed.
+	LastDeployedAt *time.Time `json:"last_deployed_at,omitempty"`
+
+	// Name Stable repository name supplied when pushing the image.
+	Name string `json:"name"`
+
+	// Size Total repository size in bytes.
+	Size *int64 `json:"size,omitempty"`
+
+	// Status Image processing status. Only BUILT images are ready to use.
+	Status SandboxImageStatus `json:"status"`
+
+	// TagCount Number of image versions in the repository.
+	TagCount *int64 `json:"tag_count,omitempty"`
+
+	// Tags Empty for get summary responses. Use GET /sandboxes/images/{image_name}/tags to retrieve paginated image versions.
+	Tags []SandboxImageTag `json:"tags"`
+
+	// UpdatedAt Time the image was last updated.
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+}
+
+// SandboxImageBuildLog defines model for SandboxImageBuildLog.
+type SandboxImageBuildLog struct {
+	Message string `json:"message"`
+
+	// Severity Numeric OpenTelemetry severity level.
+	Severity  int       `json:"severity"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+// SandboxImageBuildLogsResponse defines model for SandboxImageBuildLogsResponse.
+type SandboxImageBuildLogsResponse struct {
+	Logs []SandboxImageBuildLog `json:"logs"`
+
+	// TotalCount Number of matching log entries in the requested time range.
+	TotalCount int64 `json:"total_count"`
+}
+
+// SandboxImageStatus Image processing status. Only BUILT images are ready to use.
+type SandboxImageStatus string
+
+// SandboxImageSummary Sandbox image repository summary. Fetch tags through GET /sandboxes/images/{image_name}/tags.
+type SandboxImageSummary struct {
+	// CreatedAt Time the image was created.
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// LastDeployedAt Most recent deployment time across all tags, if deployed.
+	LastDeployedAt *time.Time `json:"last_deployed_at,omitempty"`
+
+	// Name Stable repository name supplied when pushing the image.
+	Name string `json:"name"`
+
+	// Size Total repository size in bytes.
+	Size *int64 `json:"size,omitempty"`
+
+	// Status Image processing status. Only BUILT images are ready to use.
+	Status SandboxImageStatus `json:"status"`
+
+	// TagCount Number of image versions in the repository.
+	TagCount *int64 `json:"tag_count,omitempty"`
+
+	// UpdatedAt Time the image was last updated.
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+}
+
+// SandboxImageTag A tag identifying a version of a sandbox image.
+type SandboxImageTag struct {
+	// CreatedAt Time the tag was created.
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// Name Image tag name.
+	Name string `json:"name"`
+
+	// Size Image size in bytes.
+	Size *int64 `json:"size,omitempty"`
+
+	// UpdatedAt Time the tag was last updated.
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+}
+
+// SandboxLibraryImage Built-in sandbox image usable directly as a sandbox image.
+type SandboxLibraryImage struct {
+	// Categories Categories of the image.
+	Categories *[]string `json:"categories,omitempty"`
+
+	// ComingSoon Whether the image is not yet available. Always false in listings.
+	ComingSoon *bool `json:"coming_soon,omitempty"`
+
+	// CreationOptions Optional settings suggested when creating a sandbox from this image.
+	CreationOptions *SandboxLibraryImageCreationOptions `json:"creation_options,omitempty"`
+
+	// Description Short description.
+	Description *string `json:"description,omitempty"`
+
+	// DisplayName Human-readable name.
+	DisplayName *string `json:"display_name,omitempty"`
+
+	// Enterprise Whether the image requires an enterprise plan.
+	Enterprise *bool `json:"enterprise,omitempty"`
+
+	// Hidden Whether the image is hidden. Always false in listings.
+	Hidden *bool `json:"hidden,omitempty"`
+
+	// Icon Icon URL.
+	Icon *string `json:"icon,omitempty"`
+
+	// IconDark Dark-mode icon URL.
+	IconDark *string `json:"icon_dark,omitempty"`
+
+	// IconLight Light-mode icon URL.
+	IconLight *string `json:"icon_light,omitempty"`
+
+	// Image Image reference including its tag, usable as the image of a sandbox.
+	Image string `json:"image"`
+
+	// LongDescription Detailed description.
+	LongDescription *string `json:"long_description,omitempty"`
+
+	// Memory Recommended memory allocation in megabytes.
+	Memory *int `json:"memory,omitempty"`
+
+	// Name Stable identifier of the built-in image.
+	Name string `json:"name"`
+
+	// Ports Set of ports for a resource
+	Ports *SandboxPorts `json:"ports,omitempty"`
+
+	// Tags Tags of the image.
+	Tags *[]string `json:"tags,omitempty"`
+
+	// Url Documentation URL.
+	Url *string `json:"url,omitempty"`
+}
+
+// SandboxLibraryImageCreationOptions Optional settings suggested when creating a sandbox from this image.
+type SandboxLibraryImageCreationOptions struct {
+	// ExtraArgs Kernel selection arguments.
+	ExtraArgs *map[string]string `json:"extra_args,omitempty"`
+
+	// Volumes Volume attachments.
+	Volumes *[]SandboxLibraryImageVolume `json:"volumes,omitempty"`
+}
+
+// SandboxLibraryImageVolume Volume attachment suggested by a built-in image.
+type SandboxLibraryImageVolume struct {
+	// MountPath Absolute filesystem path where the volume is mounted.
+	MountPath string `json:"mount_path"`
+
+	// Name Volume name, or an internal identifier for ephemeral volumes.
+	Name string `json:"name"`
+
+	// ReadOnly Whether the volume is mounted read-only.
+	ReadOnly *bool `json:"read_only,omitempty"`
+
+	// SizeMb Storage capacity in megabytes for ephemeral volumes.
+	SizeMb *int `json:"size_mb,omitempty"`
+
+	// Type Volume type, persistent when empty.
+	Type *string `json:"type,omitempty"`
+}
+
+// SandboxLifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
+type SandboxLifecycle struct {
+	// ExpirationPolicies List of expiration policies. Multiple policies can be combined; whichever condition is met first triggers the action.
+	ExpirationPolicies *[]SandboxExpirationPolicy `json:"expiration_policies,omitempty"`
+
+	// TerminatedRetention Duration to keep the sandbox record after termination for log access (e.g., '1h', '24h', '7d'). Defaults to 5m. Subject to maximum quota limits.
+	TerminatedRetention *SandboxDuration `json:"terminated_retention,omitempty"`
+}
+
+// SandboxLogEntry defines model for SandboxLogEntry.
+type SandboxLogEntry struct {
+	// Action Action or command when present on the log entry.
+	Action  *string `json:"action,omitempty"`
+	Message string  `json:"message"`
+
+	// Severity Numeric log severity.
+	Severity  int       `json:"severity"`
+	Timestamp time.Time `json:"timestamp"`
+
+	// TraceId Associated trace identifier, or an empty string when unavailable.
+	TraceId string `json:"trace_id"`
+}
+
+// SandboxLogs defines model for SandboxLogs.
+type SandboxLogs struct {
+	EndTime time.Time         `json:"end_time"`
+	Logs    []SandboxLogEntry `json:"logs"`
+
+	// NextCursor Opaque cursor for the next page; null when there are no more entries.
+	NextCursor  *string   `json:"next_cursor"`
+	SandboxName string    `json:"sandbox_name"`
+	StartTime   time.Time `json:"start_time"`
+}
+
+// SandboxMetadataLabels Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.
+type SandboxMetadataLabels map[string]string
+
+// SandboxMetrics defines model for SandboxMetrics.
+type SandboxMetrics struct {
+	Data            []SandboxMetricsPoint `json:"data"`
+	EndTime         time.Time             `json:"end_time"`
+	IntervalSeconds int                   `json:"interval_seconds"`
+	SandboxName     string                `json:"sandbox_name"`
+	StartTime       time.Time             `json:"start_time"`
+}
+
+// SandboxMetricsPoint defines model for SandboxMetricsPoint.
+type SandboxMetricsPoint struct {
+	// CpuPercent Peak CPU usage in this interval, where 100 is one full CPU core. Null without a sample.
+	CpuPercent *float32 `json:"cpu_percent"`
+
+	// ErrorRate Fraction of requests returning 4xx or 5xx. Null when there are no requests.
+	ErrorRate *float32 `json:"error_rate"`
+
+	// MemoryBytes Memory usage in bytes, averaged per series then maximum across series. Null without a sample.
+	MemoryBytes *float32 `json:"memory_bytes"`
+
+	// Requests Request count. Zero without traffic; null for intervals entirely before creation.
+	Requests *float32 `json:"requests"`
+
+	// Timestamp Start of this interval.
+	Timestamp time.Time `json:"timestamp"`
+}
+
+// SandboxNetwork Network configuration for a sandbox including subnet, domain filtering, and proxy settings
+type SandboxNetwork struct {
+	// Proxy Proxy configuration for routing sandbox HTTP traffic through the platform proxy with MITM inspection and per-destination header/body injection
+	Proxy *SandboxProxyConfig `json:"proxy,omitempty"`
+
+	// Subnet Subnet name for the sandbox. Defaults to "default" at creation.
+	Subnet *string `json:"subnet,omitempty"`
+}
+
+// SandboxPort A port for a resource
+type SandboxPort struct {
+	// Name The name of the port
+	Name *string `json:"name,omitempty"`
+
+	// Protocol The protocol of the port
+	Protocol *SandboxPortProtocol `json:"protocol,omitempty"`
+
+	// Target The target port of the port
+	Target int `json:"target"`
+}
+
+// SandboxPortProtocol The protocol of the port
+type SandboxPortProtocol string
+
+// SandboxPorts Set of ports for a resource
+type SandboxPorts = []SandboxPort
+
+// SandboxProxyConfig Proxy configuration for routing sandbox HTTP traffic through the platform proxy with MITM inspection and per-destination header/body injection
+type SandboxProxyConfig struct {
+	// AllowedDomains List of allowed external domains (allowlist). When set, only these domains are reachable. Supports wildcards (e.g. *.storage.example.com).
+	AllowedDomains *[]string `json:"allowed_domains,omitempty"`
+
+	// Bypass Domains that bypass the proxy entirely via the NO_PROXY directive. Traffic to these destinations goes direct, not through the CONNECT tunnel. Supports wildcards. Note that localhost, private ranges (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), 169.254.169.254, .local and .internal are always bypassed by default.
+	Bypass *[]string `json:"bypass,omitempty"`
+
+	// ForbiddenDomains List of forbidden external domains (denylist). When set, all domains except these are reachable. Supports wildcards (e.g. *.malware.com). If both allowed_domains and forbidden_domains are set, allowed_domains takes precedence.
+	ForbiddenDomains *[]string `json:"forbidden_domains,omitempty"`
+
+	// Routing Per-destination routing rules with header/body injection and secrets. Use destinations ["*"] for global rules that apply to all destinations.
+	Routing *[]SandboxProxyTarget `json:"routing,omitempty"`
+}
+
+// SandboxProxyTarget Routing rule that injects headers and body fields into requests matching the given destinations. Use destinations ["*"] for a global rule that applies to all proxied traffic.
+type SandboxProxyTarget struct {
+	// Body Body fields to inject into matching requests. Values may contain {{SECRET:name}} references resolved from this rule's secrets.
+	Body *map[string]string `json:"body,omitempty"`
+
+	// Destinations Destination domains this rule applies to. Use ["*"] for a global rule that matches all destinations.
+	Destinations *[]string `json:"destinations,omitempty"`
+
+	// Headers Headers to inject into matching requests. Values may contain {{SECRET:name}} references resolved from this rule's secrets.
+	Headers *map[string]string `json:"headers,omitempty"`
+
+	// Secrets Named secret values for this routing rule, referenced in headers/body via {{SECRET:name}}. Stored encrypted at rest. Write-only: never returned in API responses.
+	Secrets *map[string]string `json:"secrets,omitempty"`
+}
+
+// SandboxRegion defines model for SandboxRegion.
+type SandboxRegion struct {
+	// Continent Continent code.
+	Continent string `json:"continent"`
+
+	// Country Country code.
+	Country string `json:"country"`
+
+	// InfoGeneration Runtime generation supported by this region, using the public name CARBON. Actual runtime selection depends on the team and sandbox configuration.
+	InfoGeneration SandboxRegionInfoGeneration `json:"info_generation"`
+
+	// Location Region location.
+	Location string `json:"location"`
+
+	// Name Public region identifier to use when creating a sandbox.
+	Name string `json:"name"`
+}
+
+// SandboxRegionInfoGeneration Runtime generation supported by this region, using the public name CARBON. Actual runtime selection depends on the team and sandbox configuration.
+type SandboxRegionInfoGeneration string
+
+// SandboxStatus Sandbox deployment status, always uppercase. This tracks provisioning and differs from the execution API state, whose values such as running are lowercase.
+type SandboxStatus string
+
+// SandboxTTLIdleExpirationPolicy Delete after the specified period of inactivity.
+type SandboxTTLIdleExpirationPolicy struct {
+	Action SandboxTTLIdleExpirationPolicyAction `json:"action"`
+	Type   SandboxTTLIdleExpirationPolicyType   `json:"type"`
+
+	// Value Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w, where d is 24h and w is 7 × 24h. Days and weeks cannot be combined with other units, so 1d12h is rejected; use 36h instead. Values are returned exactly as sent, without normalization.
+	Value SandboxDuration `json:"value"`
+}
+
+// SandboxTTLIdleExpirationPolicyAction defines model for SandboxTTLIdleExpirationPolicy.Action.
+type SandboxTTLIdleExpirationPolicyAction string
+
+// SandboxTTLIdleExpirationPolicyType defines model for SandboxTTLIdleExpirationPolicy.Type.
+type SandboxTTLIdleExpirationPolicyType string
+
+// SandboxTTLMaxAgeExpirationPolicy Delete after the specified total lifetime.
+type SandboxTTLMaxAgeExpirationPolicy struct {
+	Action SandboxTTLMaxAgeExpirationPolicyAction `json:"action"`
+	Type   SandboxTTLMaxAgeExpirationPolicyType   `json:"type"`
+
+	// Value Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w, where d is 24h and w is 7 × 24h. Days and weeks cannot be combined with other units, so 1d12h is rejected; use 36h instead. Values are returned exactly as sent, without normalization.
+	Value SandboxDuration `json:"value"`
+}
+
+// SandboxTTLMaxAgeExpirationPolicyAction defines model for SandboxTTLMaxAgeExpirationPolicy.Action.
+type SandboxTTLMaxAgeExpirationPolicyAction string
+
+// SandboxTTLMaxAgeExpirationPolicyType defines model for SandboxTTLMaxAgeExpirationPolicy.Type.
+type SandboxTTLMaxAgeExpirationPolicyType string
 
 // SearchTrainingJobsRequest A request to search training jobs.
 type SearchTrainingJobsRequest struct {
@@ -6993,6 +8197,15 @@ type UpdateAutoscalingSettingsResponse struct {
 // UpdateAutoscalingSettingsStatus The status of a request to update autoscaling settings.
 type UpdateAutoscalingSettingsStatus string
 
+// UpdateBackgroundHarnessModels defines model for UpdateBackgroundHarnessModels.
+type UpdateBackgroundHarnessModels struct {
+	// Background Route ID for background tasks, such as session titles. Omit to keep the current route, or pass null to use the team's default.
+	Background Optional[string] `json:"background,omitzero"`
+
+	// Primary Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.
+	Primary Optional[string] `json:"primary,omitzero"`
+}
+
 // UpdateChainEnvironmentRequest A request to update a chain environment.
 type UpdateChainEnvironmentRequest struct {
 	// PromotionSettings Promotion settings for the environment
@@ -7113,7 +8326,7 @@ type UpdateLibraryListingRequest struct {
 	// IsPublic Whether the listing is publicly accessible
 	IsPublic *bool `json:"is_public,omitempty"`
 
-	// Metadata Model-level metadata for the listing. When provided, replaces the stored metadata. Unknown fields are rejected.
+	// Metadata Model-level metadata for the listing. When provided, replaces the stored metadata.
 	Metadata *LibraryListingMetadata `json:"metadata,omitempty"`
 
 	// Trending Whether the listing is trending
@@ -7136,6 +8349,12 @@ type UpdateLibraryListingVersionRequest struct {
 type UpdateModelRequest struct {
 	// Name New name for the model, unique within its team. Renaming does not change the model ID, endpoints, or deployments. Pushes that still use the old model_name create another model or target a model that now uses that name, so update config.yaml after renaming.
 	Name *string `json:"name,omitempty"`
+}
+
+// UpdatePrimaryHarnessModels defines model for UpdatePrimaryHarnessModels.
+type UpdatePrimaryHarnessModels struct {
+	// Primary Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.
+	Primary Optional[string] `json:"primary,omitzero"`
 }
 
 // UpdatePromotionSettings Promotion settings for model promotion
@@ -7183,6 +8402,59 @@ type UpdateRollingDeployConfig struct {
 	StabilizationTimeSeconds *int `json:"stabilization_time_seconds,omitempty"`
 }
 
+// UpdateRouteConnectionConfigAnthropic defines model for UpdateRouteConnectionConfigAnthropic.
+type UpdateRouteConnectionConfigAnthropic struct {
+	// Provider Provider kind for Anthropic.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.
+	SecretId Optional[string] `json:"secret_id,omitzero"`
+}
+
+// UpdateRouteConnectionConfigOpenAI defines model for UpdateRouteConnectionConfigOpenAI.
+type UpdateRouteConnectionConfigOpenAI struct {
+	// Provider Provider kind for OpenAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.
+	SecretId Optional[string] `json:"secret_id,omitzero"`
+}
+
+// UpdateRouteConnectionConfigXAI defines model for UpdateRouteConnectionConfigXAI.
+type UpdateRouteConnectionConfigXAI struct {
+	// Provider Provider kind for xAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.
+	SecretId Optional[string] `json:"secret_id,omitzero"`
+}
+
+// UpdateRouteConnectionRequest defines model for UpdateRouteConnectionRequest.
+type UpdateRouteConnectionRequest struct {
+	// Config Connection fields to change. The provider must match the connection and is immutable.
+	Config UpdateRouteConnectionRequest_Config `json:"config"`
+}
+
+// UpdateRouteConnectionRequest_Config Connection fields to change. The provider must match the connection and is immutable.
+type UpdateRouteConnectionRequest_Config struct {
+	union json.RawMessage
+}
+
+// UpdateRouteHarnessDefaults defines model for UpdateRouteHarnessDefaults.
+type UpdateRouteHarnessDefaults struct {
+	// ClaudeCode Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
+	ClaudeCode Optional[UpdateBackgroundHarnessModels] `json:"claude_code,omitzero"`
+
+	// Codex Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
+	Codex Optional[UpdatePrimaryHarnessModels] `json:"codex,omitzero"`
+
+	// Opencode Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
+	Opencode Optional[UpdateBackgroundHarnessModels] `json:"opencode,omitzero"`
+
+	// Pi Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
+	Pi Optional[UpdatePrimaryHarnessModels] `json:"pi,omitzero"`
+}
+
 // UpdateRouteRequest defines model for UpdateRouteRequest.
 type UpdateRouteRequest struct {
 	// Description New description. Omit to keep the current description; use an empty string to clear it. Null is not accepted.
@@ -7190,6 +8462,56 @@ type UpdateRouteRequest struct {
 
 	// DisplayName New display label. Omit to keep the current label; null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
+
+	// Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER_MODEL_BASED configuration of a router route is mutable.
+	Target Optional[UpdateRouteRequest_Target] `json:"target,omitzero"`
+}
+
+// UpdateRouteRequest_Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER_MODEL_BASED configuration of a router route is mutable.
+type UpdateRouteRequest_Target struct {
+	union json.RawMessage
+}
+
+// UpdateRouteSpendLimitSetting defines model for UpdateRouteSpendLimitSetting.
+type UpdateRouteSpendLimitSetting struct {
+	// UserMonthlyLimitUsd Standing spend limit in USD for each UTC calendar month. Send null to remove the limit; omit to leave it unchanged.
+	UserMonthlyLimitUsd Optional[string] `json:"user_monthly_limit_usd,omitzero"`
+}
+
+// UpdateRouteTeamSettingsRequest defines model for UpdateRouteTeamSettingsRequest.
+type UpdateRouteTeamSettingsRequest struct {
+	// HarnessDefaults Harnesses to change; harnesses left out are unchanged. Pass null to clear every harness, so each role uses the team's default.
+	HarnessDefaults Optional[UpdateRouteHarnessDefaults] `json:"harness_defaults,omitzero"`
+
+	// SpendLimit Spend limit fields to change. Pass null to remove the team's per-member limit; omit to leave it unchanged.
+	SpendLimit Optional[UpdateRouteTeamSpendLimitSetting] `json:"spend_limit,omitzero"`
+}
+
+// UpdateRouteTeamSpendLimitSetting defines model for UpdateRouteTeamSpendLimitSetting.
+type UpdateRouteTeamSpendLimitSetting struct {
+	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member whose active Code key belongs to this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.
+	PerMemberMonthlyLimitUsd Optional[string] `json:"per_member_monthly_limit_usd,omitzero"`
+}
+
+// UpdateRouteUserSettingsRequest defines model for UpdateRouteUserSettingsRequest.
+type UpdateRouteUserSettingsRequest struct {
+	// SpendLimit Spend limit fields to change. Pass null to remove the user's limit; omit to leave it unchanged.
+	SpendLimit Optional[UpdateRouteSpendLimitSetting] `json:"spend_limit,omitzero"`
+}
+
+// UpdateSandboxRequest Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, network, region, image, and ports are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.
+type UpdateSandboxRequest struct {
+	// Envs Environment variables injected into the sandbox.
+	Envs *[]SandboxEnv `json:"envs,omitempty"`
+
+	// ExternalId Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.
+	ExternalId *string `json:"external_id,omitempty"`
+
+	// Labels Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.
+	Labels *SandboxMetadataLabels `json:"labels,omitempty"`
+
+	// Lifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
+	Lifecycle *SandboxLifecycle `json:"lifecycle,omitempty"`
 }
 
 // UpdateTrainingJobRequest A request to update mutable fields on a training job.
@@ -7716,6 +9038,27 @@ type VolumeVersionSummary struct {
 	TotalSizeBytes int `json:"total_size_bytes"`
 }
 
+// SandboxError400 defines model for SandboxError400.
+type SandboxError400 interface{}
+
+// SandboxError401 defines model for SandboxError401.
+type SandboxError401 interface{}
+
+// SandboxError403 defines model for SandboxError403.
+type SandboxError403 interface{}
+
+// SandboxError404 defines model for SandboxError404.
+type SandboxError404 interface{}
+
+// SandboxError409 defines model for SandboxError409.
+type SandboxError409 interface{}
+
+// SandboxError429 defines model for SandboxError429.
+type SandboxError429 interface{}
+
+// SandboxError500 defines model for SandboxError500.
+type SandboxError500 interface{}
+
 // GetV1ApiKeysParams defines parameters for GetV1ApiKeys.
 type GetV1ApiKeysParams struct {
 	// Type Filter by API key type
@@ -8216,11 +9559,23 @@ type GetV1RoutesParams struct {
 	// Limit Maximum number of items to return.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// TeamId Filter by owning team ID. Preserved by the cursor; if repeated, must match the original filter.
+	// TeamId Identifier of the team whose routes to list.
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 
 	// Name Filter by exact route name. Preserved by the cursor; if repeated, must match the original filter.
 	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
+// GetV1RoutesConnectionsParams defines parameters for GetV1RoutesConnections.
+type GetV1RoutesConnectionsParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// TeamId Identifier of the team whose connections to list.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
 // GetV1RoutesUsageParams defines parameters for GetV1RoutesUsage.
@@ -8249,6 +9604,165 @@ type GetV1RoutesUsageParams struct {
 	// Providers Return only usage for these providers, repeated once per provider.
 	Providers *[]RouteProvider `form:"providers,omitempty" json:"providers,omitempty"`
 }
+
+// CleanupImagesParams defines parameters for CleanupImages.
+type CleanupImagesParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// ListImagesParams defines parameters for ListImages.
+type ListImagesParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Cursor Opaque cursor from the previous page; omit for the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Sort Sort by repository name or creation time: name:asc, name:desc, createdAt:asc, or createdAt:desc. Keep the same sort when following a cursor.
+	Sort *string `form:"sort,omitempty" json:"sort,omitempty"`
+
+	// Q Case-sensitive repository name prefix. Search is applied before pagination.
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
+}
+
+// PushImageParams defines parameters for PushImage.
+type PushImageParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// DeleteImageParams defines parameters for DeleteImage.
+type DeleteImageParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// GetImageParams defines parameters for GetImage.
+type GetImageParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// GetImageBuildLogsParams defines parameters for GetImageBuildLogs.
+type GetImageBuildLogsParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// StartTime Inclusive RFC 3339 start time. Defaults to 24 hours before end_time.
+	StartTime *time.Time `form:"start_time,omitempty" json:"start_time,omitempty"`
+
+	// EndTime RFC 3339 end time. Defaults to the current time.
+	EndTime *time.Time `form:"end_time,omitempty" json:"end_time,omitempty"`
+
+	// Limit Maximum number of log entries to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Offset Number of log entries to skip. Narrow the time range beyond 10000 entries.
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// ListImageTagsParams defines parameters for ListImageTags.
+type ListImageTagsParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Cursor Opaque cursor from the previous page; omit for the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Sort Sort by tag name: name:asc or name:desc. Keep the same sort when following a cursor.
+	Sort *string `form:"sort,omitempty" json:"sort,omitempty"`
+
+	// Q Case-sensitive tag name prefix. Cannot be combined with name. Forces ascending name order.
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
+
+	// Name Exact tag name. Cannot be combined with q. Forces ascending name order.
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
+// DeleteImageTagParams defines parameters for DeleteImageTag.
+type DeleteImageTagParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// ListSandboxesParams defines parameters for ListSandboxes.
+type ListSandboxesParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Cursor Opaque cursor from the previous page; omit for the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Q Search indexed sandbox names and labels. Search is applied before pagination.
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
+
+	// Status Deployment statuses. Repeat the query parameter for each status, for example status=DEPLOYED&status=FAILED. Unknown values are rejected. Cannot be combined with external_id.
+	Status *[]string `form:"status,omitempty" json:"status,omitempty"`
+
+	// ExternalId Filter by a caller-owned external identifier. Cannot be combined with status.
+	ExternalId *string `form:"external_id,omitempty" json:"external_id,omitempty"`
+}
+
+// CreateSandboxParams defines parameters for CreateSandbox.
+type CreateSandboxParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// DeleteSandboxParams defines parameters for DeleteSandbox.
+type DeleteSandboxParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// GetSandboxParams defines parameters for GetSandbox.
+type GetSandboxParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// ShowSecrets Reveal environment variable values for workspace administrators. Defaults to false. Callers without the admin role receive masked values even when true.
+	ShowSecrets *bool `form:"show_secrets,omitempty" json:"show_secrets,omitempty"`
+}
+
+// UpdateSandboxParams defines parameters for UpdateSandbox.
+type UpdateSandboxParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// GetSandboxLogsParams defines parameters for GetSandboxLogs.
+type GetSandboxLogsParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId    *string   `form:"team_id,omitempty" json:"team_id,omitempty"`
+	StartTime time.Time `form:"start_time" json:"start_time"`
+	EndTime   time.Time `form:"end_time" json:"end_time"`
+	Limit     *int      `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor Opaque next_cursor from the previous page. Omit for the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// GetSandboxMetricsParams defines parameters for GetSandboxMetrics.
+type GetSandboxMetricsParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId          *string                                `form:"team_id,omitempty" json:"team_id,omitempty"`
+	StartTime       time.Time                              `form:"start_time" json:"start_time"`
+	EndTime         time.Time                              `form:"end_time" json:"end_time"`
+	IntervalSeconds GetSandboxMetricsParamsIntervalSeconds `form:"interval_seconds" json:"interval_seconds"`
+}
+
+// GetSandboxMetricsParamsIntervalSeconds defines parameters for GetSandboxMetrics.
+type GetSandboxMetricsParamsIntervalSeconds int
 
 // GetV1TeamsParams defines parameters for GetV1Teams.
 type GetV1TeamsParams struct {
@@ -8427,6 +9941,9 @@ type PostV1LlmModelsJSONRequestBody = CreateLLMModelRequest
 // PostV1LlmModelsModelIdDeploymentsJSONRequestBody defines body for PostV1LlmModelsModelIdDeployments for application/json ContentType.
 type PostV1LlmModelsModelIdDeploymentsJSONRequestBody = CreateLLMModelVersionRequest
 
+// PostV1LoopsCheckpointsDeployJSONRequestBody defines body for PostV1LoopsCheckpointsDeploy for application/json ContentType.
+type PostV1LoopsCheckpointsDeployJSONRequestBody = DeployLoopsCheckpointRequest
+
 // PostV1LoopsCheckpointsValidateJSONRequestBody defines body for PostV1LoopsCheckpointsValidate for application/json ContentType.
 type PostV1LoopsCheckpointsValidateJSONRequestBody = ValidateLoopsCheckpointRequest
 
@@ -8440,7 +9957,7 @@ type PostV1LoopsRunsJSONRequestBody = CreateLoopsRunRequest
 type PostV1LoopsSamplersJSONRequestBody = CreateLoopsSamplerRequest
 
 // PostV1LoopsTrainersJSONRequestBody defines body for PostV1LoopsTrainers for application/json ContentType.
-type PostV1LoopsTrainersJSONRequestBody = CreateLoopsRunRequest
+type PostV1LoopsTrainersJSONRequestBody = CreateLoopsTrainerRequest
 
 // PatchV1LoopsUserConfigJSONRequestBody defines body for PatchV1LoopsUserConfig for application/json ContentType.
 type PatchV1LoopsUserConfigJSONRequestBody = PatchLoopsUserConfigRequest
@@ -8502,8 +10019,29 @@ type PostV1PrepareModelUploadJSONRequestBody = PrepareModelUploadRequest
 // PostV1RoutesJSONRequestBody defines body for PostV1Routes for application/json ContentType.
 type PostV1RoutesJSONRequestBody = CreateRouteRequest
 
+// PostV1RoutesConnectionsJSONRequestBody defines body for PostV1RoutesConnections for application/json ContentType.
+type PostV1RoutesConnectionsJSONRequestBody = CreateRouteConnectionRequest
+
+// PatchV1RoutesConnectionsConnectionIdJSONRequestBody defines body for PatchV1RoutesConnectionsConnectionId for application/json ContentType.
+type PatchV1RoutesConnectionsConnectionIdJSONRequestBody = UpdateRouteConnectionRequest
+
+// PatchV1RoutesSettingsTeamsTeamIdJSONRequestBody defines body for PatchV1RoutesSettingsTeamsTeamId for application/json ContentType.
+type PatchV1RoutesSettingsTeamsTeamIdJSONRequestBody = UpdateRouteTeamSettingsRequest
+
+// PatchV1RoutesSettingsUsersUserIdJSONRequestBody defines body for PatchV1RoutesSettingsUsersUserId for application/json ContentType.
+type PatchV1RoutesSettingsUsersUserIdJSONRequestBody = UpdateRouteUserSettingsRequest
+
 // PatchV1RoutesRouteIdJSONRequestBody defines body for PatchV1RoutesRouteId for application/json ContentType.
 type PatchV1RoutesRouteIdJSONRequestBody = UpdateRouteRequest
+
+// PushImageJSONRequestBody defines body for PushImage for application/json ContentType.
+type PushImageJSONRequestBody = PushSandboxImageRequest
+
+// CreateSandboxJSONRequestBody defines body for CreateSandbox for application/json ContentType.
+type CreateSandboxJSONRequestBody = CreateSandboxRequest
+
+// UpdateSandboxJSONRequestBody defines body for UpdateSandbox for application/json ContentType.
+type UpdateSandboxJSONRequestBody = UpdateSandboxRequest
 
 // PostV1SecretsJSONRequestBody defines body for PostV1Secrets for application/json ContentType.
 type PostV1SecretsJSONRequestBody = UpsertSecretRequest
@@ -8524,7 +10062,7 @@ type PostV1TeamsTeamIdLoopsRunsJSONRequestBody = CreateLoopsRunRequest
 type PostV1TeamsTeamIdLoopsSamplersJSONRequestBody = CreateLoopsSamplerRequest
 
 // PostV1TeamsTeamIdLoopsTrainersJSONRequestBody defines body for PostV1TeamsTeamIdLoopsTrainers for application/json ContentType.
-type PostV1TeamsTeamIdLoopsTrainersJSONRequestBody = CreateLoopsRunRequest
+type PostV1TeamsTeamIdLoopsTrainersJSONRequestBody = CreateLoopsTrainerRequest
 
 // PostV1TeamsTeamIdModelsJSONRequestBody defines body for PostV1TeamsTeamIdModels for application/json ContentType.
 type PostV1TeamsTeamIdModelsJSONRequestBody = CreateModelRequest
@@ -9711,61 +11249,156 @@ func (t *CreateModelRequest_Source) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsRouteTargetBasetenModelAPI returns the union data inside the CreateRouteRequest_Target as a RouteTargetBasetenModelAPI
-func (t CreateRouteRequest_Target) AsRouteTargetBasetenModelAPI() (RouteTargetBasetenModelAPI, error) {
-	var body RouteTargetBasetenModelAPI
+// AsRouteConnectionConfigAnthropic returns the union data inside the CreateRouteConnectionRequest_Config as a RouteConnectionConfigAnthropic
+func (t CreateRouteConnectionRequest_Config) AsRouteConnectionConfigAnthropic() (RouteConnectionConfigAnthropic, error) {
+	var body RouteConnectionConfigAnthropic
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetBasetenModelAPI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetBasetenModelAPI
-func (t *CreateRouteRequest_Target) FromRouteTargetBasetenModelAPI(v RouteTargetBasetenModelAPI) error {
+// FromRouteConnectionConfigAnthropic overwrites any union data inside the CreateRouteConnectionRequest_Config as the provided RouteConnectionConfigAnthropic
+func (t *CreateRouteConnectionRequest_Config) FromRouteConnectionConfigAnthropic(v RouteConnectionConfigAnthropic) error {
+	v.Provider = "ANTHROPIC"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteConnectionConfigOpenAI returns the union data inside the CreateRouteConnectionRequest_Config as a RouteConnectionConfigOpenAI
+func (t CreateRouteConnectionRequest_Config) AsRouteConnectionConfigOpenAI() (RouteConnectionConfigOpenAI, error) {
+	var body RouteConnectionConfigOpenAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteConnectionConfigOpenAI overwrites any union data inside the CreateRouteConnectionRequest_Config as the provided RouteConnectionConfigOpenAI
+func (t *CreateRouteConnectionRequest_Config) FromRouteConnectionConfigOpenAI(v RouteConnectionConfigOpenAI) error {
+	v.Provider = "OPENAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteConnectionConfigXAI returns the union data inside the CreateRouteConnectionRequest_Config as a RouteConnectionConfigXAI
+func (t CreateRouteConnectionRequest_Config) AsRouteConnectionConfigXAI() (RouteConnectionConfigXAI, error) {
+	var body RouteConnectionConfigXAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteConnectionConfigXAI overwrites any union data inside the CreateRouteConnectionRequest_Config as the provided RouteConnectionConfigXAI
+func (t *CreateRouteConnectionRequest_Config) FromRouteConnectionConfigXAI(v RouteConnectionConfigXAI) error {
+	v.Provider = "XAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t CreateRouteConnectionRequest_Config) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"provider"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t CreateRouteConnectionRequest_Config) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "ANTHROPIC":
+		return t.AsRouteConnectionConfigAnthropic()
+	case "OPENAI":
+		return t.AsRouteConnectionConfigOpenAI()
+	case "XAI":
+		return t.AsRouteConnectionConfigXAI()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t CreateRouteConnectionRequest_Config) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CreateRouteConnectionRequest_Config) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsRouteTargetConfigBasetenModelAPI returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigBasetenModelAPI
+func (t CreateRouteRequest_Target) AsRouteTargetConfigBasetenModelAPI() (RouteTargetConfigBasetenModelAPI, error) {
+	var body RouteTargetConfigBasetenModelAPI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigBasetenModelAPI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigBasetenModelAPI
+func (t *CreateRouteRequest_Target) FromRouteTargetConfigBasetenModelAPI(v RouteTargetConfigBasetenModelAPI) error {
 	v.Type = "BASETEN_MODEL_API"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteTargetAnthropic returns the union data inside the CreateRouteRequest_Target as a RouteTargetAnthropic
-func (t CreateRouteRequest_Target) AsRouteTargetAnthropic() (RouteTargetAnthropic, error) {
-	var body RouteTargetAnthropic
+// AsRouteTargetConfigAnthropic returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigAnthropic
+func (t CreateRouteRequest_Target) AsRouteTargetConfigAnthropic() (RouteTargetConfigAnthropic, error) {
+	var body RouteTargetConfigAnthropic
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetAnthropic overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetAnthropic
-func (t *CreateRouteRequest_Target) FromRouteTargetAnthropic(v RouteTargetAnthropic) error {
+// FromRouteTargetConfigAnthropic overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigAnthropic
+func (t *CreateRouteRequest_Target) FromRouteTargetConfigAnthropic(v RouteTargetConfigAnthropic) error {
 	v.Type = "ANTHROPIC"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteTargetOpenAI returns the union data inside the CreateRouteRequest_Target as a RouteTargetOpenAI
-func (t CreateRouteRequest_Target) AsRouteTargetOpenAI() (RouteTargetOpenAI, error) {
-	var body RouteTargetOpenAI
+// AsRouteTargetConfigOpenAI returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigOpenAI
+func (t CreateRouteRequest_Target) AsRouteTargetConfigOpenAI() (RouteTargetConfigOpenAI, error) {
+	var body RouteTargetConfigOpenAI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetOpenAI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetOpenAI
-func (t *CreateRouteRequest_Target) FromRouteTargetOpenAI(v RouteTargetOpenAI) error {
+// FromRouteTargetConfigOpenAI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigOpenAI
+func (t *CreateRouteRequest_Target) FromRouteTargetConfigOpenAI(v RouteTargetConfigOpenAI) error {
 	v.Type = "OPENAI"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteTargetXAI returns the union data inside the CreateRouteRequest_Target as a RouteTargetXAI
-func (t CreateRouteRequest_Target) AsRouteTargetXAI() (RouteTargetXAI, error) {
-	var body RouteTargetXAI
+// AsRouteTargetConfigXAI returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigXAI
+func (t CreateRouteRequest_Target) AsRouteTargetConfigXAI() (RouteTargetConfigXAI, error) {
+	var body RouteTargetConfigXAI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetXAI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetXAI
-func (t *CreateRouteRequest_Target) FromRouteTargetXAI(v RouteTargetXAI) error {
+// FromRouteTargetConfigXAI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigXAI
+func (t *CreateRouteRequest_Target) FromRouteTargetConfigXAI(v RouteTargetConfigXAI) error {
 	v.Type = "XAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetConfigClassifierModelBased returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigClassifierModelBased
+func (t CreateRouteRequest_Target) AsRouteTargetConfigClassifierModelBased() (RouteTargetConfigClassifierModelBased, error) {
+	var body RouteTargetConfigClassifierModelBased
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigClassifierModelBased overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigClassifierModelBased
+func (t *CreateRouteRequest_Target) FromRouteTargetConfigClassifierModelBased(v RouteTargetConfigClassifierModelBased) error {
+	v.Type = "CLASSIFIER_MODEL_BASED"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -9786,13 +11419,15 @@ func (t CreateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
 	}
 	switch discriminator {
 	case "ANTHROPIC":
-		return t.AsRouteTargetAnthropic()
+		return t.AsRouteTargetConfigAnthropic()
 	case "BASETEN_MODEL_API":
-		return t.AsRouteTargetBasetenModelAPI()
+		return t.AsRouteTargetConfigBasetenModelAPI()
+	case "CLASSIFIER_MODEL_BASED":
+		return t.AsRouteTargetConfigClassifierModelBased()
 	case "OPENAI":
-		return t.AsRouteTargetOpenAI()
+		return t.AsRouteTargetConfigOpenAI()
 	case "XAI":
-		return t.AsRouteTargetXAI()
+		return t.AsRouteTargetConfigXAI()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -10910,6 +12545,21 @@ func (t *Route_Target) FromRouteTargetXAI(v RouteTargetXAI) error {
 	return err
 }
 
+// AsRouteTargetClassifierModelBased returns the union data inside the Route_Target as a RouteTargetClassifierModelBased
+func (t Route_Target) AsRouteTargetClassifierModelBased() (RouteTargetClassifierModelBased, error) {
+	var body RouteTargetClassifierModelBased
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetClassifierModelBased overwrites any union data inside the Route_Target as the provided RouteTargetClassifierModelBased
+func (t *Route_Target) FromRouteTargetClassifierModelBased(v RouteTargetClassifierModelBased) error {
+	v.Type = "CLASSIFIER_MODEL_BASED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t Route_Target) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"type"`
@@ -10928,6 +12578,8 @@ func (t Route_Target) ValueByDiscriminator() (interface{}, error) {
 		return t.AsRouteTargetAnthropic()
 	case "BASETEN_MODEL_API":
 		return t.AsRouteTargetBasetenModelAPI()
+	case "CLASSIFIER_MODEL_BASED":
+		return t.AsRouteTargetClassifierModelBased()
 	case "OPENAI":
 		return t.AsRouteTargetOpenAI()
 	case "XAI":
@@ -10943,6 +12595,166 @@ func (t Route_Target) MarshalJSON() ([]byte, error) {
 }
 
 func (t *Route_Target) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsRouteConnectionAnthropic returns the union data inside the RouteConnection_Config as a RouteConnectionAnthropic
+func (t RouteConnection_Config) AsRouteConnectionAnthropic() (RouteConnectionAnthropic, error) {
+	var body RouteConnectionAnthropic
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteConnectionAnthropic overwrites any union data inside the RouteConnection_Config as the provided RouteConnectionAnthropic
+func (t *RouteConnection_Config) FromRouteConnectionAnthropic(v RouteConnectionAnthropic) error {
+	v.Provider = "ANTHROPIC"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteConnectionOpenAI returns the union data inside the RouteConnection_Config as a RouteConnectionOpenAI
+func (t RouteConnection_Config) AsRouteConnectionOpenAI() (RouteConnectionOpenAI, error) {
+	var body RouteConnectionOpenAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteConnectionOpenAI overwrites any union data inside the RouteConnection_Config as the provided RouteConnectionOpenAI
+func (t *RouteConnection_Config) FromRouteConnectionOpenAI(v RouteConnectionOpenAI) error {
+	v.Provider = "OPENAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteConnectionXAI returns the union data inside the RouteConnection_Config as a RouteConnectionXAI
+func (t RouteConnection_Config) AsRouteConnectionXAI() (RouteConnectionXAI, error) {
+	var body RouteConnectionXAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteConnectionXAI overwrites any union data inside the RouteConnection_Config as the provided RouteConnectionXAI
+func (t *RouteConnection_Config) FromRouteConnectionXAI(v RouteConnectionXAI) error {
+	v.Provider = "XAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t RouteConnection_Config) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"provider"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t RouteConnection_Config) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "ANTHROPIC":
+		return t.AsRouteConnectionAnthropic()
+	case "OPENAI":
+		return t.AsRouteConnectionOpenAI()
+	case "XAI":
+		return t.AsRouteConnectionXAI()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t RouteConnection_Config) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *RouteConnection_Config) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsSandboxTTLIdleExpirationPolicy returns the union data inside the SandboxExpirationPolicy as a SandboxTTLIdleExpirationPolicy
+func (t SandboxExpirationPolicy) AsSandboxTTLIdleExpirationPolicy() (SandboxTTLIdleExpirationPolicy, error) {
+	var body SandboxTTLIdleExpirationPolicy
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSandboxTTLIdleExpirationPolicy overwrites any union data inside the SandboxExpirationPolicy as the provided SandboxTTLIdleExpirationPolicy
+func (t *SandboxExpirationPolicy) FromSandboxTTLIdleExpirationPolicy(v SandboxTTLIdleExpirationPolicy) error {
+	v.Type = "TTL_IDLE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsSandboxTTLMaxAgeExpirationPolicy returns the union data inside the SandboxExpirationPolicy as a SandboxTTLMaxAgeExpirationPolicy
+func (t SandboxExpirationPolicy) AsSandboxTTLMaxAgeExpirationPolicy() (SandboxTTLMaxAgeExpirationPolicy, error) {
+	var body SandboxTTLMaxAgeExpirationPolicy
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSandboxTTLMaxAgeExpirationPolicy overwrites any union data inside the SandboxExpirationPolicy as the provided SandboxTTLMaxAgeExpirationPolicy
+func (t *SandboxExpirationPolicy) FromSandboxTTLMaxAgeExpirationPolicy(v SandboxTTLMaxAgeExpirationPolicy) error {
+	v.Type = "TTL_MAX_AGE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsSandboxDateExpirationPolicy returns the union data inside the SandboxExpirationPolicy as a SandboxDateExpirationPolicy
+func (t SandboxExpirationPolicy) AsSandboxDateExpirationPolicy() (SandboxDateExpirationPolicy, error) {
+	var body SandboxDateExpirationPolicy
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSandboxDateExpirationPolicy overwrites any union data inside the SandboxExpirationPolicy as the provided SandboxDateExpirationPolicy
+func (t *SandboxExpirationPolicy) FromSandboxDateExpirationPolicy(v SandboxDateExpirationPolicy) error {
+	v.Type = "DATE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t SandboxExpirationPolicy) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t SandboxExpirationPolicy) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "DATE":
+		return t.AsSandboxDateExpirationPolicy()
+	case "TTL_IDLE":
+		return t.AsSandboxTTLIdleExpirationPolicy()
+	case "TTL_MAX_AGE":
+		return t.AsSandboxTTLMaxAgeExpirationPolicy()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t SandboxExpirationPolicy) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *SandboxExpirationPolicy) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -11157,6 +12969,200 @@ func (t UpdateAutoscalingScheduleSettings_Schedules_Item) MarshalJSON() ([]byte,
 }
 
 func (t *UpdateAutoscalingScheduleSettings_Schedules_Item) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsUpdateRouteConnectionConfigAnthropic returns the union data inside the UpdateRouteConnectionRequest_Config as a UpdateRouteConnectionConfigAnthropic
+func (t UpdateRouteConnectionRequest_Config) AsUpdateRouteConnectionConfigAnthropic() (UpdateRouteConnectionConfigAnthropic, error) {
+	var body UpdateRouteConnectionConfigAnthropic
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromUpdateRouteConnectionConfigAnthropic overwrites any union data inside the UpdateRouteConnectionRequest_Config as the provided UpdateRouteConnectionConfigAnthropic
+func (t *UpdateRouteConnectionRequest_Config) FromUpdateRouteConnectionConfigAnthropic(v UpdateRouteConnectionConfigAnthropic) error {
+	v.Provider = "ANTHROPIC"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsUpdateRouteConnectionConfigOpenAI returns the union data inside the UpdateRouteConnectionRequest_Config as a UpdateRouteConnectionConfigOpenAI
+func (t UpdateRouteConnectionRequest_Config) AsUpdateRouteConnectionConfigOpenAI() (UpdateRouteConnectionConfigOpenAI, error) {
+	var body UpdateRouteConnectionConfigOpenAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromUpdateRouteConnectionConfigOpenAI overwrites any union data inside the UpdateRouteConnectionRequest_Config as the provided UpdateRouteConnectionConfigOpenAI
+func (t *UpdateRouteConnectionRequest_Config) FromUpdateRouteConnectionConfigOpenAI(v UpdateRouteConnectionConfigOpenAI) error {
+	v.Provider = "OPENAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsUpdateRouteConnectionConfigXAI returns the union data inside the UpdateRouteConnectionRequest_Config as a UpdateRouteConnectionConfigXAI
+func (t UpdateRouteConnectionRequest_Config) AsUpdateRouteConnectionConfigXAI() (UpdateRouteConnectionConfigXAI, error) {
+	var body UpdateRouteConnectionConfigXAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromUpdateRouteConnectionConfigXAI overwrites any union data inside the UpdateRouteConnectionRequest_Config as the provided UpdateRouteConnectionConfigXAI
+func (t *UpdateRouteConnectionRequest_Config) FromUpdateRouteConnectionConfigXAI(v UpdateRouteConnectionConfigXAI) error {
+	v.Provider = "XAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t UpdateRouteConnectionRequest_Config) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"provider"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t UpdateRouteConnectionRequest_Config) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "ANTHROPIC":
+		return t.AsUpdateRouteConnectionConfigAnthropic()
+	case "OPENAI":
+		return t.AsUpdateRouteConnectionConfigOpenAI()
+	case "XAI":
+		return t.AsUpdateRouteConnectionConfigXAI()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t UpdateRouteConnectionRequest_Config) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *UpdateRouteConnectionRequest_Config) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsRouteTargetConfigBasetenModelAPI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigBasetenModelAPI
+func (t UpdateRouteRequest_Target) AsRouteTargetConfigBasetenModelAPI() (RouteTargetConfigBasetenModelAPI, error) {
+	var body RouteTargetConfigBasetenModelAPI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigBasetenModelAPI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigBasetenModelAPI
+func (t *UpdateRouteRequest_Target) FromRouteTargetConfigBasetenModelAPI(v RouteTargetConfigBasetenModelAPI) error {
+	v.Type = "BASETEN_MODEL_API"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetConfigAnthropic returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigAnthropic
+func (t UpdateRouteRequest_Target) AsRouteTargetConfigAnthropic() (RouteTargetConfigAnthropic, error) {
+	var body RouteTargetConfigAnthropic
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigAnthropic overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigAnthropic
+func (t *UpdateRouteRequest_Target) FromRouteTargetConfigAnthropic(v RouteTargetConfigAnthropic) error {
+	v.Type = "ANTHROPIC"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetConfigOpenAI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigOpenAI
+func (t UpdateRouteRequest_Target) AsRouteTargetConfigOpenAI() (RouteTargetConfigOpenAI, error) {
+	var body RouteTargetConfigOpenAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigOpenAI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigOpenAI
+func (t *UpdateRouteRequest_Target) FromRouteTargetConfigOpenAI(v RouteTargetConfigOpenAI) error {
+	v.Type = "OPENAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetConfigXAI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigXAI
+func (t UpdateRouteRequest_Target) AsRouteTargetConfigXAI() (RouteTargetConfigXAI, error) {
+	var body RouteTargetConfigXAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigXAI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigXAI
+func (t *UpdateRouteRequest_Target) FromRouteTargetConfigXAI(v RouteTargetConfigXAI) error {
+	v.Type = "XAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetConfigClassifierModelBased returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigClassifierModelBased
+func (t UpdateRouteRequest_Target) AsRouteTargetConfigClassifierModelBased() (RouteTargetConfigClassifierModelBased, error) {
+	var body RouteTargetConfigClassifierModelBased
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigClassifierModelBased overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigClassifierModelBased
+func (t *UpdateRouteRequest_Target) FromRouteTargetConfigClassifierModelBased(v RouteTargetConfigClassifierModelBased) error {
+	v.Type = "CLASSIFIER_MODEL_BASED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t UpdateRouteRequest_Target) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t UpdateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "ANTHROPIC":
+		return t.AsRouteTargetConfigAnthropic()
+	case "BASETEN_MODEL_API":
+		return t.AsRouteTargetConfigBasetenModelAPI()
+	case "CLASSIFIER_MODEL_BASED":
+		return t.AsRouteTargetConfigClassifierModelBased()
+	case "OPENAI":
+		return t.AsRouteTargetConfigOpenAI()
+	case "XAI":
+		return t.AsRouteTargetConfigXAI()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t UpdateRouteRequest_Target) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *UpdateRouteRequest_Target) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

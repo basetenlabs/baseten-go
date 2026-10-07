@@ -1,10 +1,10 @@
-// Package client provides Go clients for the Baseten management and inference
-// APIs.
+// Package client provides Go clients for the Baseten management, inference,
+// and sandbox APIs.
 //
 // Use [NewManagementClient] to interact with the management API (models,
-// deployments, secrets, etc.) and [NewInferenceClient] to call deployed models
-// and chains.
+// deployments, secrets, etc.), [NewInferenceClient] to call deployed models
+// and chains, and [NewSandboxClient] to call a single sandbox.
 //
-// Both clients expose the underlying generated API client via their API()
+// All clients expose the underlying generated API client via their API()
 // method for direct access to all low-level endpoints.
 package client
