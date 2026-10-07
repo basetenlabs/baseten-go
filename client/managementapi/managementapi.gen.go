@@ -3263,8 +3263,98 @@ type CreateLibraryListingVersionRequest struct {
 	VersionTag string `json:"version_tag"`
 }
 
-// CreateLoopsRunRequest defines model for CreateLoopsRunRequest.
+// CreateLoopsRunRequest Request to create a Loops run together with its paired sampler.
 type CreateLoopsRunRequest struct {
+	// AvailabilityModel Capacity guarantee under which a training job is scheduled.
+	//
+	// ``DEDICATED`` is on-demand capacity that is not preempted (the default). ``SPOT`` is
+	// interruptible capacity that may be preempted; the user is responsible for checkpointing
+	// their own progress. A managed/resumable model where the platform handles
+	// checkpoint/resume on its own is intentionally not defined yet; it is planned for a
+	// future milestone.
+	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+
+	// BaseModel Base model ID (e.g. 'Qwen/Qwen3-8B').
+	BaseModel string `json:"base_model"`
+
+	// LoraRank LoRA rank.
+	LoraRank *int `json:"lora_rank,omitempty"`
+
+	// MaxSeqLen Maximum prompt length (in tokens) the run must handle. Set this to the longest training example you plan to send. Defaults to the maximum supported by the model configuration.
+	MaxSeqLen *int `json:"max_seq_len,omitempty"`
+
+	// Name Optional display name for the run. Defaults to the base model name when omitted.
+	Name *string `json:"name,omitempty"`
+
+	// Path Optional bt:// URI of an existing checkpoint to load weights from on startup. Form: bt://loops:<run_id>/weights/<checkpoint_name>.
+	Path *string `json:"path,omitempty"`
+
+	// Replicas Number of data-parallel trainer replicas. Each replica is one full copy of the model's preset node group, so the trainer deployment runs (preset node_count * replicas) nodes (e.g. replicas=4 on a 4-node preset → 16 nodes, 4 DP workers). Must be a positive integer. Defaults to 1.
+	Replicas *int `json:"replicas,omitempty"`
+
+	// ReuseFromRunId Optional ID of a prior Loops run whose trainer and/or sampler should be reused for this run instead of provisioning fresh. The prior run must use the same base model and belong to the same team.
+	ReuseFromRunId *string `json:"reuse_from_run_id,omitempty"`
+
+	// ReuseFromSessionId Optional ID of a prior Loops session whose trainer and/or sampler should be reused for this run. Deprecated in favor of reuse_from_run_id.
+	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
+
+	// SamplerNumReplicas Number of replicas the run's sampler runs, applied as both its minimum and maximum. Must be at least 1. If omitted, a new sampler uses the platform defaults and a sampler reused from an earlier run keeps its settings. A run that already has a sampler keeps it unchanged. When the run ends, its sampler is scaled down.
+	SamplerNumReplicas *int `json:"sampler_num_replicas,omitempty"`
+
+	// ScaleDownDelaySeconds Seconds of inactivity before the run scales to zero. Must be between 1 and 3600 (1 hour). Defaults to 900 (15 minutes).
+	ScaleDownDelaySeconds *int `json:"scale_down_delay_seconds,omitempty"`
+
+	// Seed Random seed for reproducibility.
+	Seed *int `json:"seed,omitempty"`
+
+	// SessionId ID of the Loops session this run belongs to.
+	SessionId string `json:"session_id"`
+}
+
+// CreateLoopsRunResponse defines model for CreateLoopsRunResponse.
+type CreateLoopsRunResponse struct {
+	Run LoopsRun `json:"run"`
+}
+
+// CreateLoopsSamplerRequest defines model for CreateLoopsSamplerRequest.
+type CreateLoopsSamplerRequest struct {
+	// AvailabilityModel Capacity the sampler runs on. 'spot' allows preemption when its GPUs are reclaimed. Defaults to 'dedicated' for standalone samplers. Paired samplers inherit their run's availability model; an explicit value must match it.
+	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+
+	// BaseModel Base model ID for a standalone sampler (for example, a baseline).
+	BaseModel *string `json:"base_model,omitempty"`
+
+	// MaxSeqLength Maximum prompt length (in tokens) the sampler must handle. Set this to the longest prompt you plan to send.
+	MaxSeqLength *int `json:"max_seq_length,omitempty"`
+
+	// ModelPath bt:// URI of an existing sampler checkpoint to serve. Form: bt://loops:<run_id>/sampler_weights/<checkpoint_name>.
+	ModelPath *string `json:"model_path,omitempty"`
+
+	// NumReplicas Number of replicas the sampler runs, applied as both its minimum and maximum. Must be at least 1. If omitted, a new sampler uses the platform defaults and a paired sampler reused from an earlier run keeps its settings. A run that already has a sampler keeps it unchanged, and when a run ends, its sampler is scaled down.
+	NumReplicas *int `json:"num_replicas,omitempty"`
+
+	// ReuseFromSessionId Optional ID of a prior Loops session to reuse a trainer and/or sampler from. Deprecated.
+	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
+
+	// RunId ID of an existing run to attach this sampler to. When set, the sampler is paired to the run and weight-syncs from its trainer, and base_model is inherited from the run. Omit to create a standalone sampler.
+	RunId *string `json:"run_id,omitempty"`
+
+	// SessionId ID of the Loops session this sampler belongs to.
+	SessionId string `json:"session_id"`
+}
+
+// CreateLoopsSamplerResponse defines model for CreateLoopsSamplerResponse.
+type CreateLoopsSamplerResponse struct {
+	Sampler LoopsSampler `json:"sampler"`
+}
+
+// CreateLoopsSessionResponse defines model for CreateLoopsSessionResponse.
+type CreateLoopsSessionResponse struct {
+	Session LoopsSession `json:"session"`
+}
+
+// CreateLoopsTrainerRequest defines model for CreateLoopsTrainerRequest.
+type CreateLoopsTrainerRequest struct {
 	// AvailabilityModel Capacity guarantee under which a training job is scheduled.
 	//
 	// ``DEDICATED`` is on-demand capacity that is not preempted (the default). ``SPOT`` is
@@ -3306,45 +3396,6 @@ type CreateLoopsRunRequest struct {
 
 	// SessionId ID of the Loops session this run belongs to.
 	SessionId string `json:"session_id"`
-}
-
-// CreateLoopsRunResponse defines model for CreateLoopsRunResponse.
-type CreateLoopsRunResponse struct {
-	Run LoopsRun `json:"run"`
-}
-
-// CreateLoopsSamplerRequest defines model for CreateLoopsSamplerRequest.
-type CreateLoopsSamplerRequest struct {
-	// AvailabilityModel Capacity the sampler runs on. 'spot' allows preemption when its GPUs are reclaimed. Defaults to 'dedicated' for standalone samplers. Paired samplers inherit their run's availability model; an explicit value must match it.
-	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
-
-	// BaseModel Base model ID for a standalone sampler (for example, a baseline).
-	BaseModel *string `json:"base_model,omitempty"`
-
-	// MaxSeqLength Maximum prompt length (in tokens) the sampler must handle. Set this to the longest prompt you plan to send.
-	MaxSeqLength *int `json:"max_seq_length,omitempty"`
-
-	// ModelPath bt:// URI of an existing sampler checkpoint to serve. Form: bt://loops:<run_id>/sampler_weights/<checkpoint_name>.
-	ModelPath *string `json:"model_path,omitempty"`
-
-	// ReuseFromSessionId Optional ID of a prior Loops session to reuse a trainer and/or sampler from. Deprecated.
-	ReuseFromSessionId *string `json:"reuse_from_session_id,omitempty"`
-
-	// RunId ID of an existing run to attach this sampler to. When set, the sampler is paired to the run and weight-syncs from its trainer, and base_model is inherited from the run. Omit to create a standalone sampler.
-	RunId *string `json:"run_id,omitempty"`
-
-	// SessionId ID of the Loops session this sampler belongs to.
-	SessionId string `json:"session_id"`
-}
-
-// CreateLoopsSamplerResponse defines model for CreateLoopsSamplerResponse.
-type CreateLoopsSamplerResponse struct {
-	Sampler LoopsSampler `json:"sampler"`
-}
-
-// CreateLoopsSessionResponse defines model for CreateLoopsSessionResponse.
-type CreateLoopsSessionResponse struct {
-	Session LoopsSession `json:"session"`
 }
 
 // CreateModelDeploymentRequest Body for adding a deployment to an existing model via
@@ -9906,7 +9957,7 @@ type PostV1LoopsRunsJSONRequestBody = CreateLoopsRunRequest
 type PostV1LoopsSamplersJSONRequestBody = CreateLoopsSamplerRequest
 
 // PostV1LoopsTrainersJSONRequestBody defines body for PostV1LoopsTrainers for application/json ContentType.
-type PostV1LoopsTrainersJSONRequestBody = CreateLoopsRunRequest
+type PostV1LoopsTrainersJSONRequestBody = CreateLoopsTrainerRequest
 
 // PatchV1LoopsUserConfigJSONRequestBody defines body for PatchV1LoopsUserConfig for application/json ContentType.
 type PatchV1LoopsUserConfigJSONRequestBody = PatchLoopsUserConfigRequest
@@ -10011,7 +10062,7 @@ type PostV1TeamsTeamIdLoopsRunsJSONRequestBody = CreateLoopsRunRequest
 type PostV1TeamsTeamIdLoopsSamplersJSONRequestBody = CreateLoopsSamplerRequest
 
 // PostV1TeamsTeamIdLoopsTrainersJSONRequestBody defines body for PostV1TeamsTeamIdLoopsTrainers for application/json ContentType.
-type PostV1TeamsTeamIdLoopsTrainersJSONRequestBody = CreateLoopsRunRequest
+type PostV1TeamsTeamIdLoopsTrainersJSONRequestBody = CreateLoopsTrainerRequest
 
 // PostV1TeamsTeamIdModelsJSONRequestBody defines body for PostV1TeamsTeamIdModels for application/json ContentType.
 type PostV1TeamsTeamIdModelsJSONRequestBody = CreateModelRequest
