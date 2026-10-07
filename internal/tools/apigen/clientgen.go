@@ -30,8 +30,11 @@ type apiOperation struct {
 	JSONResponses []jsonResponse
 	// RawAccepts are the non-JSON 2xx content types, e.g. text/plain or
 	// application/octet-stream.
-	RawAccepts   []string
-	SuccessCodes []int // 2xx status codes, ascending
+	RawAccepts []string
+	// ResponseHeaders reports whether a success response declares headers,
+	// which an operation without a body can only return as the raw response.
+	ResponseHeaders bool
+	SuccessCodes    []int // 2xx status codes, ascending
 	// ErrorCodes maps status codes to the error schema ref they produce.
 	// Only populated for codes that have a typed schema.
 	ErrorCodes map[int]string
@@ -157,6 +160,7 @@ func extractOperations(spec map[string]any) ([]apiOperation, error) {
 			ReqBodyRef:      bodySchemaRef(spec, o.op),
 			JSONResponses:   jsonResponseRefs(spec, o.op, successCodes),
 			RawAccepts:      rawAccepts,
+			ResponseHeaders: hasResponseHeaders(spec, o.op, successCodes),
 			SuccessCodes:    successCodes,
 			ErrorCodes:      errorCodeMap(spec, o.op),
 			Summary:         summary,
@@ -349,6 +353,19 @@ func rawResponseAccepts(spec, op map[string]any, successCodes []int) []string {
 	return slices.Sorted(maps.Keys(accepts))
 }
 
+// hasResponseHeaders reports whether any success response declares headers.
+func hasResponseHeaders(spec, op map[string]any, successCodes []int) bool {
+	responses, _ := op["responses"].(map[string]any)
+	for _, code := range successCodes {
+		respNode, _ := responses[strconv.Itoa(code)].(map[string]any)
+		headers, _ := resolveRef(spec, respNode)["headers"].(map[string]any)
+		if len(headers) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // bodyContentType returns the declared request body content type, preferring
 // JSON when an operation declares several encodings. Empty when the operation
 // has no body.
@@ -450,7 +467,7 @@ func renderClient(pkgName string, ops []apiOperation) string {
 			hasTypedResp = true
 		case len(op.JSONResponses) > 1:
 			hasMultiResp = true
-		case len(op.RawAccepts) == 0:
+		case len(op.RawAccepts) == 0 && !op.ResponseHeaders:
 			hasNoResp = true
 		}
 	}
@@ -584,8 +601,9 @@ func (e *Response%s) Error() string {
 	// Methods.
 	for _, op := range ops {
 		// An operation with no JSON success body returns the response directly,
-		// since there is nothing to deserialize into.
-		rawOnly := len(op.JSONResponses) == 0 && len(op.RawAccepts) > 0
+		// since there is nothing to deserialize into. One with no body at all
+		// does too when it declares headers, since they are its result.
+		rawOnly := len(op.JSONResponses) == 0 && (len(op.RawAccepts) > 0 || op.ResponseHeaders)
 		pf("\n")
 		renderMethod(&w, op, rawOnly)
 		// A content-negotiated operation also gets a sibling returning the raw
@@ -876,8 +894,13 @@ func renderMethod(w *strings.Builder, op apiOperation, raw bool) {
 	pf("\n")
 	if raw {
 		pf("//\n")
-		pf("// Requests %s and returns the response unread. The caller must close\n", op.RawAccepts[0])
-		pf("// the response body.\n")
+		if len(op.RawAccepts) > 0 {
+			pf("// Requests %s and returns the response unread. The caller must close\n", op.RawAccepts[0])
+			pf("// the response body.\n")
+		} else {
+			pf("// Returns the response unread, since its headers are the result. The\n")
+			pf("// caller must close the response body.\n")
+		}
 	}
 
 	// Document typed errors per status code.
@@ -940,7 +963,7 @@ func renderMethod(w *strings.Builder, op apiOperation, raw bool) {
 	default:
 		fields = append(fields, "rawBody: req.Body", fmt.Sprintf("bodyContentType: cmp.Or(req.ContentType, %q)", op.BodyContentType))
 	}
-	if raw {
+	if raw && len(op.RawAccepts) > 0 {
 		fields = append(fields, fmt.Sprintf("accept: %q", op.RawAccepts[0]))
 	}
 	codeStrs := make([]string, len(op.SuccessCodes))

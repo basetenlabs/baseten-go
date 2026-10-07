@@ -47,8 +47,8 @@ func (e *ResponseError) Error() string {
 }
 
 // CleanupImages: Clean up unused images
-func (c *Client) CleanupImages(ctx context.Context, params CleanupImagesParams) (*CleanupImagesResponse, error) {
-	return doJSON[CleanupImagesResponse](c, ctx, apiRequest{
+func (c *Client) CleanupImages(ctx context.Context, params CleanupImagesParams) (*CleanupSandboxImagesResponse, error) {
+	return doJSON[CleanupSandboxImagesResponse](c, ctx, apiRequest{
 		method:       "POST",
 		pathFmt:      "/v1/sandboxes/cleanup_images",
 		pathArgs:     nil,
@@ -116,8 +116,8 @@ func (c *Client) DeleteGatewayEndpoints(ctx context.Context, endpointId string) 
 }
 
 // DeleteImage: Delete a sandbox image
-func (c *Client) DeleteImage(ctx context.Context, imageName string, params DeleteImageParams) (*Image, error) {
-	return doJSON[Image](c, ctx, apiRequest{
+func (c *Client) DeleteImage(ctx context.Context, imageName string, params DeleteImageParams) (*SandboxImage, error) {
+	return doJSON[SandboxImage](c, ctx, apiRequest{
 		method:       "DELETE",
 		pathFmt:      "/v1/sandboxes/images/%s",
 		pathArgs:     []any{imageName},
@@ -128,8 +128,8 @@ func (c *Client) DeleteImage(ctx context.Context, imageName string, params Delet
 }
 
 // DeleteImageTag: Delete an image tag
-func (c *Client) DeleteImageTag(ctx context.Context, imageName string, tagName string, params DeleteImageTagParams) (*Image, error) {
-	return doJSON[Image](c, ctx, apiRequest{
+func (c *Client) DeleteImageTag(ctx context.Context, imageName string, tagName string, params DeleteImageTagParams) (*SandboxImage, error) {
+	return doJSON[SandboxImage](c, ctx, apiRequest{
 		method:       "DELETE",
 		pathFmt:      "/v1/sandboxes/images/%s/tags/%s",
 		pathArgs:     []any{imageName, tagName},
@@ -216,13 +216,12 @@ func (c *Client) DeleteRoutes(ctx context.Context, routeId string) (*RouteTombst
 	})
 }
 
-// DeleteRoutesHarnessConfigs: Clears default models for a coding harness
-func (c *Client) DeleteRoutesHarnessConfigs(ctx context.Context, harness string, params DeleteV1RoutesHarnessConfigsHarnessParams) (*RouteHarnessConfigTombstone, error) {
-	return doJSON[RouteHarnessConfigTombstone](c, ctx, apiRequest{
+// DeleteRoutesConnections: Deletes a connection
+func (c *Client) DeleteRoutesConnections(ctx context.Context, connectionId string) (*RouteConnectionTombstone, error) {
+	return doJSON[RouteConnectionTombstone](c, ctx, apiRequest{
 		method:       "DELETE",
-		pathFmt:      "/v1/routes/harness-configs/%s",
-		pathArgs:     []any{harness},
-		queryParams:  params,
+		pathFmt:      "/v1/routes/connections/%s",
+		pathArgs:     []any{connectionId},
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -593,8 +592,8 @@ func (c *Client) GetGatewayGroupsGroupId(ctx context.Context, groupId string) (*
 }
 
 // GetImage: Get a sandbox image
-func (c *Client) GetImage(ctx context.Context, imageName string, params GetImageParams) (*Image, error) {
-	return doJSON[Image](c, ctx, apiRequest{
+func (c *Client) GetImage(ctx context.Context, imageName string, params GetImageParams) (*SandboxImage, error) {
+	return doJSON[SandboxImage](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/sandboxes/images/%s",
 		pathArgs:     []any{imageName},
@@ -605,8 +604,8 @@ func (c *Client) GetImage(ctx context.Context, imageName string, params GetImage
 }
 
 // GetImageBuildLogs: Get image build logs
-func (c *Client) GetImageBuildLogs(ctx context.Context, imageName string, params GetImageBuildLogsParams) (*ImageBuildLogsResponse, error) {
-	return doJSON[ImageBuildLogsResponse](c, ctx, apiRequest{
+func (c *Client) GetImageBuildLogs(ctx context.Context, imageName string, params GetImageBuildLogsParams) (*SandboxImageBuildLogsResponse, error) {
+	return doJSON[SandboxImageBuildLogsResponse](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/sandboxes/images/%s/logs",
 		pathArgs:     []any{imageName},
@@ -1097,11 +1096,11 @@ func (c *Client) GetRoutes(ctx context.Context, params GetV1RoutesParams) (*Rout
 	})
 }
 
-// GetRoutesHarnessConfigs: Lists default models for coding harnesses
-func (c *Client) GetRoutesHarnessConfigs(ctx context.Context, params GetV1RoutesHarnessConfigsParams) (*RouteHarnessConfigsResponse, error) {
-	return doJSON[RouteHarnessConfigsResponse](c, ctx, apiRequest{
+// GetRoutesConnections: Lists connections
+func (c *Client) GetRoutesConnections(ctx context.Context, params GetV1RoutesConnectionsParams) (*RouteConnectionsResponse, error) {
+	return doJSON[RouteConnectionsResponse](c, ctx, apiRequest{
 		method:       "GET",
-		pathFmt:      "/v1/routes/harness-configs",
+		pathFmt:      "/v1/routes/connections",
 		pathArgs:     nil,
 		queryParams:  params,
 		successCodes: []int{200},
@@ -1120,11 +1119,22 @@ func (c *Client) GetRoutesRouteId(ctx context.Context, routeId string) (*Route, 
 	})
 }
 
-// GetRoutesSpendLimits: Gets a user's spend limits
-func (c *Client) GetRoutesSpendLimits(ctx context.Context, userId string) (*RouteSpendLimit, error) {
-	return doJSON[RouteSpendLimit](c, ctx, apiRequest{
+// GetRoutesSettingsTeams: Gets a team's route settings
+func (c *Client) GetRoutesSettingsTeams(ctx context.Context, teamId string) (*RouteTeamSettings, error) {
+	return doJSON[RouteTeamSettings](c, ctx, apiRequest{
 		method:       "GET",
-		pathFmt:      "/v1/routes/spend_limits/%s",
+		pathFmt:      "/v1/routes/settings/teams/%s",
+		pathArgs:     []any{teamId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetRoutesSettingsUsers: Gets a user's route settings
+func (c *Client) GetRoutesSettingsUsers(ctx context.Context, userId string) (*RouteUserSettings, error) {
+	return doJSON[RouteUserSettings](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/routes/settings/users/%s",
 		pathArgs:     []any{userId},
 		successCodes: []int{200},
 		errorCodes:   nil,
@@ -1148,6 +1158,41 @@ func (c *Client) GetSandbox(ctx context.Context, sandboxName string, params GetS
 	return doJSON[Sandbox](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/sandboxes/instances/%s",
+		pathArgs:     []any{sandboxName},
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetSandboxConfiguration: Get sandbox configuration
+func (c *Client) GetSandboxConfiguration(ctx context.Context) (*GetSandboxConfigurationResponse, error) {
+	return doJSON[GetSandboxConfigurationResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/sandboxes/configuration",
+		pathArgs:     nil,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetSandboxLogs: Get sandbox logs
+func (c *Client) GetSandboxLogs(ctx context.Context, sandboxName string, params GetSandboxLogsParams) (*SandboxLogs, error) {
+	return doJSON[SandboxLogs](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/sandboxes/instances/%s/logs",
+		pathArgs:     []any{sandboxName},
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetSandboxMetrics: Get sandbox metrics
+func (c *Client) GetSandboxMetrics(ctx context.Context, sandboxName string, params GetSandboxMetricsParams) (*SandboxMetrics, error) {
+	return doJSON[SandboxMetrics](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/sandboxes/instances/%s/metrics",
 		pathArgs:     []any{sandboxName},
 		queryParams:  params,
 		successCodes: []int{200},
@@ -1531,8 +1576,8 @@ func (c *Client) GetVolumesVolumeName(ctx context.Context, volumeNamespace strin
 }
 
 // ListImageTags: List image tags
-func (c *Client) ListImageTags(ctx context.Context, imageName string, params ListImageTagsParams) (*ListImageTagsResponse, error) {
-	return doJSON[ListImageTagsResponse](c, ctx, apiRequest{
+func (c *Client) ListImageTags(ctx context.Context, imageName string, params ListImageTagsParams) (*ListSandboxImageTagsResponse, error) {
+	return doJSON[ListSandboxImageTagsResponse](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/sandboxes/images/%s/tags",
 		pathArgs:     []any{imageName},
@@ -1543,8 +1588,8 @@ func (c *Client) ListImageTags(ctx context.Context, imageName string, params Lis
 }
 
 // ListImages: List sandbox images
-func (c *Client) ListImages(ctx context.Context, params ListImagesParams) (*ListImagesResponse, error) {
-	return doJSON[ListImagesResponse](c, ctx, apiRequest{
+func (c *Client) ListImages(ctx context.Context, params ListImagesParams) (*ListSandboxImagesResponse, error) {
+	return doJSON[ListSandboxImagesResponse](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/sandboxes/images",
 		pathArgs:     nil,
@@ -1555,12 +1600,11 @@ func (c *Client) ListImages(ctx context.Context, params ListImagesParams) (*List
 }
 
 // ListSandboxLibraryImages: List built-in sandbox images
-func (c *Client) ListSandboxLibraryImages(ctx context.Context, params ListSandboxLibraryImagesParams) (*ListSandboxLibraryImagesResponse, error) {
+func (c *Client) ListSandboxLibraryImages(ctx context.Context) (*ListSandboxLibraryImagesResponse, error) {
 	return doJSON[ListSandboxLibraryImagesResponse](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/sandboxes/library_images",
 		pathArgs:     nil,
-		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -1758,7 +1802,7 @@ func (c *Client) PatchModelsEnvironments(ctx context.Context, modelId string, en
 	})
 }
 
-// PatchRoutes: Updates a route's display name or description
+// PatchRoutes: Updates a route
 func (c *Client) PatchRoutes(ctx context.Context, routeId string, body UpdateRouteRequest) (*Route, error) {
 	return doJSON[Route](c, ctx, apiRequest{
 		method:       "PATCH",
@@ -1770,23 +1814,35 @@ func (c *Client) PatchRoutes(ctx context.Context, routeId string, body UpdateRou
 	})
 }
 
-// PatchRoutesHarnessConfigs: Updates default models for a coding harness
-func (c *Client) PatchRoutesHarnessConfigs(ctx context.Context, body UpdateRouteHarnessConfigRequest) (*RouteHarnessConfig, error) {
-	return doJSON[RouteHarnessConfig](c, ctx, apiRequest{
+// PatchRoutesConnections: Updates a connection
+func (c *Client) PatchRoutesConnections(ctx context.Context, connectionId string, body UpdateRouteConnectionRequest) (*RouteConnection, error) {
+	return doJSON[RouteConnection](c, ctx, apiRequest{
 		method:       "PATCH",
-		pathFmt:      "/v1/routes/harness-configs",
-		pathArgs:     nil,
+		pathFmt:      "/v1/routes/connections/%s",
+		pathArgs:     []any{connectionId},
 		body:         body,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
 }
 
-// PatchRoutesSpendLimits: Updates a user's spend limits
-func (c *Client) PatchRoutesSpendLimits(ctx context.Context, userId string, body UpdateRouteSpendLimitRequest) (*RouteSpendLimit, error) {
-	return doJSON[RouteSpendLimit](c, ctx, apiRequest{
+// PatchRoutesSettingsTeams: Updates a team's route settings
+func (c *Client) PatchRoutesSettingsTeams(ctx context.Context, teamId string, body UpdateRouteTeamSettingsRequest) (*RouteTeamSettings, error) {
+	return doJSON[RouteTeamSettings](c, ctx, apiRequest{
 		method:       "PATCH",
-		pathFmt:      "/v1/routes/spend_limits/%s",
+		pathFmt:      "/v1/routes/settings/teams/%s",
+		pathArgs:     []any{teamId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PatchRoutesSettingsUsers: Updates a user's route settings
+func (c *Client) PatchRoutesSettingsUsers(ctx context.Context, userId string, body UpdateRouteUserSettingsRequest) (*RouteUserSettings, error) {
+	return doJSON[RouteUserSettings](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/routes/settings/users/%s",
 		pathArgs:     []any{userId},
 		body:         body,
 		successCodes: []int{200},
@@ -2433,6 +2489,18 @@ func (c *Client) PostRoutes(ctx context.Context, body CreateRouteRequest) (*Rout
 	})
 }
 
+// PostRoutesConnections: Creates a connection
+func (c *Client) PostRoutesConnections(ctx context.Context, body CreateRouteConnectionRequest) (*RouteConnection, error) {
+	return doJSON[RouteConnection](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/routes/connections",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // PostSecrets: Upserts a secret
 func (c *Client) PostSecrets(ctx context.Context, body UpsertSecretRequest) (*Secret, error) {
 	return doJSON[Secret](c, ctx, apiRequest{
@@ -2707,26 +2775,14 @@ func (c *Client) PostVolumesVersionsRestore(ctx context.Context, volumeNamespace
 }
 
 // PushImage: Push a sandbox image
-func (c *Client) PushImage(ctx context.Context, params PushImageParams, body PushImageRequest) (*PushImageResponse, error) {
-	return doJSON[PushImageResponse](c, ctx, apiRequest{
+func (c *Client) PushImage(ctx context.Context, params PushImageParams, body PushSandboxImageRequest) (*PushSandboxImageResponse, error) {
+	return doJSON[PushSandboxImageResponse](c, ctx, apiRequest{
 		method:       "POST",
 		pathFmt:      "/v1/sandboxes/images",
 		pathArgs:     nil,
 		queryParams:  params,
 		body:         body,
 		successCodes: []int{202},
-		errorCodes:   nil,
-	})
-}
-
-// PutRoutesHarnessConfigs: Sets default models for a coding harness
-func (c *Client) PutRoutesHarnessConfigs(ctx context.Context, body SetRouteHarnessConfigRequest) (*RouteHarnessConfig, error) {
-	return doJSON[RouteHarnessConfig](c, ctx, apiRequest{
-		method:       "PUT",
-		pathFmt:      "/v1/routes/harness-configs",
-		pathArgs:     nil,
-		body:         body,
-		successCodes: []int{200},
 		errorCodes:   nil,
 	})
 }

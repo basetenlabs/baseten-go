@@ -743,30 +743,6 @@ func (e GatewayProvider) Valid() bool {
 	}
 }
 
-// Defines values for ImageStatus.
-const (
-	ImageStatus_BUILDING  ImageStatus = "BUILDING"
-	ImageStatus_BUILT     ImageStatus = "BUILT"
-	ImageStatus_FAILED    ImageStatus = "FAILED"
-	ImageStatus_UPLOADING ImageStatus = "UPLOADING"
-)
-
-// Valid indicates whether the value is a known member of the ImageStatus enum.
-func (e ImageStatus) Valid() bool {
-	switch e {
-	case ImageStatus_BUILDING:
-		return true
-	case ImageStatus_BUILT:
-		return true
-	case ImageStatus_FAILED:
-		return true
-	case ImageStatus_UPLOADING:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for InProgressPromotionStatus.
 const (
 	InProgressPromotionStatus_CANCELED     InProgressPromotionStatus = "CANCELED"
@@ -1181,45 +1157,6 @@ func (e RollingDeployStrategy) Valid() bool {
 	}
 }
 
-// Defines values for RouteHarness.
-const (
-	RouteHarnessClaudeCode RouteHarness = "claude-code"
-	RouteHarness_codex     RouteHarness = "codex"
-	RouteHarness_opencode  RouteHarness = "opencode"
-)
-
-// Valid indicates whether the value is a known member of the RouteHarness enum.
-func (e RouteHarness) Valid() bool {
-	switch e {
-	case RouteHarnessClaudeCode:
-		return true
-	case RouteHarness_codex:
-		return true
-	case RouteHarness_opencode:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for RouteHarnessModelSource.
-const (
-	RouteHarnessModelSource_baseten RouteHarnessModelSource = "baseten"
-	RouteHarnessModelSource_team    RouteHarnessModelSource = "team"
-)
-
-// Valid indicates whether the value is a known member of the RouteHarnessModelSource enum.
-func (e RouteHarnessModelSource) Valid() bool {
-	switch e {
-	case RouteHarnessModelSource_baseten:
-		return true
-	case RouteHarnessModelSource_team:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for RouteProvider.
 const (
 	RouteProvider_ANTHROPIC         RouteProvider = "ANTHROPIC"
@@ -1244,6 +1181,24 @@ func (e RouteProvider) Valid() bool {
 	case RouteProvider_VERTEX:
 		return true
 	case RouteProvider_XAI:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RouteSettingSource.
+const (
+	RouteSettingSource_team RouteSettingSource = "team"
+	RouteSettingSource_user RouteSettingSource = "user"
+)
+
+// Valid indicates whether the value is a known member of the RouteSettingSource enum.
+func (e RouteSettingSource) Valid() bool {
+	switch e {
+	case RouteSettingSource_team:
+		return true
+	case RouteSettingSource_user:
 		return true
 	default:
 		return false
@@ -1301,6 +1256,30 @@ func (e SandboxDateExpirationPolicyType) Valid() bool {
 	}
 }
 
+// Defines values for SandboxImageStatus.
+const (
+	SandboxImageStatus_BUILDING  SandboxImageStatus = "BUILDING"
+	SandboxImageStatus_BUILT     SandboxImageStatus = "BUILT"
+	SandboxImageStatus_FAILED    SandboxImageStatus = "FAILED"
+	SandboxImageStatus_UPLOADING SandboxImageStatus = "UPLOADING"
+)
+
+// Valid indicates whether the value is a known member of the SandboxImageStatus enum.
+func (e SandboxImageStatus) Valid() bool {
+	switch e {
+	case SandboxImageStatus_BUILDING:
+		return true
+	case SandboxImageStatus_BUILT:
+		return true
+	case SandboxImageStatus_FAILED:
+		return true
+	case SandboxImageStatus_UPLOADING:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SandboxPortProtocol.
 const (
 	SandboxPortProtocol_HTTP SandboxPortProtocol = "HTTP"
@@ -1319,6 +1298,21 @@ func (e SandboxPortProtocol) Valid() bool {
 	case SandboxPortProtocol_TLS:
 		return true
 	case SandboxPortProtocol_UDP:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxRegionInfoGeneration.
+const (
+	SandboxRegionInfoGeneration_CARBON SandboxRegionInfoGeneration = "CARBON"
+)
+
+// Valid indicates whether the value is a known member of the SandboxRegionInfoGeneration enum.
+func (e SandboxRegionInfoGeneration) Valid() bool {
+	switch e {
+	case SandboxRegionInfoGeneration_CARBON:
 		return true
 	default:
 		return false
@@ -1682,6 +1676,36 @@ func (e VolumeTokenScope) Valid() bool {
 	case VolumeTokenScope_PUSH:
 		return true
 	case VolumeTokenScope_TAG:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetSandboxMetricsParamsIntervalSeconds.
+const (
+	GetSandboxMetricsParamsIntervalSecondsN10   GetSandboxMetricsParamsIntervalSeconds = 10
+	GetSandboxMetricsParamsIntervalSecondsN30   GetSandboxMetricsParamsIntervalSeconds = 30
+	GetSandboxMetricsParamsIntervalSecondsN300  GetSandboxMetricsParamsIntervalSeconds = 300
+	GetSandboxMetricsParamsIntervalSecondsN3600 GetSandboxMetricsParamsIntervalSeconds = 3600
+	GetSandboxMetricsParamsIntervalSecondsN60   GetSandboxMetricsParamsIntervalSeconds = 60
+	GetSandboxMetricsParamsIntervalSecondsN900  GetSandboxMetricsParamsIntervalSeconds = 900
+)
+
+// Valid indicates whether the value is a known member of the GetSandboxMetricsParamsIntervalSeconds enum.
+func (e GetSandboxMetricsParamsIntervalSeconds) Valid() bool {
+	switch e {
+	case GetSandboxMetricsParamsIntervalSecondsN10:
+		return true
+	case GetSandboxMetricsParamsIntervalSecondsN30:
+		return true
+	case GetSandboxMetricsParamsIntervalSecondsN300:
+		return true
+	case GetSandboxMetricsParamsIntervalSecondsN3600:
+		return true
+	case GetSandboxMetricsParamsIntervalSecondsN60:
+		return true
+	case GetSandboxMetricsParamsIntervalSecondsN900:
 		return true
 	default:
 		return false
@@ -2678,13 +2702,13 @@ type AwsOidcDockerAuth struct {
 	RoleArn string `json:"role_arn"`
 }
 
-// BackgroundHarnessModels defines model for BackgroundHarnessModels.
-type BackgroundHarnessModels struct {
-	// Background Route ID for background tasks, such as session titles. Omit to use Baseten's default.
-	Background *string `json:"background,omitempty"`
+// BackgroundHarnessDefaults defines model for BackgroundHarnessDefaults.
+type BackgroundHarnessDefaults struct {
+	// Background Route for background tasks, such as session titles. Null when the team has no route to use.
+	Background *RouteHarnessModel `json:"background"`
 
-	// Primary Route ID for the primary model, which new sessions use. Omit to use Baseten's default.
-	Primary *string `json:"primary,omitempty"`
+	// Primary Route for the primary model, which new sessions use. Null when the team has no route to use.
+	Primary *RouteHarnessModel `json:"primary"`
 }
 
 // BasetenLatestCheckpointConfig defines model for BasetenLatestCheckpointConfig.
@@ -2977,8 +3001,8 @@ type CheckpointFile struct {
 // CheckpointSyncStatus Lifecycle state for the checkpoint uploader.
 type CheckpointSyncStatus string
 
-// CleanupImagesResponse Result of cleaning up unused sandbox images.
-type CleanupImagesResponse struct {
+// CleanupSandboxImagesResponse Result of cleaning up unused sandbox images.
+type CleanupSandboxImagesResponse struct {
 	// Deleted Number of image versions removed.
 	Deleted int `json:"deleted"`
 
@@ -3346,6 +3370,20 @@ type CreateModelRequest_Source struct {
 	union json.RawMessage
 }
 
+// CreateRouteConnectionRequest defines model for CreateRouteConnectionRequest.
+type CreateRouteConnectionRequest struct {
+	// Config Provider the connection authenticates with, and the team secret holding its API key.
+	Config CreateRouteConnectionRequest_Config `json:"config"`
+
+	// TeamId Identifier of the team that owns the connection.
+	TeamId *string `json:"team_id,omitempty"`
+}
+
+// CreateRouteConnectionRequest_Config Provider the connection authenticates with, and the team secret holding its API key.
+type CreateRouteConnectionRequest_Config struct {
+	union json.RawMessage
+}
+
 // CreateRouteRequest defines model for CreateRouteRequest.
 type CreateRouteRequest struct {
 	// Description Short description of the route. Omit for no description; null is not accepted.
@@ -3357,7 +3395,7 @@ type CreateRouteRequest struct {
 	// Target Upstream target for the route.
 	Target CreateRouteRequest_Target `json:"target"`
 
-	// TeamId Identifier of the team that owns the route. When omitted, uses your organization's default team.
+	// TeamId Identifier of the team that owns the route.
 	TeamId *string `json:"team_id,omitempty"`
 }
 
@@ -4853,6 +4891,12 @@ type GetModelMetricsResponse struct {
 	StepSeconds *int `json:"step_seconds"`
 }
 
+// GetSandboxConfigurationResponse defines model for GetSandboxConfigurationResponse.
+type GetSandboxConfigurationResponse struct {
+	// Regions Available Carbon-compatible regions, sorted by name. Empty when none are available.
+	Regions []SandboxRegion `json:"regions"`
+}
+
 // GetTrainingGpuCapacityResponse Response for the training GPU capacity endpoint.
 type GetTrainingGpuCapacityResponse struct {
 	// GpuCapacities Org-level GPU capacity limits and current usage per GPU type
@@ -5035,68 +5079,6 @@ type GroupsResponse struct {
 	// Items Items in this page.
 	Items      []Group            `json:"items"`
 	Pagination PaginationResponse `json:"pagination"`
-}
-
-// Image Sandbox image repository. List and get operations return a summary without embedded tags.
-type Image struct {
-	// CreatedAt Time the image was created.
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-
-	// LastDeployedAt Most recent deployment time across all tags, if deployed.
-	LastDeployedAt *time.Time `json:"last_deployed_at,omitempty"`
-
-	// Name Stable repository name supplied when pushing the image.
-	Name string `json:"name"`
-
-	// Size Total repository size in bytes.
-	Size *int64 `json:"size,omitempty"`
-
-	// Status Image processing status. Only BUILT images are ready to use.
-	Status ImageStatus `json:"status"`
-
-	// TagCount Number of image versions in the repository.
-	TagCount *int64 `json:"tag_count,omitempty"`
-
-	// Tags Empty for list and get summary responses. Use GET /sandboxes/images/{image_name}/tags to retrieve paginated image versions.
-	Tags []ImageTag `json:"tags"`
-
-	// UpdatedAt Time the image was last updated.
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
-}
-
-// ImageBuildLog defines model for ImageBuildLog.
-type ImageBuildLog struct {
-	Message string `json:"message"`
-
-	// Severity Numeric OpenTelemetry severity level.
-	Severity  int       `json:"severity"`
-	Timestamp time.Time `json:"timestamp"`
-}
-
-// ImageBuildLogsResponse defines model for ImageBuildLogsResponse.
-type ImageBuildLogsResponse struct {
-	Logs []ImageBuildLog `json:"logs"`
-
-	// TotalCount Number of matching log entries in the requested time range.
-	TotalCount int64 `json:"total_count"`
-}
-
-// ImageStatus Image processing status. Only BUILT images are ready to use.
-type ImageStatus string
-
-// ImageTag A tag identifying a version of a sandbox image.
-type ImageTag struct {
-	// CreatedAt Time the tag was created.
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-
-	// Name Image tag name.
-	Name string `json:"name"`
-
-	// Size Image size in bytes.
-	Size *int64 `json:"size,omitempty"`
-
-	// UpdatedAt Time the tag was last updated.
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 }
 
 // InProgressPromotion Details of an in-progress promotion.
@@ -5379,23 +5361,6 @@ type ListAuditLogsResponse struct {
 	Pagination PaginationResponse `json:"pagination"`
 }
 
-// ListImageTagsResponse One page of image tags.
-type ListImageTagsResponse struct {
-	Items []ImageTag `json:"items"`
-
-	// Pagination Cursor pagination information. The cursor is present only when another page is available.
-	Pagination SandboxApiPagination `json:"pagination"`
-}
-
-// ListImagesResponse One page of image repository summaries. Fetch tags through the separate tag listing endpoint.
-type ListImagesResponse struct {
-	// Items Image repositories on this page.
-	Items []Image `json:"items"`
-
-	// Pagination Cursor pagination information. The cursor is present only when another page is available.
-	Pagination SandboxApiPagination `json:"pagination"`
-}
-
 // ListLoopsCheckpointsResponse Checkpoints matching the query filter.
 type ListLoopsCheckpointsResponse struct {
 	// Checkpoints Matching checkpoints.
@@ -5425,6 +5390,23 @@ type ListLoopsRunsResponse struct {
 type ListLoopsSamplersResponse struct {
 	// Samplers List of samplers.
 	Samplers []LoopsSampler `json:"samplers"`
+}
+
+// ListSandboxImageTagsResponse One page of image tags.
+type ListSandboxImageTagsResponse struct {
+	Items []SandboxImageTag `json:"items"`
+
+	// Pagination Cursor pagination information. The cursor is present only when another page is available.
+	Pagination SandboxApiPagination `json:"pagination"`
+}
+
+// ListSandboxImagesResponse One page of image repository summaries. Fetch tags through the separate tag listing endpoint.
+type ListSandboxImagesResponse struct {
+	// Items Image repositories on this page.
+	Items []SandboxImageSummary `json:"items"`
+
+	// Pagination Cursor pagination information. The cursor is present only when another page is available.
+	Pagination SandboxApiPagination `json:"pagination"`
 }
 
 // ListSandboxLibraryImagesResponse Built-in sandbox images.
@@ -6429,10 +6411,10 @@ type PrepareModelUploadResponse struct {
 	S3Region *string `json:"s3_region,omitempty"`
 }
 
-// PrimaryHarnessModels defines model for PrimaryHarnessModels.
-type PrimaryHarnessModels struct {
-	// Primary Route ID for the primary model, which new sessions use. Omit to use Baseten's default.
-	Primary *string `json:"primary,omitempty"`
+// PrimaryHarnessDefaults defines model for PrimaryHarnessDefaults.
+type PrimaryHarnessDefaults struct {
+	// Primary Route for the primary model, which new sessions use. Null when the team has no route to use.
+	Primary *RouteHarnessModel `json:"primary"`
 }
 
 // PromoteRequest A request to promote a deployment to production.
@@ -6489,8 +6471,8 @@ type PromotionSettings struct {
 	RollingDeployConfig *RollingDeployConfig `json:"rolling_deploy_config,omitempty"`
 }
 
-// PushImageRequest Push a sandbox image from a source archive or an existing registry image.
-type PushImageRequest struct {
+// PushSandboxImageRequest Push a sandbox image from a source archive or an existing registry image.
+type PushSandboxImageRequest struct {
 	// DockerConfig Optional serialized registry authentication configuration for importing a private image. Used only when image is supplied; never returned.
 	DockerConfig *string `json:"docker_config,omitempty"`
 
@@ -6501,8 +6483,8 @@ type PushImageRequest struct {
 	Name string `json:"name"`
 }
 
-// PushImageResponse Accepted image push. Acceptance does not imply readiness; poll GET /sandboxes/images/{image_name} until status is BUILT or FAILED.
-type PushImageResponse struct {
+// PushSandboxImageResponse Accepted image push. Acceptance does not imply readiness; poll GET /sandboxes/images/{image_name} until status is BUILT or FAILED.
+type PushSandboxImageResponse struct {
 	// Image Registered image reference including its tag, when available. Tags are assigned by the service; GET /sandboxes/images/{image_name} returns the available tags once processing completes.
 	Image *string `json:"image,omitempty"`
 
@@ -6510,7 +6492,7 @@ type PushImageResponse struct {
 	Name string `json:"name"`
 
 	// Status Image processing status. Only BUILT images are ready to use.
-	Status ImageStatus `json:"status"`
+	Status SandboxImageStatus `json:"status"`
 
 	// UploadUrl Temporary signed URL for uploading the source ZIP archive with HTTP PUT. Present only when no source image was supplied. The uploaded ZIP archive must not exceed 5 GB. Uploading starts asynchronous processing. This storage upload is separate from the API endpoints.
 	UploadUrl *string `json:"upload_url,omitempty"`
@@ -6693,7 +6675,7 @@ type Route struct {
 	// InvokeUrl Base URL for inference requests using this route.
 	InvokeUrl string `json:"invoke_url"`
 
-	// Metadata Resolved model metadata; null when the route has no linked metadata row.
+	// Metadata Resolved model metadata; for a router, the envelope of its allowed routes' metadata. Null when nothing is linked.
 	Metadata *ExploreMetadata `json:"metadata"`
 
 	// Name Name to send in the inference request's model field.
@@ -6714,51 +6696,161 @@ type Route_Target struct {
 	union json.RawMessage
 }
 
-// RouteHarness defines model for RouteHarness.
-type RouteHarness string
+// RouteConnection defines model for RouteConnection.
+type RouteConnection struct {
+	// Config Provider the connection authenticates with, and the team secret holding its API key.
+	Config RouteConnection_Config `json:"config"`
 
-// RouteHarnessConfig defines model for RouteHarnessConfig.
-type RouteHarnessConfig struct {
-	// Models Route for each model role, keyed by role.
-	Models map[string]RouteHarnessModel `json:"models"`
-}
+	// CreatedAt Creation time, ISO 8601.
+	CreatedAt time.Time `json:"created_at"`
 
-// RouteHarnessConfigTombstone defines model for RouteHarnessConfigTombstone.
-type RouteHarnessConfigTombstone struct {
-	Harness RouteHarness `json:"harness"`
+	// Id Stable connection identifier.
+	Id string `json:"id"`
 
-	// TeamId Identifier of the team whose default models were cleared.
+	// TeamId Identifier of the team that owns the connection.
 	TeamId string `json:"team_id"`
+
+	// UpdatedAt Last update time, ISO 8601.
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// RouteHarnessConfigsResponse defines model for RouteHarnessConfigsResponse.
-type RouteHarnessConfigsResponse struct {
-	// HarnessConfigs Default models for each harness, keyed by harness. A harness is omitted when none of its roles has a route.
-	HarnessConfigs map[string]RouteHarnessConfig `json:"harness_configs"`
+// RouteConnection_Config Provider the connection authenticates with, and the team secret holding its API key.
+type RouteConnection_Config struct {
+	union json.RawMessage
+}
+
+// RouteConnectionAnthropic defines model for RouteConnectionAnthropic.
+type RouteConnectionAnthropic struct {
+	// Provider Provider kind for Anthropic.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of the team secret holding the provider API key.
+	SecretId string `json:"secret_id"`
+
+	// SecretName Name of the team secret holding the provider API key.
+	SecretName string `json:"secret_name"`
+}
+
+// RouteConnectionConfigAnthropic defines model for RouteConnectionConfigAnthropic.
+type RouteConnectionConfigAnthropic struct {
+	// Provider Provider kind for Anthropic.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of an existing secret, owned by the same team, that holds the provider API key.
+	SecretId string `json:"secret_id"`
+}
+
+// RouteConnectionConfigOpenAI defines model for RouteConnectionConfigOpenAI.
+type RouteConnectionConfigOpenAI struct {
+	// Provider Provider kind for OpenAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of an existing secret, owned by the same team, that holds the provider API key.
+	SecretId string `json:"secret_id"`
+}
+
+// RouteConnectionConfigXAI defines model for RouteConnectionConfigXAI.
+type RouteConnectionConfigXAI struct {
+	// Provider Provider kind for xAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of an existing secret, owned by the same team, that holds the provider API key.
+	SecretId string `json:"secret_id"`
+}
+
+// RouteConnectionOpenAI defines model for RouteConnectionOpenAI.
+type RouteConnectionOpenAI struct {
+	// Provider Provider kind for OpenAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of the team secret holding the provider API key.
+	SecretId string `json:"secret_id"`
+
+	// SecretName Name of the team secret holding the provider API key.
+	SecretName string `json:"secret_name"`
+}
+
+// RouteConnectionTombstone defines model for RouteConnectionTombstone.
+type RouteConnectionTombstone struct {
+	// Id Stable identifier of the deleted connection.
+	Id string `json:"id"`
+}
+
+// RouteConnectionXAI defines model for RouteConnectionXAI.
+type RouteConnectionXAI struct {
+	// Provider Provider kind for xAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of the team secret holding the provider API key.
+	SecretId string `json:"secret_id"`
+
+	// SecretName Name of the team secret holding the provider API key.
+	SecretName string `json:"secret_name"`
+}
+
+// RouteConnectionsResponse defines model for RouteConnectionsResponse.
+type RouteConnectionsResponse struct {
+	// Items Items in this page.
+	Items      []RouteConnection  `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
+// RouteEffectiveSpendLimit defines model for RouteEffectiveSpendLimit.
+type RouteEffectiveSpendLimit struct {
+	// MonthlyLimitUsd Spend limit in USD enforced for the current UTC calendar month: the user's own limit, else the team default. Null when no limit applies.
+	MonthlyLimitUsd *string `json:"monthly_limit_usd"`
+
+	// Source Where the limit comes from: `user` when it is set on the user, `team` when it is the team default. Null when no limit applies.
+	Source *RouteSettingSource `json:"source"`
+}
+
+// RouteHarnessDefaults defines model for RouteHarnessDefaults.
+type RouteHarnessDefaults struct {
+	ClaudeCode BackgroundHarnessDefaults `json:"claude_code"`
+	Codex      PrimaryHarnessDefaults    `json:"codex"`
+	Opencode   BackgroundHarnessDefaults `json:"opencode"`
+	Pi         PrimaryHarnessDefaults    `json:"pi"`
 }
 
 // RouteHarnessModel defines model for RouteHarnessModel.
 type RouteHarnessModel struct {
-	Route  Route                   `json:"route"`
-	Source RouteHarnessModelSource `json:"source"`
+	Route  Route              `json:"route"`
+	Source RouteSettingSource `json:"source"`
 }
-
-// RouteHarnessModelSource defines model for RouteHarnessModelSource.
-type RouteHarnessModelSource string
 
 // RouteProvider Upstream provider of a route target, named like the route target types.
 type RouteProvider string
 
-// RouteSpendLimit defines model for RouteSpendLimit.
-type RouteSpendLimit struct {
-	// Email Email address of the user.
-	Email *string `json:"email"`
+// RouteRef defines model for RouteRef.
+type RouteRef struct {
+	// Id Stable route identifier.
+	Id string `json:"id"`
 
-	// MonthlyLimitUsd Standing spend limit in USD for each UTC calendar month, returned as an exact decimal string. Null when the user has no standing limit.
-	MonthlyLimitUsd *string `json:"monthly_limit_usd"`
+	// Slug Name of the route to send in the inference request's model field.
+	Slug string `json:"slug"`
+}
 
-	// UserId ID of the user.
-	UserId string `json:"user_id"`
+// RouteSettingSource defines model for RouteSettingSource.
+type RouteSettingSource string
+
+// RouteSpendLimitSetting defines model for RouteSpendLimitSetting.
+type RouteSpendLimitSetting struct {
+	Effective RouteEffectiveSpendLimit `json:"effective"`
+
+	// TeamDefault Per-member limit of the team the user's active Code key belongs to. This limit applies when the user has no limit of their own. Null when there is none.
+	TeamDefault *RouteSpendLimitTeamDefault `json:"team_default"`
+
+	// UserMonthlyLimitUsd Standing spend limit in USD for each UTC calendar month set on the user. Null when the user has no limit of their own.
+	UserMonthlyLimitUsd *string `json:"user_monthly_limit_usd"`
+}
+
+// RouteSpendLimitTeamDefault defines model for RouteSpendLimitTeamDefault.
+type RouteSpendLimitTeamDefault struct {
+	// PerMemberMonthlyLimitUsd The team's per-member spend limit in USD for each UTC calendar month.
+	PerMemberMonthlyLimitUsd string `json:"per_member_monthly_limit_usd"`
+
+	// TeamId ID of the team the user's active Code key belongs to.
+	TeamId string `json:"team_id"`
 }
 
 // RouteTargetAnthropic defines model for RouteTargetAnthropic.
@@ -6779,6 +6871,85 @@ type RouteTargetBasetenModelAPI struct {
 	Model string `json:"model"`
 
 	// Type Target kind for a Baseten Model API.
+	Type string `json:"type"`
+}
+
+// RouteTargetClassifierModelBased defines model for RouteTargetClassifierModelBased.
+type RouteTargetClassifierModelBased struct {
+	// AllowedRoutes Routes the classifier may pick, in creation order.
+	AllowedRoutes []RouteRef `json:"allowed_routes"`
+
+	// ClassifierEnvironmentName Environment of the classifier model. Null for production.
+	ClassifierEnvironmentName *string `json:"classifier_environment_name"`
+
+	// ClassifierModelId ID of the Baseten model that picks a route for each request.
+	ClassifierModelId string   `json:"classifier_model_id"`
+	DefaultRoute      RouteRef `json:"default_route"`
+
+	// Type Target kind for a classifier-model-based route.
+	Type string `json:"type"`
+}
+
+// RouteTargetConfigAnthropic defines model for RouteTargetConfigAnthropic.
+type RouteTargetConfigAnthropic struct {
+	// Model Model name sent to the provider.
+	Model string `json:"model"`
+
+	// SecretName Name of a credential secret owned by the route's team.
+	SecretName string `json:"secret_name"`
+
+	// Type Target kind for Anthropic.
+	Type string `json:"type"`
+}
+
+// RouteTargetConfigBasetenModelAPI defines model for RouteTargetConfigBasetenModelAPI.
+type RouteTargetConfigBasetenModelAPI struct {
+	// Model Name of the target Model API.
+	Model string `json:"model"`
+
+	// Type Target kind for a Baseten Model API.
+	Type string `json:"type"`
+}
+
+// RouteTargetConfigClassifierModelBased defines model for RouteTargetConfigClassifierModelBased.
+type RouteTargetConfigClassifierModelBased struct {
+	// AllowedRouteIds IDs of the routes the classifier may pick. All must belong to the route's team and must not be routers themselves.
+	AllowedRouteIds []string `json:"allowed_route_ids"`
+
+	// ClassifierEnvironmentName Environment of the classifier model. Omit for production, which is returned as null.
+	ClassifierEnvironmentName *string `json:"classifier_environment_name,omitempty"`
+
+	// ClassifierModelId ID of the Baseten model that picks a route for each request. Only classifiers deployed by Baseten's post-training team are supported.
+	ClassifierModelId string `json:"classifier_model_id"`
+
+	// DefaultRouteId ID of the allowed route used when the classifier picks none.
+	DefaultRouteId string `json:"default_route_id"`
+
+	// Type Target kind for a classifier-model-based route. Not intended for general use: classifiers are deployed by Baseten's post-training team.
+	Type string `json:"type"`
+}
+
+// RouteTargetConfigOpenAI defines model for RouteTargetConfigOpenAI.
+type RouteTargetConfigOpenAI struct {
+	// Model Model name sent to the provider.
+	Model string `json:"model"`
+
+	// SecretName Name of a credential secret owned by the route's team.
+	SecretName string `json:"secret_name"`
+
+	// Type Target kind for OpenAI.
+	Type string `json:"type"`
+}
+
+// RouteTargetConfigXAI defines model for RouteTargetConfigXAI.
+type RouteTargetConfigXAI struct {
+	// Model Model name sent to the provider.
+	Model string `json:"model"`
+
+	// SecretName Name of a credential secret owned by the route's team.
+	SecretName string `json:"secret_name"`
+
+	// Type Target kind for xAI.
 	Type string `json:"type"`
 }
 
@@ -6806,6 +6977,21 @@ type RouteTargetXAI struct {
 	Type string `json:"type"`
 }
 
+// RouteTeamSettings defines model for RouteTeamSettings.
+type RouteTeamSettings struct {
+	HarnessDefaults RouteHarnessDefaults       `json:"harness_defaults"`
+	SpendLimit      RouteTeamSpendLimitSetting `json:"spend_limit"`
+
+	// TeamId ID of the team.
+	TeamId string `json:"team_id"`
+}
+
+// RouteTeamSpendLimitSetting defines model for RouteTeamSpendLimitSetting.
+type RouteTeamSpendLimitSetting struct {
+	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member whose active Code key belongs to this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.
+	PerMemberMonthlyLimitUsd *string `json:"per_member_monthly_limit_usd"`
+}
+
 // RouteTombstone defines model for RouteTombstone.
 type RouteTombstone struct {
 	// Id Stable identifier of the deleted route.
@@ -6817,6 +7003,16 @@ type RouteTombstone struct {
 
 // RouteUsageDimension defines model for RouteUsageDimension.
 type RouteUsageDimension string
+
+// RouteUserSettings defines model for RouteUserSettings.
+type RouteUserSettings struct {
+	// Email Email address of the user.
+	Email      *string                `json:"email"`
+	SpendLimit RouteSpendLimitSetting `json:"spend_limit"`
+
+	// UserId ID of the user.
+	UserId string `json:"user_id"`
+}
 
 // RoutesResponse defines model for RoutesResponse.
 type RoutesResponse struct {
@@ -6875,9 +7071,6 @@ type Sandbox struct {
 
 	// CreatedBy User or service account that created the sandbox.
 	CreatedBy *string `json:"created_by,omitempty"`
-
-	// Enabled When false, the sandbox is disabled and will not accept connections
-	Enabled *bool `json:"enabled,omitempty"`
 
 	// Envs Environment variables injected into the sandbox.
 	Envs *[]SandboxEnv `json:"envs,omitempty"`
@@ -6939,9 +7132,6 @@ type SandboxApiPagination struct {
 
 // SandboxConfiguration Writable sandbox configuration. Fields are serialized at the root of the request or resource.
 type SandboxConfiguration struct {
-	// Enabled When false, the sandbox is disabled and will not accept connections
-	Enabled *bool `json:"enabled,omitempty"`
-
 	// Envs Environment variables injected into the sandbox.
 	Envs *[]SandboxEnv `json:"envs,omitempty"`
 
@@ -6983,7 +7173,7 @@ type SandboxDateExpirationPolicyAction string
 // SandboxDateExpirationPolicyType defines model for SandboxDateExpirationPolicy.Type.
 type SandboxDateExpirationPolicyType string
 
-// SandboxDuration Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w.
+// SandboxDuration Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w, where d is 24h and w is 7 × 24h. Days and weeks cannot be combined with other units, so 1d12h is rejected; use 36h instead. Values are returned exactly as sent, without normalization.
 type SandboxDuration = string
 
 // SandboxEnv Environment variable with name and value
@@ -7001,6 +7191,92 @@ type SandboxEnv struct {
 // SandboxExpirationPolicy Expiration policy. The type determines whether value is a duration or an absolute timestamp.
 type SandboxExpirationPolicy struct {
 	union json.RawMessage
+}
+
+// SandboxImage defines model for SandboxImage.
+type SandboxImage struct {
+	// CreatedAt Time the image was created.
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// LastDeployedAt Most recent deployment time across all tags, if deployed.
+	LastDeployedAt *time.Time `json:"last_deployed_at,omitempty"`
+
+	// Name Stable repository name supplied when pushing the image.
+	Name string `json:"name"`
+
+	// Size Total repository size in bytes.
+	Size *int64 `json:"size,omitempty"`
+
+	// Status Image processing status. Only BUILT images are ready to use.
+	Status SandboxImageStatus `json:"status"`
+
+	// TagCount Number of image versions in the repository.
+	TagCount *int64 `json:"tag_count,omitempty"`
+
+	// Tags Empty for get summary responses. Use GET /sandboxes/images/{image_name}/tags to retrieve paginated image versions.
+	Tags []SandboxImageTag `json:"tags"`
+
+	// UpdatedAt Time the image was last updated.
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+}
+
+// SandboxImageBuildLog defines model for SandboxImageBuildLog.
+type SandboxImageBuildLog struct {
+	Message string `json:"message"`
+
+	// Severity Numeric OpenTelemetry severity level.
+	Severity  int       `json:"severity"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+// SandboxImageBuildLogsResponse defines model for SandboxImageBuildLogsResponse.
+type SandboxImageBuildLogsResponse struct {
+	Logs []SandboxImageBuildLog `json:"logs"`
+
+	// TotalCount Number of matching log entries in the requested time range.
+	TotalCount int64 `json:"total_count"`
+}
+
+// SandboxImageStatus Image processing status. Only BUILT images are ready to use.
+type SandboxImageStatus string
+
+// SandboxImageSummary Sandbox image repository summary. Fetch tags through GET /sandboxes/images/{image_name}/tags.
+type SandboxImageSummary struct {
+	// CreatedAt Time the image was created.
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// LastDeployedAt Most recent deployment time across all tags, if deployed.
+	LastDeployedAt *time.Time `json:"last_deployed_at,omitempty"`
+
+	// Name Stable repository name supplied when pushing the image.
+	Name string `json:"name"`
+
+	// Size Total repository size in bytes.
+	Size *int64 `json:"size,omitempty"`
+
+	// Status Image processing status. Only BUILT images are ready to use.
+	Status SandboxImageStatus `json:"status"`
+
+	// TagCount Number of image versions in the repository.
+	TagCount *int64 `json:"tag_count,omitempty"`
+
+	// UpdatedAt Time the image was last updated.
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+}
+
+// SandboxImageTag A tag identifying a version of a sandbox image.
+type SandboxImageTag struct {
+	// CreatedAt Time the tag was created.
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// Name Image tag name.
+	Name string `json:"name"`
+
+	// Size Image size in bytes.
+	Size *int64 `json:"size,omitempty"`
+
+	// UpdatedAt Time the tag was last updated.
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 }
 
 // SandboxLibraryImage Built-in sandbox image usable directly as a sandbox image.
@@ -7090,11 +7366,63 @@ type SandboxLifecycle struct {
 	ExpirationPolicies *[]SandboxExpirationPolicy `json:"expiration_policies,omitempty"`
 
 	// TerminatedRetention Duration to keep the sandbox record after termination for log access (e.g., '1h', '24h', '7d'). Defaults to 5m. Subject to maximum quota limits.
-	TerminatedRetention *string `json:"terminated_retention,omitempty"`
+	TerminatedRetention *SandboxDuration `json:"terminated_retention,omitempty"`
+}
+
+// SandboxLogEntry defines model for SandboxLogEntry.
+type SandboxLogEntry struct {
+	// Action Action or command when present on the log entry.
+	Action  *string `json:"action,omitempty"`
+	Message string  `json:"message"`
+
+	// Severity Numeric log severity.
+	Severity  int       `json:"severity"`
+	Timestamp time.Time `json:"timestamp"`
+
+	// TraceId Associated trace identifier, or an empty string when unavailable.
+	TraceId string `json:"trace_id"`
+}
+
+// SandboxLogs defines model for SandboxLogs.
+type SandboxLogs struct {
+	EndTime time.Time         `json:"end_time"`
+	Logs    []SandboxLogEntry `json:"logs"`
+
+	// NextCursor Opaque cursor for the next page; null when there are no more entries.
+	NextCursor  *string   `json:"next_cursor"`
+	SandboxName string    `json:"sandbox_name"`
+	StartTime   time.Time `json:"start_time"`
 }
 
 // SandboxMetadataLabels Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.
 type SandboxMetadataLabels map[string]string
+
+// SandboxMetrics defines model for SandboxMetrics.
+type SandboxMetrics struct {
+	Data            []SandboxMetricsPoint `json:"data"`
+	EndTime         time.Time             `json:"end_time"`
+	IntervalSeconds int                   `json:"interval_seconds"`
+	SandboxName     string                `json:"sandbox_name"`
+	StartTime       time.Time             `json:"start_time"`
+}
+
+// SandboxMetricsPoint defines model for SandboxMetricsPoint.
+type SandboxMetricsPoint struct {
+	// CpuPercent Peak CPU usage in this interval, where 100 is one full CPU core. Null without a sample.
+	CpuPercent *float32 `json:"cpu_percent"`
+
+	// ErrorRate Fraction of requests returning 4xx or 5xx. Null when there are no requests.
+	ErrorRate *float32 `json:"error_rate"`
+
+	// MemoryBytes Memory usage in bytes, averaged per series then maximum across series. Null without a sample.
+	MemoryBytes *float32 `json:"memory_bytes"`
+
+	// Requests Request count. Zero without traffic; null for intervals entirely before creation.
+	Requests *float32 `json:"requests"`
+
+	// Timestamp Start of this interval.
+	Timestamp time.Time `json:"timestamp"`
+}
 
 // SandboxNetwork Network configuration for a sandbox including subnet, domain filtering, and proxy settings
 type SandboxNetwork struct {
@@ -7153,6 +7481,27 @@ type SandboxProxyTarget struct {
 	Secrets *map[string]string `json:"secrets,omitempty"`
 }
 
+// SandboxRegion defines model for SandboxRegion.
+type SandboxRegion struct {
+	// Continent Continent code.
+	Continent string `json:"continent"`
+
+	// Country Country code.
+	Country string `json:"country"`
+
+	// InfoGeneration Runtime generation supported by this region, using the public name CARBON. Actual runtime selection depends on the team and sandbox configuration.
+	InfoGeneration SandboxRegionInfoGeneration `json:"info_generation"`
+
+	// Location Region location.
+	Location string `json:"location"`
+
+	// Name Public region identifier to use when creating a sandbox.
+	Name string `json:"name"`
+}
+
+// SandboxRegionInfoGeneration Runtime generation supported by this region, using the public name CARBON. Actual runtime selection depends on the team and sandbox configuration.
+type SandboxRegionInfoGeneration string
+
 // SandboxStatus Sandbox deployment status, always uppercase. This tracks provisioning and differs from the execution API state, whose values such as running are lowercase.
 type SandboxStatus string
 
@@ -7161,7 +7510,7 @@ type SandboxTTLIdleExpirationPolicy struct {
 	Action SandboxTTLIdleExpirationPolicyAction `json:"action"`
 	Type   SandboxTTLIdleExpirationPolicyType   `json:"type"`
 
-	// Value Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w.
+	// Value Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w, where d is 24h and w is 7 × 24h. Days and weeks cannot be combined with other units, so 1d12h is rejected; use 36h instead. Values are returned exactly as sent, without normalization.
 	Value SandboxDuration `json:"value"`
 }
 
@@ -7176,7 +7525,7 @@ type SandboxTTLMaxAgeExpirationPolicy struct {
 	Action SandboxTTLMaxAgeExpirationPolicyAction `json:"action"`
 	Type   SandboxTTLMaxAgeExpirationPolicyType   `json:"type"`
 
-	// Value Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w.
+	// Value Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w, where d is 24h and w is 7 × 24h. Days and weeks cannot be combined with other units, so 1d12h is rejected; use 36h instead. Values are returned exactly as sent, without normalization.
 	Value SandboxDuration `json:"value"`
 }
 
@@ -7237,41 +7586,6 @@ type SecretTombstone struct {
 // Secrets A list of Baseten secrets.
 type Secrets struct {
 	Secrets []Secret `json:"secrets"`
-}
-
-// SetClaudeCodeHarnessConfig defines model for SetClaudeCodeHarnessConfig.
-type SetClaudeCodeHarnessConfig struct {
-	// Harness Claude Code, which supports the `primary` and `background` roles.
-	Harness string                  `json:"harness"`
-	Models  BackgroundHarnessModels `json:"models"`
-
-	// TeamId Identifier of the team whose default models to set. Every route must belong to this team.
-	TeamId string `json:"team_id"`
-}
-
-// SetCodexHarnessConfig defines model for SetCodexHarnessConfig.
-type SetCodexHarnessConfig struct {
-	// Harness Codex, which supports only the `primary` role.
-	Harness string               `json:"harness"`
-	Models  PrimaryHarnessModels `json:"models"`
-
-	// TeamId Identifier of the team whose default models to set. Every route must belong to this team.
-	TeamId string `json:"team_id"`
-}
-
-// SetOpenCodeHarnessConfig defines model for SetOpenCodeHarnessConfig.
-type SetOpenCodeHarnessConfig struct {
-	// Harness OpenCode, which supports the `primary` and `background` roles.
-	Harness string                  `json:"harness"`
-	Models  BackgroundHarnessModels `json:"models"`
-
-	// TeamId Identifier of the team whose default models to set. Every route must belong to this team.
-	TeamId string `json:"team_id"`
-}
-
-// SetRouteHarnessConfigRequest defines model for SetRouteHarnessConfigRequest.
-type SetRouteHarnessConfigRequest struct {
-	union json.RawMessage
 }
 
 // SharedEndpointRegion defines model for SharedEndpointRegion.
@@ -7834,11 +8148,11 @@ type UpdateAutoscalingSettingsStatus string
 
 // UpdateBackgroundHarnessModels defines model for UpdateBackgroundHarnessModels.
 type UpdateBackgroundHarnessModels struct {
-	// Background Route ID for background tasks, such as session titles. Omit to keep the current route, or pass null to use Baseten's default.
-	Background *string `json:"background,omitempty"`
+	// Background Route ID for background tasks, such as session titles. Omit to keep the current route, or pass null to use the team's default.
+	Background Optional[string] `json:"background,omitzero"`
 
-	// Primary Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use Baseten's default.
-	Primary *string `json:"primary,omitempty"`
+	// Primary Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.
+	Primary Optional[string] `json:"primary,omitzero"`
 }
 
 // UpdateChainEnvironmentRequest A request to update a chain environment.
@@ -7880,26 +8194,6 @@ type UpdateChainletEnvironmentInstanceTypeResponse struct {
 
 	// RequiresRedeployment Whether the resource update requires a re-deployment to update the instance type.
 	RequiresRedeployment bool `json:"requires_redeployment"`
-}
-
-// UpdateClaudeCodeHarnessConfig defines model for UpdateClaudeCodeHarnessConfig.
-type UpdateClaudeCodeHarnessConfig struct {
-	// Harness Claude Code, which supports the `primary` and `background` roles.
-	Harness string                        `json:"harness"`
-	Models  UpdateBackgroundHarnessModels `json:"models"`
-
-	// TeamId Identifier of the team whose default models to set. Every route must belong to this team.
-	TeamId string `json:"team_id"`
-}
-
-// UpdateCodexHarnessConfig defines model for UpdateCodexHarnessConfig.
-type UpdateCodexHarnessConfig struct {
-	// Harness Codex, which supports only the `primary` role.
-	Harness string                     `json:"harness"`
-	Models  UpdatePrimaryHarnessModels `json:"models"`
-
-	// TeamId Identifier of the team whose default models to set. Every route must belong to this team.
-	TeamId string `json:"team_id"`
 }
 
 // UpdateDeploymentRequest A request to update a deployment.
@@ -7981,7 +8275,7 @@ type UpdateLibraryListingRequest struct {
 	// IsPublic Whether the listing is publicly accessible
 	IsPublic *bool `json:"is_public,omitempty"`
 
-	// Metadata Model-level metadata for the listing. When provided, replaces the stored metadata. Unknown fields are rejected.
+	// Metadata Model-level metadata for the listing. When provided, replaces the stored metadata.
 	Metadata *LibraryListingMetadata `json:"metadata,omitempty"`
 
 	// Trending Whether the listing is trending
@@ -8006,20 +8300,10 @@ type UpdateModelRequest struct {
 	Name *string `json:"name,omitempty"`
 }
 
-// UpdateOpenCodeHarnessConfig defines model for UpdateOpenCodeHarnessConfig.
-type UpdateOpenCodeHarnessConfig struct {
-	// Harness OpenCode, which supports the `primary` and `background` roles.
-	Harness string                        `json:"harness"`
-	Models  UpdateBackgroundHarnessModels `json:"models"`
-
-	// TeamId Identifier of the team whose default models to set. Every route must belong to this team.
-	TeamId string `json:"team_id"`
-}
-
 // UpdatePrimaryHarnessModels defines model for UpdatePrimaryHarnessModels.
 type UpdatePrimaryHarnessModels struct {
-	// Primary Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use Baseten's default.
-	Primary *string `json:"primary,omitempty"`
+	// Primary Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.
+	Primary Optional[string] `json:"primary,omitzero"`
 }
 
 // UpdatePromotionSettings Promotion settings for model promotion
@@ -8067,9 +8351,57 @@ type UpdateRollingDeployConfig struct {
 	StabilizationTimeSeconds *int `json:"stabilization_time_seconds,omitempty"`
 }
 
-// UpdateRouteHarnessConfigRequest defines model for UpdateRouteHarnessConfigRequest.
-type UpdateRouteHarnessConfigRequest struct {
+// UpdateRouteConnectionConfigAnthropic defines model for UpdateRouteConnectionConfigAnthropic.
+type UpdateRouteConnectionConfigAnthropic struct {
+	// Provider Provider kind for Anthropic.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.
+	SecretId Optional[string] `json:"secret_id,omitzero"`
+}
+
+// UpdateRouteConnectionConfigOpenAI defines model for UpdateRouteConnectionConfigOpenAI.
+type UpdateRouteConnectionConfigOpenAI struct {
+	// Provider Provider kind for OpenAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.
+	SecretId Optional[string] `json:"secret_id,omitzero"`
+}
+
+// UpdateRouteConnectionConfigXAI defines model for UpdateRouteConnectionConfigXAI.
+type UpdateRouteConnectionConfigXAI struct {
+	// Provider Provider kind for xAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.
+	SecretId Optional[string] `json:"secret_id,omitzero"`
+}
+
+// UpdateRouteConnectionRequest defines model for UpdateRouteConnectionRequest.
+type UpdateRouteConnectionRequest struct {
+	// Config Connection fields to change. The provider must match the connection and is immutable.
+	Config UpdateRouteConnectionRequest_Config `json:"config"`
+}
+
+// UpdateRouteConnectionRequest_Config Connection fields to change. The provider must match the connection and is immutable.
+type UpdateRouteConnectionRequest_Config struct {
 	union json.RawMessage
+}
+
+// UpdateRouteHarnessDefaults defines model for UpdateRouteHarnessDefaults.
+type UpdateRouteHarnessDefaults struct {
+	// ClaudeCode Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
+	ClaudeCode Optional[UpdateBackgroundHarnessModels] `json:"claude_code,omitzero"`
+
+	// Codex Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
+	Codex Optional[UpdatePrimaryHarnessModels] `json:"codex,omitzero"`
+
+	// Opencode Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
+	Opencode Optional[UpdateBackgroundHarnessModels] `json:"opencode,omitzero"`
+
+	// Pi Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
+	Pi Optional[UpdatePrimaryHarnessModels] `json:"pi,omitzero"`
 }
 
 // UpdateRouteRequest defines model for UpdateRouteRequest.
@@ -8079,39 +8411,56 @@ type UpdateRouteRequest struct {
 
 	// DisplayName New display label. Omit to keep the current label; null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
+
+	// Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER_MODEL_BASED configuration of a router route is mutable.
+	Target Optional[UpdateRouteRequest_Target] `json:"target,omitzero"`
 }
 
-// UpdateRouteSpendLimitRequest defines model for UpdateRouteSpendLimitRequest.
-type UpdateRouteSpendLimitRequest struct {
-	// MonthlyLimitUsd Standing spend limit in USD for each UTC calendar month, as a non-negative decimal string with at most 9 decimal places. Send null to remove the limit; omit to leave it unchanged.
-	MonthlyLimitUsd Optional[string] `json:"monthly_limit_usd,omitzero"`
+// UpdateRouteRequest_Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER_MODEL_BASED configuration of a router route is mutable.
+type UpdateRouteRequest_Target struct {
+	union json.RawMessage
 }
 
-// UpdateSandboxRequest Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, and network configuration are immutable after creation. Supplying memory or network returns 400, including unchanged, empty, or null values.
+// UpdateRouteSpendLimitSetting defines model for UpdateRouteSpendLimitSetting.
+type UpdateRouteSpendLimitSetting struct {
+	// UserMonthlyLimitUsd Standing spend limit in USD for each UTC calendar month. Send null to remove the limit; omit to leave it unchanged.
+	UserMonthlyLimitUsd Optional[string] `json:"user_monthly_limit_usd,omitzero"`
+}
+
+// UpdateRouteTeamSettingsRequest defines model for UpdateRouteTeamSettingsRequest.
+type UpdateRouteTeamSettingsRequest struct {
+	// HarnessDefaults Harnesses to change; harnesses left out are unchanged. Pass null to clear every harness, so each role uses the team's default.
+	HarnessDefaults Optional[UpdateRouteHarnessDefaults] `json:"harness_defaults,omitzero"`
+
+	// SpendLimit Spend limit fields to change. Pass null to remove the team's per-member limit; omit to leave it unchanged.
+	SpendLimit Optional[UpdateRouteTeamSpendLimitSetting] `json:"spend_limit,omitzero"`
+}
+
+// UpdateRouteTeamSpendLimitSetting defines model for UpdateRouteTeamSpendLimitSetting.
+type UpdateRouteTeamSpendLimitSetting struct {
+	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member whose active Code key belongs to this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.
+	PerMemberMonthlyLimitUsd Optional[string] `json:"per_member_monthly_limit_usd,omitzero"`
+}
+
+// UpdateRouteUserSettingsRequest defines model for UpdateRouteUserSettingsRequest.
+type UpdateRouteUserSettingsRequest struct {
+	// SpendLimit Spend limit fields to change. Pass null to remove the user's limit; omit to leave it unchanged.
+	SpendLimit Optional[UpdateRouteSpendLimitSetting] `json:"spend_limit,omitzero"`
+}
+
+// UpdateSandboxRequest Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, network, region, image, and ports are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.
 type UpdateSandboxRequest struct {
-	// Enabled When false, the sandbox is disabled and will not accept connections
-	Enabled *bool `json:"enabled,omitempty"`
-
 	// Envs Environment variables injected into the sandbox.
 	Envs *[]SandboxEnv `json:"envs,omitempty"`
 
 	// ExternalId Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.
 	ExternalId *string `json:"external_id,omitempty"`
 
-	// Image Image reference including its tag. Built-in image references are returned in the canonical baseten/ namespace. Use baseten/base-image:latest to get started with the built-in sandbox execution API. This image is available directly without building, pushing, or listing images through GET /v1/sandboxes/images.
-	Image *string `json:"image,omitempty"`
-
 	// Labels Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.
 	Labels *SandboxMetadataLabels `json:"labels,omitempty"`
 
 	// Lifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
 	Lifecycle *SandboxLifecycle `json:"lifecycle,omitempty"`
-
-	// Ports Set of ports for a resource
-	Ports *SandboxPorts `json:"ports,omitempty"`
-
-	// Region Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.
-	Region *string `json:"region,omitempty"`
 }
 
 // UpdateTrainingJobRequest A request to update mutable fields on a training job.
@@ -9159,23 +9508,23 @@ type GetV1RoutesParams struct {
 	// Limit Maximum number of items to return.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// TeamId Filter by owning team ID. Preserved by the cursor; if repeated, must match the original filter.
+	// TeamId Identifier of the team whose routes to list.
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 
 	// Name Filter by exact route name. Preserved by the cursor; if repeated, must match the original filter.
 	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
-// GetV1RoutesHarnessConfigsParams defines parameters for GetV1RoutesHarnessConfigs.
-type GetV1RoutesHarnessConfigsParams struct {
-	// TeamId Identifier of the team whose default models to list.
-	TeamId string `form:"team_id" json:"team_id"`
-}
+// GetV1RoutesConnectionsParams defines parameters for GetV1RoutesConnections.
+type GetV1RoutesConnectionsParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 
-// DeleteV1RoutesHarnessConfigsHarnessParams defines parameters for DeleteV1RoutesHarnessConfigsHarness.
-type DeleteV1RoutesHarnessConfigsHarnessParams struct {
-	// TeamId Identifier of the team whose default models to clear.
-	TeamId string `form:"team_id" json:"team_id"`
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// TeamId Identifier of the team whose connections to list.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
 // GetV1RoutesUsageParams defines parameters for GetV1RoutesUsage.
@@ -9340,11 +9689,29 @@ type UpdateSandboxParams struct {
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
-// ListSandboxLibraryImagesParams defines parameters for ListSandboxLibraryImages.
-type ListSandboxLibraryImagesParams struct {
+// GetSandboxLogsParams defines parameters for GetSandboxLogs.
+type GetSandboxLogsParams struct {
 	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
-	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+	TeamId    *string   `form:"team_id,omitempty" json:"team_id,omitempty"`
+	StartTime time.Time `form:"start_time" json:"start_time"`
+	EndTime   time.Time `form:"end_time" json:"end_time"`
+	Limit     *int      `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor Opaque next_cursor from the previous page. Omit for the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
+
+// GetSandboxMetricsParams defines parameters for GetSandboxMetrics.
+type GetSandboxMetricsParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId          *string                                `form:"team_id,omitempty" json:"team_id,omitempty"`
+	StartTime       time.Time                              `form:"start_time" json:"start_time"`
+	EndTime         time.Time                              `form:"end_time" json:"end_time"`
+	IntervalSeconds GetSandboxMetricsParamsIntervalSeconds `form:"interval_seconds" json:"interval_seconds"`
+}
+
+// GetSandboxMetricsParamsIntervalSeconds defines parameters for GetSandboxMetrics.
+type GetSandboxMetricsParamsIntervalSeconds int
 
 // GetV1TeamsParams defines parameters for GetV1Teams.
 type GetV1TeamsParams struct {
@@ -9601,20 +9968,23 @@ type PostV1PrepareModelUploadJSONRequestBody = PrepareModelUploadRequest
 // PostV1RoutesJSONRequestBody defines body for PostV1Routes for application/json ContentType.
 type PostV1RoutesJSONRequestBody = CreateRouteRequest
 
-// PatchV1RoutesHarnessConfigsJSONRequestBody defines body for PatchV1RoutesHarnessConfigs for application/json ContentType.
-type PatchV1RoutesHarnessConfigsJSONRequestBody = UpdateRouteHarnessConfigRequest
+// PostV1RoutesConnectionsJSONRequestBody defines body for PostV1RoutesConnections for application/json ContentType.
+type PostV1RoutesConnectionsJSONRequestBody = CreateRouteConnectionRequest
 
-// PutV1RoutesHarnessConfigsJSONRequestBody defines body for PutV1RoutesHarnessConfigs for application/json ContentType.
-type PutV1RoutesHarnessConfigsJSONRequestBody = SetRouteHarnessConfigRequest
+// PatchV1RoutesConnectionsConnectionIdJSONRequestBody defines body for PatchV1RoutesConnectionsConnectionId for application/json ContentType.
+type PatchV1RoutesConnectionsConnectionIdJSONRequestBody = UpdateRouteConnectionRequest
 
-// PatchV1RoutesSpendLimitsUserIdJSONRequestBody defines body for PatchV1RoutesSpendLimitsUserId for application/json ContentType.
-type PatchV1RoutesSpendLimitsUserIdJSONRequestBody = UpdateRouteSpendLimitRequest
+// PatchV1RoutesSettingsTeamsTeamIdJSONRequestBody defines body for PatchV1RoutesSettingsTeamsTeamId for application/json ContentType.
+type PatchV1RoutesSettingsTeamsTeamIdJSONRequestBody = UpdateRouteTeamSettingsRequest
+
+// PatchV1RoutesSettingsUsersUserIdJSONRequestBody defines body for PatchV1RoutesSettingsUsersUserId for application/json ContentType.
+type PatchV1RoutesSettingsUsersUserIdJSONRequestBody = UpdateRouteUserSettingsRequest
 
 // PatchV1RoutesRouteIdJSONRequestBody defines body for PatchV1RoutesRouteId for application/json ContentType.
 type PatchV1RoutesRouteIdJSONRequestBody = UpdateRouteRequest
 
 // PushImageJSONRequestBody defines body for PushImage for application/json ContentType.
-type PushImageJSONRequestBody = PushImageRequest
+type PushImageJSONRequestBody = PushSandboxImageRequest
 
 // CreateSandboxJSONRequestBody defines body for CreateSandbox for application/json ContentType.
 type CreateSandboxJSONRequestBody = CreateSandboxRequest
@@ -10828,61 +11198,156 @@ func (t *CreateModelRequest_Source) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsRouteTargetBasetenModelAPI returns the union data inside the CreateRouteRequest_Target as a RouteTargetBasetenModelAPI
-func (t CreateRouteRequest_Target) AsRouteTargetBasetenModelAPI() (RouteTargetBasetenModelAPI, error) {
-	var body RouteTargetBasetenModelAPI
+// AsRouteConnectionConfigAnthropic returns the union data inside the CreateRouteConnectionRequest_Config as a RouteConnectionConfigAnthropic
+func (t CreateRouteConnectionRequest_Config) AsRouteConnectionConfigAnthropic() (RouteConnectionConfigAnthropic, error) {
+	var body RouteConnectionConfigAnthropic
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetBasetenModelAPI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetBasetenModelAPI
-func (t *CreateRouteRequest_Target) FromRouteTargetBasetenModelAPI(v RouteTargetBasetenModelAPI) error {
+// FromRouteConnectionConfigAnthropic overwrites any union data inside the CreateRouteConnectionRequest_Config as the provided RouteConnectionConfigAnthropic
+func (t *CreateRouteConnectionRequest_Config) FromRouteConnectionConfigAnthropic(v RouteConnectionConfigAnthropic) error {
+	v.Provider = "ANTHROPIC"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteConnectionConfigOpenAI returns the union data inside the CreateRouteConnectionRequest_Config as a RouteConnectionConfigOpenAI
+func (t CreateRouteConnectionRequest_Config) AsRouteConnectionConfigOpenAI() (RouteConnectionConfigOpenAI, error) {
+	var body RouteConnectionConfigOpenAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteConnectionConfigOpenAI overwrites any union data inside the CreateRouteConnectionRequest_Config as the provided RouteConnectionConfigOpenAI
+func (t *CreateRouteConnectionRequest_Config) FromRouteConnectionConfigOpenAI(v RouteConnectionConfigOpenAI) error {
+	v.Provider = "OPENAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteConnectionConfigXAI returns the union data inside the CreateRouteConnectionRequest_Config as a RouteConnectionConfigXAI
+func (t CreateRouteConnectionRequest_Config) AsRouteConnectionConfigXAI() (RouteConnectionConfigXAI, error) {
+	var body RouteConnectionConfigXAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteConnectionConfigXAI overwrites any union data inside the CreateRouteConnectionRequest_Config as the provided RouteConnectionConfigXAI
+func (t *CreateRouteConnectionRequest_Config) FromRouteConnectionConfigXAI(v RouteConnectionConfigXAI) error {
+	v.Provider = "XAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t CreateRouteConnectionRequest_Config) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"provider"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t CreateRouteConnectionRequest_Config) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "ANTHROPIC":
+		return t.AsRouteConnectionConfigAnthropic()
+	case "OPENAI":
+		return t.AsRouteConnectionConfigOpenAI()
+	case "XAI":
+		return t.AsRouteConnectionConfigXAI()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t CreateRouteConnectionRequest_Config) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CreateRouteConnectionRequest_Config) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsRouteTargetConfigBasetenModelAPI returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigBasetenModelAPI
+func (t CreateRouteRequest_Target) AsRouteTargetConfigBasetenModelAPI() (RouteTargetConfigBasetenModelAPI, error) {
+	var body RouteTargetConfigBasetenModelAPI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigBasetenModelAPI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigBasetenModelAPI
+func (t *CreateRouteRequest_Target) FromRouteTargetConfigBasetenModelAPI(v RouteTargetConfigBasetenModelAPI) error {
 	v.Type = "BASETEN_MODEL_API"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteTargetAnthropic returns the union data inside the CreateRouteRequest_Target as a RouteTargetAnthropic
-func (t CreateRouteRequest_Target) AsRouteTargetAnthropic() (RouteTargetAnthropic, error) {
-	var body RouteTargetAnthropic
+// AsRouteTargetConfigAnthropic returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigAnthropic
+func (t CreateRouteRequest_Target) AsRouteTargetConfigAnthropic() (RouteTargetConfigAnthropic, error) {
+	var body RouteTargetConfigAnthropic
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetAnthropic overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetAnthropic
-func (t *CreateRouteRequest_Target) FromRouteTargetAnthropic(v RouteTargetAnthropic) error {
+// FromRouteTargetConfigAnthropic overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigAnthropic
+func (t *CreateRouteRequest_Target) FromRouteTargetConfigAnthropic(v RouteTargetConfigAnthropic) error {
 	v.Type = "ANTHROPIC"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteTargetOpenAI returns the union data inside the CreateRouteRequest_Target as a RouteTargetOpenAI
-func (t CreateRouteRequest_Target) AsRouteTargetOpenAI() (RouteTargetOpenAI, error) {
-	var body RouteTargetOpenAI
+// AsRouteTargetConfigOpenAI returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigOpenAI
+func (t CreateRouteRequest_Target) AsRouteTargetConfigOpenAI() (RouteTargetConfigOpenAI, error) {
+	var body RouteTargetConfigOpenAI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetOpenAI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetOpenAI
-func (t *CreateRouteRequest_Target) FromRouteTargetOpenAI(v RouteTargetOpenAI) error {
+// FromRouteTargetConfigOpenAI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigOpenAI
+func (t *CreateRouteRequest_Target) FromRouteTargetConfigOpenAI(v RouteTargetConfigOpenAI) error {
 	v.Type = "OPENAI"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteTargetXAI returns the union data inside the CreateRouteRequest_Target as a RouteTargetXAI
-func (t CreateRouteRequest_Target) AsRouteTargetXAI() (RouteTargetXAI, error) {
-	var body RouteTargetXAI
+// AsRouteTargetConfigXAI returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigXAI
+func (t CreateRouteRequest_Target) AsRouteTargetConfigXAI() (RouteTargetConfigXAI, error) {
+	var body RouteTargetConfigXAI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetXAI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetXAI
-func (t *CreateRouteRequest_Target) FromRouteTargetXAI(v RouteTargetXAI) error {
+// FromRouteTargetConfigXAI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigXAI
+func (t *CreateRouteRequest_Target) FromRouteTargetConfigXAI(v RouteTargetConfigXAI) error {
 	v.Type = "XAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetConfigClassifierModelBased returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigClassifierModelBased
+func (t CreateRouteRequest_Target) AsRouteTargetConfigClassifierModelBased() (RouteTargetConfigClassifierModelBased, error) {
+	var body RouteTargetConfigClassifierModelBased
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigClassifierModelBased overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigClassifierModelBased
+func (t *CreateRouteRequest_Target) FromRouteTargetConfigClassifierModelBased(v RouteTargetConfigClassifierModelBased) error {
+	v.Type = "CLASSIFIER_MODEL_BASED"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -10903,13 +11368,15 @@ func (t CreateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
 	}
 	switch discriminator {
 	case "ANTHROPIC":
-		return t.AsRouteTargetAnthropic()
+		return t.AsRouteTargetConfigAnthropic()
 	case "BASETEN_MODEL_API":
-		return t.AsRouteTargetBasetenModelAPI()
+		return t.AsRouteTargetConfigBasetenModelAPI()
+	case "CLASSIFIER_MODEL_BASED":
+		return t.AsRouteTargetConfigClassifierModelBased()
 	case "OPENAI":
-		return t.AsRouteTargetOpenAI()
+		return t.AsRouteTargetConfigOpenAI()
 	case "XAI":
-		return t.AsRouteTargetXAI()
+		return t.AsRouteTargetConfigXAI()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -12027,6 +12494,21 @@ func (t *Route_Target) FromRouteTargetXAI(v RouteTargetXAI) error {
 	return err
 }
 
+// AsRouteTargetClassifierModelBased returns the union data inside the Route_Target as a RouteTargetClassifierModelBased
+func (t Route_Target) AsRouteTargetClassifierModelBased() (RouteTargetClassifierModelBased, error) {
+	var body RouteTargetClassifierModelBased
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetClassifierModelBased overwrites any union data inside the Route_Target as the provided RouteTargetClassifierModelBased
+func (t *Route_Target) FromRouteTargetClassifierModelBased(v RouteTargetClassifierModelBased) error {
+	v.Type = "CLASSIFIER_MODEL_BASED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t Route_Target) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"type"`
@@ -12045,6 +12527,8 @@ func (t Route_Target) ValueByDiscriminator() (interface{}, error) {
 		return t.AsRouteTargetAnthropic()
 	case "BASETEN_MODEL_API":
 		return t.AsRouteTargetBasetenModelAPI()
+	case "CLASSIFIER_MODEL_BASED":
+		return t.AsRouteTargetClassifierModelBased()
 	case "OPENAI":
 		return t.AsRouteTargetOpenAI()
 	case "XAI":
@@ -12060,6 +12544,86 @@ func (t Route_Target) MarshalJSON() ([]byte, error) {
 }
 
 func (t *Route_Target) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsRouteConnectionAnthropic returns the union data inside the RouteConnection_Config as a RouteConnectionAnthropic
+func (t RouteConnection_Config) AsRouteConnectionAnthropic() (RouteConnectionAnthropic, error) {
+	var body RouteConnectionAnthropic
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteConnectionAnthropic overwrites any union data inside the RouteConnection_Config as the provided RouteConnectionAnthropic
+func (t *RouteConnection_Config) FromRouteConnectionAnthropic(v RouteConnectionAnthropic) error {
+	v.Provider = "ANTHROPIC"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteConnectionOpenAI returns the union data inside the RouteConnection_Config as a RouteConnectionOpenAI
+func (t RouteConnection_Config) AsRouteConnectionOpenAI() (RouteConnectionOpenAI, error) {
+	var body RouteConnectionOpenAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteConnectionOpenAI overwrites any union data inside the RouteConnection_Config as the provided RouteConnectionOpenAI
+func (t *RouteConnection_Config) FromRouteConnectionOpenAI(v RouteConnectionOpenAI) error {
+	v.Provider = "OPENAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteConnectionXAI returns the union data inside the RouteConnection_Config as a RouteConnectionXAI
+func (t RouteConnection_Config) AsRouteConnectionXAI() (RouteConnectionXAI, error) {
+	var body RouteConnectionXAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteConnectionXAI overwrites any union data inside the RouteConnection_Config as the provided RouteConnectionXAI
+func (t *RouteConnection_Config) FromRouteConnectionXAI(v RouteConnectionXAI) error {
+	v.Provider = "XAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t RouteConnection_Config) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"provider"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t RouteConnection_Config) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "ANTHROPIC":
+		return t.AsRouteConnectionAnthropic()
+	case "OPENAI":
+		return t.AsRouteConnectionOpenAI()
+	case "XAI":
+		return t.AsRouteConnectionXAI()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t RouteConnection_Config) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *RouteConnection_Config) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -12140,86 +12704,6 @@ func (t SandboxExpirationPolicy) MarshalJSON() ([]byte, error) {
 }
 
 func (t *SandboxExpirationPolicy) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsSetClaudeCodeHarnessConfig returns the union data inside the SetRouteHarnessConfigRequest as a SetClaudeCodeHarnessConfig
-func (t SetRouteHarnessConfigRequest) AsSetClaudeCodeHarnessConfig() (SetClaudeCodeHarnessConfig, error) {
-	var body SetClaudeCodeHarnessConfig
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromSetClaudeCodeHarnessConfig overwrites any union data inside the SetRouteHarnessConfigRequest as the provided SetClaudeCodeHarnessConfig
-func (t *SetRouteHarnessConfigRequest) FromSetClaudeCodeHarnessConfig(v SetClaudeCodeHarnessConfig) error {
-	v.Harness = "claude-code"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsSetOpenCodeHarnessConfig returns the union data inside the SetRouteHarnessConfigRequest as a SetOpenCodeHarnessConfig
-func (t SetRouteHarnessConfigRequest) AsSetOpenCodeHarnessConfig() (SetOpenCodeHarnessConfig, error) {
-	var body SetOpenCodeHarnessConfig
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromSetOpenCodeHarnessConfig overwrites any union data inside the SetRouteHarnessConfigRequest as the provided SetOpenCodeHarnessConfig
-func (t *SetRouteHarnessConfigRequest) FromSetOpenCodeHarnessConfig(v SetOpenCodeHarnessConfig) error {
-	v.Harness = "opencode"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsSetCodexHarnessConfig returns the union data inside the SetRouteHarnessConfigRequest as a SetCodexHarnessConfig
-func (t SetRouteHarnessConfigRequest) AsSetCodexHarnessConfig() (SetCodexHarnessConfig, error) {
-	var body SetCodexHarnessConfig
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromSetCodexHarnessConfig overwrites any union data inside the SetRouteHarnessConfigRequest as the provided SetCodexHarnessConfig
-func (t *SetRouteHarnessConfigRequest) FromSetCodexHarnessConfig(v SetCodexHarnessConfig) error {
-	v.Harness = "codex"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-func (t SetRouteHarnessConfigRequest) Discriminator() (string, error) {
-	var discriminator struct {
-		Discriminator string `json:"harness"`
-	}
-	err := json.Unmarshal(t.union, &discriminator)
-	return discriminator.Discriminator, err
-}
-
-func (t SetRouteHarnessConfigRequest) ValueByDiscriminator() (interface{}, error) {
-	discriminator, err := t.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch discriminator {
-	case "claude-code":
-		return t.AsSetClaudeCodeHarnessConfig()
-	case "codex":
-		return t.AsSetCodexHarnessConfig()
-	case "opencode":
-		return t.AsSetOpenCodeHarnessConfig()
-	default:
-		return nil, errors.New("unknown discriminator value: " + discriminator)
-	}
-}
-
-func (t SetRouteHarnessConfigRequest) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *SetRouteHarnessConfigRequest) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -12438,82 +12922,196 @@ func (t *UpdateAutoscalingScheduleSettings_Schedules_Item) UnmarshalJSON(b []byt
 	return err
 }
 
-// AsUpdateClaudeCodeHarnessConfig returns the union data inside the UpdateRouteHarnessConfigRequest as a UpdateClaudeCodeHarnessConfig
-func (t UpdateRouteHarnessConfigRequest) AsUpdateClaudeCodeHarnessConfig() (UpdateClaudeCodeHarnessConfig, error) {
-	var body UpdateClaudeCodeHarnessConfig
+// AsUpdateRouteConnectionConfigAnthropic returns the union data inside the UpdateRouteConnectionRequest_Config as a UpdateRouteConnectionConfigAnthropic
+func (t UpdateRouteConnectionRequest_Config) AsUpdateRouteConnectionConfigAnthropic() (UpdateRouteConnectionConfigAnthropic, error) {
+	var body UpdateRouteConnectionConfigAnthropic
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromUpdateClaudeCodeHarnessConfig overwrites any union data inside the UpdateRouteHarnessConfigRequest as the provided UpdateClaudeCodeHarnessConfig
-func (t *UpdateRouteHarnessConfigRequest) FromUpdateClaudeCodeHarnessConfig(v UpdateClaudeCodeHarnessConfig) error {
-	v.Harness = "claude-code"
+// FromUpdateRouteConnectionConfigAnthropic overwrites any union data inside the UpdateRouteConnectionRequest_Config as the provided UpdateRouteConnectionConfigAnthropic
+func (t *UpdateRouteConnectionRequest_Config) FromUpdateRouteConnectionConfigAnthropic(v UpdateRouteConnectionConfigAnthropic) error {
+	v.Provider = "ANTHROPIC"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsUpdateOpenCodeHarnessConfig returns the union data inside the UpdateRouteHarnessConfigRequest as a UpdateOpenCodeHarnessConfig
-func (t UpdateRouteHarnessConfigRequest) AsUpdateOpenCodeHarnessConfig() (UpdateOpenCodeHarnessConfig, error) {
-	var body UpdateOpenCodeHarnessConfig
+// AsUpdateRouteConnectionConfigOpenAI returns the union data inside the UpdateRouteConnectionRequest_Config as a UpdateRouteConnectionConfigOpenAI
+func (t UpdateRouteConnectionRequest_Config) AsUpdateRouteConnectionConfigOpenAI() (UpdateRouteConnectionConfigOpenAI, error) {
+	var body UpdateRouteConnectionConfigOpenAI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromUpdateOpenCodeHarnessConfig overwrites any union data inside the UpdateRouteHarnessConfigRequest as the provided UpdateOpenCodeHarnessConfig
-func (t *UpdateRouteHarnessConfigRequest) FromUpdateOpenCodeHarnessConfig(v UpdateOpenCodeHarnessConfig) error {
-	v.Harness = "opencode"
+// FromUpdateRouteConnectionConfigOpenAI overwrites any union data inside the UpdateRouteConnectionRequest_Config as the provided UpdateRouteConnectionConfigOpenAI
+func (t *UpdateRouteConnectionRequest_Config) FromUpdateRouteConnectionConfigOpenAI(v UpdateRouteConnectionConfigOpenAI) error {
+	v.Provider = "OPENAI"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsUpdateCodexHarnessConfig returns the union data inside the UpdateRouteHarnessConfigRequest as a UpdateCodexHarnessConfig
-func (t UpdateRouteHarnessConfigRequest) AsUpdateCodexHarnessConfig() (UpdateCodexHarnessConfig, error) {
-	var body UpdateCodexHarnessConfig
+// AsUpdateRouteConnectionConfigXAI returns the union data inside the UpdateRouteConnectionRequest_Config as a UpdateRouteConnectionConfigXAI
+func (t UpdateRouteConnectionRequest_Config) AsUpdateRouteConnectionConfigXAI() (UpdateRouteConnectionConfigXAI, error) {
+	var body UpdateRouteConnectionConfigXAI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromUpdateCodexHarnessConfig overwrites any union data inside the UpdateRouteHarnessConfigRequest as the provided UpdateCodexHarnessConfig
-func (t *UpdateRouteHarnessConfigRequest) FromUpdateCodexHarnessConfig(v UpdateCodexHarnessConfig) error {
-	v.Harness = "codex"
+// FromUpdateRouteConnectionConfigXAI overwrites any union data inside the UpdateRouteConnectionRequest_Config as the provided UpdateRouteConnectionConfigXAI
+func (t *UpdateRouteConnectionRequest_Config) FromUpdateRouteConnectionConfigXAI(v UpdateRouteConnectionConfigXAI) error {
+	v.Provider = "XAI"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-func (t UpdateRouteHarnessConfigRequest) Discriminator() (string, error) {
+func (t UpdateRouteConnectionRequest_Config) Discriminator() (string, error) {
 	var discriminator struct {
-		Discriminator string `json:"harness"`
+		Discriminator string `json:"provider"`
 	}
 	err := json.Unmarshal(t.union, &discriminator)
 	return discriminator.Discriminator, err
 }
 
-func (t UpdateRouteHarnessConfigRequest) ValueByDiscriminator() (interface{}, error) {
+func (t UpdateRouteConnectionRequest_Config) ValueByDiscriminator() (interface{}, error) {
 	discriminator, err := t.Discriminator()
 	if err != nil {
 		return nil, err
 	}
 	switch discriminator {
-	case "claude-code":
-		return t.AsUpdateClaudeCodeHarnessConfig()
-	case "codex":
-		return t.AsUpdateCodexHarnessConfig()
-	case "opencode":
-		return t.AsUpdateOpenCodeHarnessConfig()
+	case "ANTHROPIC":
+		return t.AsUpdateRouteConnectionConfigAnthropic()
+	case "OPENAI":
+		return t.AsUpdateRouteConnectionConfigOpenAI()
+	case "XAI":
+		return t.AsUpdateRouteConnectionConfigXAI()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
 }
 
-func (t UpdateRouteHarnessConfigRequest) MarshalJSON() ([]byte, error) {
+func (t UpdateRouteConnectionRequest_Config) MarshalJSON() ([]byte, error) {
 	b, err := t.union.MarshalJSON()
 	return b, err
 }
 
-func (t *UpdateRouteHarnessConfigRequest) UnmarshalJSON(b []byte) error {
+func (t *UpdateRouteConnectionRequest_Config) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsRouteTargetConfigBasetenModelAPI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigBasetenModelAPI
+func (t UpdateRouteRequest_Target) AsRouteTargetConfigBasetenModelAPI() (RouteTargetConfigBasetenModelAPI, error) {
+	var body RouteTargetConfigBasetenModelAPI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigBasetenModelAPI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigBasetenModelAPI
+func (t *UpdateRouteRequest_Target) FromRouteTargetConfigBasetenModelAPI(v RouteTargetConfigBasetenModelAPI) error {
+	v.Type = "BASETEN_MODEL_API"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetConfigAnthropic returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigAnthropic
+func (t UpdateRouteRequest_Target) AsRouteTargetConfigAnthropic() (RouteTargetConfigAnthropic, error) {
+	var body RouteTargetConfigAnthropic
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigAnthropic overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigAnthropic
+func (t *UpdateRouteRequest_Target) FromRouteTargetConfigAnthropic(v RouteTargetConfigAnthropic) error {
+	v.Type = "ANTHROPIC"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetConfigOpenAI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigOpenAI
+func (t UpdateRouteRequest_Target) AsRouteTargetConfigOpenAI() (RouteTargetConfigOpenAI, error) {
+	var body RouteTargetConfigOpenAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigOpenAI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigOpenAI
+func (t *UpdateRouteRequest_Target) FromRouteTargetConfigOpenAI(v RouteTargetConfigOpenAI) error {
+	v.Type = "OPENAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetConfigXAI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigXAI
+func (t UpdateRouteRequest_Target) AsRouteTargetConfigXAI() (RouteTargetConfigXAI, error) {
+	var body RouteTargetConfigXAI
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigXAI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigXAI
+func (t *UpdateRouteRequest_Target) FromRouteTargetConfigXAI(v RouteTargetConfigXAI) error {
+	v.Type = "XAI"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsRouteTargetConfigClassifierModelBased returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigClassifierModelBased
+func (t UpdateRouteRequest_Target) AsRouteTargetConfigClassifierModelBased() (RouteTargetConfigClassifierModelBased, error) {
+	var body RouteTargetConfigClassifierModelBased
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRouteTargetConfigClassifierModelBased overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigClassifierModelBased
+func (t *UpdateRouteRequest_Target) FromRouteTargetConfigClassifierModelBased(v RouteTargetConfigClassifierModelBased) error {
+	v.Type = "CLASSIFIER_MODEL_BASED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t UpdateRouteRequest_Target) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t UpdateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "ANTHROPIC":
+		return t.AsRouteTargetConfigAnthropic()
+	case "BASETEN_MODEL_API":
+		return t.AsRouteTargetConfigBasetenModelAPI()
+	case "CLASSIFIER_MODEL_BASED":
+		return t.AsRouteTargetConfigClassifierModelBased()
+	case "OPENAI":
+		return t.AsRouteTargetConfigOpenAI()
+	case "XAI":
+		return t.AsRouteTargetConfigXAI()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t UpdateRouteRequest_Target) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *UpdateRouteRequest_Target) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

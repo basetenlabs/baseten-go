@@ -223,7 +223,9 @@ type ArchiveRestoreState string
 
 // ContentSearchMatch defines model for ContentSearchMatch.
 type ContentSearchMatch struct {
-	Column  int     `json:"column"`
+	Column int `json:"column"`
+
+	// Context The matching line with up to contextLines lines before and after it, newline-separated; omitted when contextLines is 0
 	Context *string `json:"context,omitempty"`
 	Line    int     `json:"line"`
 	Path    string  `json:"path"`
@@ -504,18 +506,22 @@ type HandlerReloadResponse struct {
 
 // HealthResponse defines model for HealthResponse.
 type HealthResponse struct {
-	Arch          string        `json:"arch"`
-	BuildTime     string        `json:"buildTime"`
-	GitCommit     string        `json:"gitCommit"`
-	GoVersion     string        `json:"goVersion"`
-	LastUpgrade   UpgradeStatus `json:"lastUpgrade"`
-	Os            string        `json:"os"`
-	StartedAt     string        `json:"startedAt"`
-	Status        string        `json:"status"`
-	UpgradeCount  int           `json:"upgradeCount"`
-	Uptime        string        `json:"uptime"`
-	UptimeSeconds float32       `json:"uptimeSeconds"`
-	Version       string        `json:"version"`
+	Arch string `json:"arch"`
+
+	// BuildTime Build time in RFC 3339 (UTC), or "unknown" for builds without it
+	BuildTime   string        `json:"buildTime"`
+	GitCommit   string        `json:"gitCommit"`
+	GoVersion   string        `json:"goVersion"`
+	LastUpgrade UpgradeStatus `json:"lastUpgrade"`
+	Os          string        `json:"os"`
+
+	// StartedAt API start time in RFC 3339
+	StartedAt     string  `json:"startedAt"`
+	Status        string  `json:"status"`
+	UpgradeCount  int     `json:"upgradeCount"`
+	Uptime        string  `json:"uptime"`
+	UptimeSeconds float32 `json:"uptimeSeconds"`
+	Version       string  `json:"version"`
 }
 
 // MultipartCompleteRequest defines model for MultipartCompleteRequest.
@@ -617,21 +623,25 @@ type ProcessRequest struct {
 
 // ProcessResponse defines model for ProcessResponse.
 type ProcessResponse struct {
-	Command     string `json:"command"`
+	Command string `json:"command"`
+
+	// CompletedAt Completion time, same format as startedAt. Empty string while the process runs
 	CompletedAt string `json:"completedAt"`
 	ExitCode    int    `json:"exitCode"`
 
 	// KeepAlive Whether scale-to-zero is disabled for this process
-	KeepAlive        *bool                 `json:"keepAlive,omitempty"`
-	Logs             string                `json:"logs"`
-	MaxRestarts      *int                  `json:"maxRestarts,omitempty"`
-	Name             string                `json:"name"`
-	Pid              string                `json:"pid"`
-	RestartCount     *int                  `json:"restartCount,omitempty"`
-	RestartOnFailure *bool                 `json:"restartOnFailure,omitempty"`
-	StartedAt        string                `json:"startedAt"`
-	Status           ProcessResponseStatus `json:"status"`
-	Stderr           string                `json:"stderr"`
+	KeepAlive        *bool  `json:"keepAlive,omitempty"`
+	Logs             string `json:"logs"`
+	MaxRestarts      *int   `json:"maxRestarts,omitempty"`
+	Name             string `json:"name"`
+	Pid              string `json:"pid"`
+	RestartCount     *int   `json:"restartCount,omitempty"`
+	RestartOnFailure *bool  `json:"restartOnFailure,omitempty"`
+
+	// StartedAt Start time as an HTTP date (RFC 1123, e.g. Wed, 01 Jan 2023 12:00:00 GMT)
+	StartedAt string                `json:"startedAt"`
+	Status    ProcessResponseStatus `json:"status"`
+	Stderr    string                `json:"stderr"`
 
 	// Stdin Whether the process was started with a writable stdin pipe
 	Stdin      *bool  `json:"stdin,omitempty"`
@@ -805,6 +815,9 @@ type GetFilesystemContentSearchPathParams struct {
 
 	// ExcludeDirs Comma-separated directory names to skip (default: node_modules,vendor,.git,dist,build,target,__pycache__,.venv,.next,coverage)
 	ExcludeDirs *string `form:"excludeDirs,omitempty" json:"excludeDirs,omitempty"`
+
+	// ContextLines Lines to include before and after each match in its context field (default: 0, max: 20; invalid values count as 0)
+	ContextLines *int `form:"contextLines,omitempty" json:"contextLines,omitempty"`
 }
 
 // GetFilesystemFindPathParams defines parameters for GetFilesystemFindPath.
@@ -839,10 +852,13 @@ type PutFilesystemMultipartUploadIdPartParams struct {
 
 // GetFilesystemSearchPathParams defines parameters for GetFilesystemSearchPath.
 type GetFilesystemSearchPathParams struct {
+	// Query Fuzzy pattern matched against each relative path (e.g., mngo for src/main.go). When omitted, the search path itself is used as the pattern.
+	Query *string `form:"query,omitempty" json:"query,omitempty"`
+
 	// MaxResults Maximum number of results to return (default: 20)
 	MaxResults *int `form:"maxResults,omitempty" json:"maxResults,omitempty"`
 
-	// Patterns Comma-separated file patterns to include (e.g., *.go,*.js)
+	// Patterns Accepted for compatibility but currently ignored; use filesystem-find for glob filtering
 	Patterns *string `form:"patterns,omitempty" json:"patterns,omitempty"`
 
 	// ExcludeDirs Comma-separated directory names to skip (default: node_modules,vendor,.git,dist,build,target,__pycache__,.venv,.next,coverage). Use empty string to skip no directories.
@@ -870,9 +886,21 @@ type GetFilesystemPathParams struct {
 	Download *bool `form:"download,omitempty" json:"download,omitempty"`
 }
 
+// PutFilesystemPathMultipartBody defines parameters for PutFilesystemPath.
+type PutFilesystemPathMultipartBody struct {
+	// File File content
+	File []byte `json:"file"`
+
+	// Path Ignored: the target is always the URL path
+	Path *string `json:"path,omitempty"`
+
+	// Permissions Octal mode applied when the file is created (default 0644); an existing file keeps its mode
+	Permissions *string `json:"permissions,omitempty"`
+}
+
 // GetWatchFilesystemPathParams defines parameters for GetWatchFilesystemPath.
 type GetWatchFilesystemPathParams struct {
-	// Ignore Ignore patterns (comma-separated)
+	// Ignore Comma-separated substrings; events whose full path contains one are skipped
 	Ignore *string `form:"ignore,omitempty" json:"ignore,omitempty"`
 }
 
@@ -899,6 +927,9 @@ type PutFilesystemTreePathJSONRequestBody = TreeRequest
 
 // PutFilesystemPathJSONRequestBody defines body for PutFilesystemPath for application/json ContentType.
 type PutFilesystemPathJSONRequestBody = FileRequest
+
+// PutFilesystemPathMultipartRequestBody defines body for PutFilesystemPath for multipart/form-data ContentType.
+type PutFilesystemPathMultipartRequestBody PutFilesystemPathMultipartBody
 
 // PostNetworkProcessPidMonitorJSONRequestBody defines body for PostNetworkProcessPidMonitor for application/json ContentType.
 type PostNetworkProcessPidMonitorJSONRequestBody = PortMonitorRequest
