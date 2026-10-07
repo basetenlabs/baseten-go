@@ -430,6 +430,20 @@ func (c *Client) GetWatchFilesystemRaw(ctx context.Context, path string, params 
 	})
 }
 
+// HeadFilesystemRaw: Stat a file or directory
+//
+// Returns the response unread, since its headers are the result. The
+// caller must close the response body.
+func (c *Client) HeadFilesystemRaw(ctx context.Context, path string) (*http.Response, error) {
+	return c.do(ctx, apiRequest{
+		method:       "HEAD",
+		pathFmt:      "/filesystem/%s",
+		pathArgs:     []any{path},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // PostArchiveExportResponse is the result of [Client.PostArchiveExport]. Only the JSON field for
 // StatusCode is set.
 type PostArchiveExportResponse struct {
@@ -566,7 +580,7 @@ func (c *Client) PostProcess(ctx context.Context, body ProcessRequest) (*Process
 
 // PostProcessRaw: Execute a command
 //
-// Requests text/event-stream and returns the response unread. The caller must close
+// Requests application/x-ndjson and returns the response unread. The caller must close
 // the response body.
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 422, 500.
@@ -576,7 +590,7 @@ func (c *Client) PostProcessRaw(ctx context.Context, body ProcessRequest) (*http
 		pathFmt:      "/process",
 		pathArgs:     nil,
 		body:         body,
-		accept:       "text/event-stream",
+		accept:       "application/x-ndjson",
 		successCodes: []int{200},
 		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})

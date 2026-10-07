@@ -127,7 +127,7 @@ func TestSandboxRaw(t *testing.T) {
 			sandboxapi.ProcessRequest{Command: "echo hi"})
 		require.NoError(t, err)
 		defer resp.Body.Close()
-		require.Equal(t, "text/event-stream", capture.Header.Get("Accept"))
+		require.Equal(t, "application/x-ndjson", capture.Header.Get("Accept"))
 		require.Contains(t, capture.Body, `"command":"echo hi"`)
 		body, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
@@ -145,6 +145,17 @@ func TestSandboxRaw(t *testing.T) {
 		require.Equal(t, "/watch/filesystem/%2Fapp", capture.RawPath)
 		require.Equal(t, "node_modules,dist", capture.Query.Get("ignore"))
 		require.Equal(t, "text/plain", capture.Header.Get("Accept"))
+	})
+
+	t.Run("HeadersOnlyNoAccept", func(t *testing.T) {
+		var capture requestCapture
+		srv := newTestServer(t, 200, nil, &capture)
+		resp, err := newSandboxClient(t, srv, client.SandboxClientOptions{}).HeadFilesystemRaw(t.Context(), "/app")
+		require.NoError(t, err)
+		resp.Body.Close()
+		require.Equal(t, "HEAD", capture.Method)
+		require.Equal(t, "/filesystem/%2Fapp", capture.RawPath)
+		require.Equal(t, "", capture.Header.Get("Accept"))
 	})
 }
 

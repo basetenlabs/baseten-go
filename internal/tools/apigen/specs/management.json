@@ -9482,7 +9482,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None, 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists routes you can invoke, newest first, optionally filtered by team and exact name.",
+                "description": "Lists routes you can invoke in the team, newest first, optionally filtered by exact name.",
                 "parameters": [
                     {
                         "name": "cursor",
@@ -9519,7 +9519,7 @@
                         "name": "team_id",
                         "in": "query",
                         "required": false,
-                        "description": "Filter by owning team ID. Preserved by the cursor; if repeated, must match the original filter.",
+                        "description": "Identifier of the team whose routes to list.",
                         "schema": {
                             "anyOf": [
                                 {
@@ -9756,27 +9756,27 @@
                 "x-stability": "unstable"
             }
         },
-        "/v1/routes/spend_limits/{user_id}": {
+        "/v1/routes/settings/users/{user_id}": {
             "get": {
-                "summary": "Gets a user's spend limits",
+                "summary": "Gets a user's route settings",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/spend_limits/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/spend_limits/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Spend limits cap what a Baseten Code user can spend each month. Personal API keys are not limited. Users can read their own spend limits; only organization admins can read other users' spend limits or change them.",
+                "description": "Returns the settings that apply to the user, including the spend limit that caps what they can spend on Baseten Code each month: the limit set on the user, their team's per-member limit, and the effective limit for this user. The user limit always overrides the team's per-member limit.",
                 "responses": {
                     "200": {
                         "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/RouteSpendLimitV1"
+                                    "$ref": "#/components/schemas/RouteUserSettingsV1"
                                 }
                             }
                         }
@@ -9790,23 +9790,23 @@
                 }
             ],
             "patch": {
-                "summary": "Updates a user's spend limits",
+                "summary": "Updates a user's route settings",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/spend_limits/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"monthly_limit_usd\": \"200\"\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/settings/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"spend_limit\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/spend_limits/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'monthly_limit_usd': '200'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'spend_limit': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Once the user's metered spend in a month reaches the limit, requests with Routes keys they created are rejected until the limit is raised or the next month starts. A limit of 0 blocks the user after their first metered request. Spend is metered every 15 minutes and can lag, so a user can go over the limit. If the user has spend this month, changes take effect within seconds; otherwise at the next metering run.",
+                "description": "Changes only the fields in the request. Once the user's metered spend in a month reaches the spend limit, requests with Routes keys they created are rejected until the limit is raised or the next month starts. Spend is metered every 15 minutes and can lag, so a user can go over the limit. The user's own limit supersedes their team's per-member limit.",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/UpdateRouteSpendLimitRequestV1"
+                                "$ref": "#/components/schemas/UpdateRouteUserSettingsRequestV1"
                             }
                         }
                     },
@@ -9818,7 +9818,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/RouteSpendLimitV1"
+                                    "$ref": "#/components/schemas/RouteUserSettingsV1"
                                 }
                             }
                         }
@@ -9827,156 +9827,27 @@
                 "x-stability": "unstable"
             }
         },
-        "/v1/routes/harness-configs": {
+        "/v1/routes/settings/teams/{team_id}": {
             "get": {
-                "summary": "Lists default models for coding harnesses",
+                "summary": "Gets a team's route settings",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/harness-configs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/teams/{team_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/harness-configs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'team_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Each role uses the route a team admin set for it (`source` is `team`). A role with no route set uses Baseten's default (`source` is `baseten`), chosen from the team's Model API routes: the recommended model for `primary` and the lowest-priced model for `background`. Baseten's defaults never use external-provider routes.",
-                "parameters": [
-                    {
-                        "name": "team_id",
-                        "in": "query",
-                        "required": true,
-                        "description": "Identifier of the team whose default models to list.",
-                        "schema": {
-                            "minLength": 1,
-                            "title": "Team Id",
-                            "type": "string"
-                        }
-                    }
-                ],
+                "description": "Returns the settings that apply to the team, including the default models for each coding harness and the team's spend limits. Any member who can invoke the team's routes can read them.",
                 "responses": {
                     "200": {
                         "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/RouteHarnessConfigsResponseV1"
-                                }
-                            }
-                        }
-                    }
-                },
-                "x-stability": "unstable"
-            },
-            "patch": {
-                "summary": "Updates default models for a coding harness",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/harness-configs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"team_id\": \"abc1234\",\n  \"harness\": \"claude-code\",\n  \"models\": {\n    \"background\": \"ghi9012\"\n  }\n}'"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/harness-configs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'team_id': 'abc1234', 'harness': 'claude-code', 'models': {'background': 'ghi9012'}}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Changes only the model roles in the request and leaves the others unchanged. Set a role to null to use Baseten's default. Requires team admin, and every route must belong to the team.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/UpdateRouteHarnessConfigRequestV1"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/RouteHarnessConfigV1"
-                                }
-                            }
-                        }
-                    }
-                },
-                "x-stability": "unstable"
-            },
-            "put": {
-                "summary": "Sets default models for a coding harness",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request PUT \\\n--url https://api.baseten.co/v1/routes/harness-configs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"team_id\": \"abc1234\",\n  \"harness\": \"claude-code\",\n  \"models\": {\n    \"primary\": \"def5678\",\n    \"background\": \"ghi9012\"\n  }\n}'"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/harness-configs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PUT\",\n    url,\n    headers=headers,\n    json={'team_id': 'abc1234', 'harness': 'claude-code', 'models': {'primary': 'def5678', 'background': 'ghi9012'}}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Replaces every model role of one harness. Roles left out use Baseten's defaults. Requires team admin, and every route must belong to the team. The `harness` in the request body determines which roles are accepted.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/SetRouteHarnessConfigRequestV1"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/RouteHarnessConfigV1"
-                                }
-                            }
-                        }
-                    }
-                },
-                "x-stability": "unstable"
-            }
-        },
-        "/v1/routes/harness-configs/{harness}": {
-            "delete": {
-                "summary": "Clears default models for a coding harness",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/routes/harness-configs/{harness} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/harness-configs/{harness}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    params={'team_id': None}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Removes the team's routes for every role of the harness, so each role uses Baseten's default. Requires team admin.",
-                "parameters": [
-                    {
-                        "name": "team_id",
-                        "in": "query",
-                        "required": true,
-                        "description": "Identifier of the team whose default models to clear.",
-                        "schema": {
-                            "minLength": 1,
-                            "title": "Team Id",
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/RouteHarnessConfigTombstoneV1"
+                                    "$ref": "#/components/schemas/RouteTeamSettingsV1"
                                 }
                             }
                         }
@@ -9986,9 +9857,234 @@
             },
             "parameters": [
                 {
-                    "$ref": "#/components/parameters/harness"
+                    "$ref": "#/components/parameters/team_id"
                 }
-            ]
+            ],
+            "patch": {
+                "summary": "Updates a team's route settings",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/settings/teams/{team_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"harness_defaults\": null,\n  \"spend_limit\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'harness_defaults': None, 'spend_limit': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Changes only the fields in the request, all or nothing. Requires team admin.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateRouteTeamSettingsRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteTeamSettingsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/routes/connections": {
+            "get": {
+                "summary": "Lists connections",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/connections \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/connections\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists the team's connections, newest first.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "team_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Identifier of the team whose connections to list.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Team Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteConnectionsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "post": {
+                "summary": "Creates a connection",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/routes/connections \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"team_id\": \"abc1234\",\n  \"config\": {\n    \"provider\": \"ANTHROPIC\",\n    \"secret_id\": \"abc1234\"\n  }\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/connections\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'team_id': 'abc1234', 'config': {'provider': 'ANTHROPIC', 'secret_id': 'abc1234'}}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Creates a connection from the team to an upstream provider.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateRouteConnectionRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteConnectionV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/routes/connections/{connection_id}": {
+            "delete": {
+                "summary": "Deletes a connection",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/routes/connections/{connection_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/connections/{connection_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Deletes the connection. The team secret it points at is left in place.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteConnectionTombstoneV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/connection_id"
+                }
+            ],
+            "patch": {
+                "summary": "Updates a connection",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/connections/{connection_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"config\": {\n    \"provider\": \"ANTHROPIC\",\n    \"secret_id\": \"abc1234\"\n  }\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/connections/{connection_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'config': {'provider': 'ANTHROPIC', 'secret_id': 'abc1234'}}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Updates the connection's fields. The provider and owning team are immutable; point the connection at a new team secret to change its API key, or rotate the key itself by updating the secret.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateRouteConnectionRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteConnectionV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
         },
         "/v1/routes/{route_id}": {
             "delete": {
@@ -10049,18 +10145,18 @@
                 "x-stability": "unstable"
             },
             "patch": {
-                "summary": "Updates a route's display name or description",
+                "summary": "Updates a route",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"description\": \"Assistant for code review and debugging.\",\n  \"display_name\": \"Assistant\"\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"description\": \"Assistant for code review and debugging.\",\n  \"display_name\": \"Assistant\",\n  \"target\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'description': 'Assistant for code review and debugging.', 'display_name': 'Assistant'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'description': 'Assistant for code review and debugging.', 'display_name': 'Assistant', 'target': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "The route name, target, and owning team are immutable.",
+                "description": "The route name, target type, and owning team are immutable.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -10519,6 +10615,233 @@
                 }
             ]
         },
+        "/v1/sandboxes/configuration": {
+            "get": {
+                "operationId": "GetSandboxConfiguration",
+                "summary": "Get sandbox configuration",
+                "description": "Return available Carbon-compatible sandbox regions. Configuration is the same for every team, so no team is selected. Only enabled regions supporting Carbon are returned. This describes regional capability, not the runtime selected for a particular team or sandbox. Region configuration is cached for up to 30 seconds.",
+                "tags": [
+                    "Sandboxes"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetSandboxConfigurationResponseV1"
+                                },
+                                "example": {
+                                    "regions": [
+                                        {
+                                            "name": "us-was-1",
+                                            "country": "us",
+                                            "continent": "na",
+                                            "location": "Washington",
+                                            "info_generation": "CARBON"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/sandboxes/instances/{sandbox_name}/metrics": {
+            "get": {
+                "operationId": "GetSandboxMetrics",
+                "summary": "Get sandbox metrics",
+                "description": "Returns every interval in the requested half-open range [start_time, end_time).\nBuckets align to UTC interval boundaries; partial boundary buckets include only samples\nwithin the requested range. The first bucket may start before start_time. Ranges are limited to 31 days\nand 10000 buckets. Request counts are zero when there is no traffic, and null\nfor buckets entirely before sandbox creation. CPU and memory are null without\nsamples, including standby. Error rate is the fraction of requests returning\n4xx or 5xx, null when there are no requests. Telemetry failures return an error.\n",
+                "tags": [
+                    "Sandboxes"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    },
+                    {
+                        "$ref": "#/components/parameters/SandboxName"
+                    },
+                    {
+                        "name": "start_time",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "end_time",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "interval_seconds",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "enum": [
+                                10,
+                                30,
+                                60,
+                                300,
+                                900,
+                                3600
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Complete sandbox metrics time series.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxMetricsV1"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid range, interval, or query parameter."
+                    },
+                    "401": {
+                        "description": "Authentication required."
+                    },
+                    "403": {
+                        "description": "Team access denied."
+                    },
+                    "404": {
+                        "description": "Sandbox not found."
+                    },
+                    "502": {
+                        "description": "Metrics query failed."
+                    },
+                    "503": {
+                        "description": "Metrics are unavailable."
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/sandboxes/instances/{sandbox_name}/logs": {
+            "get": {
+                "operationId": "GetSandboxLogs",
+                "summary": "Get sandbox logs",
+                "description": "Returns sandbox runtime logs, newest first, within the half-open range\n[start_time, end_time). Ranges are limited to 7 days. Follow next_cursor\nuntil it is null to retrieve all pages, keeping the same range and limit.\nLogs before sandbox creation are excluded. Unavailable telemetry returns an error.\n",
+                "tags": [
+                    "Sandboxes"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    },
+                    {
+                        "$ref": "#/components/parameters/SandboxName"
+                    },
+                    {
+                        "name": "start_time",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "end_time",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 1000,
+                            "default": 100
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque next_cursor from the previous page. Omit for the first page.",
+                        "schema": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 4096
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A page of sandbox logs.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxLogsV1"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid range, limit, cursor, or query parameter."
+                    },
+                    "401": {
+                        "description": "Authentication required."
+                    },
+                    "403": {
+                        "description": "Team access denied."
+                    },
+                    "404": {
+                        "description": "Sandbox not found."
+                    },
+                    "502": {
+                        "description": "Logs query failed."
+                    },
+                    "503": {
+                        "description": "Logs are unavailable."
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
         "/v1/sandboxes/instances": {
             "get": {
                 "operationId": "ListSandboxes",
@@ -10775,7 +11098,7 @@
                 ],
                 "operationId": "UpdateSandbox",
                 "summary": "Update a sandbox",
-                "description": "Partially update configuration. Omitted fields remain unchanged; supplied arrays and maps replace their previous values. Structured objects update only supplied fields. Changes to image may reset running state. The name, memory, and network configuration are immutable after creation. Supplying memory or network returns 400, including unchanged, empty, or null values.",
+                "description": "Partially update configuration. Omitted fields remain unchanged; supplied arrays and maps replace their previous values. Structured objects update only supplied fields. The name, memory, network, region, image, and ports are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.",
                 "tags": [
                     "Sandboxes"
                 ],
@@ -10899,17 +11222,9 @@
             "get": {
                 "operationId": "ListSandboxLibraryImages",
                 "summary": "List built-in sandbox images",
-                "description": "Return the built-in sandbox images available to every team. Use the image field directly as the image of a sandbox, without building or pushing it. Hidden and upcoming images are excluded.",
+                "description": "Return the built-in sandbox images, the same for every team, so no team is selected. Use the image field directly as the image of a sandbox, without building or pushing it. Hidden and upcoming images are excluded.",
                 "tags": [
                     "Images"
-                ],
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/TeamId"
-                    },
-                    {
-                        "$ref": "#/components/parameters/TeamIdHeader"
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -10988,7 +11303,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ListImagesResponseV1"
+                                    "$ref": "#/components/schemas/ListSandboxImagesResponseV1"
                                 },
                                 "examples": {
                                     "complete": {
@@ -11036,7 +11351,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PushImageRequestV1"
+                                "$ref": "#/components/schemas/PushSandboxImageRequestV1"
                             },
                             "examples": {
                                 "archive": {
@@ -11055,7 +11370,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/PushImageResponseV1"
+                                    "$ref": "#/components/schemas/PushSandboxImageResponseV1"
                                 },
                                 "examples": {
                                     "archive": {
@@ -11109,7 +11424,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/CleanupImagesResponseV1"
+                                    "$ref": "#/components/schemas/CleanupSandboxImagesResponseV1"
                                 },
                                 "examples": {
                                     "complete": {
@@ -11141,7 +11456,7 @@
         "/v1/sandboxes/images/{image_name}": {
             "parameters": [
                 {
-                    "$ref": "#/components/parameters/ImageName"
+                    "$ref": "#/components/parameters/SandboxImageName"
                 }
             ],
             "get": {
@@ -11165,7 +11480,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ImageV1"
+                                    "$ref": "#/components/schemas/SandboxImageV1"
                                 },
                                 "examples": {
                                     "complete": {
@@ -11214,7 +11529,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ImageV1"
+                                    "$ref": "#/components/schemas/SandboxImageV1"
                                 },
                                 "examples": {
                                     "complete": {
@@ -11249,7 +11564,7 @@
         "/v1/sandboxes/images/{image_name}/logs": {
             "parameters": [
                 {
-                    "$ref": "#/components/parameters/ImageName"
+                    "$ref": "#/components/parameters/SandboxImageName"
                 }
             ],
             "get": {
@@ -11313,7 +11628,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ImageBuildLogsResponseV1"
+                                    "$ref": "#/components/schemas/SandboxImageBuildLogsResponseV1"
                                 },
                                 "example": {
                                     "logs": [
@@ -11356,7 +11671,7 @@
         "/v1/sandboxes/images/{image_name}/tags": {
             "parameters": [
                 {
-                    "$ref": "#/components/parameters/ImageName"
+                    "$ref": "#/components/parameters/SandboxImageName"
                 }
             ],
             "get": {
@@ -11411,7 +11726,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ListImageTagsResponseV1"
+                                    "$ref": "#/components/schemas/ListSandboxImageTagsResponseV1"
                                 }
                             }
                         }
@@ -11441,7 +11756,7 @@
         "/v1/sandboxes/images/{image_name}/tags/{tag_name}": {
             "parameters": [
                 {
-                    "$ref": "#/components/parameters/ImageName"
+                    "$ref": "#/components/parameters/SandboxImageName"
                 },
                 {
                     "$ref": "#/components/parameters/TagName"
@@ -11468,7 +11783,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ImageV1"
+                                    "$ref": "#/components/schemas/SandboxImageV1"
                                 },
                                 "examples": {
                                     "complete": {
@@ -11945,7 +12260,6 @@
                 "type": "object"
             },
             "VolumeSyncAuthenticationAWSAssumeRoleV1": {
-                "additionalProperties": false,
                 "description": "Authentication using an AWS IAM role assumed by Baseten.",
                 "properties": {
                     "role_arn": {
@@ -11969,7 +12283,6 @@
                 "type": "object"
             },
             "VolumeSyncAuthenticationAWSOIDCV1": {
-                "additionalProperties": false,
                 "description": "Authentication using an AWS IAM role and Baseten workload identity.",
                 "properties": {
                     "role_arn": {
@@ -11993,7 +12306,6 @@
                 "type": "object"
             },
             "VolumeSyncAuthenticationGCPOIDCV1": {
-                "additionalProperties": false,
                 "description": "Authentication using GCP Workload Identity Federation.",
                 "properties": {
                     "service_account": {
@@ -12017,7 +12329,6 @@
                 "type": "object"
             },
             "VolumeSyncDestinationV1": {
-                "additionalProperties": false,
                 "description": "BDN destination for a volume sync.",
                 "properties": {
                     "ref": {
@@ -12054,7 +12365,6 @@
                 "type": "object"
             },
             "VolumeSyncSourceAzureV1": {
-                "additionalProperties": false,
                 "description": "Azure Blob Storage source.",
                 "properties": {
                     "uri": {
@@ -12107,7 +12417,6 @@
                 "type": "object"
             },
             "VolumeSyncSourceBasetenTrainingV1": {
-                "additionalProperties": false,
                 "description": "Baseten training artifact source.",
                 "properties": {
                     "uri": {
@@ -12146,7 +12455,6 @@
                 "type": "object"
             },
             "VolumeSyncSourceCoreWeaveV1": {
-                "additionalProperties": false,
                 "description": "CoreWeave object storage source.",
                 "properties": {
                     "uri": {
@@ -12199,7 +12507,6 @@
                 "type": "object"
             },
             "VolumeSyncSourceGCSV1": {
-                "additionalProperties": false,
                 "description": "Google Cloud Storage source.",
                 "properties": {
                     "uri": {
@@ -12264,7 +12571,6 @@
                 "type": "object"
             },
             "VolumeSyncSourceHuggingFaceV1": {
-                "additionalProperties": false,
                 "description": "Hugging Face source.",
                 "properties": {
                     "uri": {
@@ -12317,7 +12623,6 @@
                 "type": "object"
             },
             "VolumeSyncSourceR2V1": {
-                "additionalProperties": false,
                 "description": "Cloudflare R2 source.",
                 "properties": {
                     "uri": {
@@ -12370,7 +12675,6 @@
                 "type": "object"
             },
             "VolumeSyncSourceS3V1": {
-                "additionalProperties": false,
                 "description": "Amazon S3 source.",
                 "properties": {
                     "uri": {
@@ -14552,7 +14856,6 @@
                 "type": "object"
             },
             "AuditLogEventApiKeyCreatedV1": {
-                "additionalProperties": false,
                 "description": "An API key was created.",
                 "properties": {
                     "event_type": {
@@ -14582,7 +14885,6 @@
                 "type": "object"
             },
             "AuditLogEventApiKeyDeletedV1": {
-                "additionalProperties": false,
                 "description": "An API key was revoked.",
                 "properties": {
                     "event_type": {
@@ -14623,7 +14925,6 @@
                 "type": "string"
             },
             "AuditLogEventAutoscalingScheduleChangeV1": {
-                "additionalProperties": false,
                 "description": "What an autoscaling change did to one schedule, and the schedule on either side of it.\n`previous` is null on a create, `current` on a delete, and an unchanged schedule carries only\n`current`. Not itself a payload in the discriminated union.",
                 "properties": {
                     "action": {
@@ -14664,7 +14965,6 @@
                 "type": "object"
             },
             "AuditLogEventAutoscalingScheduleSettingsV1": {
-                "additionalProperties": false,
                 "description": "One autoscaling schedule's timing and autoscaling settings. Not itself a union payload.",
                 "properties": {
                     "min_replica": {
@@ -14863,7 +15163,6 @@
                 "type": "object"
             },
             "AuditLogEventAutoscalingSettingsV1": {
-                "additionalProperties": false,
                 "description": "Autoscaling settings for a deployment or environment.",
                 "properties": {
                     "min_replica": {
@@ -14948,7 +15247,6 @@
                 "type": "object"
             },
             "AuditLogEventChainDeletedV1": {
-                "additionalProperties": false,
                 "description": "A chain was deleted.",
                 "properties": {
                     "event_type": {
@@ -14986,7 +15284,6 @@
                 "type": "object"
             },
             "AuditLogEventChainDeployedV1": {
-                "additionalProperties": false,
                 "description": "A chain deployment was created.",
                 "properties": {
                     "event_type": {
@@ -15039,7 +15336,6 @@
                 "type": "object"
             },
             "AuditLogEventChainDeploymentActivatedV1": {
-                "additionalProperties": false,
                 "description": "A chain deployment was activated.",
                 "properties": {
                     "event_type": {
@@ -15082,7 +15378,6 @@
                 "type": "object"
             },
             "AuditLogEventChainDeploymentDeactivatedV1": {
-                "additionalProperties": false,
                 "description": "A chain deployment was deactivated.",
                 "properties": {
                     "event_type": {
@@ -15125,7 +15420,6 @@
                 "type": "object"
             },
             "AuditLogEventChainDeploymentDeletedV1": {
-                "additionalProperties": false,
                 "description": "A chain deployment was deleted.",
                 "properties": {
                     "event_type": {
@@ -15168,7 +15462,6 @@
                 "type": "object"
             },
             "AuditLogEventChainDeploymentPromotedV1": {
-                "additionalProperties": false,
                 "description": "A chain deployment was promoted to an environment.",
                 "properties": {
                     "event_type": {
@@ -15235,7 +15528,6 @@
                 "type": "object"
             },
             "AuditLogEventChainEnvironmentCreatedV1": {
-                "additionalProperties": false,
                 "description": "A chain environment was created.",
                 "properties": {
                     "event_type": {
@@ -15302,7 +15594,6 @@
                 "type": "object"
             },
             "AuditLogEventChainEnvironmentUpdatedV1": {
-                "additionalProperties": false,
                 "description": "A chain environment was updated.",
                 "properties": {
                     "event_type": {
@@ -15369,7 +15660,6 @@
                 "type": "object"
             },
             "AuditLogEventChainletAutoscalingSettingsChangedV1": {
-                "additionalProperties": false,
                 "description": "A chainlet's autoscaling settings were changed.",
                 "properties": {
                     "min_replica": {
@@ -15508,7 +15798,6 @@
                 "type": "object"
             },
             "AuditLogEventChainletInstanceTypeChangedV1": {
-                "additionalProperties": false,
                 "description": "A chainlet's instance type was changed.",
                 "properties": {
                     "event_type": {
@@ -15566,7 +15855,6 @@
                 "type": "object"
             },
             "AuditLogEventDirectoryGroupRoleUpdatedV1": {
-                "additionalProperties": false,
                 "description": "A directory group's role was updated.",
                 "properties": {
                     "event_type": {
@@ -15621,7 +15909,6 @@
                 "type": "object"
             },
             "AuditLogEventEnvironmentCreatedV1": {
-                "additionalProperties": false,
                 "description": "A model environment was created.",
                 "properties": {
                     "min_replica": {
@@ -15883,7 +16170,6 @@
                 "type": "object"
             },
             "AuditLogEventEnvironmentDeletedV1": {
-                "additionalProperties": false,
                 "description": "A model environment was deleted.",
                 "properties": {
                     "event_type": {
@@ -15914,7 +16200,6 @@
                 "type": "object"
             },
             "AuditLogEventEnvironmentSettingsV1": {
-                "additionalProperties": false,
                 "description": "Full environment settings (autoscaling + rolling promotion + deprecated canary);\nshared base for the environment events and the type of their previous_settings\nsnapshots. Not itself a payload in the discriminated union.",
                 "properties": {
                     "min_replica": {
@@ -16143,7 +16428,6 @@
                 "type": "object"
             },
             "AuditLogEventEnvironmentUpdatedV1": {
-                "additionalProperties": false,
                 "description": "A model environment's settings were updated.",
                 "properties": {
                     "schedules": {
@@ -16431,7 +16715,6 @@
                 "type": "object"
             },
             "AuditLogEventGatewayEndpointCreatedV1": {
-                "additionalProperties": false,
                 "description": "A Frontier Gateway endpoint was created.",
                 "properties": {
                     "event_type": {
@@ -16457,7 +16740,6 @@
                 "type": "object"
             },
             "AuditLogEventGatewayEndpointDeletedV1": {
-                "additionalProperties": false,
                 "description": "A Frontier Gateway endpoint was deleted.",
                 "properties": {
                     "event_type": {
@@ -16483,7 +16765,6 @@
                 "type": "object"
             },
             "AuditLogEventGatewayEndpointUpdatedV1": {
-                "additionalProperties": false,
                 "description": "A Frontier Gateway endpoint was updated.",
                 "properties": {
                     "event_type": {
@@ -16521,7 +16802,6 @@
                 "type": "object"
             },
             "AuditLogEventModelDeletedV1": {
-                "additionalProperties": false,
                 "description": "A model was deleted.",
                 "properties": {
                     "event_type": {
@@ -16547,7 +16827,6 @@
                 "type": "object"
             },
             "AuditLogEventModelDeployedV1": {
-                "additionalProperties": false,
                 "description": "A model deployment was created.",
                 "properties": {
                     "event_type": {
@@ -16610,7 +16889,6 @@
                 "type": "object"
             },
             "AuditLogEventModelDeploymentActivatedV1": {
-                "additionalProperties": false,
                 "description": "A model deployment was activated.",
                 "properties": {
                     "event_type": {
@@ -16646,7 +16924,6 @@
                 "type": "object"
             },
             "AuditLogEventModelDeploymentAutoscalingSettingsChangedV1": {
-                "additionalProperties": false,
                 "description": "A model deployment's autoscaling settings were changed.",
                 "properties": {
                     "schedules": {
@@ -16795,7 +17072,6 @@
                 "type": "object"
             },
             "AuditLogEventModelDeploymentDeactivatedV1": {
-                "additionalProperties": false,
                 "description": "A model deployment was deactivated.",
                 "properties": {
                     "event_type": {
@@ -16831,7 +17107,6 @@
                 "type": "object"
             },
             "AuditLogEventModelDeploymentDeletedV1": {
-                "additionalProperties": false,
                 "description": "A model deployment was deleted.",
                 "properties": {
                     "event_type": {
@@ -16867,7 +17142,6 @@
                 "type": "object"
             },
             "AuditLogEventModelDeploymentInstanceTypeChangedV1": {
-                "additionalProperties": false,
                 "description": "A model deployment's instance type was changed.",
                 "properties": {
                     "event_type": {
@@ -16908,7 +17182,6 @@
                 "type": "object"
             },
             "AuditLogEventModelDeploymentPromotedV1": {
-                "additionalProperties": false,
                 "description": "A model deployment was promoted to an environment.",
                 "properties": {
                     "event_type": {
@@ -16968,7 +17241,6 @@
                 "type": "object"
             },
             "AuditLogEventModelDeploymentRequestBackpressureSettingsChangedV1": {
-                "additionalProperties": false,
                 "description": "A model deployment's request backpressure settings were changed.",
                 "properties": {
                     "event_type": {
@@ -17028,7 +17300,6 @@
                 "type": "object"
             },
             "AuditLogEventModelDeploymentRetriedV1": {
-                "additionalProperties": false,
                 "description": "A model deployment build was retried.",
                 "properties": {
                     "event_type": {
@@ -17069,7 +17340,6 @@
                 "type": "object"
             },
             "AuditLogEventModelPromotionControlActionV1": {
-                "additionalProperties": false,
                 "description": "A user-initiated promotion control signal was sent to a rolling promotion.",
                 "properties": {
                     "event_type": {
@@ -17126,7 +17396,6 @@
                 "type": "object"
             },
             "AuditLogEventModelRenamedV1": {
-                "additionalProperties": false,
                 "description": "A model was renamed. `model_name` is the new name.",
                 "properties": {
                     "event_type": {
@@ -17164,7 +17433,6 @@
                 "type": "object"
             },
             "AuditLogEventProviderConnectionCreatedV1": {
-                "additionalProperties": false,
                 "properties": {
                     "event_type": {
                         "const": "PROVIDER_CONNECTION_CREATED",
@@ -17194,7 +17462,6 @@
                 "type": "object"
             },
             "AuditLogEventProviderConnectionDeletedV1": {
-                "additionalProperties": false,
                 "properties": {
                     "event_type": {
                         "const": "PROVIDER_CONNECTION_DELETED",
@@ -17224,7 +17491,6 @@
                 "type": "object"
             },
             "AuditLogEventProviderConnectionUpdatedV1": {
-                "additionalProperties": false,
                 "properties": {
                     "event_type": {
                         "const": "PROVIDER_CONNECTION_UPDATED",
@@ -17254,7 +17520,6 @@
                 "type": "object"
             },
             "AuditLogEventReplicaTerminatedV1": {
-                "additionalProperties": false,
                 "description": "A replica of a model deployment was terminated.",
                 "properties": {
                     "event_type": {
@@ -17295,7 +17560,6 @@
                 "type": "object"
             },
             "AuditLogEventRequireGroupBasedAdminsEnabledV1": {
-                "additionalProperties": false,
                 "description": "Group-based admin enforcement was enabled for the organization.",
                 "properties": {
                     "event_type": {
@@ -17316,7 +17580,6 @@
                 "type": "object"
             },
             "AuditLogEventSecretDeletedV1": {
-                "additionalProperties": false,
                 "description": "A secret was deleted.",
                 "properties": {
                     "event_type": {
@@ -17342,7 +17605,6 @@
                 "type": "object"
             },
             "AuditLogEventSecretUpdatedV1": {
-                "additionalProperties": false,
                 "description": "A secret was created or updated.",
                 "properties": {
                     "event_type": {
@@ -17368,7 +17630,6 @@
                 "type": "object"
             },
             "AuditLogEventSshCertificateSignedV1": {
-                "additionalProperties": false,
                 "description": "An SSH certificate was signed for a workload.",
                 "properties": {
                     "event_type": {
@@ -17471,7 +17732,6 @@
                 "type": "string"
             },
             "AuditLogEventUserInvitedV1": {
-                "additionalProperties": false,
                 "description": "A user was invited to the organization.",
                 "properties": {
                     "event_type": {
@@ -17497,7 +17757,6 @@
                 "type": "object"
             },
             "AuditLogEventUserJoinedOrganizationV1": {
-                "additionalProperties": false,
                 "description": "A user joined the organization.",
                 "properties": {
                     "event_type": {
@@ -17523,7 +17782,6 @@
                 "type": "object"
             },
             "AuditLogEventUserRemovedV1": {
-                "additionalProperties": false,
                 "description": "A user was removed from the organization.",
                 "properties": {
                     "event_type": {
@@ -17544,7 +17802,6 @@
                 "type": "object"
             },
             "AuditLogEventUserRoleUpdatedV1": {
-                "additionalProperties": false,
                 "description": "A user's organization role was updated.",
                 "properties": {
                     "event_type": {
@@ -17575,7 +17832,6 @@
                 "type": "object"
             },
             "AuditLogEventUserTeamRoleUpdatedV1": {
-                "additionalProperties": false,
                 "description": "A user's team role was updated.",
                 "properties": {
                     "event_type": {
@@ -17616,7 +17872,6 @@
                 "type": "object"
             },
             "AuditLogEventVolumeDeletedV1": {
-                "additionalProperties": false,
                 "description": "A volume was deleted, tombstoning every version it still held.",
                 "properties": {
                     "event_type": {
@@ -17652,7 +17907,6 @@
                 "type": "object"
             },
             "AuditLogEventVolumeVersionDeletedV1": {
-                "additionalProperties": false,
                 "description": "One version of a volume was deleted.",
                 "properties": {
                     "event_type": {
@@ -17693,7 +17947,6 @@
                 "type": "object"
             },
             "AuditLogEventVolumeVersionRestoredV1": {
-                "additionalProperties": false,
                 "description": "A deleted version of a volume was restored.",
                 "properties": {
                     "event_type": {
@@ -17734,7 +17987,6 @@
                 "type": "object"
             },
             "AuditLogEventWebhookSigningSecretCreatedV1": {
-                "additionalProperties": false,
                 "description": "A webhook signing secret was created.",
                 "properties": {
                     "event_type": {
@@ -17755,7 +18007,6 @@
                 "type": "object"
             },
             "AuditLogEventWebhookSigningSecretDeletedV1": {
-                "additionalProperties": false,
                 "description": "A webhook signing secret was deleted.",
                 "properties": {
                     "event_type": {
@@ -17776,7 +18027,6 @@
                 "type": "object"
             },
             "AuditLogEventWebhookSigningSecretRotatedV1": {
-                "additionalProperties": false,
                 "description": "A webhook signing secret was rotated.",
                 "properties": {
                     "event_type": {
@@ -28964,7 +29214,6 @@
                 "type": "object"
             },
             "LibraryListingMetadataV1": {
-                "additionalProperties": false,
                 "properties": {
                     "parameter_count": {
                         "anyOf": [
@@ -29294,7 +29543,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Model-level metadata for the listing. When provided, replaces the stored metadata. Unknown fields are rejected."
+                        "description": "Model-level metadata for the listing. When provided, replaces the stored metadata."
                     }
                 },
                 "title": "UpdateLibraryListingRequestV1",
@@ -31582,8 +31831,27 @@
                 "title": "ExploreMetadataRequestV1",
                 "type": "object"
             },
+            "RouteRefV1": {
+                "properties": {
+                    "id": {
+                        "description": "Stable route identifier.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "slug": {
+                        "description": "Name of the route to send in the inference request's model field.",
+                        "title": "Slug",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "slug"
+                ],
+                "title": "RouteRefV1",
+                "type": "object"
+            },
             "RouteTargetAnthropicV1": {
-                "additionalProperties": false,
                 "properties": {
                     "type": {
                         "const": "ANTHROPIC",
@@ -31613,7 +31881,6 @@
                 "type": "object"
             },
             "RouteTargetBasetenModelAPIV1": {
-                "additionalProperties": false,
                 "properties": {
                     "type": {
                         "const": "BASETEN_MODEL_API",
@@ -31635,8 +31902,61 @@
                 "title": "RouteTargetBasetenModelAPIV1",
                 "type": "object"
             },
+            "RouteTargetClassifierModelBasedV1": {
+                "properties": {
+                    "type": {
+                        "const": "CLASSIFIER_MODEL_BASED",
+                        "description": "Target kind for a classifier-model-based route.",
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "classifier_model_id": {
+                        "description": "ID of the Baseten model that picks a route for each request.",
+                        "examples": [
+                            "abcd123"
+                        ],
+                        "title": "Classifier Model Id",
+                        "type": "string"
+                    },
+                    "classifier_environment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Environment of the classifier model. Null for production.",
+                        "examples": [
+                            "production"
+                        ],
+                        "title": "Classifier Environment Name"
+                    },
+                    "default_route": {
+                        "$ref": "#/components/schemas/RouteRefV1",
+                        "description": "Route used when the classifier picks none."
+                    },
+                    "allowed_routes": {
+                        "description": "Routes the classifier may pick, in creation order.",
+                        "items": {
+                            "$ref": "#/components/schemas/RouteRefV1"
+                        },
+                        "title": "Allowed Routes",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "type",
+                    "classifier_model_id",
+                    "classifier_environment_name",
+                    "default_route",
+                    "allowed_routes"
+                ],
+                "title": "RouteTargetClassifierModelBasedV1",
+                "type": "object"
+            },
             "RouteTargetOpenAIV1": {
-                "additionalProperties": false,
                 "properties": {
                     "type": {
                         "const": "OPENAI",
@@ -31666,7 +31986,6 @@
                 "type": "object"
             },
             "RouteTargetXAIV1": {
-                "additionalProperties": false,
                 "properties": {
                     "type": {
                         "const": "XAI",
@@ -31733,6 +32052,7 @@
                             "mapping": {
                                 "ANTHROPIC": "#/components/schemas/RouteTargetAnthropicV1",
                                 "BASETEN_MODEL_API": "#/components/schemas/RouteTargetBasetenModelAPIV1",
+                                "CLASSIFIER_MODEL_BASED": "#/components/schemas/RouteTargetClassifierModelBasedV1",
                                 "OPENAI": "#/components/schemas/RouteTargetOpenAIV1",
                                 "XAI": "#/components/schemas/RouteTargetXAIV1"
                             },
@@ -31750,6 +32070,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/RouteTargetXAIV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/RouteTargetClassifierModelBasedV1"
                             }
                         ],
                         "title": "Target"
@@ -31763,7 +32086,7 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Resolved model metadata; null when the route has no linked metadata row."
+                        "description": "Resolved model metadata; for a router, the envelope of its allowed routes' metadata. Null when nothing is linked."
                     },
                     "invoke_url": {
                         "description": "Base URL for inference requests using this route.",
@@ -31847,7 +32170,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Filter by owning team ID. Preserved by the cursor; if repeated, must match the original filter.",
+                        "description": "Identifier of the team whose routes to list.",
                         "title": "Team Id"
                     },
                     "name": {
@@ -31867,6 +32190,186 @@
                 "title": "RoutesRequestV1",
                 "type": "object"
             },
+            "RouteTargetConfigAnthropicV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "type": {
+                        "const": "ANTHROPIC",
+                        "description": "Target kind for Anthropic.",
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "model": {
+                        "description": "Model name sent to the provider.",
+                        "minLength": 1,
+                        "title": "Model",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "description": "Name of a credential secret owned by the route's team.",
+                        "minLength": 1,
+                        "title": "Secret Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "model",
+                    "secret_name"
+                ],
+                "title": "RouteTargetConfigAnthropicV1",
+                "type": "object"
+            },
+            "RouteTargetConfigBasetenModelAPIV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "type": {
+                        "const": "BASETEN_MODEL_API",
+                        "description": "Target kind for a Baseten Model API.",
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "model": {
+                        "description": "Name of the target Model API.",
+                        "minLength": 1,
+                        "title": "Model",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "model"
+                ],
+                "title": "RouteTargetConfigBasetenModelAPIV1",
+                "type": "object"
+            },
+            "RouteTargetConfigClassifierModelBasedV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "type": {
+                        "const": "CLASSIFIER_MODEL_BASED",
+                        "description": "Target kind for a classifier-model-based route. Not intended for general use: classifiers are deployed by Baseten's post-training team.",
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "classifier_model_id": {
+                        "description": "ID of the Baseten model that picks a route for each request. Only classifiers deployed by Baseten's post-training team are supported.",
+                        "examples": [
+                            "abcd123"
+                        ],
+                        "minLength": 1,
+                        "title": "Classifier Model Id",
+                        "type": "string"
+                    },
+                    "classifier_environment_name": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Environment of the classifier model. Omit for production, which is returned as null.",
+                        "examples": [
+                            "production"
+                        ],
+                        "title": "Classifier Environment Name"
+                    },
+                    "allowed_route_ids": {
+                        "description": "IDs of the routes the classifier may pick. All must belong to the route's team and must not be routers themselves.",
+                        "examples": [
+                            [
+                                "abc1234",
+                                "def5678"
+                            ]
+                        ],
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Allowed Route Ids",
+                        "type": "array"
+                    },
+                    "default_route_id": {
+                        "description": "ID of the allowed route used when the classifier picks none.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Default Route Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "classifier_model_id",
+                    "allowed_route_ids",
+                    "default_route_id"
+                ],
+                "title": "RouteTargetConfigClassifierModelBasedV1",
+                "type": "object"
+            },
+            "RouteTargetConfigOpenAIV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "type": {
+                        "const": "OPENAI",
+                        "description": "Target kind for OpenAI.",
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "model": {
+                        "description": "Model name sent to the provider.",
+                        "minLength": 1,
+                        "title": "Model",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "description": "Name of a credential secret owned by the route's team.",
+                        "minLength": 1,
+                        "title": "Secret Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "model",
+                    "secret_name"
+                ],
+                "title": "RouteTargetConfigOpenAIV1",
+                "type": "object"
+            },
+            "RouteTargetConfigXAIV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "type": {
+                        "const": "XAI",
+                        "description": "Target kind for xAI.",
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "model": {
+                        "description": "Model name sent to the provider.",
+                        "minLength": 1,
+                        "title": "Model",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "description": "Name of a credential secret owned by the route's team.",
+                        "minLength": 1,
+                        "title": "Secret Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "model",
+                    "secret_name"
+                ],
+                "title": "RouteTargetConfigXAIV1",
+                "type": "object"
+            },
             "CreateRouteRequestV1": {
                 "additionalProperties": false,
                 "properties": {
@@ -31881,7 +32384,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Identifier of the team that owns the route. When omitted, uses your organization's default team.",
+                        "description": "Identifier of the team that owns the route.",
                         "examples": [
                             "abc1234"
                         ],
@@ -31909,10 +32412,11 @@
                         "description": "Upstream target for the route.",
                         "discriminator": {
                             "mapping": {
-                                "ANTHROPIC": "#/components/schemas/RouteTargetAnthropicV1",
-                                "BASETEN_MODEL_API": "#/components/schemas/RouteTargetBasetenModelAPIV1",
-                                "OPENAI": "#/components/schemas/RouteTargetOpenAIV1",
-                                "XAI": "#/components/schemas/RouteTargetXAIV1"
+                                "ANTHROPIC": "#/components/schemas/RouteTargetConfigAnthropicV1",
+                                "BASETEN_MODEL_API": "#/components/schemas/RouteTargetConfigBasetenModelAPIV1",
+                                "CLASSIFIER_MODEL_BASED": "#/components/schemas/RouteTargetConfigClassifierModelBasedV1",
+                                "OPENAI": "#/components/schemas/RouteTargetConfigOpenAIV1",
+                                "XAI": "#/components/schemas/RouteTargetConfigXAIV1"
                             },
                             "propertyName": "type"
                         },
@@ -31924,16 +32428,19 @@
                         ],
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/RouteTargetBasetenModelAPIV1"
+                                "$ref": "#/components/schemas/RouteTargetConfigBasetenModelAPIV1"
                             },
                             {
-                                "$ref": "#/components/schemas/RouteTargetAnthropicV1"
+                                "$ref": "#/components/schemas/RouteTargetConfigAnthropicV1"
                             },
                             {
-                                "$ref": "#/components/schemas/RouteTargetOpenAIV1"
+                                "$ref": "#/components/schemas/RouteTargetConfigOpenAIV1"
                             },
                             {
-                                "$ref": "#/components/schemas/RouteTargetXAIV1"
+                                "$ref": "#/components/schemas/RouteTargetConfigXAIV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/RouteTargetConfigClassifierModelBasedV1"
                             }
                         ],
                         "title": "Target"
@@ -32196,7 +32703,118 @@
                 "title": "RoutesUsageRequestV1",
                 "type": "object"
             },
-            "RouteSpendLimitV1": {
+            "RouteEffectiveSpendLimitV1": {
+                "properties": {
+                    "monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Spend limit in USD enforced for the current UTC calendar month: the user's own limit, else the team default. Null when no limit applies.",
+                        "examples": [
+                            "200"
+                        ],
+                        "title": "Monthly Limit Usd"
+                    },
+                    "source": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteSettingSourceV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Where the limit comes from: `user` when it is set on the user, `team` when it is the team default. Null when no limit applies."
+                    }
+                },
+                "required": [
+                    "monthly_limit_usd",
+                    "source"
+                ],
+                "title": "RouteEffectiveSpendLimitV1",
+                "type": "object"
+            },
+            "RouteSettingSourceV1": {
+                "enum": [
+                    "user",
+                    "team"
+                ],
+                "title": "RouteSettingSourceV1",
+                "type": "string"
+            },
+            "RouteSpendLimitSettingV1": {
+                "properties": {
+                    "user_monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Standing spend limit in USD for each UTC calendar month set on the user. Null when the user has no limit of their own.",
+                        "examples": [
+                            "200"
+                        ],
+                        "title": "User Monthly Limit Usd"
+                    },
+                    "team_default": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteSpendLimitTeamDefaultV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Per-member limit of the team the user's active Code key belongs to. This limit applies when the user has no limit of their own. Null when there is none."
+                    },
+                    "effective": {
+                        "$ref": "#/components/schemas/RouteEffectiveSpendLimitV1",
+                        "description": "The effective limit enforced for the current month."
+                    }
+                },
+                "required": [
+                    "user_monthly_limit_usd",
+                    "team_default",
+                    "effective"
+                ],
+                "title": "RouteSpendLimitSettingV1",
+                "type": "object"
+            },
+            "RouteSpendLimitTeamDefaultV1": {
+                "properties": {
+                    "team_id": {
+                        "description": "ID of the team the user's active Code key belongs to.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "per_member_monthly_limit_usd": {
+                        "description": "The team's per-member spend limit in USD for each UTC calendar month.",
+                        "examples": [
+                            "100"
+                        ],
+                        "title": "Per Member Monthly Limit Usd",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "team_id",
+                    "per_member_monthly_limit_usd"
+                ],
+                "title": "RouteSpendLimitTeamDefaultV1",
+                "type": "object"
+            },
+            "RouteUserSettingsV1": {
                 "properties": {
                     "user_id": {
                         "description": "ID of the user.",
@@ -32221,35 +32839,24 @@
                         ],
                         "title": "Email"
                     },
-                    "monthly_limit_usd": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Standing spend limit in USD for each UTC calendar month, returned as an exact decimal string. Null when the user has no standing limit.",
-                        "examples": [
-                            "200"
-                        ],
-                        "title": "Monthly Limit Usd"
+                    "spend_limit": {
+                        "$ref": "#/components/schemas/RouteSpendLimitSettingV1",
+                        "description": "Spend limit for Baseten Code. Applies to requests with Routes keys the user created; personal API keys are not limited."
                     }
                 },
                 "required": [
                     "user_id",
                     "email",
-                    "monthly_limit_usd"
+                    "spend_limit"
                 ],
-                "title": "RouteSpendLimitV1",
+                "title": "RouteUserSettingsV1",
                 "type": "object"
             },
-            "UpdateRouteSpendLimitRequestV1": {
+            "UpdateRouteSpendLimitSettingV1": {
                 "additionalProperties": false,
                 "minProperties": 1,
                 "properties": {
-                    "monthly_limit_usd": {
+                    "user_monthly_limit_usd": {
                         "anyOf": [
                             {
                                 "type": "string"
@@ -32259,59 +32866,123 @@
                             }
                         ],
                         "default": null,
-                        "description": "Standing spend limit in USD for each UTC calendar month, as a non-negative decimal string with at most 9 decimal places. Send null to remove the limit; omit to leave it unchanged.",
+                        "description": "Standing spend limit in USD for each UTC calendar month. Send null to remove the limit; omit to leave it unchanged.",
                         "examples": [
                             "200"
                         ],
-                        "title": "Monthly Limit Usd",
+                        "title": "User Monthly Limit Usd",
                         "x-null-distinct": true
                     }
                 },
-                "title": "UpdateRouteSpendLimitRequestV1",
+                "title": "UpdateRouteSpendLimitSettingV1",
                 "type": "object"
             },
-            "RouteHarness": {
-                "enum": [
-                    "claude-code",
-                    "opencode",
-                    "codex"
-                ],
-                "title": "RouteHarness",
-                "type": "string"
-            },
-            "RouteHarnessConfigV1": {
+            "UpdateRouteUserSettingsRequestV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
                 "properties": {
-                    "models": {
-                        "additionalProperties": {
-                            "$ref": "#/components/schemas/RouteHarnessModelV1"
-                        },
-                        "description": "Route for each model role, keyed by role.",
-                        "propertyNames": {
-                            "$ref": "#/components/schemas/RouteHarnessRole"
-                        },
-                        "title": "Models",
-                        "type": "object"
+                    "spend_limit": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateRouteSpendLimitSettingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Spend limit fields to change. Pass null to remove the user's limit; omit to leave it unchanged.",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdateRouteUserSettingsRequestV1",
+                "type": "object"
+            },
+            "BackgroundHarnessDefaultsV1": {
+                "properties": {
+                    "primary": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteHarnessModelV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Route for the primary model, which new sessions use. Null when the team has no route to use."
+                    },
+                    "background": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteHarnessModelV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Route for background tasks, such as session titles. Null when the team has no route to use."
                     }
                 },
                 "required": [
-                    "models"
+                    "primary",
+                    "background"
                 ],
-                "title": "RouteHarnessConfigV1",
+                "title": "BackgroundHarnessDefaultsV1",
                 "type": "object"
             },
-            "RouteHarnessModelSource": {
-                "enum": [
-                    "team",
-                    "baseten"
+            "PrimaryHarnessDefaultsV1": {
+                "properties": {
+                    "primary": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteHarnessModelV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Route for the primary model, which new sessions use. Null when the team has no route to use."
+                    }
+                },
+                "required": [
+                    "primary"
                 ],
-                "title": "RouteHarnessModelSource",
-                "type": "string"
+                "title": "PrimaryHarnessDefaultsV1",
+                "type": "object"
+            },
+            "RouteHarnessDefaultsV1": {
+                "properties": {
+                    "claude_code": {
+                        "$ref": "#/components/schemas/BackgroundHarnessDefaultsV1",
+                        "description": "Default models for Claude Code."
+                    },
+                    "opencode": {
+                        "$ref": "#/components/schemas/BackgroundHarnessDefaultsV1",
+                        "description": "Default models for OpenCode."
+                    },
+                    "codex": {
+                        "$ref": "#/components/schemas/PrimaryHarnessDefaultsV1",
+                        "description": "Default models for Codex."
+                    },
+                    "pi": {
+                        "$ref": "#/components/schemas/PrimaryHarnessDefaultsV1",
+                        "description": "Default models for Pi."
+                    }
+                },
+                "required": [
+                    "claude_code",
+                    "opencode",
+                    "codex",
+                    "pi"
+                ],
+                "title": "RouteHarnessDefaultsV1",
+                "type": "object"
             },
             "RouteHarnessModelV1": {
                 "properties": {
                     "source": {
-                        "$ref": "#/components/schemas/RouteHarnessModelSource",
-                        "description": "Who chose this role's route: `team` if a team admin set it, or `baseten` if it is Baseten's default, chosen from the team's Model API routes."
+                        "$ref": "#/components/schemas/RouteSettingSourceV1",
+                        "description": "Where this role's route comes from. `team` covers both a route a team admin set and the default chosen from the team's Model API routes."
                     },
                     "route": {
                         "$ref": "#/components/schemas/RouteV1",
@@ -32325,47 +32996,55 @@
                 "title": "RouteHarnessModelV1",
                 "type": "object"
             },
-            "RouteHarnessRole": {
-                "enum": [
-                    "primary",
-                    "background"
-                ],
-                "title": "RouteHarnessRole",
-                "type": "string"
-            },
-            "RouteHarnessConfigsResponseV1": {
+            "RouteTeamSpendLimitSettingV1": {
                 "properties": {
-                    "harness_configs": {
-                        "additionalProperties": {
-                            "$ref": "#/components/schemas/RouteHarnessConfigV1"
-                        },
-                        "description": "Default models for each harness, keyed by harness. A harness is omitted when none of its roles has a route.",
-                        "propertyNames": {
-                            "$ref": "#/components/schemas/RouteHarness"
-                        },
-                        "title": "Harness Configs",
-                        "type": "object"
+                    "per_member_monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Spend limit in USD for each UTC calendar month that applies to each member whose active Code key belongs to this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.",
+                        "examples": [
+                            "200"
+                        ],
+                        "title": "Per Member Monthly Limit Usd"
                     }
                 },
                 "required": [
-                    "harness_configs"
+                    "per_member_monthly_limit_usd"
                 ],
-                "title": "RouteHarnessConfigsResponseV1",
+                "title": "RouteTeamSpendLimitSettingV1",
                 "type": "object"
             },
-            "RouteHarnessConfigsRequestV1": {
+            "RouteTeamSettingsV1": {
                 "properties": {
                     "team_id": {
-                        "description": "Identifier of the team whose default models to list.",
-                        "minLength": 1,
+                        "description": "ID of the team.",
+                        "examples": [
+                            "abc1234"
+                        ],
                         "title": "Team Id",
                         "type": "string"
+                    },
+                    "harness_defaults": {
+                        "$ref": "#/components/schemas/RouteHarnessDefaultsV1",
+                        "description": "Route for each model role of each coding harness. A role with no route set by a team admin uses the default chosen from the team's Model API routes: the recommended model for `primary` and the lowest-priced model for `background`. These defaults never use external-provider routes."
+                    },
+                    "spend_limit": {
+                        "$ref": "#/components/schemas/RouteTeamSpendLimitSettingV1",
+                        "description": "Spend limits for Baseten Code for members whose active Code key belongs to this team."
                     }
                 },
                 "required": [
-                    "team_id"
+                    "team_id",
+                    "harness_defaults",
+                    "spend_limit"
                 ],
-                "title": "RouteHarnessConfigsRequestV1",
+                "title": "RouteTeamSettingsV1",
                 "type": "object"
             },
             "UpdateBackgroundHarnessModelsV1": {
@@ -32383,11 +33062,12 @@
                             }
                         ],
                         "default": null,
-                        "description": "Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use Baseten's default.",
+                        "description": "Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.",
                         "examples": [
                             "abc1234"
                         ],
-                        "title": "Primary"
+                        "title": "Primary",
+                        "x-null-distinct": true
                     },
                     "background": {
                         "anyOf": [
@@ -32400,98 +33080,15 @@
                             }
                         ],
                         "default": null,
-                        "description": "Route ID for background tasks, such as session titles. Omit to keep the current route, or pass null to use Baseten's default.",
+                        "description": "Route ID for background tasks, such as session titles. Omit to keep the current route, or pass null to use the team's default.",
                         "examples": [
                             "def5678"
                         ],
-                        "title": "Background"
+                        "title": "Background",
+                        "x-null-distinct": true
                     }
                 },
                 "title": "UpdateBackgroundHarnessModelsV1",
-                "type": "object"
-            },
-            "UpdateClaudeCodeHarnessConfigV1": {
-                "additionalProperties": false,
-                "properties": {
-                    "team_id": {
-                        "description": "Identifier of the team whose default models to set. Every route must belong to this team.",
-                        "minLength": 1,
-                        "title": "Team Id",
-                        "type": "string"
-                    },
-                    "harness": {
-                        "const": "claude-code",
-                        "description": "Claude Code, which supports the `primary` and `background` roles.",
-                        "title": "Harness",
-                        "type": "string"
-                    },
-                    "models": {
-                        "$ref": "#/components/schemas/UpdateBackgroundHarnessModelsV1",
-                        "description": "Route IDs for the model roles to change. Roles left out are unchanged."
-                    }
-                },
-                "required": [
-                    "team_id",
-                    "harness",
-                    "models"
-                ],
-                "title": "UpdateClaudeCodeHarnessConfigV1",
-                "type": "object"
-            },
-            "UpdateCodexHarnessConfigV1": {
-                "additionalProperties": false,
-                "properties": {
-                    "team_id": {
-                        "description": "Identifier of the team whose default models to set. Every route must belong to this team.",
-                        "minLength": 1,
-                        "title": "Team Id",
-                        "type": "string"
-                    },
-                    "harness": {
-                        "const": "codex",
-                        "description": "Codex, which supports only the `primary` role.",
-                        "title": "Harness",
-                        "type": "string"
-                    },
-                    "models": {
-                        "$ref": "#/components/schemas/UpdatePrimaryHarnessModelsV1",
-                        "description": "Route IDs for the model roles to change. Roles left out are unchanged."
-                    }
-                },
-                "required": [
-                    "team_id",
-                    "harness",
-                    "models"
-                ],
-                "title": "UpdateCodexHarnessConfigV1",
-                "type": "object"
-            },
-            "UpdateOpenCodeHarnessConfigV1": {
-                "additionalProperties": false,
-                "properties": {
-                    "team_id": {
-                        "description": "Identifier of the team whose default models to set. Every route must belong to this team.",
-                        "minLength": 1,
-                        "title": "Team Id",
-                        "type": "string"
-                    },
-                    "harness": {
-                        "const": "opencode",
-                        "description": "OpenCode, which supports the `primary` and `background` roles.",
-                        "title": "Harness",
-                        "type": "string"
-                    },
-                    "models": {
-                        "$ref": "#/components/schemas/UpdateBackgroundHarnessModelsV1",
-                        "description": "Route IDs for the model roles to change. Roles left out are unchanged."
-                    }
-                },
-                "required": [
-                    "team_id",
-                    "harness",
-                    "models"
-                ],
-                "title": "UpdateOpenCodeHarnessConfigV1",
                 "type": "object"
             },
             "UpdatePrimaryHarnessModelsV1": {
@@ -32509,42 +33106,410 @@
                             }
                         ],
                         "default": null,
-                        "description": "Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use Baseten's default.",
+                        "description": "Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.",
                         "examples": [
                             "abc1234"
                         ],
-                        "title": "Primary"
+                        "title": "Primary",
+                        "x-null-distinct": true
                     }
                 },
                 "title": "UpdatePrimaryHarnessModelsV1",
                 "type": "object"
             },
-            "UpdateRouteHarnessConfigRequestV1": {
-                "discriminator": {
-                    "mapping": {
-                        "claude-code": "#/components/schemas/UpdateClaudeCodeHarnessConfigV1",
-                        "codex": "#/components/schemas/UpdateCodexHarnessConfigV1",
-                        "opencode": "#/components/schemas/UpdateOpenCodeHarnessConfigV1"
+            "UpdateRouteHarnessDefaultsV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "claude_code": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateBackgroundHarnessModelsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
+                        "x-null-distinct": true
                     },
-                    "propertyName": "harness"
-                },
-                "oneOf": [
-                    {
-                        "$ref": "#/components/schemas/UpdateClaudeCodeHarnessConfigV1"
+                    "opencode": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateBackgroundHarnessModelsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
+                        "x-null-distinct": true
                     },
-                    {
-                        "$ref": "#/components/schemas/UpdateOpenCodeHarnessConfigV1"
+                    "codex": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdatePrimaryHarnessModelsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
+                        "x-null-distinct": true
                     },
-                    {
-                        "$ref": "#/components/schemas/UpdateCodexHarnessConfigV1"
+                    "pi": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdatePrimaryHarnessModelsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
+                        "x-null-distinct": true
                     }
-                ],
-                "title": "UpdateRouteHarnessConfigRequestV1"
+                },
+                "title": "UpdateRouteHarnessDefaultsV1",
+                "type": "object"
             },
-            "BackgroundHarnessModelsV1": {
+            "UpdateRouteTeamSpendLimitSettingV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "per_member_monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Spend limit in USD for each UTC calendar month that applies to each member whose active Code key belongs to this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.",
+                        "examples": [
+                            "200"
+                        ],
+                        "title": "Per Member Monthly Limit Usd",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdateRouteTeamSpendLimitSettingV1",
+                "type": "object"
+            },
+            "UpdateRouteTeamSettingsRequestV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "harness_defaults": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateRouteHarnessDefaultsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Harnesses to change; harnesses left out are unchanged. Pass null to clear every harness, so each role uses the team's default.",
+                        "x-null-distinct": true
+                    },
+                    "spend_limit": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateRouteTeamSpendLimitSettingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Spend limit fields to change. Pass null to remove the team's per-member limit; omit to leave it unchanged.",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdateRouteTeamSettingsRequestV1",
+                "type": "object"
+            },
+            "RouteConnectionAnthropicV1": {
+                "properties": {
+                    "provider": {
+                        "const": "ANTHROPIC",
+                        "description": "Provider kind for Anthropic.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_id": {
+                        "description": "Identifier of the team secret holding the provider API key.",
+                        "title": "Secret Id",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "description": "Name of the team secret holding the provider API key.",
+                        "title": "Secret Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "secret_id",
+                    "secret_name"
+                ],
+                "title": "RouteConnectionAnthropicV1",
+                "type": "object"
+            },
+            "RouteConnectionOpenAIV1": {
+                "properties": {
+                    "provider": {
+                        "const": "OPENAI",
+                        "description": "Provider kind for OpenAI.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_id": {
+                        "description": "Identifier of the team secret holding the provider API key.",
+                        "title": "Secret Id",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "description": "Name of the team secret holding the provider API key.",
+                        "title": "Secret Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "secret_id",
+                    "secret_name"
+                ],
+                "title": "RouteConnectionOpenAIV1",
+                "type": "object"
+            },
+            "RouteConnectionV1": {
+                "properties": {
+                    "id": {
+                        "description": "Stable connection identifier.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "description": "Identifier of the team that owns the connection.",
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "config": {
+                        "description": "Provider the connection authenticates with, and the team secret holding its API key.",
+                        "discriminator": {
+                            "mapping": {
+                                "ANTHROPIC": "#/components/schemas/RouteConnectionAnthropicV1",
+                                "OPENAI": "#/components/schemas/RouteConnectionOpenAIV1",
+                                "XAI": "#/components/schemas/RouteConnectionXAIV1"
+                            },
+                            "propertyName": "provider"
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteConnectionAnthropicV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/RouteConnectionOpenAIV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/RouteConnectionXAIV1"
+                            }
+                        ],
+                        "title": "Config"
+                    },
+                    "created_at": {
+                        "description": "Creation time, ISO 8601.",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "description": "Last update time, ISO 8601.",
+                        "format": "date-time",
+                        "title": "Updated At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "team_id",
+                    "config",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "RouteConnectionV1",
+                "type": "object"
+            },
+            "RouteConnectionXAIV1": {
+                "properties": {
+                    "provider": {
+                        "const": "XAI",
+                        "description": "Provider kind for xAI.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_id": {
+                        "description": "Identifier of the team secret holding the provider API key.",
+                        "title": "Secret Id",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "description": "Name of the team secret holding the provider API key.",
+                        "title": "Secret Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "secret_id",
+                    "secret_name"
+                ],
+                "title": "RouteConnectionXAIV1",
+                "type": "object"
+            },
+            "RouteConnectionsResponseV1": {
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/RouteConnectionV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "RouteConnectionsResponseV1",
+                "type": "object"
+            },
+            "RouteConnectionsRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Identifier of the team whose connections to list.",
+                        "title": "Team Id"
+                    }
+                },
+                "title": "RouteConnectionsRequestV1",
+                "type": "object"
+            },
+            "RouteConnectionConfigAnthropicV1": {
                 "additionalProperties": false,
                 "properties": {
-                    "primary": {
+                    "provider": {
+                        "const": "ANTHROPIC",
+                        "description": "Provider kind for Anthropic.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_id": {
+                        "description": "Identifier of an existing secret, owned by the same team, that holds the provider API key.",
+                        "minLength": 1,
+                        "title": "Secret Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "secret_id"
+                ],
+                "title": "RouteConnectionConfigAnthropicV1",
+                "type": "object"
+            },
+            "RouteConnectionConfigOpenAIV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "provider": {
+                        "const": "OPENAI",
+                        "description": "Provider kind for OpenAI.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_id": {
+                        "description": "Identifier of an existing secret, owned by the same team, that holds the provider API key.",
+                        "minLength": 1,
+                        "title": "Secret Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "secret_id"
+                ],
+                "title": "RouteConnectionConfigOpenAIV1",
+                "type": "object"
+            },
+            "RouteConnectionConfigXAIV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "provider": {
+                        "const": "XAI",
+                        "description": "Provider kind for xAI.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_id": {
+                        "description": "Identifier of an existing secret, owned by the same team, that holds the provider API key.",
+                        "minLength": 1,
+                        "title": "Secret Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "secret_id"
+                ],
+                "title": "RouteConnectionConfigXAIV1",
+                "type": "object"
+            },
+            "CreateRouteConnectionRequestV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "team_id": {
                         "anyOf": [
                             {
                                 "minLength": 1,
@@ -32555,13 +33520,72 @@
                             }
                         ],
                         "default": null,
-                        "description": "Route ID for the primary model, which new sessions use. Omit to use Baseten's default.",
+                        "description": "Identifier of the team that owns the connection.",
                         "examples": [
                             "abc1234"
                         ],
-                        "title": "Primary"
+                        "title": "Team Id"
                     },
-                    "background": {
+                    "config": {
+                        "description": "Provider the connection authenticates with, and the team secret holding its API key.",
+                        "discriminator": {
+                            "mapping": {
+                                "ANTHROPIC": "#/components/schemas/RouteConnectionConfigAnthropicV1",
+                                "OPENAI": "#/components/schemas/RouteConnectionConfigOpenAIV1",
+                                "XAI": "#/components/schemas/RouteConnectionConfigXAIV1"
+                            },
+                            "propertyName": "provider"
+                        },
+                        "examples": [
+                            {
+                                "provider": "ANTHROPIC",
+                                "secret_id": "abc1234"
+                            }
+                        ],
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteConnectionConfigAnthropicV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/RouteConnectionConfigOpenAIV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/RouteConnectionConfigXAIV1"
+                            }
+                        ],
+                        "title": "Config"
+                    }
+                },
+                "required": [
+                    "config"
+                ],
+                "title": "CreateRouteConnectionRequestV1",
+                "type": "object"
+            },
+            "RouteConnectionTombstoneV1": {
+                "properties": {
+                    "id": {
+                        "description": "Stable identifier of the deleted connection.",
+                        "title": "Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id"
+                ],
+                "title": "RouteConnectionTombstoneV1",
+                "type": "object"
+            },
+            "UpdateRouteConnectionConfigAnthropicV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "provider": {
+                        "const": "ANTHROPIC",
+                        "description": "Provider kind for Anthropic.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_id": {
                         "anyOf": [
                             {
                                 "minLength": 1,
@@ -32572,20 +33596,27 @@
                             }
                         ],
                         "default": null,
-                        "description": "Route ID for background tasks, such as session titles. Omit to use Baseten's default.",
-                        "examples": [
-                            "def5678"
-                        ],
-                        "title": "Background"
+                        "description": "Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.",
+                        "title": "Secret Id",
+                        "x-null-distinct": true
                     }
                 },
-                "title": "BackgroundHarnessModelsV1",
+                "required": [
+                    "provider"
+                ],
+                "title": "UpdateRouteConnectionConfigAnthropicV1",
                 "type": "object"
             },
-            "PrimaryHarnessModelsV1": {
+            "UpdateRouteConnectionConfigOpenAIV1": {
                 "additionalProperties": false,
                 "properties": {
-                    "primary": {
+                    "provider": {
+                        "const": "OPENAI",
+                        "description": "Provider kind for OpenAI.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_id": {
                         "anyOf": [
                             {
                                 "minLength": 1,
@@ -32596,154 +33627,85 @@
                             }
                         ],
                         "default": null,
-                        "description": "Route ID for the primary model, which new sessions use. Omit to use Baseten's default.",
-                        "examples": [
-                            "abc1234"
+                        "description": "Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.",
+                        "title": "Secret Id",
+                        "x-null-distinct": true
+                    }
+                },
+                "required": [
+                    "provider"
+                ],
+                "title": "UpdateRouteConnectionConfigOpenAIV1",
+                "type": "object"
+            },
+            "UpdateRouteConnectionConfigXAIV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "provider": {
+                        "const": "XAI",
+                        "description": "Provider kind for xAI.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_id": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
                         ],
-                        "title": "Primary"
+                        "default": null,
+                        "description": "Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.",
+                        "title": "Secret Id",
+                        "x-null-distinct": true
                     }
                 },
-                "title": "PrimaryHarnessModelsV1",
+                "required": [
+                    "provider"
+                ],
+                "title": "UpdateRouteConnectionConfigXAIV1",
                 "type": "object"
             },
-            "SetClaudeCodeHarnessConfigV1": {
+            "UpdateRouteConnectionRequestV1": {
                 "additionalProperties": false,
                 "properties": {
-                    "team_id": {
-                        "description": "Identifier of the team whose default models to set. Every route must belong to this team.",
-                        "minLength": 1,
-                        "title": "Team Id",
-                        "type": "string"
-                    },
-                    "harness": {
-                        "const": "claude-code",
-                        "description": "Claude Code, which supports the `primary` and `background` roles.",
-                        "title": "Harness",
-                        "type": "string"
-                    },
-                    "models": {
-                        "$ref": "#/components/schemas/BackgroundHarnessModelsV1",
-                        "description": "Route ID for each model role. Roles left out use Baseten's defaults."
+                    "config": {
+                        "description": "Connection fields to change. The provider must match the connection and is immutable.",
+                        "discriminator": {
+                            "mapping": {
+                                "ANTHROPIC": "#/components/schemas/UpdateRouteConnectionConfigAnthropicV1",
+                                "OPENAI": "#/components/schemas/UpdateRouteConnectionConfigOpenAIV1",
+                                "XAI": "#/components/schemas/UpdateRouteConnectionConfigXAIV1"
+                            },
+                            "propertyName": "provider"
+                        },
+                        "examples": [
+                            {
+                                "provider": "ANTHROPIC",
+                                "secret_id": "abc1234"
+                            }
+                        ],
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateRouteConnectionConfigAnthropicV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UpdateRouteConnectionConfigOpenAIV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UpdateRouteConnectionConfigXAIV1"
+                            }
+                        ],
+                        "title": "Config"
                     }
                 },
                 "required": [
-                    "team_id",
-                    "harness",
-                    "models"
+                    "config"
                 ],
-                "title": "SetClaudeCodeHarnessConfigV1",
-                "type": "object"
-            },
-            "SetCodexHarnessConfigV1": {
-                "additionalProperties": false,
-                "properties": {
-                    "team_id": {
-                        "description": "Identifier of the team whose default models to set. Every route must belong to this team.",
-                        "minLength": 1,
-                        "title": "Team Id",
-                        "type": "string"
-                    },
-                    "harness": {
-                        "const": "codex",
-                        "description": "Codex, which supports only the `primary` role.",
-                        "title": "Harness",
-                        "type": "string"
-                    },
-                    "models": {
-                        "$ref": "#/components/schemas/PrimaryHarnessModelsV1",
-                        "description": "Route ID for each model role. Roles left out use Baseten's defaults."
-                    }
-                },
-                "required": [
-                    "team_id",
-                    "harness",
-                    "models"
-                ],
-                "title": "SetCodexHarnessConfigV1",
-                "type": "object"
-            },
-            "SetOpenCodeHarnessConfigV1": {
-                "additionalProperties": false,
-                "properties": {
-                    "team_id": {
-                        "description": "Identifier of the team whose default models to set. Every route must belong to this team.",
-                        "minLength": 1,
-                        "title": "Team Id",
-                        "type": "string"
-                    },
-                    "harness": {
-                        "const": "opencode",
-                        "description": "OpenCode, which supports the `primary` and `background` roles.",
-                        "title": "Harness",
-                        "type": "string"
-                    },
-                    "models": {
-                        "$ref": "#/components/schemas/BackgroundHarnessModelsV1",
-                        "description": "Route ID for each model role. Roles left out use Baseten's defaults."
-                    }
-                },
-                "required": [
-                    "team_id",
-                    "harness",
-                    "models"
-                ],
-                "title": "SetOpenCodeHarnessConfigV1",
-                "type": "object"
-            },
-            "SetRouteHarnessConfigRequestV1": {
-                "discriminator": {
-                    "mapping": {
-                        "claude-code": "#/components/schemas/SetClaudeCodeHarnessConfigV1",
-                        "codex": "#/components/schemas/SetCodexHarnessConfigV1",
-                        "opencode": "#/components/schemas/SetOpenCodeHarnessConfigV1"
-                    },
-                    "propertyName": "harness"
-                },
-                "oneOf": [
-                    {
-                        "$ref": "#/components/schemas/SetClaudeCodeHarnessConfigV1"
-                    },
-                    {
-                        "$ref": "#/components/schemas/SetOpenCodeHarnessConfigV1"
-                    },
-                    {
-                        "$ref": "#/components/schemas/SetCodexHarnessConfigV1"
-                    }
-                ],
-                "title": "SetRouteHarnessConfigRequestV1"
-            },
-            "RouteHarnessConfigTombstoneV1": {
-                "properties": {
-                    "harness": {
-                        "$ref": "#/components/schemas/RouteHarness",
-                        "description": "Harness whose default models were cleared."
-                    },
-                    "team_id": {
-                        "description": "Identifier of the team whose default models were cleared.",
-                        "title": "Team Id",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "harness",
-                    "team_id"
-                ],
-                "title": "RouteHarnessConfigTombstoneV1",
-                "type": "object"
-            },
-            "ClearRouteHarnessConfigRequestV1": {
-                "properties": {
-                    "team_id": {
-                        "description": "Identifier of the team whose default models to clear.",
-                        "minLength": 1,
-                        "title": "Team Id",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "team_id"
-                ],
-                "title": "ClearRouteHarnessConfigRequestV1",
+                "title": "UpdateRouteConnectionRequestV1",
                 "type": "object"
             },
             "RouteTombstoneV1": {
@@ -32804,6 +33766,45 @@
                             "Assistant"
                         ],
                         "title": "Display Name"
+                    },
+                    "target": {
+                        "anyOf": [
+                            {
+                                "discriminator": {
+                                    "mapping": {
+                                        "ANTHROPIC": "#/components/schemas/RouteTargetConfigAnthropicV1",
+                                        "BASETEN_MODEL_API": "#/components/schemas/RouteTargetConfigBasetenModelAPIV1",
+                                        "CLASSIFIER_MODEL_BASED": "#/components/schemas/RouteTargetConfigClassifierModelBasedV1",
+                                        "OPENAI": "#/components/schemas/RouteTargetConfigOpenAIV1",
+                                        "XAI": "#/components/schemas/RouteTargetConfigXAIV1"
+                                    },
+                                    "propertyName": "type"
+                                },
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/components/schemas/RouteTargetConfigBasetenModelAPIV1"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/RouteTargetConfigAnthropicV1"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/RouteTargetConfigOpenAIV1"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/RouteTargetConfigXAIV1"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/RouteTargetConfigClassifierModelBasedV1"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER_MODEL_BASED configuration of a router route is mutable.",
+                        "title": "Target",
+                        "x-null-distinct": true
                     }
                 },
                 "title": "UpdateRouteRequestV1",
@@ -33877,7 +34878,228 @@
                 "title": "RegisterAPIKeyResponseV1",
                 "type": "object"
             },
-            "ImageBuildLogV1": {
+            "GetSandboxConfigurationResponseV1": {
+                "type": "object",
+                "required": [
+                    "regions"
+                ],
+                "properties": {
+                    "regions": {
+                        "type": "array",
+                        "description": "Available Carbon-compatible regions, sorted by name. Empty when none are available.",
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxRegionV1"
+                        }
+                    }
+                }
+            },
+            "SandboxRegionV1": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "country",
+                    "continent",
+                    "location",
+                    "info_generation"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Public region identifier to use when creating a sandbox.",
+                        "example": "us-was-1"
+                    },
+                    "country": {
+                        "type": "string",
+                        "description": "Country code.",
+                        "example": "us"
+                    },
+                    "continent": {
+                        "type": "string",
+                        "description": "Continent code.",
+                        "example": "na"
+                    },
+                    "location": {
+                        "type": "string",
+                        "description": "Region location.",
+                        "example": "Washington"
+                    },
+                    "info_generation": {
+                        "type": "string",
+                        "description": "Runtime generation supported by this region, using the public name CARBON. Actual runtime selection depends on the team and sandbox configuration.",
+                        "enum": [
+                            "CARBON"
+                        ]
+                    }
+                }
+            },
+            "SandboxLogsV1": {
+                "type": "object",
+                "required": [
+                    "sandbox_name",
+                    "start_time",
+                    "end_time",
+                    "logs",
+                    "next_cursor"
+                ],
+                "properties": {
+                    "sandbox_name": {
+                        "type": "string"
+                    },
+                    "start_time": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "end_time": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "logs": {
+                        "type": "array",
+                        "maxItems": 1000,
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxLogEntryV1"
+                        }
+                    },
+                    "next_cursor": {
+                        "description": "Opaque cursor for the next page; null when there are no more entries.",
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                }
+            },
+            "SandboxLogEntryV1": {
+                "type": "object",
+                "required": [
+                    "timestamp",
+                    "message",
+                    "severity",
+                    "trace_id"
+                ],
+                "properties": {
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "severity": {
+                        "type": "integer",
+                        "description": "Numeric log severity."
+                    },
+                    "trace_id": {
+                        "type": "string",
+                        "description": "Associated trace identifier, or an empty string when unavailable."
+                    },
+                    "action": {
+                        "type": "string",
+                        "description": "Action or command when present on the log entry."
+                    }
+                }
+            },
+            "SandboxMetricsV1": {
+                "type": "object",
+                "required": [
+                    "sandbox_name",
+                    "start_time",
+                    "end_time",
+                    "interval_seconds",
+                    "data"
+                ],
+                "properties": {
+                    "sandbox_name": {
+                        "type": "string"
+                    },
+                    "start_time": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "end_time": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "interval_seconds": {
+                        "type": "integer"
+                    },
+                    "data": {
+                        "type": "array",
+                        "maxItems": 10000,
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxMetricsPointV1"
+                        }
+                    }
+                }
+            },
+            "SandboxMetricsPointV1": {
+                "type": "object",
+                "required": [
+                    "timestamp",
+                    "requests",
+                    "cpu_percent",
+                    "memory_bytes",
+                    "error_rate"
+                ],
+                "properties": {
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Start of this interval."
+                    },
+                    "requests": {
+                        "description": "Request count. Zero without traffic; null for intervals entirely before creation.",
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "cpu_percent": {
+                        "description": "Peak CPU usage in this interval, where 100 is one full CPU core. Null without a sample.",
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "memory_bytes": {
+                        "description": "Memory usage in bytes, averaged per series then maximum across series. Null without a sample.",
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "error_rate": {
+                        "description": "Fraction of requests returning 4xx or 5xx. Null when there are no requests.",
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                }
+            },
+            "SandboxImageBuildLogV1": {
                 "type": "object",
                 "required": [
                     "timestamp",
@@ -33898,7 +35120,7 @@
                     }
                 }
             },
-            "ImageBuildLogsResponseV1": {
+            "SandboxImageBuildLogsResponseV1": {
                 "type": "object",
                 "required": [
                     "logs",
@@ -33908,7 +35130,7 @@
                     "logs": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/ImageBuildLogV1"
+                            "$ref": "#/components/schemas/SandboxImageBuildLogV1"
                         }
                     },
                     "total_count": {
@@ -33947,7 +35169,11 @@
                         ]
                     },
                     "terminated_retention": {
-                        "type": "string",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxDurationV1"
+                            }
+                        ],
                         "description": "Duration to keep the sandbox record after termination for log access (e.g., '1h', '24h', '7d'). Defaults to 5m. Subject to maximum quota limits.",
                         "example": "24h"
                     }
@@ -33997,7 +35223,7 @@
             },
             "SandboxDurationV1": {
                 "type": "string",
-                "description": "Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w.",
+                "description": "Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w, where d is 24h and w is 7 \u00d7 24h. Days and weeks cannot be combined with other units, so 1d12h is rejected; use 36h instead. Values are returned exactly as sent, without normalization.",
                 "pattern": "^[+-]?(0|[0-9]+[dw]|([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(ns|us|\u00b5s|\u03bcs|ms|s|m|h)(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(ns|us|\u00b5s|\u03bcs|ms|s|m|h))*)$",
                 "example": "24h"
             },
@@ -34418,12 +35644,6 @@
                 "type": "object",
                 "description": "Writable sandbox configuration. Fields are serialized at the root of the request or resource.",
                 "properties": {
-                    "enabled": {
-                        "type": "boolean",
-                        "description": "When false, the sandbox is disabled and will not accept connections",
-                        "example": true,
-                        "default": true
-                    },
                     "lifecycle": {
                         "description": "Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates",
                         "allOf": [
@@ -34566,7 +35786,6 @@
                     }
                 },
                 "example": {
-                    "enabled": true,
                     "lifecycle": {
                         "expiration_policies": [
                             {
@@ -34896,13 +36115,8 @@
             },
             "UpdateSandboxRequestV1": {
                 "type": "object",
-                "description": "Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, and network configuration are immutable after creation. Supplying memory or network returns 400, including unchanged, empty, or null values.",
+                "description": "Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, network, region, image, and ports are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.",
                 "properties": {
-                    "enabled": {
-                        "type": "boolean",
-                        "description": "When false, the sandbox is disabled and will not accept connections",
-                        "example": true
-                    },
                     "lifecycle": {
                         "description": "Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates",
                         "allOf": [
@@ -34931,11 +36145,6 @@
                             "terminated_retention": "24h"
                         }
                     },
-                    "region": {
-                        "type": "string",
-                        "description": "Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.",
-                        "example": "us-pdx-1"
-                    },
                     "envs": {
                         "type": "array",
                         "description": "Environment variables injected into the sandbox.",
@@ -34952,26 +36161,6 @@
                                 "name": "PORT",
                                 "secret": false,
                                 "value": "3000"
-                            }
-                        ]
-                    },
-                    "image": {
-                        "type": "string",
-                        "description": "Image reference including its tag. Built-in image references are returned in the canonical baseten/ namespace. Use baseten/base-image:latest to get started with the built-in sandbox execution API. This image is available directly without building, pushing, or listing images through GET /v1/sandboxes/images.",
-                        "example": "baseten/base-image:latest"
-                    },
-                    "ports": {
-                        "description": "Set of ports for a resource",
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/SandboxPortsV1"
-                            }
-                        ],
-                        "example": [
-                            {
-                                "name": "http",
-                                "protocol": "HTTP",
-                                "target": 3000
                             }
                         ]
                     },
@@ -34999,7 +36188,6 @@
                 },
                 "minProperties": 1,
                 "example": {
-                    "enabled": true,
                     "lifecycle": {
                         "expiration_policies": [
                             {
@@ -35020,7 +36208,6 @@
                         ],
                         "terminated_retention": "24h"
                     },
-                    "region": "us-pdx-1",
                     "envs": [
                         {
                             "name": "NODE_ENV",
@@ -35031,14 +36218,6 @@
                             "name": "PORT",
                             "secret": false,
                             "value": "3000"
-                        }
-                    ],
-                    "image": "baseten/base-image:latest",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "protocol": "HTTP",
-                            "target": 3000
                         }
                     ],
                     "external_id": "api-review-20260916-001",
@@ -35143,7 +36322,6 @@
                     }
                 ],
                 "example": {
-                    "enabled": true,
                     "lifecycle": {
                         "expiration_policies": [
                             {
@@ -35290,7 +36468,6 @@
                         },
                         "example": [
                             {
-                                "enabled": true,
                                 "lifecycle": {
                                     "expiration_policies": [
                                         {
@@ -35402,7 +36579,6 @@
                 "example": {
                     "items": [
                         {
-                            "enabled": true,
                             "lifecycle": {
                                 "expiration_policies": [
                                     {
@@ -35499,7 +36675,7 @@
                     }
                 }
             },
-            "ListImagesResponseV1": {
+            "ListSandboxImagesResponseV1": {
                 "type": "object",
                 "description": "One page of image repository summaries. Fetch tags through the separate tag listing endpoint.",
                 "properties": {
@@ -35507,7 +36683,7 @@
                         "type": "array",
                         "description": "Image repositories on this page.",
                         "items": {
-                            "$ref": "#/components/schemas/ImageV1"
+                            "$ref": "#/components/schemas/SandboxImageSummaryV1"
                         }
                     },
                     "pagination": {
@@ -35519,14 +36695,14 @@
                     "pagination"
                 ]
             },
-            "ListImageTagsResponseV1": {
+            "ListSandboxImageTagsResponseV1": {
                 "type": "object",
                 "description": "One page of image tags.",
                 "properties": {
                     "items": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/ImageTagV1"
+                            "$ref": "#/components/schemas/SandboxImageTagV1"
                         }
                     },
                     "pagination": {
@@ -35538,7 +36714,7 @@
                     "pagination"
                 ]
             },
-            "ImageStatusV1": {
+            "SandboxImageStatusV1": {
                 "type": "string",
                 "description": "Image processing status. Only BUILT images are ready to use.",
                 "enum": [
@@ -35550,7 +36726,7 @@
                 "readOnly": true,
                 "example": "BUILT"
             },
-            "ImageTagV1": {
+            "SandboxImageTagV1": {
                 "type": "object",
                 "description": "A tag identifying a version of a sandbox image.",
                 "properties": {
@@ -35592,9 +36768,9 @@
                     "size": 134217728
                 }
             },
-            "ImageV1": {
+            "SandboxImageSummaryV1": {
                 "type": "object",
-                "description": "Sandbox image repository. List and get operations return a summary without embedded tags.",
+                "description": "Sandbox image repository summary. Fetch tags through GET /sandboxes/images/{image_name}/tags.",
                 "properties": {
                     "name": {
                         "type": "string",
@@ -35605,7 +36781,7 @@
                         "description": "Image processing status. Only BUILT images are ready to use.",
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/ImageStatusV1"
+                                "$ref": "#/components/schemas/SandboxImageStatusV1"
                             }
                         ],
                         "example": "BUILT"
@@ -35646,33 +36822,11 @@
                         "readOnly": true,
                         "description": "Number of image versions in the repository.",
                         "example": 2
-                    },
-                    "tags": {
-                        "type": "array",
-                        "description": "Empty for list and get summary responses. Use GET /sandboxes/images/{image_name}/tags to retrieve paginated image versions.",
-                        "items": {
-                            "$ref": "#/components/schemas/ImageTagV1"
-                        },
-                        "example": [
-                            {
-                                "name": "latest",
-                                "created_at": "2026-09-16T21:20:00Z",
-                                "updated_at": "2026-09-16T21:25:00Z",
-                                "size": 134217728
-                            },
-                            {
-                                "name": "20260915212000",
-                                "created_at": "2026-09-15T21:20:00Z",
-                                "updated_at": "2026-09-15T21:25:00Z",
-                                "size": 125829120
-                            }
-                        ]
                     }
                 },
                 "required": [
                     "name",
-                    "status",
-                    "tags"
+                    "status"
                 ],
                 "example": {
                     "name": "base-image",
@@ -35681,23 +36835,44 @@
                     "updated_at": "2026-09-16T21:25:00Z",
                     "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
                     "size": 260046848,
-                    "tags": [
-                        {
-                            "name": "latest",
-                            "created_at": "2026-09-16T21:20:00Z",
-                            "updated_at": "2026-09-16T21:25:00Z",
-                            "size": 134217728
-                        },
-                        {
-                            "name": "20260915212000",
-                            "created_at": "2026-09-15T21:20:00Z",
-                            "updated_at": "2026-09-15T21:25:00Z",
-                            "size": 125829120
-                        }
-                    ]
+                    "tag_count": 2
                 }
             },
-            "PushImageRequestV1": {
+            "SandboxImageV1": {
+                "description": "Sandbox image repository. Get operations return a summary with an empty tags array.",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/SandboxImageSummaryV1"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "tags": {
+                                "type": "array",
+                                "description": "Empty for get summary responses. Use GET /sandboxes/images/{image_name}/tags to retrieve paginated image versions.",
+                                "items": {
+                                    "$ref": "#/components/schemas/SandboxImageTagV1"
+                                },
+                                "example": []
+                            }
+                        },
+                        "required": [
+                            "tags"
+                        ]
+                    }
+                ],
+                "example": {
+                    "name": "base-image",
+                    "status": "BUILT",
+                    "created_at": "2026-09-15T21:20:00Z",
+                    "updated_at": "2026-09-16T21:25:00Z",
+                    "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
+                    "size": 260046848,
+                    "tag_count": 2,
+                    "tags": []
+                }
+            },
+            "PushSandboxImageRequestV1": {
                 "type": "object",
                 "description": "Push a sandbox image from a source archive or an existing registry image.",
                 "properties": {
@@ -35728,7 +36903,7 @@
                     "docker_config": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}"
                 }
             },
-            "PushImageResponseV1": {
+            "PushSandboxImageResponseV1": {
                 "type": "object",
                 "description": "Accepted image push. Acceptance does not imply readiness; poll GET /sandboxes/images/{image_name} until status is BUILT or FAILED.",
                 "properties": {
@@ -35741,7 +36916,7 @@
                         "description": "Image processing status. Only BUILT images are ready to use.",
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/ImageStatusV1"
+                                "$ref": "#/components/schemas/SandboxImageStatusV1"
                             }
                         ],
                         "example": "BUILDING"
@@ -35929,7 +37104,7 @@
                     "items"
                 ]
             },
-            "CleanupImagesResponseV1": {
+            "CleanupSandboxImagesResponseV1": {
                 "type": "object",
                 "description": "Result of cleaning up unused sandbox images.",
                 "properties": {
@@ -36148,11 +37323,11 @@
                 "in": "path",
                 "required": true
             },
-            "harness": {
+            "connection_id": {
                 "schema": {
                     "type": "string"
                 },
-                "name": "harness",
+                "name": "connection_id",
                 "in": "path",
                 "required": true
             },
@@ -36211,7 +37386,7 @@
                     "example": "baseten-api-review-0916"
                 }
             },
-            "ImageName": {
+            "SandboxImageName": {
                 "name": "image_name",
                 "in": "path",
                 "required": true,
@@ -36466,7 +37641,6 @@
             "UpdateSandbox": {
                 "summary": "Update every mutable field",
                 "value": {
-                    "enabled": true,
                     "lifecycle": {
                         "expiration_policies": [
                             {
@@ -36487,7 +37661,6 @@
                         ],
                         "terminated_retention": "24h"
                     },
-                    "region": "us-pdx-1",
                     "envs": [
                         {
                             "name": "NODE_ENV",
@@ -36498,14 +37671,6 @@
                             "name": "PORT",
                             "secret": false,
                             "value": "3000"
-                        }
-                    ],
-                    "image": "baseten/base-image:latest",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "protocol": "HTTP",
-                            "target": 3000
                         }
                     ],
                     "external_id": "api-review-20260916-001",
@@ -36521,7 +37686,6 @@
             "SandboxReady": {
                 "summary": "Running sandbox with complete configuration",
                 "value": {
-                    "enabled": true,
                     "lifecycle": {
                         "expiration_policies": [
                             {
@@ -36616,7 +37780,6 @@
             "SandboxUpdated": {
                 "summary": "Updated sandbox with complete configuration",
                 "value": {
-                    "enabled": true,
                     "lifecycle": {
                         "expiration_policies": [
                             {
@@ -36711,7 +37874,6 @@
             "SandboxDeleting": {
                 "summary": "Sandbox deletion accepted",
                 "value": {
-                    "enabled": true,
                     "lifecycle": {
                         "expiration_policies": [
                             {
@@ -36807,7 +37969,6 @@
                 "value": {
                     "items": [
                         {
-                            "enabled": true,
                             "lifecycle": {
                                 "expiration_policies": [
                                     {
@@ -36910,7 +38071,6 @@
                 "value": {
                     "items": [
                         {
-                            "enabled": true,
                             "lifecycle": {
                                 "expiration_policies": [
                                     {
@@ -37073,8 +38233,7 @@
                             "updated_at": "2026-09-16T21:25:00Z",
                             "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
                             "size": 260046848,
-                            "tag_count": 2,
-                            "tags": []
+                            "tag_count": 2
                         }
                     ],
                     "pagination": {
