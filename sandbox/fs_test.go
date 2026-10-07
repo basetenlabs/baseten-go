@@ -524,9 +524,10 @@ func TestFileSystemGrep(t *testing.T) {
 			MaxResults:    9,
 			FilePattern:   "*.go",
 			ExcludeDirs:   []string{"vendor"},
+			ContextLines:  1,
 		})
 		require.NoError(t, err)
-		require.Equal(t, "caseSensitive=true&excludeDirs=vendor&filePattern=%2A.go&maxResults=9&query=TODO", requests()[0].query)
+		require.Equal(t, "caseSensitive=true&contextLines=1&excludeDirs=vendor&filePattern=%2A.go&maxResults=9&query=TODO", requests()[0].query)
 		require.Len(t, result.Matches, 1)
 		require.Equal(t, FileSystemGrepMatch{Path: "a.go", Line: 3, Column: 4, Text: "// TODO", Context: "x\n// TODO"}, result.Matches[0])
 	})
@@ -609,15 +610,25 @@ func TestFileSystemWatch(t *testing.T) {
 		sb, requests := fsSandbox(t, func(w http.ResponseWriter, _ *http.Request) {
 			w.Write([]byte("[keepalive]\n" +
 				`{"op":"CREATE","path":"/tmp","name":"a"}` + "\n\n" +
-				`{"op":"WRITE","path":"/tmp/","name":"b"}` + "\n"))
+				`{"op":"WRITE|CHMOD","path":"/tmp/","name":"b"}` + "\n"))
 		})
 		var events []string
 		for event, err := range sb.FS().Watch(t.Context(), FileSystemWatchOptions{Path: "/tmp", Ignore: []string{"*.log", "x"}}) {
 			require.NoError(t, err)
-			events = append(events, string(event.Op)+" "+event.Path)
+			events = append(events, fmt.Sprint(event.Ops)+" "+event.Path)
 		}
-		require.Equal(t, "CREATE /tmp/a,WRITE /tmp/b", strings.Join(events, ","))
-		require.Equal(t, "ignore=%2A.log%2Cx", requests()[0].query)
+		require.Equal(t, "[CREATE] /tmp/a,[WRITE CHMOD] /tmp/b", strings.Join(events, ","))
+		got := requests()[0]
+		require.Equal(t, "/watch/filesystem/%2Ftmp", got.path)
+		require.Equal(t, "ignore=%2A.log%2Cx", got.query)
+	})
+
+	t.Run("RecursiveAppendsSuffix", func(t *testing.T) {
+		sb, requests := fsSandbox(t, func(http.ResponseWriter, *http.Request) {})
+		for _, err := range sb.FS().Watch(t.Context(), FileSystemWatchOptions{Path: "/tmp/", Recursive: true}) {
+			require.NoError(t, err)
+		}
+		require.Equal(t, "/watch/filesystem/%2Ftmp%2F%2A%2A", requests()[0].path)
 	})
 
 	t.Run("StopsStreamWhenIterationStops", func(t *testing.T) {

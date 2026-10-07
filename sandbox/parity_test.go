@@ -60,19 +60,23 @@ func TestTypeParity(t *testing.T) {
 		{name: "ProcessInfo", ours: ProcessInfo{}, generated: sandboxapi.ProcessResponse{}},
 		{name: "ProcessLogs", ours: ProcessLogs{}, generated: sandboxapi.ProcessLogs{}},
 		{
-			name: "ImageInfo", ours: ImageInfo{}, generated: managementapi.Image{},
+			name: "ImageInfo", ours: ImageInfo{}, generated: managementapi.SandboxImage{},
 			renamed:       map[string]string{"SizeBytes": "Size"},
 			generatedOnly: map[string]string{"Tags": "always empty; ImageClient.ListTags lists them"},
 		},
 		{
-			name: "ImageTagInfo", ours: ImageTagInfo{}, generated: managementapi.ImageTag{},
+			name: "ImageSummary", ours: ImageSummary{}, generated: managementapi.SandboxImageSummary{},
 			renamed: map[string]string{"SizeBytes": "Size"},
 		},
 		{
-			name: "ImageLogLine", ours: ImageLogLine{}, generated: managementapi.ImageBuildLog{},
+			name: "ImageTagInfo", ours: ImageTagInfo{}, generated: managementapi.SandboxImageTag{},
+			renamed: map[string]string{"SizeBytes": "Size"},
+		},
+		{
+			name: "ImageLogLine", ours: ImageLogLine{}, generated: managementapi.SandboxImageBuildLog{},
 			renamed: map[string]string{"Text": "Message"},
 		},
-		{name: "ImageCleanupResult", ours: ImageCleanupResult{}, generated: managementapi.CleanupImagesResponse{}},
+		{name: "ImageCleanupResult", ours: ImageCleanupResult{}, generated: managementapi.CleanupSandboxImagesResponse{}},
 		{
 			name: "ImageLibraryInfo", ours: ImageLibraryInfo{}, generated: managementapi.SandboxLibraryImage{},
 			oursOnly: map[string]string{

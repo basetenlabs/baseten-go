@@ -127,7 +127,7 @@ func TestExecStream(t *testing.T) {
 		require.Equal(t, ProcessExecEvent{TextStream: ProcessStreamStderr, Text: "warn\n"}, events[2])
 		require.Equal(t, "12", events[3].Exit.PID)
 		request := lastRequest()
-		require.Equal(t, "text/event-stream", request.accept)
+		require.Equal(t, "application/x-ndjson", request.accept)
 		require.Equal(t, `{"command":"ls","waitForCompletion":true}`, request.body)
 	})
 
@@ -139,6 +139,23 @@ func TestExecStream(t *testing.T) {
 		}
 		require.Error(t, lastErr)
 		require.Contains(t, lastErr.Error(), "before reporting the process's exit")
+	})
+
+	t.Run("ErrorRecordErrors", func(t *testing.T) {
+		sb, _ := streamSandbox(t, `{"type":"stdout","data":"x"}`, `{"type":"error","data":"process vanished"}`, resultRecord)
+		var events []ProcessExecEvent
+		var lastErr error
+		for event, err := range sb.Process().ExecStream(t.Context(), ProcessExecStreamOptions{Command: "ls"}) {
+			if err != nil {
+				lastErr = err
+				continue
+			}
+			events = append(events, event)
+		}
+		// The error ends the stream, so the result after it is never read.
+		require.Len(t, events, 1)
+		require.Error(t, lastErr)
+		require.Contains(t, lastErr.Error(), "process vanished")
 	})
 
 	t.Run("UnreadableRecordErrors", func(t *testing.T) {

@@ -232,7 +232,9 @@ type ProcessExecEvent struct {
 
 	// Text is a chunk of output exactly as written: not split into lines,
 	// so output such as a prompt arrives without waiting for a newline. It
-	// may be empty when the sandbox sends an empty chunk.
+	// may be empty when the sandbox sends an empty chunk. If the process
+	// finished before streaming started, each line instead arrives as its
+	// own event, without its newline.
 	Text string
 
 	// Exit is the process's final state, set on the last event only.
@@ -250,8 +252,7 @@ func (p *ProcessService) ExecStream(ctx context.Context, opts ProcessExecStreamO
 		}
 		request := processRequestToAPI(opts)
 		request.WaitForCompletion = optional(true)
-		// The sandbox streams only when asked for text/event-stream, though
-		// what it sends is newline-delimited JSON. Not retried, since a
+		// The raw call asks for newline-delimited JSON. Not retried, since a
 		// command may have side effects even when its response is lost.
 		response, err := p.sandbox.api.PostProcessRaw(ctx, request)
 		if err != nil {
@@ -293,8 +294,15 @@ func (p *ProcessService) ExecStream(ctx context.Context, opts ProcessExecStreamO
 				}
 				yield(ProcessExecEvent{Exit: &info}, nil)
 				return
+			case "error":
+				// The response status is already sent, so a failure after
+				// streaming starts arrives as a record that ends the stream.
+				yield(ProcessExecEvent{}, fmt.Errorf("process stream failed: %s", record.Data))
+				return
+			case "keepalive":
 			}
-			// Other record types, such as keepalives, carry no output.
+			// Other record types are skipped, so new ones don't break
+			// streaming.
 		}
 		if err := scanner.Err(); err != nil {
 			yield(ProcessExecEvent{}, err)
@@ -470,8 +478,8 @@ type ProcessStopOptions struct {
 	Identifier string
 }
 
-// Stop asks a process to exit gracefully. It then ends with
-// [ProcessStatusStopped].
+// Stop requests that a process exit gracefully and returns without waiting.
+// Use [ProcessService.Wait] for it to end, with [ProcessStatusStopped].
 func (p *ProcessService) Stop(ctx context.Context, opts ProcessStopOptions) error {
 	if opts.Identifier == "" {
 		return errors.New("Identifier is required")
@@ -487,7 +495,8 @@ type ProcessKillOptions struct {
 	Identifier string
 }
 
-// Kill kills a process. It then ends with [ProcessStatusKilled].
+// Kill requests that a process exit forcefully and returns without waiting.
+// Use [ProcessService.Wait] for it to end, with [ProcessStatusKilled].
 func (p *ProcessService) Kill(ctx context.Context, opts ProcessKillOptions) error {
 	if opts.Identifier == "" {
 		return errors.New("Identifier is required")
@@ -556,8 +565,10 @@ type ProcessLogLine struct {
 }
 
 // StreamLogs yields a process's output line by line, from the start, until
-// the process exits. An error is yielded as the second value and ends the
-// iteration. Stopping the iteration early leaves the process running.
+// the process exits. A partial line, such as a prompt, is yielded once its
+// newline arrives or the stream ends; use [ProcessService.ExecStream] for
+// output as it is written. An error is yielded as the second value and ends
+// the iteration. Stopping the iteration early leaves the process running.
 func (p *ProcessService) StreamLogs(ctx context.Context, opts ProcessStreamLogsOptions) iter.Seq2[ProcessLogLine, error] {
 	return func(yield func(ProcessLogLine, error) bool) {
 		if opts.Identifier == "" {

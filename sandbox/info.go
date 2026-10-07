@@ -50,9 +50,6 @@ type Info struct {
 	// Region is where the sandbox runs.
 	Region string
 
-	// Enabled is false while the sandbox is cut off from every connection.
-	Enabled bool
-
 	// Envs are the environment variables injected into the sandbox, by name.
 	// Values come back masked unless revealed with
 	// [GetInfoOptions.ShowSecrets], so sending them back in an update
@@ -232,7 +229,6 @@ func infoFromAPI(sandbox *managementapi.Sandbox) (Info, error) {
 		Image:      deref(sandbox.Image),
 		Memory:     deref(sandbox.Memory),
 		Region:     deref(sandbox.Region),
-		Enabled:    deref(sandbox.Enabled),
 		Envs:       envsFromAPI(deref(sandbox.Envs)),
 		Labels:     map[string]string{},
 		ExternalID: deref(sandbox.ExternalId),

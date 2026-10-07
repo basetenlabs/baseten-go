@@ -303,15 +303,13 @@ func TestList(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	cp := newControlPlane(t)
 	cp.respond("PATCH", "/v1/sandboxes/instances/sb", 200, sandboxRecord)
-	enabled := false
 	_, err := cp.client(t, ClientOptions{}).Update(t.Context(), UpdateOptions{
-		Name:    "sb",
-		Enabled: &enabled,
-		Ports:   []Port{},
-		Envs:    map[string]EnvValue{"A": {Value: "1", NonSecret: true}},
+		Name:   "sb",
+		Labels: map[string]string{},
+		Envs:   map[string]EnvValue{"A": {Value: "1", NonSecret: true}},
 	})
 	require.NoError(t, err)
-	require.Equal(t, `{"enabled":false,"envs":[{"name":"A","secret":false,"value":"1"}],"ports":[]}`, cp.lastRequest(t).body)
+	require.Equal(t, `{"envs":[{"name":"A","secret":false,"value":"1"}],"labels":{}}`, cp.lastRequest(t).body)
 }
 
 func TestDelete(t *testing.T) {

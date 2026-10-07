@@ -619,6 +619,15 @@ func TestE2EFileSystem(t *testing.T) {
 		require.Equal(t, "nested", read(t, dir+"/a/b/c.txt"))
 	})
 
+	t.Run("WritesAndReadsRelativePath", func(t *testing.T) {
+		path := uniqueName() + ".txt"
+		write(t, path, "relative")
+		t.Cleanup(func() {
+			require.NoError(t, fs.Remove(context.Background(), sandbox.FileSystemRemoveOptions{Path: path}))
+		})
+		require.Equal(t, "relative", read(t, path))
+	})
+
 	t.Run("ReadMissingFails", func(t *testing.T) {
 		dir := testDir(t)
 		_, err := fs.Read(t.Context(), sandbox.FileSystemReadOptions{Path: dir + "/missing.txt"})
@@ -660,13 +669,17 @@ func TestE2EFileSystem(t *testing.T) {
 			Content:     []byte("#!/bin/sh\necho ran\n"),
 			Permissions: "0755",
 		}))
-		// TODO: Assert the file is 755 and runs once the server honors
-		// permissions on multipart uploads. It ignores them today, leaving
-		// 644.
-		listing, err := fs.List(t.Context(), sandbox.FileSystemListOptions{Path: dir})
+		require.Equal(t, "755", mode(t, dir+"/run.sh"))
+		ran, err := sb.Process().Exec(t.Context(), sandbox.ProcessExecOptions{Command: dir + "/run.sh", WaitForCompletion: true})
 		require.NoError(t, err)
-		require.Len(t, listing.Files, 1)
-		require.Equal(t, "run.sh", listing.Files[0].Name)
+		require.Equal(t, "ran", strings.TrimSpace(ran.Stdout))
+		// An existing file keeps its mode.
+		require.NoError(t, fs.WriteBytes(t.Context(), sandbox.FileSystemWriteBytesOptions{
+			Path:        dir + "/run.sh",
+			Content:     []byte("#!/bin/sh\necho again\n"),
+			Permissions: "0700",
+		}))
+		require.Equal(t, "755", mode(t, dir+"/run.sh"))
 	})
 
 	t.Run("WriteBytesOverThresholdInParts", func(t *testing.T) {
@@ -803,6 +816,11 @@ func TestE2EFileSystem(t *testing.T) {
 		require.Equal(t, "a.txt", found.Matches[0].Path)
 		require.Equal(t, 2, found.Matches[0].Line)
 		require.Equal(t, "find Needle here", found.Matches[0].Text)
+		require.Equal(t, "", found.Matches[0].Context)
+		withContext, err := fs.Grep(t.Context(), sandbox.FileSystemGrepOptions{Path: dir, Query: "needle", ContextLines: 1})
+		require.NoError(t, err)
+		require.Len(t, withContext.Matches, 1)
+		require.Equal(t, "one\nfind Needle here\nthree", withContext.Matches[0].Context)
 		exact, err := fs.Grep(t.Context(), sandbox.FileSystemGrepOptions{Path: dir, Query: "needle", CaseSensitive: true})
 		require.NoError(t, err)
 		require.Equal(t, 0, exact.Total)
@@ -841,18 +859,17 @@ func TestE2EFileSystem(t *testing.T) {
 		require.Equal(t, "keep", read(t, dir+"/keep.txt"))
 	})
 
-	// The watch covers only the directory itself: in an earlier run, 20
-	// writes to a file in a subdirectory produced no event for it.
-	t.Run("WatchesDirectory", func(t *testing.T) {
-		dir := testDir(t)
-		path := dir + "/top.txt"
+	// Watches with opts and writes path until the watch reports an event for
+	// it.
+	watchUntilWritten := func(t *testing.T, opts sandbox.FileSystemWatchOptions, path string) {
+		t.Helper()
 		ctx, cancel := context.WithCancel(t.Context())
 		defer cancel()
 		events := make(chan sandbox.FileSystemWatchEvent, 100)
 		watchErr := make(chan error, 1)
 		go func() {
 			defer close(events)
-			for event, err := range fs.Watch(ctx, sandbox.FileSystemWatchOptions{Path: dir}) {
+			for event, err := range fs.Watch(ctx, opts) {
 				if err != nil {
 					watchErr <- err
 					return
@@ -892,7 +909,23 @@ func TestE2EFileSystem(t *testing.T) {
 			}
 		}
 		require.True(t, found != nil, "no event for %s, only %v", path, unmatched)
-		require.True(t, found.Op == sandbox.FileSystemWatchOpCreate || found.Op == sandbox.FileSystemWatchOpWrite, "op %s", found.Op)
+		require.True(t, slices.Contains(found.Ops, sandbox.FileSystemWatchOpCreate) || slices.Contains(found.Ops, sandbox.FileSystemWatchOpWrite),
+			"ops %v", found.Ops)
+	}
+
+	// The watch covers only the directory itself: in an earlier run, 20
+	// writes to a file in a subdirectory produced no event for it.
+	t.Run("WatchesDirectory", func(t *testing.T) {
+		dir := testDir(t)
+		watchUntilWritten(t, sandbox.FileSystemWatchOptions{Path: dir}, dir+"/top.txt")
+	})
+
+	t.Run("WatchesRecursively", func(t *testing.T) {
+		dir := testDir(t)
+		// The subdirectory exists before the watch, so the event shows the
+		// watch covers it.
+		write(t, dir+"/sub/existing.txt", "existing")
+		watchUntilWritten(t, sandbox.FileSystemWatchOptions{Path: dir, Recursive: true}, dir+"/sub/nested.txt")
 	})
 }
 

@@ -357,25 +357,12 @@ type UpdateOptions struct {
 	// Name is the sandbox's name. Required.
 	Name string
 
-	// Enabled false cuts the sandbox off from every connection until set
-	// back to true. Nil leaves it unchanged.
-	Enabled *bool
-
 	// Lifecycle replaces when the sandbox expires.
 	Lifecycle *Lifecycle
-
-	// Region moves the sandbox.
-	Region string
 
 	// Envs replace the sandbox's environment variables. Values returned
 	// masked in [Info.Envs] overwrite the real values if sent back.
 	Envs map[string]EnvValue
-
-	// Image is the image reference, including its tag.
-	Image string
-
-	// Ports replace the ports the sandbox exposes.
-	Ports []Port
 
 	// ExternalID is a caller-owned identifier for external lookups.
 	ExternalID string
@@ -394,12 +381,8 @@ func (c *Client) Update(ctx context.Context, opts UpdateOptions) (*Info, error) 
 		return nil, err
 	}
 	updated, err := c.api.UpdateSandbox(ctx, opts.Name, managementapi.UpdateSandboxParams{TeamId: c.teamID()}, managementapi.UpdateSandboxRequest{
-		Enabled:    opts.Enabled,
 		Lifecycle:  lifecycle,
-		Region:     optional(opts.Region),
 		Envs:       envsToAPI(opts.Envs),
-		Image:      optional(opts.Image),
-		Ports:      portsToAPI(opts.Ports),
 		ExternalId: optional(opts.ExternalID),
 		Labels:     labelsToAPI(opts.Labels),
 	})

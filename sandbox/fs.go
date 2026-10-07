@@ -38,7 +38,8 @@ const (
 )
 
 // FileSystemService reads and writes files and directories in a sandbox. Get
-// it from [Sandbox.FS].
+// it from [Sandbox.FS]. Relative paths are resolved against the sandbox's
+// working directory.
 type FileSystemService struct {
 	sandbox *Sandbox
 	// Slots for upload parts in flight, one per sandbox, since a sandbox
@@ -130,12 +131,13 @@ type FileSystemGrepMatch struct {
 	// Text is the matching line.
 	Text string
 
-	// Context is the lines around the match, empty when the sandbox includes
-	// none.
+	// Context is the matching line with up to
+	// [FileSystemGrepOptions.ContextLines] lines before and after it,
+	// newline-separated. Empty when ContextLines is zero.
 	Context string
 }
 
-// FileSystemWatchOp is the kind of change in a [FileSystemWatchEvent]. Other
+// FileSystemWatchOp is a kind of change in a [FileSystemWatchEvent]. Other
 // values may be added, so do not treat the constants as exhaustive.
 type FileSystemWatchOp string
 
@@ -150,7 +152,9 @@ const (
 
 // FileSystemWatchEvent is a change seen by [FileSystemService.Watch].
 type FileSystemWatchEvent struct {
-	Op FileSystemWatchOp
+	// Ops are the kinds of change, more than one when the sandbox reports
+	// several together.
+	Ops []FileSystemWatchOp
 
 	// Path is the full path of the changed entry.
 	Path string
@@ -158,7 +162,7 @@ type FileSystemWatchEvent struct {
 
 // FileSystemReadOptions are the options for [FileSystemService.Read].
 type FileSystemReadOptions struct {
-	// Path is the absolute path of the file. Required.
+	// Path is the path of the file. Required.
 	Path string
 }
 
@@ -185,7 +189,7 @@ func (f *FileSystemService) Read(ctx context.Context, opts FileSystemReadOptions
 
 // FileSystemReadBytesOptions are the options for [FileSystemService.ReadBytes].
 type FileSystemReadBytesOptions struct {
-	// Path is the absolute path of the file. Required.
+	// Path is the path of the file. Required.
 	Path string
 }
 
@@ -214,7 +218,7 @@ func (f *FileSystemService) ReadBytes(ctx context.Context, opts FileSystemReadBy
 
 // FileSystemWriteOptions are the options for [FileSystemService.Write].
 type FileSystemWriteOptions struct {
-	// Path is the absolute path of the file, created or replaced. Required.
+	// Path is the path of the file, created or replaced. Required.
 	Path string
 
 	// Content is the text content to write.
@@ -231,7 +235,7 @@ func (f *FileSystemService) Write(ctx context.Context, opts FileSystemWriteOptio
 	if len(opts.Content) > multipartThreshold {
 		return f.writeMultipart(ctx, opts.Path, []byte(opts.Content), "")
 	}
-	// Retried, since a repeat writes the same content.
+	// Retried, since the spec documents the write as idempotent.
 	_, err := retryIdempotent(ctx, f.sandbox.retries.UploadMaxRetries, f.sandbox.retries.GatewayMaxRetries,
 		func() (*sandboxapi.SuccessResponse, error) {
 			// Content is always sent, so empty content writes an empty file.
@@ -244,13 +248,14 @@ func (f *FileSystemService) Write(ctx context.Context, opts FileSystemWriteOptio
 // FileSystemWriteBytesOptions are the options for
 // [FileSystemService.WriteBytes].
 type FileSystemWriteBytesOptions struct {
-	// Path is the absolute path of the file, created or replaced. Required.
+	// Path is the path of the file, created or replaced. Required.
 	Path string
 
 	// Content is the content to write.
 	Content []byte
 
-	// Permissions is the octal file mode, such as "0755". Empty uses the
+	// Permissions is the octal file mode, such as "0755", applied when the
+	// file is created. An existing file keeps its mode. Empty uses the
 	// sandbox's default.
 	Permissions string
 }
@@ -274,9 +279,9 @@ func (f *FileSystemService) WriteBytes(ctx context.Context, opts FileSystemWrite
 	if err != nil {
 		return err
 	}
-	// The generated client has no multipart form for this endpoint, since the
-	// spec documents only a JSON body there. Retried, since a repeat writes
-	// the same content.
+	// The generated client has no multipart form for this endpoint, since it
+	// also takes a JSON body. Retried, since the spec documents the write as
+	// idempotent.
 	_, err = retryIdempotent(ctx, f.sandbox.retries.UploadMaxRetries, f.sandbox.retries.GatewayMaxRetries,
 		func() (struct{}, error) {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPut,
@@ -306,7 +311,7 @@ func (f *FileSystemService) WriteBytes(ctx context.Context, opts FileSystemWrite
 
 // FileSystemMkdirOptions are the options for [FileSystemService.Mkdir].
 type FileSystemMkdirOptions struct {
-	// Path is the absolute path of the directory. Required.
+	// Path is the path of the directory. Required.
 	Path string
 
 	// Permissions is the octal directory mode, such as "0755". Empty uses the
@@ -319,7 +324,7 @@ func (f *FileSystemService) Mkdir(ctx context.Context, opts FileSystemMkdirOptio
 	if opts.Path == "" {
 		return errors.New("Path is required")
 	}
-	// Retried, since a repeat creates the same directory.
+	// Retried, since the spec documents the write as idempotent.
 	_, err := retryIdempotent(ctx, f.sandbox.retries.UploadMaxRetries, f.sandbox.retries.GatewayMaxRetries,
 		func() (*sandboxapi.SuccessResponse, error) {
 			response, err := f.sandbox.api.PutFilesystem(ctx, opts.Path, sandboxapi.FileRequest{
@@ -333,7 +338,7 @@ func (f *FileSystemService) Mkdir(ctx context.Context, opts FileSystemMkdirOptio
 
 // FileSystemListOptions are the options for [FileSystemService.List].
 type FileSystemListOptions struct {
-	// Path is the absolute path of the directory. Required.
+	// Path is the path of the directory. Required.
 	Path string
 }
 
@@ -393,7 +398,7 @@ func (f *FileSystemService) List(ctx context.Context, opts FileSystemListOptions
 
 // FileSystemRemoveOptions are the options for [FileSystemService.Remove].
 type FileSystemRemoveOptions struct {
-	// Path is the absolute path of the file or directory. Required.
+	// Path is the path of the file or directory. Required.
 	Path string
 
 	// Recursive removes a directory and everything in it.
@@ -415,7 +420,7 @@ func (f *FileSystemService) Remove(ctx context.Context, opts FileSystemRemoveOpt
 
 // FileSystemFindOptions are the options for [FileSystemService.Find].
 type FileSystemFindOptions struct {
-	// Path is the absolute path of the directory to search in. Required.
+	// Path is the path of the directory to search in. Required.
 	Path string
 
 	// Type finds only files or only directories. Empty finds both.
@@ -475,7 +480,7 @@ func (f *FileSystemService) Find(ctx context.Context, opts FileSystemFindOptions
 
 // FileSystemGrepOptions are the options for [FileSystemService.Grep].
 type FileSystemGrepOptions struct {
-	// Path is the absolute path of the directory to search in. Required.
+	// Path is the path of the directory to search in. Required.
 	Path string
 
 	// Query is the text to search for. Required.
@@ -495,6 +500,10 @@ type FileSystemGrepOptions struct {
 	// default of common dependency and build directories, such as
 	// node_modules and .git.
 	ExcludeDirs []string
+
+	// ContextLines is how many lines before and after each match to include
+	// in its Context, at most 20. Zero includes none.
+	ContextLines int
 }
 
 // Grep searches the contents of files under a directory for text.
@@ -511,6 +520,7 @@ func (f *FileSystemService) Grep(ctx context.Context, opts FileSystemGrepOptions
 		MaxResults:    optional(opts.MaxResults),
 		FilePattern:   optional(opts.FilePattern),
 		ExcludeDirs:   optional(strings.Join(opts.ExcludeDirs, ",")),
+		ContextLines:  optional(opts.ContextLines),
 	}
 	result, err := retryIdempotent(ctx, f.sandbox.retries.ReadMaxRetries, f.sandbox.retries.GatewayMaxRetries,
 		func() (*sandboxapi.ContentSearchResponse, error) {
@@ -536,10 +546,10 @@ func (f *FileSystemService) Grep(ctx context.Context, opts FileSystemGrepOptions
 
 // FileSystemCopyOptions are the options for [FileSystemService.Copy].
 type FileSystemCopyOptions struct {
-	// Source is the absolute path of the file or directory to copy. Required.
+	// Source is the path of the file or directory to copy. Required.
 	Source string
 
-	// Destination is the absolute path to copy to. Required.
+	// Destination is the path to copy to. Required.
 	Destination string
 
 	// Timeout is how long to wait for the copy. Zero uses 180 seconds, and a
@@ -584,7 +594,7 @@ func (f *FileSystemService) Copy(ctx context.Context, opts FileSystemCopyOptions
 
 // FileSystemWriteTreeOptions are the options for [FileSystemService.WriteTree].
 type FileSystemWriteTreeOptions struct {
-	// Path is the absolute path of the directory to write under. Required.
+	// Path is the path of the directory to write under. Required.
 	Path string
 
 	// Files is the text content of each file, by path relative to Path.
@@ -597,7 +607,7 @@ func (f *FileSystemService) WriteTree(ctx context.Context, opts FileSystemWriteT
 	if opts.Path == "" {
 		return errors.New("Path is required")
 	}
-	// Retried, since a repeat writes the same content.
+	// Retried, since the spec documents the write as idempotent.
 	_, err := retryIdempotent(ctx, f.sandbox.retries.UploadMaxRetries, f.sandbox.retries.GatewayMaxRetries,
 		func() (*sandboxapi.PutFilesystemTreeResponse, error) {
 			response, err := f.sandbox.api.PutFilesystemTree(ctx, opts.Path, sandboxapi.TreeRequest{Files: optionalMap(opts.Files)})
@@ -608,24 +618,33 @@ func (f *FileSystemService) WriteTree(ctx context.Context, opts FileSystemWriteT
 
 // FileSystemWatchOptions are the options for [FileSystemService.Watch].
 type FileSystemWatchOptions struct {
-	// Path is the absolute path of the directory to watch. Required.
+	// Path is the path of the directory to watch. Required.
 	Path string
 
-	// Ignore are patterns of paths to ignore.
+	// Recursive also watches every subdirectory, including ones created
+	// later.
+	Recursive bool
+
+	// Ignore skips events whose full path contains any of these substrings.
 	Ignore []string
 }
 
 // Watch yields changes in a directory as they happen, until the iteration
-// stops or ctx is done. Changes in its subdirectories are not included. An
-// error is yielded as the second value and ends the iteration.
+// stops or ctx is done. Only the directory's direct entries are watched
+// unless Recursive is set. An error is yielded as the second value and ends
+// the iteration.
 func (f *FileSystemService) Watch(ctx context.Context, opts FileSystemWatchOptions) iter.Seq2[FileSystemWatchEvent, error] {
 	return func(yield func(FileSystemWatchEvent, error) bool) {
 		if opts.Path == "" {
 			yield(FileSystemWatchEvent{}, errors.New("Path is required"))
 			return
 		}
+		path := opts.Path
+		if opts.Recursive {
+			path = strings.TrimSuffix(path, "/") + "/**"
+		}
 		// Not retried, since a resent watch would miss changes in between.
-		response, err := f.sandbox.api.GetWatchFilesystemRaw(ctx, opts.Path, sandboxapi.GetWatchFilesystemPathParams{
+		response, err := f.sandbox.api.GetWatchFilesystemRaw(ctx, path, sandboxapi.GetWatchFilesystemPathParams{
 			Ignore: optional(strings.Join(opts.Ignore, ",")),
 		})
 		if err != nil {
@@ -649,9 +668,9 @@ func (f *FileSystemService) Watch(ctx context.Context, opts FileSystemWatchOptio
 				yield(FileSystemWatchEvent{}, fmt.Errorf("parsing watch event %q: %w", line, err))
 				return
 			}
-			watchEvent := FileSystemWatchEvent{
-				Op:   FileSystemWatchOp(event.Op),
-				Path: strings.TrimSuffix(event.Path, "/") + "/" + event.Name,
+			watchEvent := FileSystemWatchEvent{Path: strings.TrimSuffix(event.Path, "/") + "/" + event.Name}
+			for op := range strings.SplitSeq(event.Op, "|") {
+				watchEvent.Ops = append(watchEvent.Ops, FileSystemWatchOp(op))
 			}
 			if !yield(watchEvent, nil) {
 				return

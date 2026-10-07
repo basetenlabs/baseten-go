@@ -74,6 +74,31 @@ type ImageInfo struct {
 	TagCount int
 }
 
+// ImageSummary is an image's record as returned by [ImageClient.List].
+type ImageSummary struct {
+	// Name is the image's unique name.
+	Name string
+
+	// Status is the status of the image's latest version.
+	Status ImageStatus
+
+	// CreatedAt is when the image was created, zero when unknown.
+	CreatedAt time.Time
+
+	// UpdatedAt is when the image was last updated, zero when unknown.
+	UpdatedAt time.Time
+
+	// LastDeployedAt is when a sandbox last used the image, zero when none
+	// has.
+	LastDeployedAt time.Time
+
+	// SizeBytes is the image's size, zero when unknown.
+	SizeBytes int64
+
+	// TagCount is how many versions the image has.
+	TagCount int
+}
+
 // ImageTagInfo is one version of an image.
 type ImageTagInfo struct {
 	// Name is the version's tag.
@@ -186,7 +211,7 @@ func (c *ImageClient) Push(ctx context.Context, opts ImagePushOptions) (*ImageIn
 		return nil, err
 	}
 	defer archive.close()
-	request := managementapi.PushImageRequest{Name: opts.Name}
+	request := managementapi.PushSandboxImageRequest{Name: opts.Name}
 	if registry := opts.SourceRegistry; registry != nil {
 		request.Image = &registry.Image
 		request.DockerConfig = optional(registry.DockerConfig)
@@ -280,24 +305,34 @@ type ImageListOptions struct {
 	PageSize int
 }
 
-// List lists image records, fetching further pages as iteration reaches
+// List lists image summaries, fetching further pages as iteration reaches
 // them. An error is yielded as the second value and ends the iteration.
-func (c *ImageClient) List(ctx context.Context, opts ImageListOptions) iter.Seq2[*ImageInfo, error] {
-	return func(yield func(*ImageInfo, error) bool) {
+func (c *ImageClient) List(ctx context.Context, opts ImageListOptions) iter.Seq2[*ImageSummary, error] {
+	return func(yield func(*ImageSummary, error) bool) {
 		params := managementapi.ListImagesParams{
 			TeamId: c.client.teamID(),
 			Limit:  optional(opts.PageSize),
 			Sort:   optional(string(opts.Sort)),
 			Q:      optional(opts.NamePrefix),
 		}
-		paginate(yield, "image list", func(cursor *string) ([]managementapi.Image, managementapi.SandboxApiPagination, error) {
+		paginate(yield, "image list", func(cursor *string) ([]managementapi.SandboxImageSummary, managementapi.SandboxApiPagination, error) {
 			params.Cursor = cursor
 			page, err := c.client.api.ListImages(ctx, params)
 			if err != nil {
 				return nil, managementapi.SandboxApiPagination{}, err
 			}
 			return page.Items, page.Pagination, nil
-		}, func(image *managementapi.Image) (ImageInfo, error) { return imageInfoFromAPI(image), nil })
+		}, func(image *managementapi.SandboxImageSummary) (ImageSummary, error) {
+			return ImageSummary{
+				Name:           image.Name,
+				Status:         ImageStatus(image.Status),
+				CreatedAt:      deref(image.CreatedAt),
+				UpdatedAt:      deref(image.UpdatedAt),
+				LastDeployedAt: deref(image.LastDeployedAt),
+				SizeBytes:      deref(image.Size),
+				TagCount:       int(deref(image.TagCount)),
+			}, nil
+		})
 	}
 }
 
@@ -362,14 +397,14 @@ func (c *ImageClient) ListTags(ctx context.Context, opts ImageListTagsOptions) i
 			Sort:   optional(string(opts.Sort)),
 			Q:      optional(opts.NamePrefix),
 		}
-		paginate(yield, "image tag list", func(cursor *string) ([]managementapi.ImageTag, managementapi.SandboxApiPagination, error) {
+		paginate(yield, "image tag list", func(cursor *string) ([]managementapi.SandboxImageTag, managementapi.SandboxApiPagination, error) {
 			params.Cursor = cursor
 			page, err := c.client.api.ListImageTags(ctx, opts.Name, params)
 			if err != nil {
 				return nil, managementapi.SandboxApiPagination{}, err
 			}
 			return page.Items, page.Pagination, nil
-		}, func(tag *managementapi.ImageTag) (ImageTagInfo, error) { return imageTagInfoFromAPI(tag), nil })
+		}, func(tag *managementapi.SandboxImageTag) (ImageTagInfo, error) { return imageTagInfoFromAPI(tag), nil })
 	}
 }
 
@@ -565,7 +600,7 @@ type ImageLibraryVolume struct {
 
 // ListLibrary lists the built-in images available to every team.
 func (c *ImageClient) ListLibrary(ctx context.Context, opts ImageListLibraryOptions) ([]ImageLibraryInfo, error) {
-	response, err := c.client.api.ListSandboxLibraryImages(ctx, managementapi.ListSandboxLibraryImagesParams{TeamId: c.client.teamID()})
+	response, err := c.client.api.ListSandboxLibraryImages(ctx)
 	if err != nil {
 		return nil, controlPlaneError(err)
 	}
@@ -810,7 +845,7 @@ func pushSourceZip(ctx context.Context, opts ImagePushOptions) (*pushArchive, er
 	return nil, nil
 }
 
-func imageInfoFromAPI(image *managementapi.Image) ImageInfo {
+func imageInfoFromAPI(image *managementapi.SandboxImage) ImageInfo {
 	return ImageInfo{
 		Name:           image.Name,
 		Status:         ImageStatus(image.Status),
@@ -822,7 +857,7 @@ func imageInfoFromAPI(image *managementapi.Image) ImageInfo {
 	}
 }
 
-func imageTagInfoFromAPI(tag *managementapi.ImageTag) ImageTagInfo {
+func imageTagInfoFromAPI(tag *managementapi.SandboxImageTag) ImageTagInfo {
 	return ImageTagInfo{
 		Name:      tag.Name,
 		CreatedAt: deref(tag.CreatedAt),
