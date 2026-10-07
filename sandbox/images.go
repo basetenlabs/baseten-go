@@ -74,31 +74,6 @@ type ImageInfo struct {
 	TagCount int
 }
 
-// ImageSummary is an image's record as returned by [ImageClient.List].
-type ImageSummary struct {
-	// Name is the image's unique name.
-	Name string
-
-	// Status is the status of the image's latest version.
-	Status ImageStatus
-
-	// CreatedAt is when the image was created, zero when unknown.
-	CreatedAt time.Time
-
-	// UpdatedAt is when the image was last updated, zero when unknown.
-	UpdatedAt time.Time
-
-	// LastDeployedAt is when a sandbox last used the image, zero when none
-	// has.
-	LastDeployedAt time.Time
-
-	// SizeBytes is the image's size, zero when unknown.
-	SizeBytes int64
-
-	// TagCount is how many versions the image has.
-	TagCount int
-}
-
 // ImageTagInfo is one version of an image.
 type ImageTagInfo struct {
 	// Name is the version's tag.
@@ -305,10 +280,10 @@ type ImageListOptions struct {
 	PageSize int
 }
 
-// List lists image summaries, fetching further pages as iteration reaches
-// them. An error is yielded as the second value and ends the iteration.
-func (c *ImageClient) List(ctx context.Context, opts ImageListOptions) iter.Seq2[*ImageSummary, error] {
-	return func(yield func(*ImageSummary, error) bool) {
+// List lists images, fetching further pages as iteration reaches them. An
+// error is yielded as the second value and ends the iteration.
+func (c *ImageClient) List(ctx context.Context, opts ImageListOptions) iter.Seq2[*ImageInfo, error] {
+	return func(yield func(*ImageInfo, error) bool) {
 		params := managementapi.ListImagesParams{
 			TeamId: c.client.teamID(),
 			Limit:  optional(opts.PageSize),
@@ -322,8 +297,8 @@ func (c *ImageClient) List(ctx context.Context, opts ImageListOptions) iter.Seq2
 				return nil, managementapi.SandboxApiPagination{}, err
 			}
 			return page.Items, page.Pagination, nil
-		}, func(image *managementapi.SandboxImageSummary) (ImageSummary, error) {
-			return ImageSummary{
+		}, func(image *managementapi.SandboxImageSummary) (ImageInfo, error) {
+			return ImageInfo{
 				Name:           image.Name,
 				Status:         ImageStatus(image.Status),
 				CreatedAt:      deref(image.CreatedAt),

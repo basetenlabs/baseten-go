@@ -65,7 +65,7 @@ func TestTypeParity(t *testing.T) {
 			generatedOnly: map[string]string{"Tags": "always empty; ImageClient.ListTags lists them"},
 		},
 		{
-			name: "ImageSummary", ours: ImageSummary{}, generated: managementapi.SandboxImageSummary{},
+			name: "ImageInfo/Summary", ours: ImageInfo{}, generated: managementapi.SandboxImageSummary{},
 			renamed: map[string]string{"SizeBytes": "Size"},
 		},
 		{
