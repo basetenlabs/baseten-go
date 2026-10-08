@@ -181,6 +181,8 @@ const (
 	AuditLogEventType_USER_ROLE_UPDATED                                      AuditLogEventType = "USER_ROLE_UPDATED"
 	AuditLogEventType_USER_TEAM_ROLE_UPDATED                                 AuditLogEventType = "USER_TEAM_ROLE_UPDATED"
 	AuditLogEventType_VOLUME_DELETED                                         AuditLogEventType = "VOLUME_DELETED"
+	AuditLogEventType_VOLUME_TAG_DELETED                                     AuditLogEventType = "VOLUME_TAG_DELETED"
+	AuditLogEventType_VOLUME_TAG_SET                                         AuditLogEventType = "VOLUME_TAG_SET"
 	AuditLogEventType_VOLUME_VERSION_DELETED                                 AuditLogEventType = "VOLUME_VERSION_DELETED"
 	AuditLogEventType_VOLUME_VERSION_RESTORED                                AuditLogEventType = "VOLUME_VERSION_RESTORED"
 	AuditLogEventType_WEBHOOK_SIGNING_SECRET_CREATED                         AuditLogEventType = "WEBHOOK_SIGNING_SECRET_CREATED"
@@ -280,6 +282,10 @@ func (e AuditLogEventType) Valid() bool {
 	case AuditLogEventType_USER_TEAM_ROLE_UPDATED:
 		return true
 	case AuditLogEventType_VOLUME_DELETED:
+		return true
+	case AuditLogEventType_VOLUME_TAG_DELETED:
+		return true
+	case AuditLogEventType_VOLUME_TAG_SET:
 		return true
 	case AuditLogEventType_VOLUME_VERSION_DELETED:
 		return true
@@ -2428,6 +2434,22 @@ type AuditLogEventVolumeDeleted struct {
 	VolumeRef       string `json:"volume_ref"`
 }
 
+// AuditLogEventVolumeTagDeleted Deleting a volume tag succeeded. `deleted` is false if the tag was already absent.
+type AuditLogEventVolumeTagDeleted struct {
+	Deleted   bool   `json:"deleted"`
+	EventType string `json:"event_type"`
+	Tag       string `json:"tag"`
+	VolumeRef string `json:"volume_ref"`
+}
+
+// AuditLogEventVolumeTagSet A volume tag was set on a version.
+type AuditLogEventVolumeTagSet struct {
+	Digest    string `json:"digest"`
+	EventType string `json:"event_type"`
+	Tag       string `json:"tag"`
+	VolumeRef string `json:"volume_ref"`
+}
+
 // AuditLogEventVolumeVersionDeleted One version of a volume was deleted.
 type AuditLogEventVolumeVersionDeleted struct {
 	Digest     string `json:"digest"`
@@ -3166,6 +3188,9 @@ type CreateLLMModelRequest struct {
 	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
+	// EgressRestrictions Restricts this deployment's egress to the specified FQDNs and IP addresses; an empty block allows none. Requires the organization to have egress restrictions enabled.
+	EgressRestrictions *EgressRestrictions `json:"egress_restrictions,omitempty"`
+
 	// EnvironmentVariables Environment variables for the model
 	EnvironmentVariables *map[string]interface{} `json:"environment_variables,omitempty"`
 
@@ -3201,6 +3226,9 @@ type CreateLLMModelVersionRequest struct {
 
 	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
+
+	// EgressRestrictions Restricts this deployment's egress to the specified FQDNs and IP addresses; an empty block allows none. Requires the organization to have egress restrictions enabled.
+	EgressRestrictions *EgressRestrictions `json:"egress_restrictions,omitempty"`
 
 	// EnvironmentVariables Environment variables for the model
 	EnvironmentVariables *map[string]interface{} `json:"environment_variables,omitempty"`
@@ -3984,6 +4012,30 @@ type DeleteVolumeResponse struct {
 	VolumeSequence int `json:"volume_sequence"`
 }
 
+// DeleteVolumeTagRequest defines model for DeleteVolumeTagRequest.
+type DeleteVolumeTagRequest struct {
+	// ExpectedSequence Revision the volume is expected to be at. When set, the delete fails with a conflict if the volume has changed since, so it cannot delete a tag someone else has just set on another version. Take the value from volume_sequence.
+	ExpectedSequence *int `json:"expected_sequence,omitempty"`
+}
+
+// DeleteVolumeTagResponse defines model for DeleteVolumeTagResponse.
+type DeleteVolumeTagResponse struct {
+	// Deleted Whether the tag existed and was deleted. False when the volume had no tag by that name, which is not an error.
+	Deleted bool `json:"deleted"`
+
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
+
+	// Tag Tag name from the request, with its original capitalization.
+	Tag string `json:"tag"`
+
+	// Volume Name of the volume, in lowercase.
+	Volume string `json:"volume"`
+
+	// VolumeSequence Revision of the volume after the delete.
+	VolumeSequence int `json:"volume_sequence"`
+}
+
 // DeleteVolumeVersionRequest defines model for DeleteVolumeVersionRequest.
 type DeleteVolumeVersionRequest struct {
 	// ExpectedSequence Revision the volume is expected to be at. When set, the delete fails with a conflict if the volume has changed since, so a read followed by a delete cannot act on a version a tag has since been moved off. Take the value from volume_sequence.
@@ -4367,6 +4419,15 @@ type EffectiveUsageLimit struct {
 	Threshold int            `json:"threshold"`
 	Type      LimitType      `json:"type"`
 	Unit      UsageLimitUnit `json:"unit"`
+}
+
+// EgressRestrictions defines model for EgressRestrictions.
+type EgressRestrictions struct {
+	// FqdnAllowList Allowed outbound FQDNs; '*' wildcards are supported.
+	FqdnAllowList *[]string `json:"fqdn_allow_list,omitempty"`
+
+	// IpAllowList Allowed outbound IPv4 addresses or CIDR ranges.
+	IpAllowList *[]string `json:"ip_allow_list,omitempty"`
 }
 
 // EmbeddingBenchmarkMetrics defines model for EmbeddingBenchmarkMetrics.
@@ -7639,6 +7700,45 @@ type Secrets struct {
 	Secrets []Secret `json:"secrets"`
 }
 
+// SetVolumeTagRequest defines model for SetVolumeTagRequest.
+type SetVolumeTagRequest struct {
+	// ExpectedSequence Revision the volume is expected to be at. When set, the request fails with a conflict if the volume has changed since. Take the value from volume_sequence.
+	ExpectedSequence *int `json:"expected_sequence,omitempty"`
+
+	// ExpiresAt Time at which the tag expires, in ISO 8601 format, to the whole second, with a UTC offset. It must be in the future and at most ten years ahead. Omit it for a tag with no expiration time of its own. Omitting it also clears the expiration time of an existing tag. Version or volume expiration still deletes the tag. Do not specify it when setting `head`.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	// Tag Name of the tag to set. Tags are case-sensitive. Setting a tag that already exists overwrites it, and the version it pointed at before stays reachable by digest.
+	Tag string `json:"tag"`
+
+	// Version Version to set the tag on. Address it with `:<tag>` for a tag, `@<digest>` for a full content digest or a prefix of at least 12 hexadecimal characters, or `head` for the version a reference with no tag or digest resolves to.
+	Version string `json:"version"`
+}
+
+// SetVolumeTagResponse defines model for SetVolumeTagResponse.
+type SetVolumeTagResponse struct {
+	// Digest Content digest of the version the tag points at, as `b3:<hex>`.
+	Digest string `json:"digest"`
+
+	// ExpiresAt Tag expiration time in ISO 8601 format. Null when the tag has no expiration time of its own.
+	ExpiresAt *time.Time `json:"expires_at"`
+
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
+
+	// Tag Name of the tag that was set, with its original capitalization.
+	Tag string `json:"tag"`
+
+	// VersionRef Full address of the tagged version, as `bdn:<namespace>/<volume>@<digest>`. Paste it into a config.yaml to pin this version, even if the tag is later set on another version.
+	VersionRef string `json:"version_ref"`
+
+	// Volume Name of the volume, in lowercase.
+	Volume string `json:"volume"`
+
+	// VolumeSequence Revision of the volume after the tag was set.
+	VolumeSequence int `json:"volume_sequence"`
+}
+
 // SharedEndpointRegion defines model for SharedEndpointRegion.
 type SharedEndpointRegion string
 
@@ -10115,6 +10215,12 @@ type PostV1VolumesTokenJSONRequestBody = CreateVolumeTokenRequest
 // DeleteV1VolumesVolumeNamespaceVolumeNameJSONRequestBody defines body for DeleteV1VolumesVolumeNamespaceVolumeName for application/json ContentType.
 type DeleteV1VolumesVolumeNamespaceVolumeNameJSONRequestBody = DeleteVolumeRequest
 
+// PostV1VolumesVolumeNamespaceVolumeNameTagsJSONRequestBody defines body for PostV1VolumesVolumeNamespaceVolumeNameTags for application/json ContentType.
+type PostV1VolumesVolumeNamespaceVolumeNameTagsJSONRequestBody = SetVolumeTagRequest
+
+// DeleteV1VolumesVolumeNamespaceVolumeNameTagsVolumeTagJSONRequestBody defines body for DeleteV1VolumesVolumeNamespaceVolumeNameTagsVolumeTag for application/json ContentType.
+type DeleteV1VolumesVolumeNamespaceVolumeNameTagsVolumeTagJSONRequestBody = DeleteVolumeTagRequest
+
 // DeleteV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersionJSONRequestBody defines body for DeleteV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersion for application/json ContentType.
 type DeleteV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersionJSONRequestBody = DeleteVolumeVersionRequest
 
@@ -10871,6 +10977,36 @@ func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeVersionRestored(v Audit
 	return err
 }
 
+// AsAuditLogEventVolumeTagSet returns the union data inside the AuditLogEntry_EventData as a AuditLogEventVolumeTagSet
+func (t AuditLogEntry_EventData) AsAuditLogEventVolumeTagSet() (AuditLogEventVolumeTagSet, error) {
+	var body AuditLogEventVolumeTagSet
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventVolumeTagSet overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventVolumeTagSet
+func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeTagSet(v AuditLogEventVolumeTagSet) error {
+	v.EventType = "VOLUME_TAG_SET"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventVolumeTagDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventVolumeTagDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventVolumeTagDeleted() (AuditLogEventVolumeTagDeleted, error) {
+	var body AuditLogEventVolumeTagDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventVolumeTagDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventVolumeTagDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeTagDeleted(v AuditLogEventVolumeTagDeleted) error {
+	v.EventType = "VOLUME_TAG_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t AuditLogEntry_EventData) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"event_type"`
@@ -10975,6 +11111,10 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventUserTeamRoleUpdated()
 	case "VOLUME_DELETED":
 		return t.AsAuditLogEventVolumeDeleted()
+	case "VOLUME_TAG_DELETED":
+		return t.AsAuditLogEventVolumeTagDeleted()
+	case "VOLUME_TAG_SET":
+		return t.AsAuditLogEventVolumeTagSet()
 	case "VOLUME_VERSION_DELETED":
 		return t.AsAuditLogEventVolumeVersionDeleted()
 	case "VOLUME_VERSION_RESTORED":

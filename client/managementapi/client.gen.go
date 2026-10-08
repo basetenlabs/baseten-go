@@ -295,6 +295,18 @@ func (c *Client) DeleteVolumes(ctx context.Context, volumeNamespace string, volu
 	})
 }
 
+// DeleteVolumesTags: Deletes a volume tag
+func (c *Client) DeleteVolumesTags(ctx context.Context, volumeNamespace string, volumeName string, volumeTag string, body DeleteVolumeTagRequest) (*DeleteVolumeTagResponse, error) {
+	return doJSON[DeleteVolumeTagResponse](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/volumes/%s/%s/tags/%s",
+		pathArgs:     []any{volumeNamespace, volumeName, volumeTag},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // DeleteVolumesVersions: Deletes one version of a volume
 func (c *Client) DeleteVolumesVersions(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string, body DeleteVolumeVersionRequest) (*DeleteVolumeVersionResponse, error) {
 	return doJSON[DeleteVolumeVersionResponse](c, ctx, apiRequest{
@@ -2745,6 +2757,18 @@ func (c *Client) PostVolumesSyncsCancel(ctx context.Context, volumeSyncId string
 		method:       "POST",
 		pathFmt:      "/v1/volumes/syncs/%s/cancel",
 		pathArgs:     []any{volumeSyncId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PostVolumesTags: Sets a volume tag
+func (c *Client) PostVolumesTags(ctx context.Context, volumeNamespace string, volumeName string, body SetVolumeTagRequest) (*SetVolumeTagResponse, error) {
+	return doJSON[SetVolumeTagResponse](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/volumes/%s/%s/tags",
+		pathArgs:     []any{volumeNamespace, volumeName},
+		body:         body,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
