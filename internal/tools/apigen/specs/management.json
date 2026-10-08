@@ -444,6 +444,43 @@
                     }
                 },
                 "x-stability": "unstable"
+            },
+            "patch": {
+                "summary": "Updates a volume",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"expires_at\": \"2030-01-01T00:00:00Z\",\n  \"expected_sequence\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'expires_at': '2030-01-01T00:00:00Z', 'expected_sequence': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Updates a volume's settings, such as its expiration time. Only the settings in the request change.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchVolumeRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PatchVolumeResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
             }
         },
         "/v1/volumes/{volume_namespace}/{volume_name}/versions": {
@@ -13178,6 +13215,85 @@
                 "title": "DeleteVolumeResponseV1",
                 "type": "object"
             },
+            "PatchVolumeRequestV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Time at which the volume expires, in ISO 8601 format, to the whole second, with a UTC offset. It must be in the future and at most ten years ahead. Set it to null to clear the expiration time. A body that sets no field is rejected. When the volume expires, all live versions are deleted, all tags are removed, and the volume disappears from listings. Clearing the expiration time afterward does not restore deleted versions. Each deleted version can be restored until its delete_after time. Setting or clearing the expiration time requires the same permission as deleting the volume.",
+                        "examples": [
+                            "2030-01-01T00:00:00Z"
+                        ],
+                        "title": "Expires At",
+                        "x-null-distinct": true
+                    },
+                    "expected_sequence": {
+                        "anyOf": [
+                            {
+                                "minimum": 0,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Revision the volume is expected to be at. When set, the update fails with a conflict if the volume has changed since. Take the value from a volume's sequence, or from volume_sequence.",
+                        "title": "Expected Sequence"
+                    }
+                },
+                "title": "PatchVolumeRequestV1",
+                "type": "object"
+            },
+            "PatchVolumeResponseV1": {
+                "properties": {
+                    "namespace": {
+                        "description": "Namespace the volume belongs to, in lowercase.",
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume": {
+                        "description": "Name of the volume, in lowercase.",
+                        "title": "Volume",
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Volume expiration time in ISO 8601 format. Null when no expiration time is set.",
+                        "title": "Expires At"
+                    },
+                    "volume_sequence": {
+                        "description": "Revision of the volume after the update.",
+                        "title": "Volume Sequence",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "volume",
+                    "expires_at",
+                    "volume_sequence"
+                ],
+                "title": "PatchVolumeResponseV1",
+                "type": "object"
+            },
             "VolumeVersionV1": {
                 "properties": {
                     "namespace": {
@@ -14897,6 +15013,8 @@
                                 "USER_ROLE_UPDATED": "#/components/schemas/AuditLogEventUserRoleUpdatedV1",
                                 "USER_TEAM_ROLE_UPDATED": "#/components/schemas/AuditLogEventUserTeamRoleUpdatedV1",
                                 "VOLUME_DELETED": "#/components/schemas/AuditLogEventVolumeDeletedV1",
+                                "VOLUME_EXPIRATION_CLEARED": "#/components/schemas/AuditLogEventVolumeExpirationClearedV1",
+                                "VOLUME_EXPIRATION_SCHEDULED": "#/components/schemas/AuditLogEventVolumeExpirationScheduledV1",
                                 "VOLUME_TAG_DELETED": "#/components/schemas/AuditLogEventVolumeTagDeletedV1",
                                 "VOLUME_TAG_SET": "#/components/schemas/AuditLogEventVolumeTagSetV1",
                                 "VOLUME_VERSION_DELETED": "#/components/schemas/AuditLogEventVolumeVersionDeletedV1",
@@ -15063,6 +15181,12 @@
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventVolumeTagDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventVolumeExpirationScheduledV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventVolumeExpirationClearedV1"
                             }
                         ],
                         "title": "Event Data"
@@ -18006,7 +18130,9 @@
                     "VOLUME_VERSION_DELETED",
                     "VOLUME_VERSION_RESTORED",
                     "VOLUME_TAG_SET",
-                    "VOLUME_TAG_DELETED"
+                    "VOLUME_TAG_DELETED",
+                    "VOLUME_EXPIRATION_SCHEDULED",
+                    "VOLUME_EXPIRATION_CLEARED"
                 ],
                 "title": "AuditLogEventTypeV1",
                 "type": "string"
@@ -18184,6 +18310,57 @@
                     "versions_deleted"
                 ],
                 "title": "AuditLogEventVolumeDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventVolumeExpirationClearedV1": {
+                "description": "A volume's scheduled deletion was cleared.",
+                "properties": {
+                    "event_type": {
+                        "const": "VOLUME_EXPIRATION_CLEARED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "previous_expires_at": {
+                        "description": "The expiration time this request removed, as an ISO 8601 string.",
+                        "title": "Previous Expires At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "volume_ref",
+                    "previous_expires_at"
+                ],
+                "title": "AuditLogEventVolumeExpirationClearedV1",
+                "type": "object"
+            },
+            "AuditLogEventVolumeExpirationScheduledV1": {
+                "description": "A volume's deletion was scheduled.",
+                "properties": {
+                    "event_type": {
+                        "const": "VOLUME_EXPIRATION_SCHEDULED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "title": "Expires At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "volume_ref",
+                    "expires_at"
+                ],
+                "title": "AuditLogEventVolumeExpirationScheduledV1",
                 "type": "object"
             },
             "AuditLogEventVolumeTagDeletedV1": {

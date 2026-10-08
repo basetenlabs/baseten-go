@@ -181,6 +181,8 @@ const (
 	AuditLogEventType_USER_ROLE_UPDATED                                      AuditLogEventType = "USER_ROLE_UPDATED"
 	AuditLogEventType_USER_TEAM_ROLE_UPDATED                                 AuditLogEventType = "USER_TEAM_ROLE_UPDATED"
 	AuditLogEventType_VOLUME_DELETED                                         AuditLogEventType = "VOLUME_DELETED"
+	AuditLogEventType_VOLUME_EXPIRATION_CLEARED                              AuditLogEventType = "VOLUME_EXPIRATION_CLEARED"
+	AuditLogEventType_VOLUME_EXPIRATION_SCHEDULED                            AuditLogEventType = "VOLUME_EXPIRATION_SCHEDULED"
 	AuditLogEventType_VOLUME_TAG_DELETED                                     AuditLogEventType = "VOLUME_TAG_DELETED"
 	AuditLogEventType_VOLUME_TAG_SET                                         AuditLogEventType = "VOLUME_TAG_SET"
 	AuditLogEventType_VOLUME_VERSION_DELETED                                 AuditLogEventType = "VOLUME_VERSION_DELETED"
@@ -282,6 +284,10 @@ func (e AuditLogEventType) Valid() bool {
 	case AuditLogEventType_USER_TEAM_ROLE_UPDATED:
 		return true
 	case AuditLogEventType_VOLUME_DELETED:
+		return true
+	case AuditLogEventType_VOLUME_EXPIRATION_CLEARED:
+		return true
+	case AuditLogEventType_VOLUME_EXPIRATION_SCHEDULED:
 		return true
 	case AuditLogEventType_VOLUME_TAG_DELETED:
 		return true
@@ -2432,6 +2438,22 @@ type AuditLogEventVolumeDeleted struct {
 	VersionsDeleted int    `json:"versions_deleted"`
 	VolumeName      string `json:"volume_name"`
 	VolumeRef       string `json:"volume_ref"`
+}
+
+// AuditLogEventVolumeExpirationCleared A volume's scheduled deletion was cleared.
+type AuditLogEventVolumeExpirationCleared struct {
+	EventType string `json:"event_type"`
+
+	// PreviousExpiresAt The expiration time this request removed, as an ISO 8601 string.
+	PreviousExpiresAt string `json:"previous_expires_at"`
+	VolumeRef         string `json:"volume_ref"`
+}
+
+// AuditLogEventVolumeExpirationScheduled A volume's deletion was scheduled.
+type AuditLogEventVolumeExpirationScheduled struct {
+	EventType string `json:"event_type"`
+	ExpiresAt string `json:"expires_at"`
+	VolumeRef string `json:"volume_ref"`
 }
 
 // AuditLogEventVolumeTagDeleted Deleting a volume tag succeeded. `deleted` is false if the tag was already absent.
@@ -6451,6 +6473,30 @@ type PatchTeamTrainingGpuCapacityResponse struct {
 	TeamGpuCapacity TeamTrainingGpuCapacityItem `json:"team_gpu_capacity"`
 }
 
+// PatchVolumeRequest defines model for PatchVolumeRequest.
+type PatchVolumeRequest struct {
+	// ExpectedSequence Revision the volume is expected to be at. When set, the update fails with a conflict if the volume has changed since. Take the value from a volume's sequence, or from volume_sequence.
+	ExpectedSequence *int `json:"expected_sequence,omitempty"`
+
+	// ExpiresAt Time at which the volume expires, in ISO 8601 format, to the whole second, with a UTC offset. It must be in the future and at most ten years ahead. Set it to null to clear the expiration time. A body that sets no field is rejected. When the volume expires, all live versions are deleted, all tags are removed, and the volume disappears from listings. Clearing the expiration time afterward does not restore deleted versions. Each deleted version can be restored until its delete_after time. Setting or clearing the expiration time requires the same permission as deleting the volume.
+	ExpiresAt Optional[time.Time] `json:"expires_at,omitzero"`
+}
+
+// PatchVolumeResponse defines model for PatchVolumeResponse.
+type PatchVolumeResponse struct {
+	// ExpiresAt Volume expiration time in ISO 8601 format. Null when no expiration time is set.
+	ExpiresAt *time.Time `json:"expires_at"`
+
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
+
+	// Volume Name of the volume, in lowercase.
+	Volume string `json:"volume"`
+
+	// VolumeSequence Revision of the volume after the update.
+	VolumeSequence int `json:"volume_sequence"`
+}
+
 // PendingJobAheadAtSubmit A PENDING job in the same (org, gpu_type) pool that was ahead of the
 // target in dequeue FIFO order at submitted_at — higher priority, or same
 // priority and earlier submission.
@@ -10215,6 +10261,9 @@ type PostV1VolumesTokenJSONRequestBody = CreateVolumeTokenRequest
 // DeleteV1VolumesVolumeNamespaceVolumeNameJSONRequestBody defines body for DeleteV1VolumesVolumeNamespaceVolumeName for application/json ContentType.
 type DeleteV1VolumesVolumeNamespaceVolumeNameJSONRequestBody = DeleteVolumeRequest
 
+// PatchV1VolumesVolumeNamespaceVolumeNameJSONRequestBody defines body for PatchV1VolumesVolumeNamespaceVolumeName for application/json ContentType.
+type PatchV1VolumesVolumeNamespaceVolumeNameJSONRequestBody = PatchVolumeRequest
+
 // PostV1VolumesVolumeNamespaceVolumeNameTagsJSONRequestBody defines body for PostV1VolumesVolumeNamespaceVolumeNameTags for application/json ContentType.
 type PostV1VolumesVolumeNamespaceVolumeNameTagsJSONRequestBody = SetVolumeTagRequest
 
@@ -11007,6 +11056,36 @@ func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeTagDeleted(v AuditLogEv
 	return err
 }
 
+// AsAuditLogEventVolumeExpirationScheduled returns the union data inside the AuditLogEntry_EventData as a AuditLogEventVolumeExpirationScheduled
+func (t AuditLogEntry_EventData) AsAuditLogEventVolumeExpirationScheduled() (AuditLogEventVolumeExpirationScheduled, error) {
+	var body AuditLogEventVolumeExpirationScheduled
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventVolumeExpirationScheduled overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventVolumeExpirationScheduled
+func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeExpirationScheduled(v AuditLogEventVolumeExpirationScheduled) error {
+	v.EventType = "VOLUME_EXPIRATION_SCHEDULED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventVolumeExpirationCleared returns the union data inside the AuditLogEntry_EventData as a AuditLogEventVolumeExpirationCleared
+func (t AuditLogEntry_EventData) AsAuditLogEventVolumeExpirationCleared() (AuditLogEventVolumeExpirationCleared, error) {
+	var body AuditLogEventVolumeExpirationCleared
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventVolumeExpirationCleared overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventVolumeExpirationCleared
+func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeExpirationCleared(v AuditLogEventVolumeExpirationCleared) error {
+	v.EventType = "VOLUME_EXPIRATION_CLEARED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t AuditLogEntry_EventData) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"event_type"`
@@ -11111,6 +11190,10 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventUserTeamRoleUpdated()
 	case "VOLUME_DELETED":
 		return t.AsAuditLogEventVolumeDeleted()
+	case "VOLUME_EXPIRATION_CLEARED":
+		return t.AsAuditLogEventVolumeExpirationCleared()
+	case "VOLUME_EXPIRATION_SCHEDULED":
+		return t.AsAuditLogEventVolumeExpirationScheduled()
 	case "VOLUME_TAG_DELETED":
 		return t.AsAuditLogEventVolumeTagDeleted()
 	case "VOLUME_TAG_SET":
