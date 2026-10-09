@@ -87,6 +87,7 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	ctx := context.Background()
 
 	var phases []client.VolumePhase
+	var uploadProgress client.VolumeProgress
 	pushed, err := api.PushVolume(ctx, client.PushVolumeOptions{
 		Ref:       client.VolumeRef{Namespace: fakeNamespace, Volume: fakeVolume},
 		SourceDir: root,
@@ -94,6 +95,9 @@ func TestManagementClientRoundTrip(t *testing.T) {
 		Tags:      []string{"prod"},
 		Hasher:    newBlake3,
 		Progress: func(p client.VolumeProgress) {
+			if p.Phase == client.VolumePhaseUpload {
+				uploadProgress = p
+			}
 			if len(phases) == 0 || phases[len(phases)-1] != p.Phase {
 				phases = append(phases, p.Phase)
 			}
@@ -128,6 +132,16 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	if pushed.HeadMoveDenied {
 		t.Error("head move reported denied with a credential that can move it")
 	}
+	if pushed.TransferredBytes != pushed.Bytes-int64(len("hello volume")) {
+		t.Errorf("push payload %d, want logical bytes less one duplicate: %d", pushed.TransferredBytes, pushed.Bytes-int64(len("hello volume")))
+	}
+	wantUpload := client.VolumeProgress{
+		Phase: client.VolumePhaseUpload, Files: pushed.Files, TotalFiles: pushed.Files,
+		Bytes: pushed.Bytes, TotalBytes: pushed.Bytes, TransferredBytes: pushed.TransferredBytes,
+	}
+	if uploadProgress != wantUpload {
+		t.Errorf("public upload progress %+v, want %+v", uploadProgress, wantUpload)
+	}
 	if pushed.Bytes <= 0 {
 		t.Errorf("pushed %d bytes, want the tree's bytes", pushed.Bytes)
 	}
@@ -154,11 +168,17 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	}
 
 	dest := filepath.Join(t.TempDir(), "downloaded")
+	var downloadProgress client.VolumeProgress
 	downloaded, err := api.PullVolume(ctx, client.PullVolumeOptions{
 		Ref:     client.VolumeRef{Namespace: fakeNamespace, Volume: fakeVolume, Tag: "prod"},
 		DestDir: dest,
 		Hasher:  newBlake3,
 		Store:   fakePublicStore{download: fake.downloader()},
+		Progress: func(p client.VolumeProgress) {
+			if p.Phase == client.VolumePhaseDownload {
+				downloadProgress = p
+			}
+		},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -174,6 +194,16 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	// Every remaining download-result field, for the same reason as the push
 	// asserts above; ChunksReused, genuinely zero on a fresh download, is
 	// pinned by the second download below.
+	if downloaded.TransferredBytes != downloaded.Bytes {
+		t.Errorf("fresh download payload %d, want %d", downloaded.TransferredBytes, downloaded.Bytes)
+	}
+	wantDownload := client.VolumeProgress{
+		Phase: client.VolumePhaseDownload, Files: downloaded.Files, TotalFiles: downloaded.Files,
+		Bytes: downloaded.Bytes, TotalBytes: downloaded.Bytes, TransferredBytes: downloaded.TransferredBytes,
+	}
+	if downloadProgress != wantDownload {
+		t.Errorf("public download progress %+v, want %+v", downloadProgress, wantDownload)
+	}
 	if downloaded.Files != 5 || downloaded.Bytes != pushed.Bytes {
 		t.Errorf("downloaded %d files and %d bytes, pushed 5 and %d", downloaded.Files, downloaded.Bytes, pushed.Bytes)
 	}
@@ -225,6 +255,9 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	if len(repushed.TagsApplied) != 0 {
 		t.Errorf("applied tags %v on an untagged push", repushed.TagsApplied)
 	}
+	if repushed.TransferredBytes != 0 {
+		t.Errorf("reused push transferred %d chunk bytes", repushed.TransferredBytes)
+	}
 	if repushed.Files != 5 || repushed.Bytes != pushed.Bytes {
 		t.Errorf("re-push saw %d files and %d bytes, want 5 and %d", repushed.Files, repushed.Bytes, pushed.Bytes)
 	}
@@ -255,6 +288,9 @@ func TestManagementClientRoundTrip(t *testing.T) {
 	}
 	if redownloaded.VersionRef != pushed.VersionRef {
 		t.Errorf("re-download got %s, want %s", redownloaded.VersionRef, pushed.VersionRef)
+	}
+	if redownloaded.TransferredBytes != 0 {
+		t.Errorf("reused download transferred %d chunk bytes", redownloaded.TransferredBytes)
 	}
 	if redownloaded.Files != 5 || redownloaded.Bytes != pushed.Bytes {
 		t.Errorf("re-download wrote %d files and %d bytes, want 5 and %d", redownloaded.Files, redownloaded.Bytes, pushed.Bytes)

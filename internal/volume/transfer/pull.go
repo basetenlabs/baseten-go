@@ -148,6 +148,11 @@ type PullResult struct {
 	Files int64
 	Bytes int64
 
+	// TransferredBytes is total observed chunk payload for this transfer,
+	// available even when no progress callback is supplied.
+	// It follows the accounting semantics of volume.Progress.TransferredBytes.
+	TransferredBytes int64
+
 	// SelectedFiles and TotalFiles report what a subset download narrowed to.
 	// They are equal when the whole volume was downloaded.
 	SelectedFiles int64
@@ -243,14 +248,15 @@ func Pull(ctx context.Context, client *bdn.Client, opts PullOptions) (*PullResul
 	}
 
 	return &PullResult{
-		Warnings:       plan.warnings,
-		ManifestDigest: plan.digest,
-		Files:          int64(len(plan.manifest.Files)),
-		Bytes:          int64(plan.manifest.TotalSize()),
-		SelectedFiles:  int64(len(plan.manifest.Files)),
-		TotalFiles:     plan.totalFiles,
-		ChunksFetched:  p.stats.fetched.Load(),
-		ChunksReused:   p.stats.reused.Load(),
+		Warnings:         plan.warnings,
+		ManifestDigest:   plan.digest,
+		Files:            int64(len(plan.manifest.Files)),
+		Bytes:            int64(plan.manifest.TotalSize()),
+		TransferredBytes: p.transferred.Load(),
+		SelectedFiles:    int64(len(plan.manifest.Files)),
+		TotalFiles:       plan.totalFiles,
+		ChunksFetched:    p.stats.fetched.Load(),
+		ChunksReused:     p.stats.reused.Load(),
 	}, nil
 }
 
@@ -377,6 +383,7 @@ func (p *puller) publish(
 
 // puller holds the state one download shares across its files.
 type puller struct {
+	transferred atomic.Int64
 	// madeDirs remembers directories known to exist under the root: "." and
 	// every recorded directory once materialize creates them, plus each
 	// implicit parent — so the FileJobs-wide writer loop does not repeat a
@@ -765,7 +772,7 @@ func (p *puller) downloadVerifiedChunk(ctx context.Context, chunk volume.ChunkRe
 		permit.CompleteUntimed(volume.Neutral)
 		return nil, err
 	}
-	body, err := volume.FetchObjectInto(ctx, p.opts.DownloadObject, p.opts.Decompress, req, int64(chunk.Length), buffer)
+	body, err := volume.FetchObjectInto(ctx, p.chunkDownloader(), p.opts.Decompress, req, int64(chunk.Length), buffer)
 	if err != nil {
 		permit.CompleteUntimed(failureOutcome(ctx, err))
 		return nil, err

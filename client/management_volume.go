@@ -66,17 +66,18 @@ func (c *ManagementClient) PushVolume(ctx context.Context, opts PushVolumeOption
 		return nil, volumeOpError(err)
 	}
 	return &PushVolumeResult{
-		VersionRef:     pinnedVolumeRef(push.Namespace, push.Volume, result.ManifestDigest),
-		Sequence:       result.Sequence,
-		HeadUpdated:    result.HeadUpdated,
-		HeadMoveDenied: result.HeadMoveDenied,
-		TagsApplied:    result.TagsApplied,
-		Files:          result.Files,
-		Bytes:          result.Bytes,
-		Chunks:         result.Chunks,
-		Unique:         result.Unique,
-		Reused:         result.Reused,
-		Existing:       result.Existing,
+		VersionRef:       pinnedVolumeRef(push.Namespace, push.Volume, result.ManifestDigest),
+		Sequence:         result.Sequence,
+		HeadUpdated:      result.HeadUpdated,
+		HeadMoveDenied:   result.HeadMoveDenied,
+		TagsApplied:      result.TagsApplied,
+		Files:            result.Files,
+		Bytes:            result.Bytes,
+		TransferredBytes: result.TransferredBytes,
+		Chunks:           result.Chunks,
+		Unique:           result.Unique,
+		Reused:           result.Reused,
+		Existing:         result.Existing,
 	}, nil
 }
 
@@ -132,11 +133,12 @@ func volumeProgressAdapter(fn func(VolumeProgress)) volume.ProgressFunc {
 	}
 	return func(p volume.Progress) {
 		fn(VolumeProgress{
-			Phase:      VolumePhase(p.Phase),
-			Files:      p.Files,
-			TotalFiles: p.TotalFiles,
-			Bytes:      p.Bytes,
-			TotalBytes: p.TotalBytes,
+			Phase:            VolumePhase(p.Phase),
+			Files:            p.Files,
+			TotalFiles:       p.TotalFiles,
+			Bytes:            p.Bytes,
+			TotalBytes:       p.TotalBytes,
+			TransferredBytes: p.TransferredBytes,
 		})
 	}
 }
@@ -253,14 +255,15 @@ func (c *ManagementClient) PullVolume(ctx context.Context, opts PullVolumeOption
 		warnings = append(warnings, VolumeWarning{Path: w.Path, Kind: VolumeWarningKind(w.Kind), Detail: w.Detail})
 	}
 	return &PullVolumeResult{
-		VersionRef:    pinnedVolumeRef(pull.Ref.Namespace, pull.Ref.Volume, result.ManifestDigest),
-		Files:         result.Files,
-		Bytes:         result.Bytes,
-		SelectedFiles: result.SelectedFiles,
-		TotalFiles:    result.TotalFiles,
-		ChunksFetched: result.ChunksFetched,
-		ChunksReused:  result.ChunksReused,
-		Warnings:      warnings,
+		VersionRef:       pinnedVolumeRef(pull.Ref.Namespace, pull.Ref.Volume, result.ManifestDigest),
+		Files:            result.Files,
+		Bytes:            result.Bytes,
+		TransferredBytes: result.TransferredBytes,
+		SelectedFiles:    result.SelectedFiles,
+		TotalFiles:       result.TotalFiles,
+		ChunksFetched:    result.ChunksFetched,
+		ChunksReused:     result.ChunksReused,
+		Warnings:         warnings,
 	}, nil
 }
 
@@ -811,6 +814,14 @@ type VolumeProgress struct {
 	// as chunks complete.
 	Bytes      int64
 	TotalBytes int64
+
+	// TransferredBytes counts chunk payload bytes observed in this phase.
+	// Locally reused chunks, metadata, and protocol overhead are excluded.
+	// Uploads count body bytes read by the transport, including retries and
+	// partial attempts; these reads do not guarantee delivery to the server.
+	// Downloads count body bytes before decompression, including failed reads.
+	// Retries hidden inside the caller's downloader are not observable.
+	TransferredBytes int64
 }
 
 // VolumeObjectCredentials are the short-lived read-only credentials the
@@ -1022,6 +1033,11 @@ type PushVolumeResult struct {
 	Files int64
 	Bytes int64
 
+	// TransferredBytes is total observed chunk payload for this transfer,
+	// available even when no progress callback is supplied.
+	// It follows the accounting semantics of VolumeProgress.TransferredBytes.
+	TransferredBytes int64
+
 	// Chunks counts every object the push accounted for, and Unique, Reused,
 	// and Existing partition it. Reused never reached the network, because a
 	// previous version or an earlier file in the same push already had those
@@ -1155,6 +1171,11 @@ type PullVolumeResult struct {
 	// Files and Bytes are what was written.
 	Files int64
 	Bytes int64
+
+	// TransferredBytes is total observed chunk payload for this transfer,
+	// available even when no progress callback is supplied.
+	// It follows the accounting semantics of VolumeProgress.TransferredBytes.
+	TransferredBytes int64
 
 	// SelectedFiles and TotalFiles report what Include narrowed to. They are
 	// equal when the whole volume was downloaded.

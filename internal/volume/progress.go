@@ -29,6 +29,14 @@ type Progress struct {
 	// as chunks complete.
 	Bytes      int64
 	TotalBytes int64
+
+	// TransferredBytes counts chunk payload bytes observed in this phase.
+	// Locally reused chunks, metadata, and protocol overhead are excluded.
+	// Uploads count body bytes read by the transport, including retries and
+	// partial attempts; these reads do not guarantee delivery to the server.
+	// Downloads count body bytes before decompression, including failed reads.
+	// Retries hidden inside the caller's downloader are not observable.
+	TransferredBytes int64
 }
 
 // ProgressFunc receives progress updates. It is called from whichever
@@ -70,5 +78,16 @@ func (r *ProgressReporter) Add(files, bytes int64) {
 	defer r.mu.Unlock()
 	r.state.Files += files
 	r.state.Bytes += bytes
+	r.fn(r.state)
+}
+
+// AddTransferred records observed chunk payload independently of completion.
+func (r *ProgressReporter) AddTransferred(bytes int64) {
+	if r == nil || r.fn == nil || bytes == 0 {
+		return
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.state.TransferredBytes += bytes
 	r.fn(r.state)
 }
