@@ -1205,10 +1205,29 @@ func (e RouteSettingSource) Valid() bool {
 	}
 }
 
+// Defines values for RouteSpendBlockedBy.
+const (
+	RouteSpendBlockedBy_member RouteSpendBlockedBy = "member"
+	RouteSpendBlockedBy_team   RouteSpendBlockedBy = "team"
+)
+
+// Valid indicates whether the value is a known member of the RouteSpendBlockedBy enum.
+func (e RouteSpendBlockedBy) Valid() bool {
+	switch e {
+	case RouteSpendBlockedBy_member:
+		return true
+	case RouteSpendBlockedBy_team:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for RouteUsageDimension.
 const (
 	RouteUsageDimension_MODEL    RouteUsageDimension = "MODEL"
 	RouteUsageDimension_PROVIDER RouteUsageDimension = "PROVIDER"
+	RouteUsageDimension_TEAM     RouteUsageDimension = "TEAM"
 	RouteUsageDimension_USER     RouteUsageDimension = "USER"
 )
 
@@ -1218,6 +1237,8 @@ func (e RouteUsageDimension) Valid() bool {
 	case RouteUsageDimension_MODEL:
 		return true
 	case RouteUsageDimension_PROVIDER:
+		return true
+	case RouteUsageDimension_TEAM:
 		return true
 	case RouteUsageDimension_USER:
 		return true
@@ -6884,14 +6905,23 @@ type RouteRef struct {
 // RouteSettingSource defines model for RouteSettingSource.
 type RouteSettingSource string
 
+// RouteSpendBlockedBy defines model for RouteSpendBlockedBy.
+type RouteSpendBlockedBy string
+
 // RouteSpendLimitSetting defines model for RouteSpendLimitSetting.
 type RouteSpendLimitSetting struct {
 	Effective RouteEffectiveSpendLimit `json:"effective"`
 
-	// TeamDefault Per-member limit of the team the user's active Code key belongs to. This limit applies when the user has no limit of their own. Null when there is none.
+	// MonthOverrideUsd Spend limit in USD for the current UTC calendar month set on the user in the team, which supersedes their standing limit. Null when there is none.
+	MonthOverrideUsd *string `json:"month_override_usd"`
+
+	// TeamDefault Per-member limit of the team. This limit applies when the user has no limit of their own. Null when there is none.
 	TeamDefault *RouteSpendLimitTeamDefault `json:"team_default"`
 
-	// UserMonthlyLimitUsd Standing spend limit in USD for each UTC calendar month set on the user. Null when the user has no limit of their own.
+	// TeamWideMonthlyLimitUsd Team-wide limit of the team in USD for each UTC calendar month. Once all members' spend in the team reaches it, the user's requests in the team are rejected whatever their own limit. Null when there is none.
+	TeamWideMonthlyLimitUsd *string `json:"team_wide_monthly_limit_usd"`
+
+	// UserMonthlyLimitUsd Standing spend limit in USD for each UTC calendar month set on the user in the team. Null when the user has no limit of their own there.
 	UserMonthlyLimitUsd *string `json:"user_monthly_limit_usd"`
 }
 
@@ -6900,7 +6930,7 @@ type RouteSpendLimitTeamDefault struct {
 	// PerMemberMonthlyLimitUsd The team's per-member spend limit in USD for each UTC calendar month.
 	PerMemberMonthlyLimitUsd string `json:"per_member_monthly_limit_usd"`
 
-	// TeamId ID of the team the user's active Code key belongs to.
+	// TeamId ID of the team whose per-member limit this is.
 	TeamId string `json:"team_id"`
 }
 
@@ -7039,8 +7069,42 @@ type RouteTeamSettings struct {
 
 // RouteTeamSpendLimitSetting defines model for RouteTeamSpendLimitSetting.
 type RouteTeamSpendLimitSetting struct {
-	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member whose active Code key belongs to this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.
+	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member's Code spend in this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.
 	PerMemberMonthlyLimitUsd *string `json:"per_member_monthly_limit_usd"`
+
+	// TeamWideMonthlyLimitUsd Spend limit in USD for each UTC calendar month on the Code spend of all members in this team together. Once it is reached, every member's requests in the team are rejected. Returned as an exact decimal string. Null when the team has no team-wide limit.
+	TeamWideMonthlyLimitUsd *string `json:"team_wide_monthly_limit_usd"`
+}
+
+// RouteTeamUserSettings defines model for RouteTeamUserSettings.
+type RouteTeamUserSettings struct {
+	// BlockedBy `member` when the user's spend this month reached their limit, `team` when the team's spend reached its team-wide limit. Null when the user is not blocked.
+	BlockedBy *RouteSpendBlockedBy `json:"blocked_by"`
+
+	// Email Email address of the user.
+	Email *string `json:"email"`
+
+	// IsBlocked Whether the user's spend this month reached their limit, or the team's spend reached its team-wide limit, so requests with Routes keys they created in the team are rejected.
+	IsBlocked bool `json:"is_blocked"`
+
+	// MonthSpendUsd The user's metered Code spend in USD in the team this UTC calendar month, returned as an exact decimal string.
+	MonthSpendUsd string                 `json:"month_spend_usd"`
+	SpendLimit    RouteSpendLimitSetting `json:"spend_limit"`
+
+	// TeamId ID of the team.
+	TeamId string `json:"team_id"`
+
+	// TeamName Name of the team.
+	TeamName string `json:"team_name"`
+
+	// UserId ID of the user.
+	UserId string `json:"user_id"`
+}
+
+// RouteTeamUserSettingsList defines model for RouteTeamUserSettingsList.
+type RouteTeamUserSettingsList struct {
+	// Users Settings of each user with a role in the team and of anyone with Code spend in the team this month.
+	Users []RouteTeamUserSettings `json:"users"`
 }
 
 // RouteTombstone defines model for RouteTombstone.
@@ -7063,6 +7127,12 @@ type RouteUserSettings struct {
 
 	// UserId ID of the user.
 	UserId string `json:"user_id"`
+}
+
+// RouteUserTeamSettingsList defines model for RouteUserTeamSettingsList.
+type RouteUserTeamSettingsList struct {
+	// Teams The user's settings in each team they have a role in and in any team they have Code spend in this month, alphabetical by team name.
+	Teams []RouteTeamUserSettings `json:"teams"`
 }
 
 // RoutesResponse defines model for RoutesResponse.
@@ -7107,6 +7177,9 @@ type RoutesUsageResult struct {
 
 	// Provider Provider that served the requests. Null when not grouping by PROVIDER.
 	Provider *RouteProvider `json:"provider,omitempty"`
+
+	// TeamId ID of the team the usage was metered in. Null when not grouping by TEAM, and for usage metered before it was attributed to teams.
+	TeamId *string `json:"team_id,omitempty"`
 
 	// UncachedInputTokens Input tokens not read from the prompt cache, including tokens written to the cache.
 	UncachedInputTokens int `json:"uncached_input_tokens"`
@@ -8474,6 +8547,9 @@ type UpdateRouteRequest_Target struct {
 
 // UpdateRouteSpendLimitSetting defines model for UpdateRouteSpendLimitSetting.
 type UpdateRouteSpendLimitSetting struct {
+	// MonthOverrideUsd Spend limit in USD for the current UTC calendar month, which supersedes the standing limit. Send null to remove it; omit to leave it unchanged.
+	MonthOverrideUsd Optional[string] `json:"month_override_usd,omitzero"`
+
 	// UserMonthlyLimitUsd Standing spend limit in USD for each UTC calendar month. Send null to remove the limit; omit to leave it unchanged.
 	UserMonthlyLimitUsd Optional[string] `json:"user_monthly_limit_usd,omitzero"`
 }
@@ -8483,14 +8559,17 @@ type UpdateRouteTeamSettingsRequest struct {
 	// HarnessDefaults Harnesses to change; harnesses left out are unchanged. Pass null to clear every harness, so each role uses the team's default.
 	HarnessDefaults Optional[UpdateRouteHarnessDefaults] `json:"harness_defaults,omitzero"`
 
-	// SpendLimit Spend limit fields to change. Pass null to remove the team's per-member limit; omit to leave it unchanged.
+	// SpendLimit Spend limit fields to change. Pass null to remove the team's limits; omit to leave them unchanged.
 	SpendLimit Optional[UpdateRouteTeamSpendLimitSetting] `json:"spend_limit,omitzero"`
 }
 
 // UpdateRouteTeamSpendLimitSetting defines model for UpdateRouteTeamSpendLimitSetting.
 type UpdateRouteTeamSpendLimitSetting struct {
-	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member whose active Code key belongs to this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.
+	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member's Code spend in this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.
 	PerMemberMonthlyLimitUsd Optional[string] `json:"per_member_monthly_limit_usd,omitzero"`
+
+	// TeamWideMonthlyLimitUsd Spend limit in USD for each UTC calendar month on the Code spend of all members in this team together. Send null to remove it; omit to leave it unchanged.
+	TeamWideMonthlyLimitUsd Optional[string] `json:"team_wide_monthly_limit_usd,omitzero"`
 }
 
 // UpdateRouteUserSettingsRequest defines model for UpdateRouteUserSettingsRequest.
@@ -9578,6 +9657,12 @@ type GetV1RoutesConnectionsParams struct {
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
+// GetV1RoutesSettingsUsersUserIdParams defines parameters for GetV1RoutesSettingsUsersUserId.
+type GetV1RoutesSettingsUsersUserIdParams struct {
+	// TeamId ID of the team to read the user's spend limit in. Defaults to the only team the user has Code spend in this month, else their only team.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
 // GetV1RoutesUsageParams defines parameters for GetV1RoutesUsage.
 type GetV1RoutesUsageParams struct {
 	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
@@ -9586,13 +9671,16 @@ type GetV1RoutesUsageParams struct {
 	// Limit Number of daily buckets to return. Defaults to 7; maximum 31.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
+	// TeamId Limit usage to a team you can access. Organization admins can view all usage in the team, team admins can view usage in teams they manage, and other members can view only their own usage. Without a team, organization admins see all organization usage, team admins see their managed teams, and other members see their own usage.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
 	// StartDate Inclusive UTC calendar day at the start of the query range. Defaults to the previous UTC date, and is ignored when you pass a cursor.
 	StartDate *string `form:"start_date,omitempty" json:"start_date,omitempty"`
 
 	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included.
 	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
 
-	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.
+	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.
 	GroupBy *[]RouteUsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
 
 	// UserIds Return only usage from Routes keys created by these user IDs, repeated once per ID.
@@ -10027,6 +10115,9 @@ type PatchV1RoutesConnectionsConnectionIdJSONRequestBody = UpdateRouteConnection
 
 // PatchV1RoutesSettingsTeamsTeamIdJSONRequestBody defines body for PatchV1RoutesSettingsTeamsTeamId for application/json ContentType.
 type PatchV1RoutesSettingsTeamsTeamIdJSONRequestBody = UpdateRouteTeamSettingsRequest
+
+// PatchV1RoutesSettingsTeamsTeamIdUsersUserIdJSONRequestBody defines body for PatchV1RoutesSettingsTeamsTeamIdUsersUserId for application/json ContentType.
+type PatchV1RoutesSettingsTeamsTeamIdUsersUserIdJSONRequestBody = UpdateRouteUserSettingsRequest
 
 // PatchV1RoutesSettingsUsersUserIdJSONRequestBody defines body for PatchV1RoutesSettingsUsersUserId for application/json ContentType.
 type PatchV1RoutesSettingsUsersUserIdJSONRequestBody = UpdateRouteUserSettingsRequest
