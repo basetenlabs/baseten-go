@@ -1910,6 +1910,18 @@ func (c *Client) PatchTrainingProjectsJobsInteractiveSessions(ctx context.Contex
 	})
 }
 
+// PatchVolumes: Updates a volume
+func (c *Client) PatchVolumes(ctx context.Context, volumeNamespace string, volumeName string, body PatchVolumeRequest) (*PatchVolumeResponse, error) {
+	return doJSON[PatchVolumeResponse](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/volumes/%s/%s",
+		pathArgs:     []any{volumeNamespace, volumeName},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // PostApiKeys: Creates an API key
 func (c *Client) PostApiKeys(ctx context.Context, body CreateAPIKeyRequest) (*APIKey, error) {
 	return doJSON[APIKey](c, ctx, apiRequest{
