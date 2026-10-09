@@ -37,6 +37,8 @@ func run() error {
 	clientDir := filepath.Join(repoRoot, "client")
 	specsDir := filepath.Join(apigenDir, "specs")
 
+	// TODO: Regenerate with -update-specs once the volume tag and update
+	// routes are deployed, then drop this note.
 	managementSpecFile := filepath.Join(specsDir, "management.json")
 	inferenceSpecFile := filepath.Join(specsDir, "inference.json")
 	configSchemaFile := filepath.Join(specsDir, "config.schema.json")
