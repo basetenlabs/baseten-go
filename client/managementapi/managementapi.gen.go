@@ -584,6 +584,99 @@ func (e CheckpointSyncStatus) Valid() bool {
 	}
 }
 
+// Defines values for ColdStartOutcome.
+const (
+	ColdStartOutcome_FAILED  ColdStartOutcome = "FAILED"
+	ColdStartOutcome_STALLED ColdStartOutcome = "STALLED"
+	ColdStartOutcome_SUCCESS ColdStartOutcome = "SUCCESS"
+)
+
+// Valid indicates whether the value is a known member of the ColdStartOutcome enum.
+func (e ColdStartOutcome) Valid() bool {
+	switch e {
+	case ColdStartOutcome_FAILED:
+		return true
+	case ColdStartOutcome_STALLED:
+		return true
+	case ColdStartOutcome_SUCCESS:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ColdStartPhase.
+const (
+	ColdStartPhase_CONTAINER_CREATE ColdStartPhase = "CONTAINER_CREATE"
+	ColdStartPhase_CONTAINER_START  ColdStartPhase = "CONTAINER_START"
+	ColdStartPhase_IMAGE_PULL       ColdStartPhase = "IMAGE_PULL"
+	ColdStartPhase_READINESS        ColdStartPhase = "READINESS"
+	ColdStartPhase_SCHEDULING       ColdStartPhase = "SCHEDULING"
+	ColdStartPhase_WEIGHT_DOWNLOAD  ColdStartPhase = "WEIGHT_DOWNLOAD"
+)
+
+// Valid indicates whether the value is a known member of the ColdStartPhase enum.
+func (e ColdStartPhase) Valid() bool {
+	switch e {
+	case ColdStartPhase_CONTAINER_CREATE:
+		return true
+	case ColdStartPhase_CONTAINER_START:
+		return true
+	case ColdStartPhase_IMAGE_PULL:
+		return true
+	case ColdStartPhase_READINESS:
+		return true
+	case ColdStartPhase_SCHEDULING:
+		return true
+	case ColdStartPhase_WEIGHT_DOWNLOAD:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ColdStartPhaseStatus.
+const (
+	ColdStartPhaseStatus_COMPLETED ColdStartPhaseStatus = "COMPLETED"
+	ColdStartPhaseStatus_FAILED    ColdStartPhaseStatus = "FAILED"
+)
+
+// Valid indicates whether the value is a known member of the ColdStartPhaseStatus enum.
+func (e ColdStartPhaseStatus) Valid() bool {
+	switch e {
+	case ColdStartPhaseStatus_COMPLETED:
+		return true
+	case ColdStartPhaseStatus_FAILED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ColdStartSortField.
+const (
+	ColdStartSortField_DURATION   ColdStartSortField = "DURATION"
+	ColdStartSortField_OUTCOME    ColdStartSortField = "OUTCOME"
+	ColdStartSortField_READY_AT   ColdStartSortField = "READY_AT"
+	ColdStartSortField_STARTED_AT ColdStartSortField = "STARTED_AT"
+)
+
+// Valid indicates whether the value is a known member of the ColdStartSortField enum.
+func (e ColdStartSortField) Valid() bool {
+	switch e {
+	case ColdStartSortField_DURATION:
+		return true
+	case ColdStartSortField_OUTCOME:
+		return true
+	case ColdStartSortField_READY_AT:
+		return true
+	case ColdStartSortField_STARTED_AT:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DeploymentConfigOutputFormat.
 const (
 	DeploymentConfigOutputFormat_both   DeploymentConfigOutputFormat = "both"
@@ -1209,6 +1302,7 @@ func (e RouteSettingSource) Valid() bool {
 const (
 	RouteUsageDimension_MODEL    RouteUsageDimension = "MODEL"
 	RouteUsageDimension_PROVIDER RouteUsageDimension = "PROVIDER"
+	RouteUsageDimension_TEAM     RouteUsageDimension = "TEAM"
 	RouteUsageDimension_USER     RouteUsageDimension = "USER"
 )
 
@@ -1218,6 +1312,8 @@ func (e RouteUsageDimension) Valid() bool {
 	case RouteUsageDimension_MODEL:
 		return true
 	case RouteUsageDimension_PROVIDER:
+		return true
+	case RouteUsageDimension_TEAM:
 		return true
 	case RouteUsageDimension_USER:
 		return true
@@ -3010,6 +3106,160 @@ type CleanupSandboxImagesResponse struct {
 	Message string `json:"message"`
 }
 
+// ColdStartAttempt One cold start attempt of a replica.
+type ColdStartAttempt struct {
+	// DeploymentId Unique identifier of the deployment.
+	DeploymentId *string `json:"deployment_id"`
+
+	// DeploymentName Name of the deployment.
+	DeploymentName string `json:"deployment_name"`
+
+	// DurationMs Duration of the attempt, in milliseconds.
+	DurationMs int `json:"duration_ms"`
+
+	// EnvironmentName Name of the environment. Null when querying a deployment.
+	EnvironmentName *string `json:"environment_name"`
+
+	// ModelId Unique identifier of the model.
+	ModelId string `json:"model_id"`
+
+	// Outcome Outcome of a whole cold start attempt.
+	Outcome ColdStartOutcome `json:"outcome"`
+
+	// PhaseSummary Phases recorded during the attempt.
+	PhaseSummary []ColdStartPhaseSummary `json:"phase_summary"`
+
+	// ReadyAtEpochMillis Time the replica became ready, in epoch milliseconds. Null if it never did.
+	ReadyAtEpochMillis *int `json:"ready_at_epoch_millis"`
+
+	// ReplicaId Identifier of the replica that started.
+	ReplicaId *string `json:"replica_id"`
+
+	// StartedAtEpochMillis Time the attempt started, in epoch milliseconds.
+	StartedAtEpochMillis int `json:"started_at_epoch_millis"`
+}
+
+// ColdStartAttempts A page of cold start attempts, newest first by default.
+type ColdStartAttempts struct {
+	// Items Items in this page.
+	Items      []ColdStartAttempt `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+
+	// TotalCount Number of attempts matching the filters, counted within the 1,000 most recent cold starts in the window.
+	TotalCount int `json:"total_count"`
+}
+
+// ColdStartOutcome Outcome of a whole cold start attempt.
+type ColdStartOutcome string
+
+// ColdStartPercentiles A distribution of cold start durations.
+//
+// Statistics cover only samples longer than 0 ms and are null when there are none.
+type ColdStartPercentiles struct {
+	// MeanMs Mean duration, in milliseconds.
+	MeanMs *int `json:"mean_ms"`
+
+	// P50Ms 50th percentile duration, in milliseconds.
+	P50Ms *int `json:"p50_ms"`
+
+	// P90Ms 90th percentile duration, in milliseconds.
+	P90Ms *int `json:"p90_ms"`
+
+	// P95Ms 95th percentile duration, in milliseconds.
+	P95Ms *int `json:"p95_ms"`
+
+	// P99Ms 99th percentile duration, in milliseconds.
+	P99Ms *int `json:"p99_ms"`
+
+	// SampleCount Number of cold starts in the distribution, including those that took 0 ms. A phase that finishes within a second can record 0 ms.
+	SampleCount int `json:"sample_count"`
+}
+
+// ColdStartPhase A stage of a replica cold start.
+//
+//   - “SCHEDULING“: waiting for the replica to be placed on a node.
+//   - “IMAGE_PULL“: pulling the container image.
+//   - “WEIGHT_DOWNLOAD“: downloading model weights.
+//   - “CONTAINER_CREATE“: creating and starting the model container, including
+//     “CONTAINER_START“ and “READINESS“.
+//   - “CONTAINER_START“: starting the model container.
+//   - “READINESS“: waiting for the model to pass its readiness check.
+//
+// “CONTAINER_START“ and “READINESS“ are accepted as filters but are reported only as
+// part of “CONTAINER_CREATE“.
+type ColdStartPhase string
+
+// ColdStartPhasePercentiles The duration distribution of one cold start phase.
+type ColdStartPhasePercentiles struct {
+	// DurationMs A distribution of cold start durations.
+	//
+	// Statistics cover only samples longer than 0 ms and are null when there are none.
+	DurationMs ColdStartPercentiles `json:"duration_ms"`
+
+	// Phase A stage of a replica cold start.
+	//
+	// - ``SCHEDULING``: waiting for the replica to be placed on a node.
+	// - ``IMAGE_PULL``: pulling the container image.
+	// - ``WEIGHT_DOWNLOAD``: downloading model weights.
+	// - ``CONTAINER_CREATE``: creating and starting the model container, including
+	//   ``CONTAINER_START`` and ``READINESS``.
+	// - ``CONTAINER_START``: starting the model container.
+	// - ``READINESS``: waiting for the model to pass its readiness check.
+	//
+	// ``CONTAINER_START`` and ``READINESS`` are accepted as filters but are reported only as
+	// part of ``CONTAINER_CREATE``.
+	Phase ColdStartPhase `json:"phase"`
+}
+
+// ColdStartPhaseStatus Outcome of one phase, independent of the outcome of the whole cold start.
+type ColdStartPhaseStatus string
+
+// ColdStartPhaseSummary One phase recorded during a cold start attempt.
+type ColdStartPhaseSummary struct {
+	// DurationMs Duration of the phase, in milliseconds. Can be 0 for a phase that finished within a second. Null if the phase did not finish.
+	DurationMs *int `json:"duration_ms"`
+
+	// OffsetMs Time from the start of the attempt to the start of the phase, in milliseconds.
+	OffsetMs int `json:"offset_ms"`
+
+	// Phase A stage of a replica cold start.
+	//
+	// - ``SCHEDULING``: waiting for the replica to be placed on a node.
+	// - ``IMAGE_PULL``: pulling the container image.
+	// - ``WEIGHT_DOWNLOAD``: downloading model weights.
+	// - ``CONTAINER_CREATE``: creating and starting the model container, including
+	//   ``CONTAINER_START`` and ``READINESS``.
+	// - ``CONTAINER_START``: starting the model container.
+	// - ``READINESS``: waiting for the model to pass its readiness check.
+	//
+	// ``CONTAINER_START`` and ``READINESS`` are accepted as filters but are reported only as
+	// part of ``CONTAINER_CREATE``.
+	Phase ColdStartPhase `json:"phase"`
+
+	// Status Outcome of one phase, independent of the outcome of the whole cold start.
+	Status ColdStartPhaseStatus `json:"status"`
+}
+
+// ColdStartSortField Field to sort cold start attempts by.
+type ColdStartSortField string
+
+// ColdStartSummary Cold start duration distributions over a time window.
+type ColdStartSummary struct {
+	// EndEpochMillis End of the returned window.
+	EndEpochMillis int `json:"end_epoch_millis"`
+
+	// PhaseDurationMs Durations of each phase that was recorded in the window.
+	PhaseDurationMs []ColdStartPhasePercentiles `json:"phase_duration_ms"`
+
+	// StartEpochMillis Start of the returned window.
+	StartEpochMillis int `json:"start_epoch_millis"`
+
+	// TotalDurationMs A distribution of cold start durations.
+	//
+	// Statistics cover only samples longer than 0 ms and are null when there are none.
+	TotalDurationMs ColdStartPercentiles `json:"total_duration_ms"`
+}
+
 // CreateAPIKeyRequest Request to create an API key.
 type CreateAPIKeyRequest struct {
 	// ModelIds List of model IDs to scope the API key to, only present if type is 'WORKSPACE_EXPORT_METRICS' or 'WORKSPACE_INVOKE'
@@ -3166,6 +3416,9 @@ type CreateLLMModelRequest struct {
 	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
+	// EgressRestrictions Restricts this deployment's egress to the specified FQDNs and IP addresses; an empty block allows none. Requires the organization to have egress restrictions enabled.
+	EgressRestrictions *EgressRestrictions `json:"egress_restrictions,omitempty"`
+
 	// EnvironmentVariables Environment variables for the model
 	EnvironmentVariables *map[string]interface{} `json:"environment_variables,omitempty"`
 
@@ -3201,6 +3454,9 @@ type CreateLLMModelVersionRequest struct {
 
 	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
+
+	// EgressRestrictions Restricts this deployment's egress to the specified FQDNs and IP addresses; an empty block allows none. Requires the organization to have egress restrictions enabled.
+	EgressRestrictions *EgressRestrictions `json:"egress_restrictions,omitempty"`
 
 	// EnvironmentVariables Environment variables for the model
 	EnvironmentVariables *map[string]interface{} `json:"environment_variables,omitempty"`
@@ -3443,14 +3699,14 @@ type CreateRouteRequest struct {
 	// DisplayName Display label. Omit to use the route name; null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
 
-	// Target Upstream target for the route.
+	// Target Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team.
 	Target CreateRouteRequest_Target `json:"target"`
 
 	// TeamId Identifier of the team that owns the route.
 	TeamId *string `json:"team_id,omitempty"`
 }
 
-// CreateRouteRequest_Target Upstream target for the route.
+// CreateRouteRequest_Target Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team.
 type CreateRouteRequest_Target struct {
 	union json.RawMessage
 }
@@ -4367,6 +4623,15 @@ type EffectiveUsageLimit struct {
 	Threshold int            `json:"threshold"`
 	Type      LimitType      `json:"type"`
 	Unit      UsageLimitUnit `json:"unit"`
+}
+
+// EgressRestrictions defines model for EgressRestrictions.
+type EgressRestrictions struct {
+	// FqdnAllowList Allowed outbound FQDNs; '*' wildcards are supported.
+	FqdnAllowList *[]string `json:"fqdn_allow_list,omitempty"`
+
+	// IpAllowList Allowed outbound IPv4 addresses or CIDR ranges.
+	IpAllowList *[]string `json:"ip_allow_list,omitempty"`
 }
 
 // EmbeddingBenchmarkMetrics defines model for EmbeddingBenchmarkMetrics.
@@ -6770,8 +7035,8 @@ type RouteConnection_Config struct {
 	union json.RawMessage
 }
 
-// RouteConnectionAnthropic defines model for RouteConnectionAnthropic.
-type RouteConnectionAnthropic struct {
+// RouteConnectionConfigAnthropic defines model for RouteConnectionConfigAnthropic.
+type RouteConnectionConfigAnthropic struct {
 	// Provider Provider kind for Anthropic.
 	Provider string `json:"provider"`
 
@@ -6782,36 +7047,21 @@ type RouteConnectionAnthropic struct {
 	SecretName string `json:"secret_name"`
 }
 
-// RouteConnectionConfigAnthropic defines model for RouteConnectionConfigAnthropic.
-type RouteConnectionConfigAnthropic struct {
-	// Provider Provider kind for Anthropic.
-	Provider string `json:"provider"`
-
-	// SecretId Identifier of an existing secret, owned by the same team, that holds the provider API key.
-	SecretId string `json:"secret_id"`
-}
-
 // RouteConnectionConfigOpenAI defines model for RouteConnectionConfigOpenAI.
 type RouteConnectionConfigOpenAI struct {
 	// Provider Provider kind for OpenAI.
 	Provider string `json:"provider"`
 
-	// SecretId Identifier of an existing secret, owned by the same team, that holds the provider API key.
+	// SecretId Identifier of the team secret holding the provider API key.
 	SecretId string `json:"secret_id"`
+
+	// SecretName Name of the team secret holding the provider API key.
+	SecretName string `json:"secret_name"`
 }
 
 // RouteConnectionConfigXAI defines model for RouteConnectionConfigXAI.
 type RouteConnectionConfigXAI struct {
 	// Provider Provider kind for xAI.
-	Provider string `json:"provider"`
-
-	// SecretId Identifier of an existing secret, owned by the same team, that holds the provider API key.
-	SecretId string `json:"secret_id"`
-}
-
-// RouteConnectionOpenAI defines model for RouteConnectionOpenAI.
-type RouteConnectionOpenAI struct {
-	// Provider Provider kind for OpenAI.
 	Provider string `json:"provider"`
 
 	// SecretId Identifier of the team secret holding the provider API key.
@@ -6825,18 +7075,6 @@ type RouteConnectionOpenAI struct {
 type RouteConnectionTombstone struct {
 	// Id Stable identifier of the deleted connection.
 	Id string `json:"id"`
-}
-
-// RouteConnectionXAI defines model for RouteConnectionXAI.
-type RouteConnectionXAI struct {
-	// Provider Provider kind for xAI.
-	Provider string `json:"provider"`
-
-	// SecretId Identifier of the team secret holding the provider API key.
-	SecretId string `json:"secret_id"`
-
-	// SecretName Name of the team secret holding the provider API key.
-	SecretName string `json:"secret_name"`
 }
 
 // RouteConnectionsResponse defines model for RouteConnectionsResponse.
@@ -6888,10 +7126,16 @@ type RouteSettingSource string
 type RouteSpendLimitSetting struct {
 	Effective RouteEffectiveSpendLimit `json:"effective"`
 
-	// TeamDefault Per-member limit of the team the user's active Code key belongs to. This limit applies when the user has no limit of their own. Null when there is none.
+	// MonthOverrideUsd Spend limit in USD for the current UTC calendar month set on the user in the team, which supersedes their standing limit. Null when there is none.
+	MonthOverrideUsd *string `json:"month_override_usd"`
+
+	// TeamDefault Per-member limit of the team. This limit applies when the user has no limit of their own. Null when there is none.
 	TeamDefault *RouteSpendLimitTeamDefault `json:"team_default"`
 
-	// UserMonthlyLimitUsd Standing spend limit in USD for each UTC calendar month set on the user. Null when the user has no limit of their own.
+	// TeamWideMonthlyLimitUsd Team-wide limit of the team in USD for each UTC calendar month. Once all members' spend in the team reaches it, the user's requests in the team are rejected whatever their own limit. Null when there is none.
+	TeamWideMonthlyLimitUsd *string `json:"team_wide_monthly_limit_usd"`
+
+	// UserMonthlyLimitUsd Standing spend limit in USD for each UTC calendar month set on the user in the team. Null when the user has no limit of their own there.
 	UserMonthlyLimitUsd *string `json:"user_monthly_limit_usd"`
 }
 
@@ -6900,20 +7144,8 @@ type RouteSpendLimitTeamDefault struct {
 	// PerMemberMonthlyLimitUsd The team's per-member spend limit in USD for each UTC calendar month.
 	PerMemberMonthlyLimitUsd string `json:"per_member_monthly_limit_usd"`
 
-	// TeamId ID of the team the user's active Code key belongs to.
+	// TeamId ID of the team whose per-member limit this is.
 	TeamId string `json:"team_id"`
-}
-
-// RouteTargetAnthropic defines model for RouteTargetAnthropic.
-type RouteTargetAnthropic struct {
-	// Model Model name sent to the provider.
-	Model string `json:"model"`
-
-	// SecretName Name of a credential secret owned by the route's team.
-	SecretName string `json:"secret_name"`
-
-	// Type Target kind for Anthropic.
-	Type string `json:"type"`
 }
 
 // RouteTargetBasetenModelAPI defines model for RouteTargetBasetenModelAPI.
@@ -6941,90 +7173,15 @@ type RouteTargetClassifierModelBased struct {
 	Type string `json:"type"`
 }
 
-// RouteTargetConfigAnthropic defines model for RouteTargetConfigAnthropic.
-type RouteTargetConfigAnthropic struct {
+// RouteTargetConnection defines model for RouteTargetConnection.
+type RouteTargetConnection struct {
+	// ConnectionId Identifier of the team connection authenticating with the provider.
+	ConnectionId string `json:"connection_id"`
+
 	// Model Model name sent to the provider.
 	Model string `json:"model"`
 
-	// SecretName Name of a credential secret owned by the route's team.
-	SecretName string `json:"secret_name"`
-
-	// Type Target kind for Anthropic.
-	Type string `json:"type"`
-}
-
-// RouteTargetConfigBasetenModelAPI defines model for RouteTargetConfigBasetenModelAPI.
-type RouteTargetConfigBasetenModelAPI struct {
-	// Model Name of the target Model API.
-	Model string `json:"model"`
-
-	// Type Target kind for a Baseten Model API.
-	Type string `json:"type"`
-}
-
-// RouteTargetConfigClassifierModelBased defines model for RouteTargetConfigClassifierModelBased.
-type RouteTargetConfigClassifierModelBased struct {
-	// AllowedRouteIds IDs of the routes the classifier may pick. All must belong to the route's team and must not be routers themselves.
-	AllowedRouteIds []string `json:"allowed_route_ids"`
-
-	// ClassifierEnvironmentName Environment of the classifier model. Omit for production, which is returned as null.
-	ClassifierEnvironmentName *string `json:"classifier_environment_name,omitempty"`
-
-	// ClassifierModelId ID of the Baseten model that picks a route for each request. Only classifiers deployed by Baseten's post-training team are supported.
-	ClassifierModelId string `json:"classifier_model_id"`
-
-	// DefaultRouteId ID of the allowed route used when the classifier picks none.
-	DefaultRouteId string `json:"default_route_id"`
-
-	// Type Target kind for a classifier-model-based route. Not intended for general use: classifiers are deployed by Baseten's post-training team.
-	Type string `json:"type"`
-}
-
-// RouteTargetConfigOpenAI defines model for RouteTargetConfigOpenAI.
-type RouteTargetConfigOpenAI struct {
-	// Model Model name sent to the provider.
-	Model string `json:"model"`
-
-	// SecretName Name of a credential secret owned by the route's team.
-	SecretName string `json:"secret_name"`
-
-	// Type Target kind for OpenAI.
-	Type string `json:"type"`
-}
-
-// RouteTargetConfigXAI defines model for RouteTargetConfigXAI.
-type RouteTargetConfigXAI struct {
-	// Model Model name sent to the provider.
-	Model string `json:"model"`
-
-	// SecretName Name of a credential secret owned by the route's team.
-	SecretName string `json:"secret_name"`
-
-	// Type Target kind for xAI.
-	Type string `json:"type"`
-}
-
-// RouteTargetOpenAI defines model for RouteTargetOpenAI.
-type RouteTargetOpenAI struct {
-	// Model Model name sent to the provider.
-	Model string `json:"model"`
-
-	// SecretName Name of a credential secret owned by the route's team.
-	SecretName string `json:"secret_name"`
-
-	// Type Target kind for OpenAI.
-	Type string `json:"type"`
-}
-
-// RouteTargetXAI defines model for RouteTargetXAI.
-type RouteTargetXAI struct {
-	// Model Model name sent to the provider.
-	Model string `json:"model"`
-
-	// SecretName Name of a credential secret owned by the route's team.
-	SecretName string `json:"secret_name"`
-
-	// Type Target kind for xAI.
+	// Type Target kind for a provider reached through a team connection.
 	Type string `json:"type"`
 }
 
@@ -7039,8 +7196,36 @@ type RouteTeamSettings struct {
 
 // RouteTeamSpendLimitSetting defines model for RouteTeamSpendLimitSetting.
 type RouteTeamSpendLimitSetting struct {
-	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member whose active Code key belongs to this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.
+	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member's Code spend in this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.
 	PerMemberMonthlyLimitUsd *string `json:"per_member_monthly_limit_usd"`
+
+	// TeamWideMonthlyLimitUsd Spend limit in USD for each UTC calendar month on the Code spend of all members in this team together. Once it is reached, every member's requests in the team are rejected. Returned as an exact decimal string. Null when the team has no team-wide limit.
+	TeamWideMonthlyLimitUsd *string `json:"team_wide_monthly_limit_usd"`
+}
+
+// RouteTeamUserSettings defines model for RouteTeamUserSettings.
+type RouteTeamUserSettings struct {
+	// Email Email address of the user.
+	Email *string `json:"email"`
+
+	// IsBlocked Whether the user's spend this month reached their limit, or the team's spend reached its team-wide limit, so requests with Routes keys they created in the team are rejected.
+	IsBlocked bool `json:"is_blocked"`
+
+	// MonthSpendUsd The user's metered Code spend in USD in the team this UTC calendar month, returned as an exact decimal string.
+	MonthSpendUsd string                 `json:"month_spend_usd"`
+	SpendLimit    RouteSpendLimitSetting `json:"spend_limit"`
+
+	// TeamId ID of the team.
+	TeamId string `json:"team_id"`
+
+	// UserId ID of the user.
+	UserId string `json:"user_id"`
+}
+
+// RouteTeamUserSettingsList defines model for RouteTeamUserSettingsList.
+type RouteTeamUserSettingsList struct {
+	// Users Settings of each user with a role in the team and of anyone with Code spend in the team this month.
+	Users []RouteTeamUserSettings `json:"users"`
 }
 
 // RouteTombstone defines model for RouteTombstone.
@@ -7107,6 +7292,9 @@ type RoutesUsageResult struct {
 
 	// Provider Provider that served the requests. Null when not grouping by PROVIDER.
 	Provider *RouteProvider `json:"provider,omitempty"`
+
+	// TeamId ID of the team the usage was metered in. Null when not grouping by TEAM, and for usage metered before it was attributed to teams.
+	TeamId *string `json:"team_id,omitempty"`
 
 	// UncachedInputTokens Input tokens not read from the prompt cache, including tokens written to the cache.
 	UncachedInputTokens int `json:"uncached_input_tokens"`
@@ -8402,40 +8590,13 @@ type UpdateRollingDeployConfig struct {
 	StabilizationTimeSeconds *int `json:"stabilization_time_seconds,omitempty"`
 }
 
-// UpdateRouteConnectionConfigAnthropic defines model for UpdateRouteConnectionConfigAnthropic.
-type UpdateRouteConnectionConfigAnthropic struct {
-	// Provider Provider kind for Anthropic.
-	Provider string `json:"provider"`
-
-	// SecretId Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.
-	SecretId Optional[string] `json:"secret_id,omitzero"`
-}
-
-// UpdateRouteConnectionConfigOpenAI defines model for UpdateRouteConnectionConfigOpenAI.
-type UpdateRouteConnectionConfigOpenAI struct {
-	// Provider Provider kind for OpenAI.
-	Provider string `json:"provider"`
-
-	// SecretId Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.
-	SecretId Optional[string] `json:"secret_id,omitzero"`
-}
-
-// UpdateRouteConnectionConfigXAI defines model for UpdateRouteConnectionConfigXAI.
-type UpdateRouteConnectionConfigXAI struct {
-	// Provider Provider kind for xAI.
-	Provider string `json:"provider"`
-
-	// SecretId Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.
-	SecretId Optional[string] `json:"secret_id,omitzero"`
-}
-
 // UpdateRouteConnectionRequest defines model for UpdateRouteConnectionRequest.
 type UpdateRouteConnectionRequest struct {
-	// Config Connection fields to change. The provider must match the connection and is immutable.
+	// Config Complete new connection configuration, replacing the current one. The provider must match the connection and is immutable.
 	Config UpdateRouteConnectionRequest_Config `json:"config"`
 }
 
-// UpdateRouteConnectionRequest_Config Connection fields to change. The provider must match the connection and is immutable.
+// UpdateRouteConnectionRequest_Config Complete new connection configuration, replacing the current one. The provider must match the connection and is immutable.
 type UpdateRouteConnectionRequest_Config struct {
 	union json.RawMessage
 }
@@ -8474,6 +8635,9 @@ type UpdateRouteRequest_Target struct {
 
 // UpdateRouteSpendLimitSetting defines model for UpdateRouteSpendLimitSetting.
 type UpdateRouteSpendLimitSetting struct {
+	// MonthOverrideUsd Spend limit in USD for the current UTC calendar month, which supersedes the standing limit. Send null to remove it; omit to leave it unchanged.
+	MonthOverrideUsd Optional[string] `json:"month_override_usd,omitzero"`
+
 	// UserMonthlyLimitUsd Standing spend limit in USD for each UTC calendar month. Send null to remove the limit; omit to leave it unchanged.
 	UserMonthlyLimitUsd Optional[string] `json:"user_monthly_limit_usd,omitzero"`
 }
@@ -8483,14 +8647,17 @@ type UpdateRouteTeamSettingsRequest struct {
 	// HarnessDefaults Harnesses to change; harnesses left out are unchanged. Pass null to clear every harness, so each role uses the team's default.
 	HarnessDefaults Optional[UpdateRouteHarnessDefaults] `json:"harness_defaults,omitzero"`
 
-	// SpendLimit Spend limit fields to change. Pass null to remove the team's per-member limit; omit to leave it unchanged.
+	// SpendLimit Spend limit fields to change. Pass null to remove the team's limits; omit to leave them unchanged.
 	SpendLimit Optional[UpdateRouteTeamSpendLimitSetting] `json:"spend_limit,omitzero"`
 }
 
 // UpdateRouteTeamSpendLimitSetting defines model for UpdateRouteTeamSpendLimitSetting.
 type UpdateRouteTeamSpendLimitSetting struct {
-	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member whose active Code key belongs to this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.
+	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member's Code spend in this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.
 	PerMemberMonthlyLimitUsd Optional[string] `json:"per_member_monthly_limit_usd,omitzero"`
+
+	// TeamWideMonthlyLimitUsd Spend limit in USD for each UTC calendar month on the Code spend of all members in this team together. Send null to remove it; omit to leave it unchanged.
+	TeamWideMonthlyLimitUsd Optional[string] `json:"team_wide_monthly_limit_usd,omitzero"`
 }
 
 // UpdateRouteUserSettingsRequest defines model for UpdateRouteUserSettingsRequest.
@@ -8529,6 +8696,72 @@ type UpdateTrainingJobRequest struct {
 // UpdateTrainingJobResponse A response to updating a training job.
 type UpdateTrainingJobResponse struct {
 	TrainingJob TrainingJob `json:"training_job"`
+}
+
+// UpsertRouteConnectionConfigAnthropic defines model for UpsertRouteConnectionConfigAnthropic.
+type UpsertRouteConnectionConfigAnthropic struct {
+	// Provider Provider kind for Anthropic.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of an existing secret, owned by the same team, that holds the provider API key.
+	SecretId string `json:"secret_id"`
+}
+
+// UpsertRouteConnectionConfigOpenAI defines model for UpsertRouteConnectionConfigOpenAI.
+type UpsertRouteConnectionConfigOpenAI struct {
+	// Provider Provider kind for OpenAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of an existing secret, owned by the same team, that holds the provider API key.
+	SecretId string `json:"secret_id"`
+}
+
+// UpsertRouteConnectionConfigXAI defines model for UpsertRouteConnectionConfigXAI.
+type UpsertRouteConnectionConfigXAI struct {
+	// Provider Provider kind for xAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of an existing secret, owned by the same team, that holds the provider API key.
+	SecretId string `json:"secret_id"`
+}
+
+// UpsertRouteTargetBasetenModelAPI defines model for UpsertRouteTargetBasetenModelAPI.
+type UpsertRouteTargetBasetenModelAPI struct {
+	// Model Name of the target Model API.
+	Model string `json:"model"`
+
+	// Type Target kind for a Baseten Model API.
+	Type string `json:"type"`
+}
+
+// UpsertRouteTargetClassifierModelBased defines model for UpsertRouteTargetClassifierModelBased.
+type UpsertRouteTargetClassifierModelBased struct {
+	// AllowedRouteIds IDs of the routes the classifier may pick. All must belong to the route's team and must not be routers themselves.
+	AllowedRouteIds []string `json:"allowed_route_ids"`
+
+	// ClassifierEnvironmentName Environment of the classifier model. Omit for production, which is returned as null.
+	ClassifierEnvironmentName *string `json:"classifier_environment_name,omitempty"`
+
+	// ClassifierModelId ID of the Baseten model that picks a route for each request. Only classifiers deployed by Baseten's post-training team are supported.
+	ClassifierModelId string `json:"classifier_model_id"`
+
+	// DefaultRouteId ID of the allowed route used when the classifier picks none.
+	DefaultRouteId string `json:"default_route_id"`
+
+	// Type Target kind for a classifier-model-based route. Not intended for general use: classifiers are deployed by Baseten's post-training team.
+	Type string `json:"type"`
+}
+
+// UpsertRouteTargetConnection defines model for UpsertRouteTargetConnection.
+type UpsertRouteTargetConnection struct {
+	// ConnectionId Identifier of a connection owned by the route's team. Its provider serves the route.
+	ConnectionId string `json:"connection_id"`
+
+	// Model Model name sent to the provider.
+	Model string `json:"model"`
+
+	// Type Target kind for a provider reached through a team connection.
+	Type string `json:"type"`
 }
 
 // UpsertSecretRequest A request to create or update a Baseten secret by name.
@@ -9443,6 +9676,51 @@ type GetV1ModelsModelIdDeploymentsParams struct {
 	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
+// GetV1ModelsModelIdDeploymentsDeploymentIdColdStartsParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdColdStarts.
+type GetV1ModelsModelIdDeploymentsDeploymentIdColdStartsParams struct {
+	// StartEpochMillis Start of the query window, in epoch milliseconds.
+	StartEpochMillis int `form:"start_epoch_millis" json:"start_epoch_millis"`
+
+	// EndEpochMillis End of the query window, in epoch milliseconds. Must be after the start.
+	EndEpochMillis int `form:"end_epoch_millis" json:"end_epoch_millis"`
+
+	// MinDurationMs Only include cold starts that lasted at least this many milliseconds.
+	MinDurationMs *int `form:"min_duration_ms,omitempty" json:"min_duration_ms,omitempty"`
+
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page. Pass the same filters and sort as the request that returned it.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of attempts to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Outcomes Only include attempts with one of these outcomes. Repeat to pass several.
+	Outcomes *[]ColdStartOutcome `form:"outcomes,omitempty" json:"outcomes,omitempty"`
+
+	// Phase Only include attempts that spent longer than 0 ms in this phase.
+	Phase *ColdStartPhase `form:"phase,omitempty" json:"phase,omitempty"`
+
+	// Search Only include attempts whose replica ID matches exactly, or whose deployment name contains this text (case-insensitive).
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// SortBy Field to sort attempts by. Defaults to `STARTED_AT`.
+	SortBy *ColdStartSortField `form:"sort_by,omitempty" json:"sort_by,omitempty"`
+
+	// Direction Sort direction. Defaults to `desc`.
+	Direction *SortOrder `form:"direction,omitempty" json:"direction,omitempty"`
+}
+
+// GetV1ModelsModelIdDeploymentsDeploymentIdColdStartsSummaryParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdColdStartsSummary.
+type GetV1ModelsModelIdDeploymentsDeploymentIdColdStartsSummaryParams struct {
+	// StartEpochMillis Start of the query window, in epoch milliseconds.
+	StartEpochMillis int `form:"start_epoch_millis" json:"start_epoch_millis"`
+
+	// EndEpochMillis End of the query window, in epoch milliseconds. Must be after the start.
+	EndEpochMillis int `form:"end_epoch_millis" json:"end_epoch_millis"`
+
+	// MinDurationMs Only include cold starts that lasted at least this many milliseconds.
+	MinDurationMs *int `form:"min_duration_ms,omitempty" json:"min_duration_ms,omitempty"`
+}
+
 // GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdConfig.
 type GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams struct {
 	// OutputFormat 'raw': verbatim config.yaml with comments (not available for deployments created before 2026-04-30). 'parsed': dict with server-side defaults applied (always available). 'both': both fields populated.
@@ -9498,6 +9776,51 @@ type GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams struct {
 
 	// Metrics Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply are omitted from the response.
 	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
+}
+
+// GetV1ModelsModelIdEnvironmentsEnvNameColdStartsParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameColdStarts.
+type GetV1ModelsModelIdEnvironmentsEnvNameColdStartsParams struct {
+	// StartEpochMillis Start of the query window, in epoch milliseconds.
+	StartEpochMillis int `form:"start_epoch_millis" json:"start_epoch_millis"`
+
+	// EndEpochMillis End of the query window, in epoch milliseconds. Must be after the start.
+	EndEpochMillis int `form:"end_epoch_millis" json:"end_epoch_millis"`
+
+	// MinDurationMs Only include cold starts that lasted at least this many milliseconds.
+	MinDurationMs *int `form:"min_duration_ms,omitempty" json:"min_duration_ms,omitempty"`
+
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page. Pass the same filters and sort as the request that returned it.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of attempts to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Outcomes Only include attempts with one of these outcomes. Repeat to pass several.
+	Outcomes *[]ColdStartOutcome `form:"outcomes,omitempty" json:"outcomes,omitempty"`
+
+	// Phase Only include attempts that spent longer than 0 ms in this phase.
+	Phase *ColdStartPhase `form:"phase,omitempty" json:"phase,omitempty"`
+
+	// Search Only include attempts whose replica ID matches exactly, or whose deployment name contains this text (case-insensitive).
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// SortBy Field to sort attempts by. Defaults to `STARTED_AT`.
+	SortBy *ColdStartSortField `form:"sort_by,omitempty" json:"sort_by,omitempty"`
+
+	// Direction Sort direction. Defaults to `desc`.
+	Direction *SortOrder `form:"direction,omitempty" json:"direction,omitempty"`
+}
+
+// GetV1ModelsModelIdEnvironmentsEnvNameColdStartsSummaryParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameColdStartsSummary.
+type GetV1ModelsModelIdEnvironmentsEnvNameColdStartsSummaryParams struct {
+	// StartEpochMillis Start of the query window, in epoch milliseconds.
+	StartEpochMillis int `form:"start_epoch_millis" json:"start_epoch_millis"`
+
+	// EndEpochMillis End of the query window, in epoch milliseconds. Must be after the start.
+	EndEpochMillis int `form:"end_epoch_millis" json:"end_epoch_millis"`
+
+	// MinDurationMs Only include cold starts that lasted at least this many milliseconds.
+	MinDurationMs *int `form:"min_duration_ms,omitempty" json:"min_duration_ms,omitempty"`
 }
 
 // GetV1ModelsModelIdEnvironmentsEnvNameLogsParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameLogs.
@@ -9578,6 +9901,12 @@ type GetV1RoutesConnectionsParams struct {
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
+// GetV1RoutesSettingsUsersUserIdParams defines parameters for GetV1RoutesSettingsUsersUserId.
+type GetV1RoutesSettingsUsersUserIdParams struct {
+	// TeamId ID of the team to read the user's spend limit in. Defaults to the only team the user has Code spend in this month, else their only team.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
 // GetV1RoutesUsageParams defines parameters for GetV1RoutesUsage.
 type GetV1RoutesUsageParams struct {
 	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
@@ -9586,13 +9915,16 @@ type GetV1RoutesUsageParams struct {
 	// Limit Number of daily buckets to return. Defaults to 7; maximum 31.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
+	// TeamId Limit usage to a team you can access. Organization admins can view all usage in the team, team admins can view usage in teams they manage, and other members can view only their own usage. Without a team, organization admins see all organization usage, team admins see their managed teams, and other members see their own usage.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
 	// StartDate Inclusive UTC calendar day at the start of the query range. Defaults to the previous UTC date, and is ignored when you pass a cursor.
 	StartDate *string `form:"start_date,omitempty" json:"start_date,omitempty"`
 
 	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included.
 	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
 
-	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.
+	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.
 	GroupBy *[]RouteUsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
 
 	// UserIds Return only usage from Routes keys created by these user IDs, repeated once per ID.
@@ -10027,6 +10359,9 @@ type PatchV1RoutesConnectionsConnectionIdJSONRequestBody = UpdateRouteConnection
 
 // PatchV1RoutesSettingsTeamsTeamIdJSONRequestBody defines body for PatchV1RoutesSettingsTeamsTeamId for application/json ContentType.
 type PatchV1RoutesSettingsTeamsTeamIdJSONRequestBody = UpdateRouteTeamSettingsRequest
+
+// PatchV1RoutesSettingsTeamsTeamIdUsersUserIdJSONRequestBody defines body for PatchV1RoutesSettingsTeamsTeamIdUsersUserId for application/json ContentType.
+type PatchV1RoutesSettingsTeamsTeamIdUsersUserIdJSONRequestBody = UpdateRouteUserSettingsRequest
 
 // PatchV1RoutesSettingsUsersUserIdJSONRequestBody defines body for PatchV1RoutesSettingsUsersUserId for application/json ContentType.
 type PatchV1RoutesSettingsUsersUserIdJSONRequestBody = UpdateRouteUserSettingsRequest
@@ -11249,45 +11584,45 @@ func (t *CreateModelRequest_Source) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsRouteConnectionConfigAnthropic returns the union data inside the CreateRouteConnectionRequest_Config as a RouteConnectionConfigAnthropic
-func (t CreateRouteConnectionRequest_Config) AsRouteConnectionConfigAnthropic() (RouteConnectionConfigAnthropic, error) {
-	var body RouteConnectionConfigAnthropic
+// AsUpsertRouteConnectionConfigAnthropic returns the union data inside the CreateRouteConnectionRequest_Config as a UpsertRouteConnectionConfigAnthropic
+func (t CreateRouteConnectionRequest_Config) AsUpsertRouteConnectionConfigAnthropic() (UpsertRouteConnectionConfigAnthropic, error) {
+	var body UpsertRouteConnectionConfigAnthropic
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteConnectionConfigAnthropic overwrites any union data inside the CreateRouteConnectionRequest_Config as the provided RouteConnectionConfigAnthropic
-func (t *CreateRouteConnectionRequest_Config) FromRouteConnectionConfigAnthropic(v RouteConnectionConfigAnthropic) error {
+// FromUpsertRouteConnectionConfigAnthropic overwrites any union data inside the CreateRouteConnectionRequest_Config as the provided UpsertRouteConnectionConfigAnthropic
+func (t *CreateRouteConnectionRequest_Config) FromUpsertRouteConnectionConfigAnthropic(v UpsertRouteConnectionConfigAnthropic) error {
 	v.Provider = "ANTHROPIC"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteConnectionConfigOpenAI returns the union data inside the CreateRouteConnectionRequest_Config as a RouteConnectionConfigOpenAI
-func (t CreateRouteConnectionRequest_Config) AsRouteConnectionConfigOpenAI() (RouteConnectionConfigOpenAI, error) {
-	var body RouteConnectionConfigOpenAI
+// AsUpsertRouteConnectionConfigOpenAI returns the union data inside the CreateRouteConnectionRequest_Config as a UpsertRouteConnectionConfigOpenAI
+func (t CreateRouteConnectionRequest_Config) AsUpsertRouteConnectionConfigOpenAI() (UpsertRouteConnectionConfigOpenAI, error) {
+	var body UpsertRouteConnectionConfigOpenAI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteConnectionConfigOpenAI overwrites any union data inside the CreateRouteConnectionRequest_Config as the provided RouteConnectionConfigOpenAI
-func (t *CreateRouteConnectionRequest_Config) FromRouteConnectionConfigOpenAI(v RouteConnectionConfigOpenAI) error {
+// FromUpsertRouteConnectionConfigOpenAI overwrites any union data inside the CreateRouteConnectionRequest_Config as the provided UpsertRouteConnectionConfigOpenAI
+func (t *CreateRouteConnectionRequest_Config) FromUpsertRouteConnectionConfigOpenAI(v UpsertRouteConnectionConfigOpenAI) error {
 	v.Provider = "OPENAI"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteConnectionConfigXAI returns the union data inside the CreateRouteConnectionRequest_Config as a RouteConnectionConfigXAI
-func (t CreateRouteConnectionRequest_Config) AsRouteConnectionConfigXAI() (RouteConnectionConfigXAI, error) {
-	var body RouteConnectionConfigXAI
+// AsUpsertRouteConnectionConfigXAI returns the union data inside the CreateRouteConnectionRequest_Config as a UpsertRouteConnectionConfigXAI
+func (t CreateRouteConnectionRequest_Config) AsUpsertRouteConnectionConfigXAI() (UpsertRouteConnectionConfigXAI, error) {
+	var body UpsertRouteConnectionConfigXAI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteConnectionConfigXAI overwrites any union data inside the CreateRouteConnectionRequest_Config as the provided RouteConnectionConfigXAI
-func (t *CreateRouteConnectionRequest_Config) FromRouteConnectionConfigXAI(v RouteConnectionConfigXAI) error {
+// FromUpsertRouteConnectionConfigXAI overwrites any union data inside the CreateRouteConnectionRequest_Config as the provided UpsertRouteConnectionConfigXAI
+func (t *CreateRouteConnectionRequest_Config) FromUpsertRouteConnectionConfigXAI(v UpsertRouteConnectionConfigXAI) error {
 	v.Provider = "XAI"
 	b, err := json.Marshal(v)
 	t.union = b
@@ -11309,11 +11644,11 @@ func (t CreateRouteConnectionRequest_Config) ValueByDiscriminator() (interface{}
 	}
 	switch discriminator {
 	case "ANTHROPIC":
-		return t.AsRouteConnectionConfigAnthropic()
+		return t.AsUpsertRouteConnectionConfigAnthropic()
 	case "OPENAI":
-		return t.AsRouteConnectionConfigOpenAI()
+		return t.AsUpsertRouteConnectionConfigOpenAI()
 	case "XAI":
-		return t.AsRouteConnectionConfigXAI()
+		return t.AsUpsertRouteConnectionConfigXAI()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -11329,75 +11664,45 @@ func (t *CreateRouteConnectionRequest_Config) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsRouteTargetConfigBasetenModelAPI returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigBasetenModelAPI
-func (t CreateRouteRequest_Target) AsRouteTargetConfigBasetenModelAPI() (RouteTargetConfigBasetenModelAPI, error) {
-	var body RouteTargetConfigBasetenModelAPI
+// AsUpsertRouteTargetBasetenModelAPI returns the union data inside the CreateRouteRequest_Target as a UpsertRouteTargetBasetenModelAPI
+func (t CreateRouteRequest_Target) AsUpsertRouteTargetBasetenModelAPI() (UpsertRouteTargetBasetenModelAPI, error) {
+	var body UpsertRouteTargetBasetenModelAPI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetConfigBasetenModelAPI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigBasetenModelAPI
-func (t *CreateRouteRequest_Target) FromRouteTargetConfigBasetenModelAPI(v RouteTargetConfigBasetenModelAPI) error {
+// FromUpsertRouteTargetBasetenModelAPI overwrites any union data inside the CreateRouteRequest_Target as the provided UpsertRouteTargetBasetenModelAPI
+func (t *CreateRouteRequest_Target) FromUpsertRouteTargetBasetenModelAPI(v UpsertRouteTargetBasetenModelAPI) error {
 	v.Type = "BASETEN_MODEL_API"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteTargetConfigAnthropic returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigAnthropic
-func (t CreateRouteRequest_Target) AsRouteTargetConfigAnthropic() (RouteTargetConfigAnthropic, error) {
-	var body RouteTargetConfigAnthropic
+// AsUpsertRouteTargetConnection returns the union data inside the CreateRouteRequest_Target as a UpsertRouteTargetConnection
+func (t CreateRouteRequest_Target) AsUpsertRouteTargetConnection() (UpsertRouteTargetConnection, error) {
+	var body UpsertRouteTargetConnection
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetConfigAnthropic overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigAnthropic
-func (t *CreateRouteRequest_Target) FromRouteTargetConfigAnthropic(v RouteTargetConfigAnthropic) error {
-	v.Type = "ANTHROPIC"
+// FromUpsertRouteTargetConnection overwrites any union data inside the CreateRouteRequest_Target as the provided UpsertRouteTargetConnection
+func (t *CreateRouteRequest_Target) FromUpsertRouteTargetConnection(v UpsertRouteTargetConnection) error {
+	v.Type = "CONNECTION"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteTargetConfigOpenAI returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigOpenAI
-func (t CreateRouteRequest_Target) AsRouteTargetConfigOpenAI() (RouteTargetConfigOpenAI, error) {
-	var body RouteTargetConfigOpenAI
+// AsUpsertRouteTargetClassifierModelBased returns the union data inside the CreateRouteRequest_Target as a UpsertRouteTargetClassifierModelBased
+func (t CreateRouteRequest_Target) AsUpsertRouteTargetClassifierModelBased() (UpsertRouteTargetClassifierModelBased, error) {
+	var body UpsertRouteTargetClassifierModelBased
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetConfigOpenAI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigOpenAI
-func (t *CreateRouteRequest_Target) FromRouteTargetConfigOpenAI(v RouteTargetConfigOpenAI) error {
-	v.Type = "OPENAI"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsRouteTargetConfigXAI returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigXAI
-func (t CreateRouteRequest_Target) AsRouteTargetConfigXAI() (RouteTargetConfigXAI, error) {
-	var body RouteTargetConfigXAI
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetConfigXAI overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigXAI
-func (t *CreateRouteRequest_Target) FromRouteTargetConfigXAI(v RouteTargetConfigXAI) error {
-	v.Type = "XAI"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsRouteTargetConfigClassifierModelBased returns the union data inside the CreateRouteRequest_Target as a RouteTargetConfigClassifierModelBased
-func (t CreateRouteRequest_Target) AsRouteTargetConfigClassifierModelBased() (RouteTargetConfigClassifierModelBased, error) {
-	var body RouteTargetConfigClassifierModelBased
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetConfigClassifierModelBased overwrites any union data inside the CreateRouteRequest_Target as the provided RouteTargetConfigClassifierModelBased
-func (t *CreateRouteRequest_Target) FromRouteTargetConfigClassifierModelBased(v RouteTargetConfigClassifierModelBased) error {
+// FromUpsertRouteTargetClassifierModelBased overwrites any union data inside the CreateRouteRequest_Target as the provided UpsertRouteTargetClassifierModelBased
+func (t *CreateRouteRequest_Target) FromUpsertRouteTargetClassifierModelBased(v UpsertRouteTargetClassifierModelBased) error {
 	v.Type = "CLASSIFIER_MODEL_BASED"
 	b, err := json.Marshal(v)
 	t.union = b
@@ -11418,16 +11723,12 @@ func (t CreateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
 		return nil, err
 	}
 	switch discriminator {
-	case "ANTHROPIC":
-		return t.AsRouteTargetConfigAnthropic()
 	case "BASETEN_MODEL_API":
-		return t.AsRouteTargetConfigBasetenModelAPI()
+		return t.AsUpsertRouteTargetBasetenModelAPI()
 	case "CLASSIFIER_MODEL_BASED":
-		return t.AsRouteTargetConfigClassifierModelBased()
-	case "OPENAI":
-		return t.AsRouteTargetConfigOpenAI()
-	case "XAI":
-		return t.AsRouteTargetConfigXAI()
+		return t.AsUpsertRouteTargetClassifierModelBased()
+	case "CONNECTION":
+		return t.AsUpsertRouteTargetConnection()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -12500,46 +12801,16 @@ func (t *Route_Target) FromRouteTargetBasetenModelAPI(v RouteTargetBasetenModelA
 	return err
 }
 
-// AsRouteTargetAnthropic returns the union data inside the Route_Target as a RouteTargetAnthropic
-func (t Route_Target) AsRouteTargetAnthropic() (RouteTargetAnthropic, error) {
-	var body RouteTargetAnthropic
+// AsRouteTargetConnection returns the union data inside the Route_Target as a RouteTargetConnection
+func (t Route_Target) AsRouteTargetConnection() (RouteTargetConnection, error) {
+	var body RouteTargetConnection
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetAnthropic overwrites any union data inside the Route_Target as the provided RouteTargetAnthropic
-func (t *Route_Target) FromRouteTargetAnthropic(v RouteTargetAnthropic) error {
-	v.Type = "ANTHROPIC"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsRouteTargetOpenAI returns the union data inside the Route_Target as a RouteTargetOpenAI
-func (t Route_Target) AsRouteTargetOpenAI() (RouteTargetOpenAI, error) {
-	var body RouteTargetOpenAI
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetOpenAI overwrites any union data inside the Route_Target as the provided RouteTargetOpenAI
-func (t *Route_Target) FromRouteTargetOpenAI(v RouteTargetOpenAI) error {
-	v.Type = "OPENAI"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsRouteTargetXAI returns the union data inside the Route_Target as a RouteTargetXAI
-func (t Route_Target) AsRouteTargetXAI() (RouteTargetXAI, error) {
-	var body RouteTargetXAI
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetXAI overwrites any union data inside the Route_Target as the provided RouteTargetXAI
-func (t *Route_Target) FromRouteTargetXAI(v RouteTargetXAI) error {
-	v.Type = "XAI"
+// FromRouteTargetConnection overwrites any union data inside the Route_Target as the provided RouteTargetConnection
+func (t *Route_Target) FromRouteTargetConnection(v RouteTargetConnection) error {
+	v.Type = "CONNECTION"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -12574,16 +12845,12 @@ func (t Route_Target) ValueByDiscriminator() (interface{}, error) {
 		return nil, err
 	}
 	switch discriminator {
-	case "ANTHROPIC":
-		return t.AsRouteTargetAnthropic()
 	case "BASETEN_MODEL_API":
 		return t.AsRouteTargetBasetenModelAPI()
 	case "CLASSIFIER_MODEL_BASED":
 		return t.AsRouteTargetClassifierModelBased()
-	case "OPENAI":
-		return t.AsRouteTargetOpenAI()
-	case "XAI":
-		return t.AsRouteTargetXAI()
+	case "CONNECTION":
+		return t.AsRouteTargetConnection()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -12599,45 +12866,45 @@ func (t *Route_Target) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsRouteConnectionAnthropic returns the union data inside the RouteConnection_Config as a RouteConnectionAnthropic
-func (t RouteConnection_Config) AsRouteConnectionAnthropic() (RouteConnectionAnthropic, error) {
-	var body RouteConnectionAnthropic
+// AsRouteConnectionConfigAnthropic returns the union data inside the RouteConnection_Config as a RouteConnectionConfigAnthropic
+func (t RouteConnection_Config) AsRouteConnectionConfigAnthropic() (RouteConnectionConfigAnthropic, error) {
+	var body RouteConnectionConfigAnthropic
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteConnectionAnthropic overwrites any union data inside the RouteConnection_Config as the provided RouteConnectionAnthropic
-func (t *RouteConnection_Config) FromRouteConnectionAnthropic(v RouteConnectionAnthropic) error {
+// FromRouteConnectionConfigAnthropic overwrites any union data inside the RouteConnection_Config as the provided RouteConnectionConfigAnthropic
+func (t *RouteConnection_Config) FromRouteConnectionConfigAnthropic(v RouteConnectionConfigAnthropic) error {
 	v.Provider = "ANTHROPIC"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteConnectionOpenAI returns the union data inside the RouteConnection_Config as a RouteConnectionOpenAI
-func (t RouteConnection_Config) AsRouteConnectionOpenAI() (RouteConnectionOpenAI, error) {
-	var body RouteConnectionOpenAI
+// AsRouteConnectionConfigOpenAI returns the union data inside the RouteConnection_Config as a RouteConnectionConfigOpenAI
+func (t RouteConnection_Config) AsRouteConnectionConfigOpenAI() (RouteConnectionConfigOpenAI, error) {
+	var body RouteConnectionConfigOpenAI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteConnectionOpenAI overwrites any union data inside the RouteConnection_Config as the provided RouteConnectionOpenAI
-func (t *RouteConnection_Config) FromRouteConnectionOpenAI(v RouteConnectionOpenAI) error {
+// FromRouteConnectionConfigOpenAI overwrites any union data inside the RouteConnection_Config as the provided RouteConnectionConfigOpenAI
+func (t *RouteConnection_Config) FromRouteConnectionConfigOpenAI(v RouteConnectionConfigOpenAI) error {
 	v.Provider = "OPENAI"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteConnectionXAI returns the union data inside the RouteConnection_Config as a RouteConnectionXAI
-func (t RouteConnection_Config) AsRouteConnectionXAI() (RouteConnectionXAI, error) {
-	var body RouteConnectionXAI
+// AsRouteConnectionConfigXAI returns the union data inside the RouteConnection_Config as a RouteConnectionConfigXAI
+func (t RouteConnection_Config) AsRouteConnectionConfigXAI() (RouteConnectionConfigXAI, error) {
+	var body RouteConnectionConfigXAI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteConnectionXAI overwrites any union data inside the RouteConnection_Config as the provided RouteConnectionXAI
-func (t *RouteConnection_Config) FromRouteConnectionXAI(v RouteConnectionXAI) error {
+// FromRouteConnectionConfigXAI overwrites any union data inside the RouteConnection_Config as the provided RouteConnectionConfigXAI
+func (t *RouteConnection_Config) FromRouteConnectionConfigXAI(v RouteConnectionConfigXAI) error {
 	v.Provider = "XAI"
 	b, err := json.Marshal(v)
 	t.union = b
@@ -12659,11 +12926,11 @@ func (t RouteConnection_Config) ValueByDiscriminator() (interface{}, error) {
 	}
 	switch discriminator {
 	case "ANTHROPIC":
-		return t.AsRouteConnectionAnthropic()
+		return t.AsRouteConnectionConfigAnthropic()
 	case "OPENAI":
-		return t.AsRouteConnectionOpenAI()
+		return t.AsRouteConnectionConfigOpenAI()
 	case "XAI":
-		return t.AsRouteConnectionXAI()
+		return t.AsRouteConnectionConfigXAI()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -12973,45 +13240,45 @@ func (t *UpdateAutoscalingScheduleSettings_Schedules_Item) UnmarshalJSON(b []byt
 	return err
 }
 
-// AsUpdateRouteConnectionConfigAnthropic returns the union data inside the UpdateRouteConnectionRequest_Config as a UpdateRouteConnectionConfigAnthropic
-func (t UpdateRouteConnectionRequest_Config) AsUpdateRouteConnectionConfigAnthropic() (UpdateRouteConnectionConfigAnthropic, error) {
-	var body UpdateRouteConnectionConfigAnthropic
+// AsUpsertRouteConnectionConfigAnthropic returns the union data inside the UpdateRouteConnectionRequest_Config as a UpsertRouteConnectionConfigAnthropic
+func (t UpdateRouteConnectionRequest_Config) AsUpsertRouteConnectionConfigAnthropic() (UpsertRouteConnectionConfigAnthropic, error) {
+	var body UpsertRouteConnectionConfigAnthropic
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromUpdateRouteConnectionConfigAnthropic overwrites any union data inside the UpdateRouteConnectionRequest_Config as the provided UpdateRouteConnectionConfigAnthropic
-func (t *UpdateRouteConnectionRequest_Config) FromUpdateRouteConnectionConfigAnthropic(v UpdateRouteConnectionConfigAnthropic) error {
+// FromUpsertRouteConnectionConfigAnthropic overwrites any union data inside the UpdateRouteConnectionRequest_Config as the provided UpsertRouteConnectionConfigAnthropic
+func (t *UpdateRouteConnectionRequest_Config) FromUpsertRouteConnectionConfigAnthropic(v UpsertRouteConnectionConfigAnthropic) error {
 	v.Provider = "ANTHROPIC"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsUpdateRouteConnectionConfigOpenAI returns the union data inside the UpdateRouteConnectionRequest_Config as a UpdateRouteConnectionConfigOpenAI
-func (t UpdateRouteConnectionRequest_Config) AsUpdateRouteConnectionConfigOpenAI() (UpdateRouteConnectionConfigOpenAI, error) {
-	var body UpdateRouteConnectionConfigOpenAI
+// AsUpsertRouteConnectionConfigOpenAI returns the union data inside the UpdateRouteConnectionRequest_Config as a UpsertRouteConnectionConfigOpenAI
+func (t UpdateRouteConnectionRequest_Config) AsUpsertRouteConnectionConfigOpenAI() (UpsertRouteConnectionConfigOpenAI, error) {
+	var body UpsertRouteConnectionConfigOpenAI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromUpdateRouteConnectionConfigOpenAI overwrites any union data inside the UpdateRouteConnectionRequest_Config as the provided UpdateRouteConnectionConfigOpenAI
-func (t *UpdateRouteConnectionRequest_Config) FromUpdateRouteConnectionConfigOpenAI(v UpdateRouteConnectionConfigOpenAI) error {
+// FromUpsertRouteConnectionConfigOpenAI overwrites any union data inside the UpdateRouteConnectionRequest_Config as the provided UpsertRouteConnectionConfigOpenAI
+func (t *UpdateRouteConnectionRequest_Config) FromUpsertRouteConnectionConfigOpenAI(v UpsertRouteConnectionConfigOpenAI) error {
 	v.Provider = "OPENAI"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsUpdateRouteConnectionConfigXAI returns the union data inside the UpdateRouteConnectionRequest_Config as a UpdateRouteConnectionConfigXAI
-func (t UpdateRouteConnectionRequest_Config) AsUpdateRouteConnectionConfigXAI() (UpdateRouteConnectionConfigXAI, error) {
-	var body UpdateRouteConnectionConfigXAI
+// AsUpsertRouteConnectionConfigXAI returns the union data inside the UpdateRouteConnectionRequest_Config as a UpsertRouteConnectionConfigXAI
+func (t UpdateRouteConnectionRequest_Config) AsUpsertRouteConnectionConfigXAI() (UpsertRouteConnectionConfigXAI, error) {
+	var body UpsertRouteConnectionConfigXAI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromUpdateRouteConnectionConfigXAI overwrites any union data inside the UpdateRouteConnectionRequest_Config as the provided UpdateRouteConnectionConfigXAI
-func (t *UpdateRouteConnectionRequest_Config) FromUpdateRouteConnectionConfigXAI(v UpdateRouteConnectionConfigXAI) error {
+// FromUpsertRouteConnectionConfigXAI overwrites any union data inside the UpdateRouteConnectionRequest_Config as the provided UpsertRouteConnectionConfigXAI
+func (t *UpdateRouteConnectionRequest_Config) FromUpsertRouteConnectionConfigXAI(v UpsertRouteConnectionConfigXAI) error {
 	v.Provider = "XAI"
 	b, err := json.Marshal(v)
 	t.union = b
@@ -13033,11 +13300,11 @@ func (t UpdateRouteConnectionRequest_Config) ValueByDiscriminator() (interface{}
 	}
 	switch discriminator {
 	case "ANTHROPIC":
-		return t.AsUpdateRouteConnectionConfigAnthropic()
+		return t.AsUpsertRouteConnectionConfigAnthropic()
 	case "OPENAI":
-		return t.AsUpdateRouteConnectionConfigOpenAI()
+		return t.AsUpsertRouteConnectionConfigOpenAI()
 	case "XAI":
-		return t.AsUpdateRouteConnectionConfigXAI()
+		return t.AsUpsertRouteConnectionConfigXAI()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -13053,75 +13320,45 @@ func (t *UpdateRouteConnectionRequest_Config) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsRouteTargetConfigBasetenModelAPI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigBasetenModelAPI
-func (t UpdateRouteRequest_Target) AsRouteTargetConfigBasetenModelAPI() (RouteTargetConfigBasetenModelAPI, error) {
-	var body RouteTargetConfigBasetenModelAPI
+// AsUpsertRouteTargetBasetenModelAPI returns the union data inside the UpdateRouteRequest_Target as a UpsertRouteTargetBasetenModelAPI
+func (t UpdateRouteRequest_Target) AsUpsertRouteTargetBasetenModelAPI() (UpsertRouteTargetBasetenModelAPI, error) {
+	var body UpsertRouteTargetBasetenModelAPI
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetConfigBasetenModelAPI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigBasetenModelAPI
-func (t *UpdateRouteRequest_Target) FromRouteTargetConfigBasetenModelAPI(v RouteTargetConfigBasetenModelAPI) error {
+// FromUpsertRouteTargetBasetenModelAPI overwrites any union data inside the UpdateRouteRequest_Target as the provided UpsertRouteTargetBasetenModelAPI
+func (t *UpdateRouteRequest_Target) FromUpsertRouteTargetBasetenModelAPI(v UpsertRouteTargetBasetenModelAPI) error {
 	v.Type = "BASETEN_MODEL_API"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteTargetConfigAnthropic returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigAnthropic
-func (t UpdateRouteRequest_Target) AsRouteTargetConfigAnthropic() (RouteTargetConfigAnthropic, error) {
-	var body RouteTargetConfigAnthropic
+// AsUpsertRouteTargetConnection returns the union data inside the UpdateRouteRequest_Target as a UpsertRouteTargetConnection
+func (t UpdateRouteRequest_Target) AsUpsertRouteTargetConnection() (UpsertRouteTargetConnection, error) {
+	var body UpsertRouteTargetConnection
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetConfigAnthropic overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigAnthropic
-func (t *UpdateRouteRequest_Target) FromRouteTargetConfigAnthropic(v RouteTargetConfigAnthropic) error {
-	v.Type = "ANTHROPIC"
+// FromUpsertRouteTargetConnection overwrites any union data inside the UpdateRouteRequest_Target as the provided UpsertRouteTargetConnection
+func (t *UpdateRouteRequest_Target) FromUpsertRouteTargetConnection(v UpsertRouteTargetConnection) error {
+	v.Type = "CONNECTION"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// AsRouteTargetConfigOpenAI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigOpenAI
-func (t UpdateRouteRequest_Target) AsRouteTargetConfigOpenAI() (RouteTargetConfigOpenAI, error) {
-	var body RouteTargetConfigOpenAI
+// AsUpsertRouteTargetClassifierModelBased returns the union data inside the UpdateRouteRequest_Target as a UpsertRouteTargetClassifierModelBased
+func (t UpdateRouteRequest_Target) AsUpsertRouteTargetClassifierModelBased() (UpsertRouteTargetClassifierModelBased, error) {
+	var body UpsertRouteTargetClassifierModelBased
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetConfigOpenAI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigOpenAI
-func (t *UpdateRouteRequest_Target) FromRouteTargetConfigOpenAI(v RouteTargetConfigOpenAI) error {
-	v.Type = "OPENAI"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsRouteTargetConfigXAI returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigXAI
-func (t UpdateRouteRequest_Target) AsRouteTargetConfigXAI() (RouteTargetConfigXAI, error) {
-	var body RouteTargetConfigXAI
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetConfigXAI overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigXAI
-func (t *UpdateRouteRequest_Target) FromRouteTargetConfigXAI(v RouteTargetConfigXAI) error {
-	v.Type = "XAI"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsRouteTargetConfigClassifierModelBased returns the union data inside the UpdateRouteRequest_Target as a RouteTargetConfigClassifierModelBased
-func (t UpdateRouteRequest_Target) AsRouteTargetConfigClassifierModelBased() (RouteTargetConfigClassifierModelBased, error) {
-	var body RouteTargetConfigClassifierModelBased
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRouteTargetConfigClassifierModelBased overwrites any union data inside the UpdateRouteRequest_Target as the provided RouteTargetConfigClassifierModelBased
-func (t *UpdateRouteRequest_Target) FromRouteTargetConfigClassifierModelBased(v RouteTargetConfigClassifierModelBased) error {
+// FromUpsertRouteTargetClassifierModelBased overwrites any union data inside the UpdateRouteRequest_Target as the provided UpsertRouteTargetClassifierModelBased
+func (t *UpdateRouteRequest_Target) FromUpsertRouteTargetClassifierModelBased(v UpsertRouteTargetClassifierModelBased) error {
 	v.Type = "CLASSIFIER_MODEL_BASED"
 	b, err := json.Marshal(v)
 	t.union = b
@@ -13142,16 +13379,12 @@ func (t UpdateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
 		return nil, err
 	}
 	switch discriminator {
-	case "ANTHROPIC":
-		return t.AsRouteTargetConfigAnthropic()
 	case "BASETEN_MODEL_API":
-		return t.AsRouteTargetConfigBasetenModelAPI()
+		return t.AsUpsertRouteTargetBasetenModelAPI()
 	case "CLASSIFIER_MODEL_BASED":
-		return t.AsRouteTargetConfigClassifierModelBased()
-	case "OPENAI":
-		return t.AsRouteTargetConfigOpenAI()
-	case "XAI":
-		return t.AsRouteTargetConfigXAI()
+		return t.AsUpsertRouteTargetClassifierModelBased()
+	case "CONNECTION":
+		return t.AsUpsertRouteTargetConnection()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}

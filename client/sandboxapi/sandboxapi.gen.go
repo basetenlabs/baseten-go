@@ -483,14 +483,6 @@ type GetFilesystemResponse struct {
 // GetFilesystemResponse2 defines model for .
 type GetFilesystemResponse2 = []byte
 
-// GetFilesystemTreeResponse defines model for GetFilesystemTreeResponse.
-type GetFilesystemTreeResponse struct {
-	union json.RawMessage
-}
-
-// GetFilesystemTreeResponse2 defines model for .
-type GetFilesystemTreeResponse2 = []byte
-
 // GetNetworkProcessPortsResponse defines model for GetNetworkProcessPortsResponse.
 type GetNetworkProcessPortsResponse map[string]interface{}
 
@@ -593,6 +585,7 @@ type PostNetworkProcessMonitorResponse map[string]interface{}
 
 // ProcessLogs defines model for ProcessLogs.
 type ProcessLogs struct {
+	// Logs Concatenation of the returned stdout followed by the returned stderr. Output from the two streams is not interleaved.
 	Logs   string `json:"logs"`
 	Stderr string `json:"stderr"`
 	Stdout string `json:"stdout"`
@@ -654,14 +647,6 @@ type ProcessResponseStatus string
 
 // ProcessUpgradeState defines model for ProcessUpgradeState.
 type ProcessUpgradeState string
-
-// PutFilesystemTreeResponse defines model for PutFilesystemTreeResponse.
-type PutFilesystemTreeResponse struct {
-	union json.RawMessage
-}
-
-// PutFilesystemTreeResponse2 defines model for .
-type PutFilesystemTreeResponse2 = []byte
 
 // QuiesceStatus defines model for QuiesceStatus.
 type QuiesceStatus struct {
@@ -991,110 +976,6 @@ func (t GetFilesystemResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (t *GetFilesystemResponse) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsDirectory returns the union data inside the GetFilesystemTreeResponse as a Directory
-func (t GetFilesystemTreeResponse) AsDirectory() (Directory, error) {
-	var body Directory
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromDirectory overwrites any union data inside the GetFilesystemTreeResponse as the provided Directory
-func (t *GetFilesystemTreeResponse) FromDirectory(v Directory) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsFileWithContent returns the union data inside the GetFilesystemTreeResponse as a FileWithContent
-func (t GetFilesystemTreeResponse) AsFileWithContent() (FileWithContent, error) {
-	var body FileWithContent
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromFileWithContent overwrites any union data inside the GetFilesystemTreeResponse as the provided FileWithContent
-func (t *GetFilesystemTreeResponse) FromFileWithContent(v FileWithContent) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsGetFilesystemTreeResponse2 returns the union data inside the GetFilesystemTreeResponse as a GetFilesystemTreeResponse2
-func (t GetFilesystemTreeResponse) AsGetFilesystemTreeResponse2() (GetFilesystemTreeResponse2, error) {
-	var body GetFilesystemTreeResponse2
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromGetFilesystemTreeResponse2 overwrites any union data inside the GetFilesystemTreeResponse as the provided GetFilesystemTreeResponse2
-func (t *GetFilesystemTreeResponse) FromGetFilesystemTreeResponse2(v GetFilesystemTreeResponse2) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-func (t GetFilesystemTreeResponse) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *GetFilesystemTreeResponse) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsDirectory returns the union data inside the PutFilesystemTreeResponse as a Directory
-func (t PutFilesystemTreeResponse) AsDirectory() (Directory, error) {
-	var body Directory
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromDirectory overwrites any union data inside the PutFilesystemTreeResponse as the provided Directory
-func (t *PutFilesystemTreeResponse) FromDirectory(v Directory) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsFileWithContent returns the union data inside the PutFilesystemTreeResponse as a FileWithContent
-func (t PutFilesystemTreeResponse) AsFileWithContent() (FileWithContent, error) {
-	var body FileWithContent
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromFileWithContent overwrites any union data inside the PutFilesystemTreeResponse as the provided FileWithContent
-func (t *PutFilesystemTreeResponse) FromFileWithContent(v FileWithContent) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsPutFilesystemTreeResponse2 returns the union data inside the PutFilesystemTreeResponse as a PutFilesystemTreeResponse2
-func (t PutFilesystemTreeResponse) AsPutFilesystemTreeResponse2() (PutFilesystemTreeResponse2, error) {
-	var body PutFilesystemTreeResponse2
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromPutFilesystemTreeResponse2 overwrites any union data inside the PutFilesystemTreeResponse as the provided PutFilesystemTreeResponse2
-func (t *PutFilesystemTreeResponse) FromPutFilesystemTreeResponse2(v PutFilesystemTreeResponse2) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-func (t PutFilesystemTreeResponse) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *PutFilesystemTreeResponse) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

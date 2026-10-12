@@ -328,8 +328,8 @@ func (c *Client) GetFilesystemSearch(ctx context.Context, path string, params Ge
 // GetFilesystemTree: Get directory tree
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 422, 500.
-func (c *Client) GetFilesystemTree(ctx context.Context, path string) (*GetFilesystemTreeResponse, error) {
-	return doJSON[GetFilesystemTreeResponse](c, ctx, apiRequest{
+func (c *Client) GetFilesystemTree(ctx context.Context, path string) (*Directory, error) {
+	return doJSON[Directory](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/filesystem/tree/%s",
 		pathArgs:     []any{path},
@@ -399,18 +399,37 @@ func (c *Client) GetProcessLogs(ctx context.Context, identifier string) (*Proces
 	})
 }
 
-// GetProcessLogsStreamRaw: Stream process logs in real time
+// GetProcessLogsStreamRawApplicationXNdjson: Stream process logs in real time
+//
+// Requests application/x-ndjson and returns the response unread. The caller must close
+// the response body.
+//
+// Returns [*ResponseErrorResponse] on HTTP 400, 404, 409, 500.
+func (c *Client) GetProcessLogsStreamRawApplicationXNdjson(ctx context.Context, identifier string) (*http.Response, error) {
+	return c.do(ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/process/%s/logs/stream",
+		pathArgs:     []any{identifier},
+		accept:       "application/x-ndjson",
+		successCodes: []int{200},
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 404: errorTypeErrorResponse, 409: errorTypeErrorResponse, 500: errorTypeErrorResponse},
+	})
+}
+
+// GetProcessLogsStreamRawTextPlain: Stream process logs in real time
 //
 // Requests text/plain and returns the response unread. The caller must close
 // the response body.
-func (c *Client) GetProcessLogsStreamRaw(ctx context.Context, identifier string) (*http.Response, error) {
+//
+// Returns [*ResponseErrorResponse] on HTTP 400, 404, 409, 500.
+func (c *Client) GetProcessLogsStreamRawTextPlain(ctx context.Context, identifier string) (*http.Response, error) {
 	return c.do(ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/process/%s/logs/stream",
 		pathArgs:     []any{identifier},
 		accept:       "text/plain",
 		successCodes: []int{200},
-		errorCodes:   nil,
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 404: errorTypeErrorResponse, 409: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
 }
 
@@ -672,8 +691,8 @@ func (c *Client) PutFilesystemMultipartPart(ctx context.Context, uploadId string
 // PutFilesystemTree: Create or update directory tree
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 422, 500.
-func (c *Client) PutFilesystemTree(ctx context.Context, path string, body TreeRequest) (*PutFilesystemTreeResponse, error) {
-	return doJSON[PutFilesystemTreeResponse](c, ctx, apiRequest{
+func (c *Client) PutFilesystemTree(ctx context.Context, path string, body TreeRequest) (*Directory, error) {
+	return doJSON[Directory](c, ctx, apiRequest{
 		method:       "PUT",
 		pathFmt:      "/filesystem/tree/%s",
 		pathArgs:     []any{path},

@@ -914,6 +914,30 @@ func (c *Client) GetModelsDeployments(ctx context.Context, modelId string, param
 	})
 }
 
+// GetModelsDeploymentsColdStarts: Lists the cold starts of a model deployment
+func (c *Client) GetModelsDeploymentsColdStarts(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdColdStartsParams) (*ColdStartAttempts, error) {
+	return doJSON[ColdStartAttempts](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/models/%s/deployments/%s/cold_starts",
+		pathArgs:     []any{modelId, deploymentId},
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetModelsDeploymentsColdStartsSummary: Gets the cold start summary for a model deployment
+func (c *Client) GetModelsDeploymentsColdStartsSummary(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdColdStartsSummaryParams) (*ColdStartSummary, error) {
+	return doJSON[ColdStartSummary](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/models/%s/deployments/%s/cold_starts/summary",
+		pathArgs:     []any{modelId, deploymentId},
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // GetModelsDeploymentsConfig: Gets a deployment's config
 func (c *Client) GetModelsDeploymentsConfig(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams) (*DeploymentConfigResponse, error) {
 	return doJSON[DeploymentConfigResponse](c, ctx, apiRequest{
@@ -1011,6 +1035,30 @@ func (c *Client) GetModelsEnvironments(ctx context.Context, modelId string) (*En
 		method:       "GET",
 		pathFmt:      "/v1/models/%s/environments",
 		pathArgs:     []any{modelId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetModelsEnvironmentsColdStarts: Lists the cold starts of a model environment
+func (c *Client) GetModelsEnvironmentsColdStarts(ctx context.Context, modelId string, envName string, params GetV1ModelsModelIdEnvironmentsEnvNameColdStartsParams) (*ColdStartAttempts, error) {
+	return doJSON[ColdStartAttempts](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/models/%s/environments/%s/cold_starts",
+		pathArgs:     []any{modelId, envName},
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetModelsEnvironmentsColdStartsSummary: Gets the cold start summary for a model environment
+func (c *Client) GetModelsEnvironmentsColdStartsSummary(ctx context.Context, modelId string, envName string, params GetV1ModelsModelIdEnvironmentsEnvNameColdStartsSummaryParams) (*ColdStartSummary, error) {
+	return doJSON[ColdStartSummary](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/models/%s/environments/%s/cold_starts/summary",
+		pathArgs:     []any{modelId, envName},
+		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -1130,12 +1178,35 @@ func (c *Client) GetRoutesSettingsTeams(ctx context.Context, teamId string) (*Ro
 	})
 }
 
+// GetRoutesSettingsTeamsUsers: Lists users' route settings in a team
+func (c *Client) GetRoutesSettingsTeamsUsers(ctx context.Context, teamId string) (*RouteTeamUserSettingsList, error) {
+	return doJSON[RouteTeamUserSettingsList](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/routes/settings/teams/%s/users",
+		pathArgs:     []any{teamId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetRoutesSettingsTeamsUsersUserId: Gets a user's route settings in a team
+func (c *Client) GetRoutesSettingsTeamsUsersUserId(ctx context.Context, teamId string, userId string) (*RouteTeamUserSettings, error) {
+	return doJSON[RouteTeamUserSettings](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/routes/settings/teams/%s/users/%s",
+		pathArgs:     []any{teamId, userId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // GetRoutesSettingsUsers: Gets a user's route settings
-func (c *Client) GetRoutesSettingsUsers(ctx context.Context, userId string) (*RouteUserSettings, error) {
+func (c *Client) GetRoutesSettingsUsers(ctx context.Context, userId string, params GetV1RoutesSettingsUsersUserIdParams) (*RouteUserSettings, error) {
 	return doJSON[RouteUserSettings](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/routes/settings/users/%s",
 		pathArgs:     []any{userId},
+		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -1832,6 +1903,18 @@ func (c *Client) PatchRoutesSettingsTeams(ctx context.Context, teamId string, bo
 		method:       "PATCH",
 		pathFmt:      "/v1/routes/settings/teams/%s",
 		pathArgs:     []any{teamId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PatchRoutesSettingsTeamsUsers: Updates a user's route settings in a team
+func (c *Client) PatchRoutesSettingsTeamsUsers(ctx context.Context, teamId string, userId string, body UpdateRouteUserSettingsRequest) (*RouteTeamUserSettings, error) {
+	return doJSON[RouteTeamUserSettings](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/routes/settings/teams/%s/users/%s",
+		pathArgs:     []any{teamId, userId},
 		body:         body,
 		successCodes: []int{200},
 		errorCodes:   nil,
