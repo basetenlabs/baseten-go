@@ -3444,6 +3444,275 @@
                 }
             ]
         },
+        "/v1/models/{model_id}/deployments/{deployment_id}/startups": {
+            "get": {
+                "summary": "Lists the startups of a model deployment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/startups \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/startups\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_epoch_millis': None, 'end_epoch_millis': None, 'min_duration_ms': None, 'cursor': None, 'phase': None, 'search': None, 'sort_by': None, 'direction': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists replica startups in the given time range, newest first by default. Pass the `cursor` from a response to fetch the next page.",
+                "parameters": [
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": true,
+                        "description": "Start of the query window, in epoch milliseconds.",
+                        "schema": {
+                            "title": "Start Epoch Millis",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": true,
+                        "description": "End of the query window, in epoch milliseconds. Must be after the start.",
+                        "schema": {
+                            "title": "End Epoch Millis",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "min_duration_ms",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only include startups that lasted at least this many milliseconds.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "minimum": 0,
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Min Duration Ms"
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page. Pass the same filters and sort as the request that returned it.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of attempts to return.",
+                        "schema": {
+                            "default": 50,
+                            "maximum": 100,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "outcomes",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only include attempts with one of these outcomes. Repeat to pass several.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/StartupOutcomeV1"
+                            },
+                            "title": "Outcomes",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "phase",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only include attempts that spent longer than 0 ms in this phase.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/StartupPhaseV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only include attempts whose replica ID matches exactly, or whose deployment name contains this text (case-insensitive).",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Search"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "required": false,
+                        "description": "Field to sort attempts by. Defaults to `STARTED_AT`.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/StartupSortFieldV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sort direction. Defaults to `desc`.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/SortOrderV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StartupAttemptsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/deployment_id"
+                }
+            ]
+        },
+        "/v1/models/{model_id}/deployments/{deployment_id}/startups/summary": {
+            "get": {
+                "summary": "Gets the startup summary for a model deployment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/startups/summary \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/startups/summary\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_epoch_millis': None, 'end_epoch_millis': None, 'min_duration_ms': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Gets the distribution of replica startup durations, in total and per phase, in the given time range.",
+                "parameters": [
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": true,
+                        "description": "Start of the query window, in epoch milliseconds.",
+                        "schema": {
+                            "title": "Start Epoch Millis",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": true,
+                        "description": "End of the query window, in epoch milliseconds. Must be after the start.",
+                        "schema": {
+                            "title": "End Epoch Millis",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "min_duration_ms",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only include startups that lasted at least this many milliseconds.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "minimum": 0,
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Min Duration Ms"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StartupSummaryV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/deployment_id"
+                }
+            ]
+        },
         "/v1/models/{model_id}/deployments/{deployment_id}/replicas/{replica_id}": {
             "delete": {
                 "summary": "Terminates a replica in a deployment",
@@ -4010,6 +4279,275 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/GetModelMetricsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/env_name"
+                }
+            ]
+        },
+        "/v1/models/{model_id}/environments/{env_name}/startups": {
+            "get": {
+                "summary": "Lists the startups of a model environment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/startups \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/startups\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_epoch_millis': None, 'end_epoch_millis': None, 'min_duration_ms': None, 'cursor': None, 'phase': None, 'search': None, 'sort_by': None, 'direction': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists replica startups of every deployment that was active on the environment in the given time range, newest first by default. Pass the `cursor` from a response to fetch the next page.",
+                "parameters": [
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": true,
+                        "description": "Start of the query window, in epoch milliseconds.",
+                        "schema": {
+                            "title": "Start Epoch Millis",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": true,
+                        "description": "End of the query window, in epoch milliseconds. Must be after the start.",
+                        "schema": {
+                            "title": "End Epoch Millis",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "min_duration_ms",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only include startups that lasted at least this many milliseconds.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "minimum": 0,
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Min Duration Ms"
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page. Pass the same filters and sort as the request that returned it.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of attempts to return.",
+                        "schema": {
+                            "default": 50,
+                            "maximum": 100,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "outcomes",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only include attempts with one of these outcomes. Repeat to pass several.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/StartupOutcomeV1"
+                            },
+                            "title": "Outcomes",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "phase",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only include attempts that spent longer than 0 ms in this phase.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/StartupPhaseV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only include attempts whose replica ID matches exactly, or whose deployment name contains this text (case-insensitive).",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Search"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "required": false,
+                        "description": "Field to sort attempts by. Defaults to `STARTED_AT`.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/StartupSortFieldV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sort direction. Defaults to `desc`.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/SortOrderV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StartupAttemptsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/env_name"
+                }
+            ]
+        },
+        "/v1/models/{model_id}/environments/{env_name}/startups/summary": {
+            "get": {
+                "summary": "Gets the startup summary for a model environment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/startups/summary \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/startups/summary\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_epoch_millis': None, 'end_epoch_millis': None, 'min_duration_ms': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Gets the distribution of replica startup durations, in total and per phase, across every deployment that was active on the environment in the given time range.",
+                "parameters": [
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": true,
+                        "description": "Start of the query window, in epoch milliseconds.",
+                        "schema": {
+                            "title": "Start Epoch Millis",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": true,
+                        "description": "End of the query window, in epoch milliseconds. Must be after the start.",
+                        "schema": {
+                            "title": "End Epoch Millis",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "min_duration_ms",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only include startups that lasted at least this many milliseconds.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "minimum": 0,
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Min Duration Ms"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StartupSummaryV1"
                                 }
                             }
                         }
@@ -6937,11 +7475,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/checkpoints/validate \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"checkpoint_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\"\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/checkpoints/validate \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"checkpoint_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"run_id\": \"k4q95w5\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/checkpoints/validate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'checkpoint_path': 'bt://loops:k4q95w5/sampler_weights/step-100'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/checkpoints/validate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'checkpoint_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'run_id': 'k4q95w5'}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Returns whether the caller can manage and use this checkpoint.",
@@ -8351,11 +8889,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"name\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"name\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'name': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -8388,11 +8926,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"name\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"name\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'name': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -8430,11 +8968,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models/{model_id}/deployments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ]\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models/{model_id}/deployments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models/{model_id}/deployments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}]}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models/{model_id}/deployments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -9578,7 +10116,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'team_id': 'abc1234', 'display_name': 'Assistant', 'target': {'model': 'zai-org/GLM-5.3', 'type': 'BASETEN_MODEL_API'}, 'description': 'Assistant for code review and debugging.'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Creates and derives a name for the provided route configuration",
+                "description": "Creates and derives a name for the provided route configuration. CONNECTION targets reference a connection owned by the route's team; create the connection first.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -9614,10 +10152,10 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/usage\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/usage\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None, 'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Buckets are UTC days, and days with no usage are included. Organization admins see all route usage in the organization. Other members, including viewers, see only usage from Routes keys they created, including keys that have since expired, been revoked, or been deleted. Usage is metered every 15 minutes, so the current hour can lag. Model API costs use your prices at the time of each request and include tool calls. xAI costs are the charges xAI reports. OpenAI and Anthropic costs are estimated from Baseten's reference prices and may differ from your provider's bill. Vertex and OpenAI-compatible usage is not included. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges. Usage is retained for 92 days.",
+                "description": "Buckets are UTC days, and days with no usage are included. Organization admins see all route usage in the organization. Team admins see usage in teams they manage. Other members, including viewers, see only usage from Routes keys they created, including keys that have since expired, been revoked, or been deleted. Usage can be filtered and grouped by the team it was metered in. Usage is metered every 15 minutes, so the current hour can lag. Model API costs use your prices at the time of each request and include tool calls. xAI costs are the charges xAI reports. OpenAI and Anthropic costs are estimated from Baseten's reference prices and may differ from your provider's bill. Vertex and OpenAI-compatible usage is not included. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges. Usage is retained for 92 days.",
                 "parameters": [
                     {
                         "name": "cursor",
@@ -9648,6 +10186,24 @@
                             "minimum": 1,
                             "title": "Limit",
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "team_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Limit usage to a team you can access. Organization admins can view all usage in the team, team admins can view usage in teams they manage, and other members can view only their own usage. Without a team, organization admins see all organization usage, team admins see their managed teams, and other members see their own usage.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Team Id"
                         }
                     },
                     {
@@ -9692,7 +10248,7 @@
                         "name": "group_by",
                         "in": "query",
                         "required": false,
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
                         "schema": {
                             "items": {
                                 "$ref": "#/components/schemas/RouteUsageDimensionV1"
@@ -9766,10 +10322,33 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'team_id': 'abc1234'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the settings that apply to the user, including the spend limit that caps what they can spend on Baseten Code each month: the limit set on the user, their team's per-member limit, and the effective limit for this user. The user limit always overrides the team's per-member limit.",
+                "description": "Returns the settings that apply to the user, including the spend limit that caps what they can spend on Baseten Code each month: the limit set on the user, their team's per-member limit, and the effective limit for this user. The user limit always overrides the team's per-member limit. The limits are read in `team_id` when given, else in the only team the user has Code spend in this month, else in their only team; they are null when there is none.",
+                "parameters": [
+                    {
+                        "name": "team_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "ID of the team to read the user's spend limit in. Defaults to the only team the user has Code spend in this month, else their only team.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "abc1234"
+                            ],
+                            "title": "Team Id"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -9801,7 +10380,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'spend_limit': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Changes only the fields in the request. Once the user's metered spend in a month reaches the spend limit, requests with Routes keys they created are rejected until the limit is raised or the next month starts. Spend is metered every 15 minutes and can lag, so a user can go over the limit. The user's own limit supersedes their team's per-member limit.",
+                "description": "Changes only the fields in the request. Once the user's metered spend in a team in a month reaches the spend limit, requests with Routes keys they created in that team are rejected until the limit is raised or the next month starts. Spend is metered every 15 minutes and can lag, so a user can go over the limit. The user's own limit supersedes their team's per-member limit. The limit is set in the only team the user has Code spend in this month, else in their only team; the request fails when there is none.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -9826,6 +10405,40 @@
                 },
                 "x-stability": "unstable"
             }
+        },
+        "/v1/routes/settings/users/{user_id}/teams": {
+            "get": {
+                "summary": "Lists a user's route settings in each of their teams",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/users/{user_id}/teams \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}/teams\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns the user's settings in each team they have a role in and in any team they have Code spend in this month, alphabetical by team name: their spend limit for Baseten Code in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; organization admins can read anyone's.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteUserTeamSettingsListV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/user_id"
+                }
+            ]
         },
         "/v1/routes/settings/teams/{team_id}": {
             "get": {
@@ -9872,7 +10485,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'harness_defaults': None, 'spend_limit': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Changes only the fields in the request, all or nothing. Requires team admin.",
+                "description": "Changes only the fields in the request, all or nothing. Requires team admin, and organization admin to change the team-wide spend limit.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -9890,6 +10503,114 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/RouteTeamSettingsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/routes/settings/teams/{team_id}/users": {
+            "get": {
+                "summary": "Lists users' route settings in a team",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/teams/{team_id}/users \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}/users\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns the settings in the team of each user with a role in the team and of anyone with Code spend in the team this month. Requires team admin for the specified team or organization admin.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteTeamUserSettingsListV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/team_id"
+                }
+            ]
+        },
+        "/v1/routes/settings/teams/{team_id}/users/{user_id}": {
+            "get": {
+                "summary": "Gets a user's route settings in a team",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/teams/{team_id}/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns the user's spend limit for Baseten Code in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; team admins can read members' settings in teams they administer, and organization admins can read anyone's.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteTeamUserSettingsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/team_id"
+                },
+                {
+                    "$ref": "#/components/parameters/user_id"
+                }
+            ],
+            "patch": {
+                "summary": "Updates a user's route settings in a team",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/settings/teams/{team_id}/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"spend_limit\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'spend_limit': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Changes only the fields in the request. Once the user's metered spend in the team in a month reaches the spend limit, requests with Routes keys they created in the team are rejected until the limit is raised or the next month starts. Spend is metered every 15 minutes and can lag, so a user can go over the limit. Requires team admin for the specified team or organization admin.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateRouteUserSettingsRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteTeamUserSettingsV1"
                                 }
                             }
                         }
@@ -20209,6 +20930,497 @@
                 "title": "GetDeploymentMetricsRequestV1",
                 "type": "object"
             },
+            "StartupAttemptV1": {
+                "description": "One startup attempt of a replica.",
+                "properties": {
+                    "model_id": {
+                        "description": "Unique identifier of the model.",
+                        "title": "Model Id",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Unique identifier of the deployment.",
+                        "title": "Deployment Id"
+                    },
+                    "deployment_name": {
+                        "description": "Name of the deployment.",
+                        "title": "Deployment Name",
+                        "type": "string"
+                    },
+                    "environment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Name of the environment. Null when querying a deployment.",
+                        "title": "Environment Name"
+                    },
+                    "replica_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Identifier of the replica that started.",
+                        "title": "Replica Id"
+                    },
+                    "started_at_epoch_millis": {
+                        "description": "Time the attempt started, in epoch milliseconds.",
+                        "title": "Started At Epoch Millis",
+                        "type": "integer"
+                    },
+                    "ready_at_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Time the replica became ready, in epoch milliseconds. Null if it never did.",
+                        "title": "Ready At Epoch Millis"
+                    },
+                    "duration_ms": {
+                        "description": "Duration of the attempt, in milliseconds.",
+                        "title": "Duration Ms",
+                        "type": "integer"
+                    },
+                    "outcome": {
+                        "$ref": "#/components/schemas/StartupOutcomeV1",
+                        "description": "Outcome of the attempt."
+                    },
+                    "phase_summary": {
+                        "description": "Phases recorded during the attempt.",
+                        "items": {
+                            "$ref": "#/components/schemas/StartupPhaseSummaryV1"
+                        },
+                        "title": "Phase Summary",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "model_id",
+                    "deployment_id",
+                    "deployment_name",
+                    "environment_name",
+                    "replica_id",
+                    "started_at_epoch_millis",
+                    "ready_at_epoch_millis",
+                    "duration_ms",
+                    "outcome",
+                    "phase_summary"
+                ],
+                "title": "StartupAttemptV1",
+                "type": "object"
+            },
+            "StartupOutcomeV1": {
+                "description": "Outcome of a whole startup attempt.",
+                "enum": [
+                    "SUCCESS",
+                    "FAILED",
+                    "STALLED"
+                ],
+                "title": "StartupOutcomeV1",
+                "type": "string"
+            },
+            "StartupPhaseStatusV1": {
+                "description": "Outcome of one phase, independent of the outcome of the whole startup.",
+                "enum": [
+                    "COMPLETED",
+                    "FAILED"
+                ],
+                "title": "StartupPhaseStatusV1",
+                "type": "string"
+            },
+            "StartupPhaseSummaryV1": {
+                "description": "One phase recorded during a startup attempt.",
+                "properties": {
+                    "phase": {
+                        "$ref": "#/components/schemas/StartupPhaseV1",
+                        "description": "The phase."
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/StartupPhaseStatusV1",
+                        "description": "Outcome of the phase."
+                    },
+                    "offset_ms": {
+                        "description": "Time from the start of the attempt to the start of the phase, in milliseconds.",
+                        "title": "Offset Ms",
+                        "type": "integer"
+                    },
+                    "duration_ms": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Duration of the phase, in milliseconds. Can be 0 for a phase that finished within a second. Null if the phase did not finish.",
+                        "title": "Duration Ms"
+                    }
+                },
+                "required": [
+                    "phase",
+                    "status",
+                    "offset_ms",
+                    "duration_ms"
+                ],
+                "title": "StartupPhaseSummaryV1",
+                "type": "object"
+            },
+            "StartupPhaseV1": {
+                "description": "A stage of a replica startup.\n\n- ``SCHEDULING``: waiting for the replica to be placed on a node.\n- ``IMAGE_PULL``: pulling the container image.\n- ``WEIGHT_DOWNLOAD``: downloading model weights.\n- ``CONTAINER_CREATE``: creating and starting the model container, including\n  ``CONTAINER_START`` and ``READINESS``.\n- ``CONTAINER_START``: starting the model container.\n- ``READINESS``: waiting for the model to pass its readiness check.\n\n``CONTAINER_START`` and ``READINESS`` are accepted as filters but are reported only as\npart of ``CONTAINER_CREATE``.",
+                "enum": [
+                    "SCHEDULING",
+                    "IMAGE_PULL",
+                    "WEIGHT_DOWNLOAD",
+                    "CONTAINER_CREATE",
+                    "CONTAINER_START",
+                    "READINESS"
+                ],
+                "title": "StartupPhaseV1",
+                "type": "string"
+            },
+            "StartupAttemptsV1": {
+                "description": "A page of startup attempts, newest first by default.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/StartupAttemptV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    },
+                    "total_count": {
+                        "description": "Number of attempts matching the filters, counted within the 1,000 most recent startups in the window.",
+                        "title": "Total Count",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination",
+                    "total_count"
+                ],
+                "title": "StartupAttemptsV1",
+                "type": "object"
+            },
+            "StartupSortFieldV1": {
+                "description": "Field to sort startup attempts by.",
+                "enum": [
+                    "OUTCOME",
+                    "STARTED_AT",
+                    "READY_AT",
+                    "DURATION"
+                ],
+                "title": "StartupSortFieldV1",
+                "type": "string"
+            },
+            "GetStartupAttemptsRequestV1": {
+                "description": "Query params for a startup attempts request (a deployment or an environment).",
+                "properties": {
+                    "start_epoch_millis": {
+                        "description": "Start of the query window, in epoch milliseconds.",
+                        "title": "Start Epoch Millis",
+                        "type": "integer"
+                    },
+                    "end_epoch_millis": {
+                        "description": "End of the query window, in epoch milliseconds. Must be after the start.",
+                        "title": "End Epoch Millis",
+                        "type": "integer"
+                    },
+                    "min_duration_ms": {
+                        "anyOf": [
+                            {
+                                "minimum": 0,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only include startups that lasted at least this many milliseconds.",
+                        "title": "Min Duration Ms"
+                    },
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page. Pass the same filters and sort as the request that returned it.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 50,
+                        "description": "Maximum number of attempts to return.",
+                        "maximum": 100,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "outcomes": {
+                        "description": "Only include attempts with one of these outcomes. Repeat to pass several.",
+                        "items": {
+                            "$ref": "#/components/schemas/StartupOutcomeV1"
+                        },
+                        "title": "Outcomes",
+                        "type": "array"
+                    },
+                    "phase": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/StartupPhaseV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only include attempts that spent longer than 0 ms in this phase."
+                    },
+                    "search": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only include attempts whose replica ID matches exactly, or whose deployment name contains this text (case-insensitive).",
+                        "title": "Search"
+                    },
+                    "sort_by": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/StartupSortFieldV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Field to sort attempts by. Defaults to `STARTED_AT`."
+                    },
+                    "direction": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SortOrderV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Sort direction. Defaults to `desc`."
+                    }
+                },
+                "required": [
+                    "start_epoch_millis",
+                    "end_epoch_millis"
+                ],
+                "title": "GetStartupAttemptsRequestV1",
+                "type": "object"
+            },
+            "StartupPercentilesV1": {
+                "description": "A distribution of startup durations.\n\nStatistics cover only samples longer than 0 ms and are null when there are none.",
+                "properties": {
+                    "sample_count": {
+                        "description": "Number of startups in the distribution, including those that took 0 ms. A phase that finishes within a second can record 0 ms.",
+                        "title": "Sample Count",
+                        "type": "integer"
+                    },
+                    "mean_ms": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Mean duration, in milliseconds.",
+                        "title": "Mean Ms"
+                    },
+                    "p50_ms": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "50th percentile duration, in milliseconds.",
+                        "title": "P50 Ms"
+                    },
+                    "p90_ms": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "90th percentile duration, in milliseconds.",
+                        "title": "P90 Ms"
+                    },
+                    "p95_ms": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "95th percentile duration, in milliseconds.",
+                        "title": "P95 Ms"
+                    },
+                    "p99_ms": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "99th percentile duration, in milliseconds.",
+                        "title": "P99 Ms"
+                    }
+                },
+                "required": [
+                    "sample_count",
+                    "mean_ms",
+                    "p50_ms",
+                    "p90_ms",
+                    "p95_ms",
+                    "p99_ms"
+                ],
+                "title": "StartupPercentilesV1",
+                "type": "object"
+            },
+            "StartupPhasePercentilesV1": {
+                "description": "The duration distribution of one startup phase.",
+                "properties": {
+                    "phase": {
+                        "$ref": "#/components/schemas/StartupPhaseV1",
+                        "description": "The phase."
+                    },
+                    "duration_ms": {
+                        "$ref": "#/components/schemas/StartupPercentilesV1",
+                        "description": "Durations of the phase."
+                    }
+                },
+                "required": [
+                    "phase",
+                    "duration_ms"
+                ],
+                "title": "StartupPhasePercentilesV1",
+                "type": "object"
+            },
+            "StartupSummaryV1": {
+                "description": "Startup duration distributions over a time window.",
+                "properties": {
+                    "start_epoch_millis": {
+                        "description": "Start of the returned window.",
+                        "title": "Start Epoch Millis",
+                        "type": "integer"
+                    },
+                    "end_epoch_millis": {
+                        "description": "End of the returned window.",
+                        "title": "End Epoch Millis",
+                        "type": "integer"
+                    },
+                    "total_duration_ms": {
+                        "$ref": "#/components/schemas/StartupPercentilesV1",
+                        "description": "Durations of whole startups, sampled from the 1,000 most recent in the window."
+                    },
+                    "phase_duration_ms": {
+                        "description": "Durations of each phase that was recorded in the window.",
+                        "items": {
+                            "$ref": "#/components/schemas/StartupPhasePercentilesV1"
+                        },
+                        "title": "Phase Duration Ms",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "start_epoch_millis",
+                    "end_epoch_millis",
+                    "total_duration_ms",
+                    "phase_duration_ms"
+                ],
+                "title": "StartupSummaryV1",
+                "type": "object"
+            },
+            "GetStartupSummaryRequestV1": {
+                "description": "Query params for a startup summary request (a deployment or an environment).",
+                "properties": {
+                    "start_epoch_millis": {
+                        "description": "Start of the query window, in epoch milliseconds.",
+                        "title": "Start Epoch Millis",
+                        "type": "integer"
+                    },
+                    "end_epoch_millis": {
+                        "description": "End of the query window, in epoch milliseconds. Must be after the start.",
+                        "title": "End Epoch Millis",
+                        "type": "integer"
+                    },
+                    "min_duration_ms": {
+                        "anyOf": [
+                            {
+                                "minimum": 0,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only include startups that lasted at least this many milliseconds.",
+                        "title": "Min Duration Ms"
+                    }
+                },
+                "required": [
+                    "start_epoch_millis",
+                    "end_epoch_millis"
+                ],
+                "title": "GetStartupSummaryRequestV1",
+                "type": "object"
+            },
             "TerminateReplicaResponseV1": {
                 "description": "The response to a request to terminate a replica in a deployment.",
                 "properties": {
@@ -25833,6 +27045,19 @@
                         "title": "Base Model",
                         "type": "string"
                     },
+                    "lora_config_version": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The run's immutable LoRA config version.",
+                        "title": "Lora Config Version"
+                    },
                     "base_url": {
                         "description": "The run's base URL.",
                         "title": "Base Url",
@@ -26637,6 +27862,17 @@
                         "title": "Id",
                         "type": "string"
                     },
+                    "lora_config": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LoopsLoRAConfigV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The immutable LoRA config used to save this checkpoint. Null means the checkpoint is unsupported and cannot be loaded."
+                    },
                     "run_id": {
                         "description": "The ID of the run that produced the checkpoint.",
                         "title": "Run Id",
@@ -26655,10 +27891,53 @@
                     "lora_adapter_config",
                     "size_bytes",
                     "id",
+                    "lora_config",
                     "run_id",
                     "target"
                 ],
                 "title": "LoopsCheckpointV1",
+                "type": "object"
+            },
+            "LoopsLoRAConfigV1": {
+                "description": "A published LoRA config: which modules the adapter targets and how experts are laid out.",
+                "properties": {
+                    "config_version": {
+                        "description": "The config version, unique per base model.",
+                        "title": "Config Version",
+                        "type": "string"
+                    },
+                    "targets": {
+                        "description": "The module names the LoRA adapter targets.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Targets",
+                        "type": "array"
+                    },
+                    "expert_layout": {
+                        "anyOf": [
+                            {
+                                "enum": [
+                                    "per_expert",
+                                    "shared_outer",
+                                    "shared_adapter"
+                                ],
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "How routed-expert LoRA weights are laid out. Null when no experts are targeted.",
+                        "title": "Expert Layout"
+                    }
+                },
+                "required": [
+                    "config_version",
+                    "targets"
+                ],
+                "title": "LoopsLoRAConfigV1",
                 "type": "object"
             },
             "TrainerCheckpointTarget": {
@@ -26753,6 +28032,22 @@
                         ],
                         "title": "Checkpoint Path",
                         "type": "string"
+                    },
+                    "run_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Loops run whose sampler will load the checkpoint. The checkpoint must use the run's LoRA config.",
+                        "examples": [
+                            "k4q95w5"
+                        ],
+                        "title": "Run Id"
                     }
                 },
                 "required": [
@@ -26762,7 +28057,7 @@
                 "type": "object"
             },
             "ValidateLoopsCheckpointResponseV1": {
-                "description": "Response for ``POST /v1/loops/checkpoints/validate``. Empty on success;\ninaccessible or malformed paths raise 400.",
+                "description": "Response for ``POST /v1/loops/checkpoints/validate``. Empty on success;\ninaccessible or malformed paths, and checkpoints of another LoRA config than\n``run_id``'s, raise 400.",
                 "properties": {},
                 "title": "ValidateLoopsCheckpointResponseV1",
                 "type": "object"
@@ -29007,6 +30302,54 @@
                 "title": "ModelApisUsageRequestV1",
                 "type": "object"
             },
+            "EgressRestrictionsV1": {
+                "properties": {
+                    "fqdn_allow_list": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Allowed outbound FQDNs; '*' wildcards are supported.",
+                        "examples": [
+                            [
+                                "*.example.com"
+                            ]
+                        ],
+                        "title": "Fqdn Allow List"
+                    },
+                    "ip_allow_list": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Allowed outbound IPv4 addresses or CIDR ranges.",
+                        "examples": [
+                            [
+                                "1.1.1.1/32"
+                            ]
+                        ],
+                        "title": "Ip Allow List"
+                    }
+                },
+                "title": "EgressRestrictionsV1",
+                "type": "object"
+            },
             "CreateLLMModelRequestV1": {
                 "description": "A request to create a BIS-LLM model",
                 "properties": {
@@ -29160,6 +30503,18 @@
                             ]
                         ],
                         "title": "Weights"
+                    },
+                    "egress_restrictions": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/EgressRestrictionsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Restricts this deployment's egress to the specified FQDNs and IP addresses; an empty block allows none. Requires the organization to have egress restrictions enabled."
                     },
                     "name": {
                         "description": "Name of the model",
@@ -29367,6 +30722,18 @@
                             ]
                         ],
                         "title": "Weights"
+                    },
+                    "egress_restrictions": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/EgressRestrictionsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Restricts this deployment's egress to the specified FQDNs and IP addresses; an empty block allows none. Requires the organization to have egress restrictions enabled."
                     }
                 },
                 "required": [
@@ -32013,35 +33380,6 @@
                 "title": "RouteRefV1",
                 "type": "object"
             },
-            "RouteTargetAnthropicV1": {
-                "properties": {
-                    "type": {
-                        "const": "ANTHROPIC",
-                        "description": "Target kind for Anthropic.",
-                        "title": "Type",
-                        "type": "string"
-                    },
-                    "model": {
-                        "description": "Model name sent to the provider.",
-                        "minLength": 1,
-                        "title": "Model",
-                        "type": "string"
-                    },
-                    "secret_name": {
-                        "description": "Name of a credential secret owned by the route's team.",
-                        "minLength": 1,
-                        "title": "Secret Name",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "type",
-                    "model",
-                    "secret_name"
-                ],
-                "title": "RouteTargetAnthropicV1",
-                "type": "object"
-            },
             "RouteTargetBasetenModelAPIV1": {
                 "properties": {
                     "type": {
@@ -32118,11 +33456,11 @@
                 "title": "RouteTargetClassifierModelBasedV1",
                 "type": "object"
             },
-            "RouteTargetOpenAIV1": {
+            "RouteTargetConnectionV1": {
                 "properties": {
                     "type": {
-                        "const": "OPENAI",
-                        "description": "Target kind for OpenAI.",
+                        "const": "CONNECTION",
+                        "description": "Target kind for a provider reached through a team connection.",
                         "title": "Type",
                         "type": "string"
                     },
@@ -32132,48 +33470,18 @@
                         "title": "Model",
                         "type": "string"
                     },
-                    "secret_name": {
-                        "description": "Name of a credential secret owned by the route's team.",
-                        "minLength": 1,
-                        "title": "Secret Name",
+                    "connection_id": {
+                        "description": "Identifier of the team connection authenticating with the provider.",
+                        "title": "Connection Id",
                         "type": "string"
                     }
                 },
                 "required": [
                     "type",
                     "model",
-                    "secret_name"
+                    "connection_id"
                 ],
-                "title": "RouteTargetOpenAIV1",
-                "type": "object"
-            },
-            "RouteTargetXAIV1": {
-                "properties": {
-                    "type": {
-                        "const": "XAI",
-                        "description": "Target kind for xAI.",
-                        "title": "Type",
-                        "type": "string"
-                    },
-                    "model": {
-                        "description": "Model name sent to the provider.",
-                        "minLength": 1,
-                        "title": "Model",
-                        "type": "string"
-                    },
-                    "secret_name": {
-                        "description": "Name of a credential secret owned by the route's team.",
-                        "minLength": 1,
-                        "title": "Secret Name",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "type",
-                    "model",
-                    "secret_name"
-                ],
-                "title": "RouteTargetXAIV1",
+                "title": "RouteTargetConnectionV1",
                 "type": "object"
             },
             "RouteV1": {
@@ -32212,11 +33520,9 @@
                         "description": "Configured upstream target.",
                         "discriminator": {
                             "mapping": {
-                                "ANTHROPIC": "#/components/schemas/RouteTargetAnthropicV1",
                                 "BASETEN_MODEL_API": "#/components/schemas/RouteTargetBasetenModelAPIV1",
                                 "CLASSIFIER_MODEL_BASED": "#/components/schemas/RouteTargetClassifierModelBasedV1",
-                                "OPENAI": "#/components/schemas/RouteTargetOpenAIV1",
-                                "XAI": "#/components/schemas/RouteTargetXAIV1"
+                                "CONNECTION": "#/components/schemas/RouteTargetConnectionV1"
                             },
                             "propertyName": "type"
                         },
@@ -32225,13 +33531,7 @@
                                 "$ref": "#/components/schemas/RouteTargetBasetenModelAPIV1"
                             },
                             {
-                                "$ref": "#/components/schemas/RouteTargetAnthropicV1"
-                            },
-                            {
-                                "$ref": "#/components/schemas/RouteTargetOpenAIV1"
-                            },
-                            {
-                                "$ref": "#/components/schemas/RouteTargetXAIV1"
+                                "$ref": "#/components/schemas/RouteTargetConnectionV1"
                             },
                             {
                                 "$ref": "#/components/schemas/RouteTargetClassifierModelBasedV1"
@@ -32352,37 +33652,7 @@
                 "title": "RoutesRequestV1",
                 "type": "object"
             },
-            "RouteTargetConfigAnthropicV1": {
-                "additionalProperties": false,
-                "properties": {
-                    "type": {
-                        "const": "ANTHROPIC",
-                        "description": "Target kind for Anthropic.",
-                        "title": "Type",
-                        "type": "string"
-                    },
-                    "model": {
-                        "description": "Model name sent to the provider.",
-                        "minLength": 1,
-                        "title": "Model",
-                        "type": "string"
-                    },
-                    "secret_name": {
-                        "description": "Name of a credential secret owned by the route's team.",
-                        "minLength": 1,
-                        "title": "Secret Name",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "type",
-                    "model",
-                    "secret_name"
-                ],
-                "title": "RouteTargetConfigAnthropicV1",
-                "type": "object"
-            },
-            "RouteTargetConfigBasetenModelAPIV1": {
+            "UpsertRouteTargetBasetenModelAPIV1": {
                 "additionalProperties": false,
                 "properties": {
                     "type": {
@@ -32402,10 +33672,10 @@
                     "type",
                     "model"
                 ],
-                "title": "RouteTargetConfigBasetenModelAPIV1",
+                "title": "UpsertRouteTargetBasetenModelAPIV1",
                 "type": "object"
             },
-            "RouteTargetConfigClassifierModelBasedV1": {
+            "UpsertRouteTargetClassifierModelBasedV1": {
                 "additionalProperties": false,
                 "properties": {
                     "type": {
@@ -32469,15 +33739,15 @@
                     "allowed_route_ids",
                     "default_route_id"
                 ],
-                "title": "RouteTargetConfigClassifierModelBasedV1",
+                "title": "UpsertRouteTargetClassifierModelBasedV1",
                 "type": "object"
             },
-            "RouteTargetConfigOpenAIV1": {
+            "UpsertRouteTargetConnectionV1": {
                 "additionalProperties": false,
                 "properties": {
                     "type": {
-                        "const": "OPENAI",
-                        "description": "Target kind for OpenAI.",
+                        "const": "CONNECTION",
+                        "description": "Target kind for a provider reached through a team connection.",
                         "title": "Type",
                         "type": "string"
                     },
@@ -32487,49 +33757,22 @@
                         "title": "Model",
                         "type": "string"
                     },
-                    "secret_name": {
-                        "description": "Name of a credential secret owned by the route's team.",
+                    "connection_id": {
+                        "description": "Identifier of a connection owned by the route's team. Its provider serves the route.",
+                        "examples": [
+                            "abc1234"
+                        ],
                         "minLength": 1,
-                        "title": "Secret Name",
+                        "title": "Connection Id",
                         "type": "string"
                     }
                 },
                 "required": [
                     "type",
                     "model",
-                    "secret_name"
+                    "connection_id"
                 ],
-                "title": "RouteTargetConfigOpenAIV1",
-                "type": "object"
-            },
-            "RouteTargetConfigXAIV1": {
-                "additionalProperties": false,
-                "properties": {
-                    "type": {
-                        "const": "XAI",
-                        "description": "Target kind for xAI.",
-                        "title": "Type",
-                        "type": "string"
-                    },
-                    "model": {
-                        "description": "Model name sent to the provider.",
-                        "minLength": 1,
-                        "title": "Model",
-                        "type": "string"
-                    },
-                    "secret_name": {
-                        "description": "Name of a credential secret owned by the route's team.",
-                        "minLength": 1,
-                        "title": "Secret Name",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "type",
-                    "model",
-                    "secret_name"
-                ],
-                "title": "RouteTargetConfigXAIV1",
+                "title": "UpsertRouteTargetConnectionV1",
                 "type": "object"
             },
             "CreateRouteRequestV1": {
@@ -32571,14 +33814,12 @@
                         "title": "Display Name"
                     },
                     "target": {
-                        "description": "Upstream target for the route.",
+                        "description": "Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team.",
                         "discriminator": {
                             "mapping": {
-                                "ANTHROPIC": "#/components/schemas/RouteTargetConfigAnthropicV1",
-                                "BASETEN_MODEL_API": "#/components/schemas/RouteTargetConfigBasetenModelAPIV1",
-                                "CLASSIFIER_MODEL_BASED": "#/components/schemas/RouteTargetConfigClassifierModelBasedV1",
-                                "OPENAI": "#/components/schemas/RouteTargetConfigOpenAIV1",
-                                "XAI": "#/components/schemas/RouteTargetConfigXAIV1"
+                                "BASETEN_MODEL_API": "#/components/schemas/UpsertRouteTargetBasetenModelAPIV1",
+                                "CLASSIFIER_MODEL_BASED": "#/components/schemas/UpsertRouteTargetClassifierModelBasedV1",
+                                "CONNECTION": "#/components/schemas/UpsertRouteTargetConnectionV1"
                             },
                             "propertyName": "type"
                         },
@@ -32590,19 +33831,13 @@
                         ],
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/RouteTargetConfigBasetenModelAPIV1"
+                                "$ref": "#/components/schemas/UpsertRouteTargetBasetenModelAPIV1"
                             },
                             {
-                                "$ref": "#/components/schemas/RouteTargetConfigAnthropicV1"
+                                "$ref": "#/components/schemas/UpsertRouteTargetConnectionV1"
                             },
                             {
-                                "$ref": "#/components/schemas/RouteTargetConfigOpenAIV1"
-                            },
-                            {
-                                "$ref": "#/components/schemas/RouteTargetConfigXAIV1"
-                            },
-                            {
-                                "$ref": "#/components/schemas/RouteTargetConfigClassifierModelBasedV1"
+                                "$ref": "#/components/schemas/UpsertRouteTargetClassifierModelBasedV1"
                             }
                         ],
                         "title": "Target"
@@ -32682,6 +33917,19 @@
                         "default": null,
                         "description": "ID of the user who created the Routes key. Null when not grouping by USER.",
                         "title": "User Id"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of the team the usage was metered in. Null when not grouping by TEAM, and for usage metered before it was attributed to teams.",
+                        "title": "Team Id"
                     },
                     "model": {
                         "anyOf": [
@@ -32772,6 +34020,7 @@
             "RouteUsageDimensionV1": {
                 "enum": [
                     "USER",
+                    "TEAM",
                     "MODEL",
                     "PROVIDER"
                 ],
@@ -32800,6 +34049,19 @@
                         "minimum": 1,
                         "title": "Limit",
                         "type": "integer"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Limit usage to a team you can access. Organization admins can view all usage in the team, team admins can view usage in teams they manage, and other members can view only their own usage. Without a team, organization admins see all organization usage, team admins see their managed teams, and other members see their own usage.",
+                        "title": "Team Id"
                     },
                     "start_date": {
                         "anyOf": [
@@ -32830,7 +34092,7 @@
                         "title": "End Date"
                     },
                     "group_by": {
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
                         "items": {
                             "$ref": "#/components/schemas/RouteUsageDimensionV1"
                         },
@@ -32920,11 +34182,26 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Standing spend limit in USD for each UTC calendar month set on the user. Null when the user has no limit of their own.",
+                        "description": "Standing spend limit in USD for each UTC calendar month set on the user in the team. Null when the user has no limit of their own there.",
                         "examples": [
                             "200"
                         ],
                         "title": "User Monthly Limit Usd"
+                    },
+                    "month_override_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Spend limit in USD for the current UTC calendar month set on the user in the team, which supersedes their standing limit. Null when there is none.",
+                        "examples": [
+                            "300"
+                        ],
+                        "title": "Month Override Usd"
                     },
                     "team_default": {
                         "anyOf": [
@@ -32935,17 +34212,34 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Per-member limit of the team the user's active Code key belongs to. This limit applies when the user has no limit of their own. Null when there is none."
+                        "description": "Per-member limit of the team. This limit applies when the user has no limit of their own. Null when there is none."
                     },
                     "effective": {
                         "$ref": "#/components/schemas/RouteEffectiveSpendLimitV1",
                         "description": "The effective limit enforced for the current month."
+                    },
+                    "team_wide_monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Team-wide limit of the team in USD for each UTC calendar month. Once all members' spend in the team reaches it, the user's requests in the team are rejected whatever their own limit. Null when there is none.",
+                        "examples": [
+                            "5000"
+                        ],
+                        "title": "Team Wide Monthly Limit Usd"
                     }
                 },
                 "required": [
                     "user_monthly_limit_usd",
+                    "month_override_usd",
                     "team_default",
-                    "effective"
+                    "effective",
+                    "team_wide_monthly_limit_usd"
                 ],
                 "title": "RouteSpendLimitSettingV1",
                 "type": "object"
@@ -32953,7 +34247,7 @@
             "RouteSpendLimitTeamDefaultV1": {
                 "properties": {
                     "team_id": {
-                        "description": "ID of the team the user's active Code key belongs to.",
+                        "description": "ID of the team whose per-member limit this is.",
                         "examples": [
                             "abc1234"
                         ],
@@ -33014,6 +34308,28 @@
                 "title": "RouteUserSettingsV1",
                 "type": "object"
             },
+            "RouteUserSettingsRequestV1": {
+                "properties": {
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of the team to read the user's spend limit in. Defaults to the only team the user has Code spend in this month, else their only team.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Team Id"
+                    }
+                },
+                "title": "RouteUserSettingsRequestV1",
+                "type": "object"
+            },
             "UpdateRouteSpendLimitSettingV1": {
                 "additionalProperties": false,
                 "minProperties": 1,
@@ -33033,6 +34349,23 @@
                             "200"
                         ],
                         "title": "User Monthly Limit Usd",
+                        "x-null-distinct": true
+                    },
+                    "month_override_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Spend limit in USD for the current UTC calendar month, which supersedes the standing limit. Send null to remove it; omit to leave it unchanged.",
+                        "examples": [
+                            "300"
+                        ],
+                        "title": "Month Override Usd",
                         "x-null-distinct": true
                     }
                 },
@@ -33058,6 +34391,114 @@
                     }
                 },
                 "title": "UpdateRouteUserSettingsRequestV1",
+                "type": "object"
+            },
+            "RouteSpendBlockedByV1": {
+                "enum": [
+                    "member",
+                    "team"
+                ],
+                "title": "RouteSpendBlockedByV1",
+                "type": "string"
+            },
+            "RouteTeamUserSettingsV1": {
+                "properties": {
+                    "team_id": {
+                        "description": "ID of the team.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "description": "Name of the team.",
+                        "examples": [
+                            "Engineering"
+                        ],
+                        "title": "Team Name",
+                        "type": "string"
+                    },
+                    "user_id": {
+                        "description": "ID of the user.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "User Id",
+                        "type": "string"
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Email address of the user.",
+                        "examples": [
+                            "dev@example.com"
+                        ],
+                        "title": "Email"
+                    },
+                    "spend_limit": {
+                        "$ref": "#/components/schemas/RouteSpendLimitSettingV1",
+                        "description": "Spend limit for Baseten Code in the team. Applies to requests with Routes keys the user created in the team; personal API keys are not limited."
+                    },
+                    "month_spend_usd": {
+                        "description": "The user's metered Code spend in USD in the team this UTC calendar month, returned as an exact decimal string.",
+                        "examples": [
+                            "12.5"
+                        ],
+                        "title": "Month Spend Usd",
+                        "type": "string"
+                    },
+                    "is_blocked": {
+                        "description": "Whether the user's spend this month reached their limit, or the team's spend reached its team-wide limit, so requests with Routes keys they created in the team are rejected.",
+                        "title": "Is Blocked",
+                        "type": "boolean"
+                    },
+                    "blocked_by": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteSpendBlockedByV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "`member` when the user's spend this month reached their limit, `team` when the team's spend reached its team-wide limit. Null when the user is not blocked."
+                    }
+                },
+                "required": [
+                    "team_id",
+                    "team_name",
+                    "user_id",
+                    "email",
+                    "spend_limit",
+                    "month_spend_usd",
+                    "is_blocked",
+                    "blocked_by"
+                ],
+                "title": "RouteTeamUserSettingsV1",
+                "type": "object"
+            },
+            "RouteUserTeamSettingsListV1": {
+                "properties": {
+                    "teams": {
+                        "description": "The user's settings in each team they have a role in and in any team they have Code spend in this month, alphabetical by team name.",
+                        "items": {
+                            "$ref": "#/components/schemas/RouteTeamUserSettingsV1"
+                        },
+                        "title": "Teams",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "teams"
+                ],
+                "title": "RouteUserTeamSettingsListV1",
                 "type": "object"
             },
             "BackgroundHarnessDefaultsV1": {
@@ -33169,15 +34610,31 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Spend limit in USD for each UTC calendar month that applies to each member whose active Code key belongs to this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.",
+                        "description": "Spend limit in USD for each UTC calendar month that applies to each member's Code spend in this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.",
                         "examples": [
                             "200"
                         ],
                         "title": "Per Member Monthly Limit Usd"
+                    },
+                    "team_wide_monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Spend limit in USD for each UTC calendar month on the Code spend of all members in this team together. Once it is reached, every member's requests in the team are rejected. Returned as an exact decimal string. Null when the team has no team-wide limit.",
+                        "examples": [
+                            "5000"
+                        ],
+                        "title": "Team Wide Monthly Limit Usd"
                     }
                 },
                 "required": [
-                    "per_member_monthly_limit_usd"
+                    "per_member_monthly_limit_usd",
+                    "team_wide_monthly_limit_usd"
                 ],
                 "title": "RouteTeamSpendLimitSettingV1",
                 "type": "object"
@@ -33198,7 +34655,7 @@
                     },
                     "spend_limit": {
                         "$ref": "#/components/schemas/RouteTeamSpendLimitSettingV1",
-                        "description": "Spend limits for Baseten Code for members whose active Code key belongs to this team."
+                        "description": "Spend limits for Baseten Code for members' spend in this team."
                     }
                 },
                 "required": [
@@ -33353,11 +34810,28 @@
                             }
                         ],
                         "default": null,
-                        "description": "Spend limit in USD for each UTC calendar month that applies to each member whose active Code key belongs to this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.",
+                        "description": "Spend limit in USD for each UTC calendar month that applies to each member's Code spend in this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.",
                         "examples": [
                             "200"
                         ],
                         "title": "Per Member Monthly Limit Usd",
+                        "x-null-distinct": true
+                    },
+                    "team_wide_monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Spend limit in USD for each UTC calendar month on the Code spend of all members in this team together. Send null to remove it; omit to leave it unchanged.",
+                        "examples": [
+                            "5000"
+                        ],
+                        "title": "Team Wide Monthly Limit Usd",
                         "x-null-distinct": true
                     }
                 },
@@ -33391,14 +34865,31 @@
                             }
                         ],
                         "default": null,
-                        "description": "Spend limit fields to change. Pass null to remove the team's per-member limit; omit to leave it unchanged.",
+                        "description": "Spend limit fields to change. Pass null to remove the team's limits; omit to leave them unchanged.",
                         "x-null-distinct": true
                     }
                 },
                 "title": "UpdateRouteTeamSettingsRequestV1",
                 "type": "object"
             },
-            "RouteConnectionAnthropicV1": {
+            "RouteTeamUserSettingsListV1": {
+                "properties": {
+                    "users": {
+                        "description": "Settings of each user with a role in the team and of anyone with Code spend in the team this month.",
+                        "items": {
+                            "$ref": "#/components/schemas/RouteTeamUserSettingsV1"
+                        },
+                        "title": "Users",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "users"
+                ],
+                "title": "RouteTeamUserSettingsListV1",
+                "type": "object"
+            },
+            "RouteConnectionConfigAnthropicV1": {
                 "properties": {
                     "provider": {
                         "const": "ANTHROPIC",
@@ -33422,10 +34913,10 @@
                     "secret_id",
                     "secret_name"
                 ],
-                "title": "RouteConnectionAnthropicV1",
+                "title": "RouteConnectionConfigAnthropicV1",
                 "type": "object"
             },
-            "RouteConnectionOpenAIV1": {
+            "RouteConnectionConfigOpenAIV1": {
                 "properties": {
                     "provider": {
                         "const": "OPENAI",
@@ -33449,7 +34940,34 @@
                     "secret_id",
                     "secret_name"
                 ],
-                "title": "RouteConnectionOpenAIV1",
+                "title": "RouteConnectionConfigOpenAIV1",
+                "type": "object"
+            },
+            "RouteConnectionConfigXAIV1": {
+                "properties": {
+                    "provider": {
+                        "const": "XAI",
+                        "description": "Provider kind for xAI.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_id": {
+                        "description": "Identifier of the team secret holding the provider API key.",
+                        "title": "Secret Id",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "description": "Name of the team secret holding the provider API key.",
+                        "title": "Secret Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "secret_id",
+                    "secret_name"
+                ],
+                "title": "RouteConnectionConfigXAIV1",
                 "type": "object"
             },
             "RouteConnectionV1": {
@@ -33468,21 +34986,21 @@
                         "description": "Provider the connection authenticates with, and the team secret holding its API key.",
                         "discriminator": {
                             "mapping": {
-                                "ANTHROPIC": "#/components/schemas/RouteConnectionAnthropicV1",
-                                "OPENAI": "#/components/schemas/RouteConnectionOpenAIV1",
-                                "XAI": "#/components/schemas/RouteConnectionXAIV1"
+                                "ANTHROPIC": "#/components/schemas/RouteConnectionConfigAnthropicV1",
+                                "OPENAI": "#/components/schemas/RouteConnectionConfigOpenAIV1",
+                                "XAI": "#/components/schemas/RouteConnectionConfigXAIV1"
                             },
                             "propertyName": "provider"
                         },
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/RouteConnectionAnthropicV1"
+                                "$ref": "#/components/schemas/RouteConnectionConfigAnthropicV1"
                             },
                             {
-                                "$ref": "#/components/schemas/RouteConnectionOpenAIV1"
+                                "$ref": "#/components/schemas/RouteConnectionConfigOpenAIV1"
                             },
                             {
-                                "$ref": "#/components/schemas/RouteConnectionXAIV1"
+                                "$ref": "#/components/schemas/RouteConnectionConfigXAIV1"
                             }
                         ],
                         "title": "Config"
@@ -33508,33 +35026,6 @@
                     "updated_at"
                 ],
                 "title": "RouteConnectionV1",
-                "type": "object"
-            },
-            "RouteConnectionXAIV1": {
-                "properties": {
-                    "provider": {
-                        "const": "XAI",
-                        "description": "Provider kind for xAI.",
-                        "title": "Provider",
-                        "type": "string"
-                    },
-                    "secret_id": {
-                        "description": "Identifier of the team secret holding the provider API key.",
-                        "title": "Secret Id",
-                        "type": "string"
-                    },
-                    "secret_name": {
-                        "description": "Name of the team secret holding the provider API key.",
-                        "title": "Secret Name",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "provider",
-                    "secret_id",
-                    "secret_name"
-                ],
-                "title": "RouteConnectionXAIV1",
                 "type": "object"
             },
             "RouteConnectionsResponseV1": {
@@ -33599,7 +35090,7 @@
                 "title": "RouteConnectionsRequestV1",
                 "type": "object"
             },
-            "RouteConnectionConfigAnthropicV1": {
+            "UpsertRouteConnectionConfigAnthropicV1": {
                 "additionalProperties": false,
                 "properties": {
                     "provider": {
@@ -33619,10 +35110,10 @@
                     "provider",
                     "secret_id"
                 ],
-                "title": "RouteConnectionConfigAnthropicV1",
+                "title": "UpsertRouteConnectionConfigAnthropicV1",
                 "type": "object"
             },
-            "RouteConnectionConfigOpenAIV1": {
+            "UpsertRouteConnectionConfigOpenAIV1": {
                 "additionalProperties": false,
                 "properties": {
                     "provider": {
@@ -33642,10 +35133,10 @@
                     "provider",
                     "secret_id"
                 ],
-                "title": "RouteConnectionConfigOpenAIV1",
+                "title": "UpsertRouteConnectionConfigOpenAIV1",
                 "type": "object"
             },
-            "RouteConnectionConfigXAIV1": {
+            "UpsertRouteConnectionConfigXAIV1": {
                 "additionalProperties": false,
                 "properties": {
                     "provider": {
@@ -33665,7 +35156,7 @@
                     "provider",
                     "secret_id"
                 ],
-                "title": "RouteConnectionConfigXAIV1",
+                "title": "UpsertRouteConnectionConfigXAIV1",
                 "type": "object"
             },
             "CreateRouteConnectionRequestV1": {
@@ -33692,9 +35183,9 @@
                         "description": "Provider the connection authenticates with, and the team secret holding its API key.",
                         "discriminator": {
                             "mapping": {
-                                "ANTHROPIC": "#/components/schemas/RouteConnectionConfigAnthropicV1",
-                                "OPENAI": "#/components/schemas/RouteConnectionConfigOpenAIV1",
-                                "XAI": "#/components/schemas/RouteConnectionConfigXAIV1"
+                                "ANTHROPIC": "#/components/schemas/UpsertRouteConnectionConfigAnthropicV1",
+                                "OPENAI": "#/components/schemas/UpsertRouteConnectionConfigOpenAIV1",
+                                "XAI": "#/components/schemas/UpsertRouteConnectionConfigXAIV1"
                             },
                             "propertyName": "provider"
                         },
@@ -33706,13 +35197,13 @@
                         ],
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/RouteConnectionConfigAnthropicV1"
+                                "$ref": "#/components/schemas/UpsertRouteConnectionConfigAnthropicV1"
                             },
                             {
-                                "$ref": "#/components/schemas/RouteConnectionConfigOpenAIV1"
+                                "$ref": "#/components/schemas/UpsertRouteConnectionConfigOpenAIV1"
                             },
                             {
-                                "$ref": "#/components/schemas/RouteConnectionConfigXAIV1"
+                                "$ref": "#/components/schemas/UpsertRouteConnectionConfigXAIV1"
                             }
                         ],
                         "title": "Config"
@@ -33738,109 +35229,16 @@
                 "title": "RouteConnectionTombstoneV1",
                 "type": "object"
             },
-            "UpdateRouteConnectionConfigAnthropicV1": {
-                "additionalProperties": false,
-                "properties": {
-                    "provider": {
-                        "const": "ANTHROPIC",
-                        "description": "Provider kind for Anthropic.",
-                        "title": "Provider",
-                        "type": "string"
-                    },
-                    "secret_id": {
-                        "anyOf": [
-                            {
-                                "minLength": 1,
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.",
-                        "title": "Secret Id",
-                        "x-null-distinct": true
-                    }
-                },
-                "required": [
-                    "provider"
-                ],
-                "title": "UpdateRouteConnectionConfigAnthropicV1",
-                "type": "object"
-            },
-            "UpdateRouteConnectionConfigOpenAIV1": {
-                "additionalProperties": false,
-                "properties": {
-                    "provider": {
-                        "const": "OPENAI",
-                        "description": "Provider kind for OpenAI.",
-                        "title": "Provider",
-                        "type": "string"
-                    },
-                    "secret_id": {
-                        "anyOf": [
-                            {
-                                "minLength": 1,
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.",
-                        "title": "Secret Id",
-                        "x-null-distinct": true
-                    }
-                },
-                "required": [
-                    "provider"
-                ],
-                "title": "UpdateRouteConnectionConfigOpenAIV1",
-                "type": "object"
-            },
-            "UpdateRouteConnectionConfigXAIV1": {
-                "additionalProperties": false,
-                "properties": {
-                    "provider": {
-                        "const": "XAI",
-                        "description": "Provider kind for xAI.",
-                        "title": "Provider",
-                        "type": "string"
-                    },
-                    "secret_id": {
-                        "anyOf": [
-                            {
-                                "minLength": 1,
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Identifier of the new secret, owned by the connection's team, that holds the provider API key. Omit to keep the current secret.",
-                        "title": "Secret Id",
-                        "x-null-distinct": true
-                    }
-                },
-                "required": [
-                    "provider"
-                ],
-                "title": "UpdateRouteConnectionConfigXAIV1",
-                "type": "object"
-            },
             "UpdateRouteConnectionRequestV1": {
                 "additionalProperties": false,
                 "properties": {
                     "config": {
-                        "description": "Connection fields to change. The provider must match the connection and is immutable.",
+                        "description": "Complete new connection configuration, replacing the current one. The provider must match the connection and is immutable.",
                         "discriminator": {
                             "mapping": {
-                                "ANTHROPIC": "#/components/schemas/UpdateRouteConnectionConfigAnthropicV1",
-                                "OPENAI": "#/components/schemas/UpdateRouteConnectionConfigOpenAIV1",
-                                "XAI": "#/components/schemas/UpdateRouteConnectionConfigXAIV1"
+                                "ANTHROPIC": "#/components/schemas/UpsertRouteConnectionConfigAnthropicV1",
+                                "OPENAI": "#/components/schemas/UpsertRouteConnectionConfigOpenAIV1",
+                                "XAI": "#/components/schemas/UpsertRouteConnectionConfigXAIV1"
                             },
                             "propertyName": "provider"
                         },
@@ -33852,13 +35250,13 @@
                         ],
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/UpdateRouteConnectionConfigAnthropicV1"
+                                "$ref": "#/components/schemas/UpsertRouteConnectionConfigAnthropicV1"
                             },
                             {
-                                "$ref": "#/components/schemas/UpdateRouteConnectionConfigOpenAIV1"
+                                "$ref": "#/components/schemas/UpsertRouteConnectionConfigOpenAIV1"
                             },
                             {
-                                "$ref": "#/components/schemas/UpdateRouteConnectionConfigXAIV1"
+                                "$ref": "#/components/schemas/UpsertRouteConnectionConfigXAIV1"
                             }
                         ],
                         "title": "Config"
@@ -33934,29 +35332,21 @@
                             {
                                 "discriminator": {
                                     "mapping": {
-                                        "ANTHROPIC": "#/components/schemas/RouteTargetConfigAnthropicV1",
-                                        "BASETEN_MODEL_API": "#/components/schemas/RouteTargetConfigBasetenModelAPIV1",
-                                        "CLASSIFIER_MODEL_BASED": "#/components/schemas/RouteTargetConfigClassifierModelBasedV1",
-                                        "OPENAI": "#/components/schemas/RouteTargetConfigOpenAIV1",
-                                        "XAI": "#/components/schemas/RouteTargetConfigXAIV1"
+                                        "BASETEN_MODEL_API": "#/components/schemas/UpsertRouteTargetBasetenModelAPIV1",
+                                        "CLASSIFIER_MODEL_BASED": "#/components/schemas/UpsertRouteTargetClassifierModelBasedV1",
+                                        "CONNECTION": "#/components/schemas/UpsertRouteTargetConnectionV1"
                                     },
                                     "propertyName": "type"
                                 },
                                 "oneOf": [
                                     {
-                                        "$ref": "#/components/schemas/RouteTargetConfigBasetenModelAPIV1"
+                                        "$ref": "#/components/schemas/UpsertRouteTargetBasetenModelAPIV1"
                                     },
                                     {
-                                        "$ref": "#/components/schemas/RouteTargetConfigAnthropicV1"
+                                        "$ref": "#/components/schemas/UpsertRouteTargetConnectionV1"
                                     },
                                     {
-                                        "$ref": "#/components/schemas/RouteTargetConfigOpenAIV1"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/RouteTargetConfigXAIV1"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/RouteTargetConfigClassifierModelBasedV1"
+                                        "$ref": "#/components/schemas/UpsertRouteTargetClassifierModelBasedV1"
                                     }
                                 ]
                             },

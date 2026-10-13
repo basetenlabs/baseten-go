@@ -138,12 +138,10 @@ func extractOperations(spec map[string]any) ([]apiOperation, error) {
 			return nil, fmt.Errorf("expected at least one 2xx response for %s %s", strings.ToUpper(o.httpMethod), o.path)
 		}
 
-		// A Raw method requests the one non-JSON content type, so several would
-		// need a way for the caller to choose, which no spec has needed yet.
+		// A Raw method requests a non-JSON content type. Several content types
+		// get one Raw method each, suffixed with the type it requests, since
+		// the caller must choose.
 		rawAccepts := rawResponseAccepts(spec, o.op, successCodes)
-		if len(rawAccepts) > 1 {
-			return nil, fmt.Errorf("%s %s has several non-JSON response content types %v, Raw methods support one", strings.ToUpper(o.httpMethod), o.path, rawAccepts)
-		}
 
 		paramsType := ""
 		if hasQueryParams(spec, paths, o.path, o.op) {
@@ -604,13 +602,21 @@ func (e *Response%s) Error() string {
 		// since there is nothing to deserialize into. One with no body at all
 		// does too when it declares headers, since they are its result.
 		rawOnly := len(op.JSONResponses) == 0 && (len(op.RawAccepts) > 0 || op.ResponseHeaders)
-		pf("\n")
-		renderMethod(&w, op, rawOnly)
-		// A content-negotiated operation also gets a sibling returning the raw
-		// response, since Accept changes the body's type entirely.
-		if len(op.JSONResponses) > 0 && len(op.RawAccepts) > 0 {
+		if !rawOnly {
 			pf("\n")
-			renderMethod(&w, op, true)
+			renderMethod(&w, op, false, "")
+		}
+		// A content-negotiated operation also gets a sibling returning the raw
+		// response, since Accept changes the body's type entirely. Several
+		// non-JSON content types get one method per type, suffixed with the
+		// type it requests, since the caller must choose.
+		for _, accept := range op.RawAccepts {
+			pf("\n")
+			renderMethod(&w, op, true, accept)
+		}
+		if rawOnly && len(op.RawAccepts) == 0 {
+			pf("\n")
+			renderMethod(&w, op, true, "")
 		}
 	}
 
@@ -841,10 +847,11 @@ func (c *Client) doNoResponse(ctx context.Context, r apiRequest) error {
 	return w.String()
 }
 
-// renderMethod renders one method. With raw, it renders a method returning the
-// response unread instead, named with a Raw suffix and requesting the
-// operation's non-JSON content type.
-func renderMethod(w *strings.Builder, op apiOperation, raw bool) {
+// renderMethod renders one method. With raw, it renders a method requesting the
+// given non-JSON content type and returning the response unread, named with a
+// Raw suffix and, when the operation declares several such content types, the
+// requested type.
+func renderMethod(w *strings.Builder, op apiOperation, raw bool, accept string) {
 	pf := func(f string, a ...any) { fmt.Fprintf(w, f, a...) }
 
 	// Every method returning the response unread is suffixed, so the name alone
@@ -852,6 +859,11 @@ func renderMethod(w *strings.Builder, op apiOperation, raw bool) {
 	name := op.Name
 	if raw {
 		name += "Raw"
+		// Several content types each get their own method requesting one, so
+		// the name says which it requests.
+		if len(op.RawAccepts) > 1 {
+			name += toPascalCase(accept)
+		}
 	}
 
 	jsonBody := op.BodyContentType == jsonContentType || op.BodyContentType == ""
@@ -894,8 +906,8 @@ func renderMethod(w *strings.Builder, op apiOperation, raw bool) {
 	pf("\n")
 	if raw {
 		pf("//\n")
-		if len(op.RawAccepts) > 0 {
-			pf("// Requests %s and returns the response unread. The caller must close\n", op.RawAccepts[0])
+		if accept != "" {
+			pf("// Requests %s and returns the response unread. The caller must close\n", accept)
 			pf("// the response body.\n")
 		} else {
 			pf("// Returns the response unread, since its headers are the result. The\n")
@@ -963,8 +975,8 @@ func renderMethod(w *strings.Builder, op apiOperation, raw bool) {
 	default:
 		fields = append(fields, "rawBody: req.Body", fmt.Sprintf("bodyContentType: cmp.Or(req.ContentType, %q)", op.BodyContentType))
 	}
-	if raw && len(op.RawAccepts) > 0 {
-		fields = append(fields, fmt.Sprintf("accept: %q", op.RawAccepts[0]))
+	if raw && accept != "" {
+		fields = append(fields, fmt.Sprintf("accept: %q", accept))
 	}
 	codeStrs := make([]string, len(op.SuccessCodes))
 	for i, c := range op.SuccessCodes {

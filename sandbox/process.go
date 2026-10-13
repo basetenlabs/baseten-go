@@ -577,7 +577,7 @@ func (p *ProcessService) StreamLogs(ctx context.Context, opts ProcessStreamLogsO
 		}
 		// Not retried, since a resent stream would repeat lines already
 		// yielded.
-		response, err := p.sandbox.api.GetProcessLogsStreamRaw(ctx, opts.Identifier)
+		response, err := p.sandbox.api.GetProcessLogsStreamRawTextPlain(ctx, opts.Identifier)
 		if err != nil {
 			yield(ProcessLogLine{}, sandboxError(err))
 			return

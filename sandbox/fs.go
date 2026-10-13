@@ -609,7 +609,7 @@ func (f *FileSystemService) WriteTree(ctx context.Context, opts FileSystemWriteT
 	}
 	// Retried, since the spec documents the write as idempotent.
 	_, err := retryIdempotent(ctx, f.sandbox.retries.UploadMaxRetries, f.sandbox.retries.GatewayMaxRetries,
-		func() (*sandboxapi.PutFilesystemTreeResponse, error) {
+		func() (*sandboxapi.Directory, error) {
 			response, err := f.sandbox.api.PutFilesystemTree(ctx, opts.Path, sandboxapi.TreeRequest{Files: optionalMap(opts.Files)})
 			return response, sandboxError(err)
 		})

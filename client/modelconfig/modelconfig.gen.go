@@ -90,6 +90,12 @@ type BDNHotload struct {
 //
 // ```
 type BDNVolumeMount struct {
+	// Relative glob patterns excluding files from the mount; exclusions win.
+	Exclude []string `json:"exclude,omitempty,omitzero" yaml:"exclude,omitempty"`
+
+	// Relative glob patterns selecting files to mount; empty includes all files.
+	Include []string `json:"include,omitempty,omitzero" yaml:"include,omitempty"`
+
 	// Absolute path where the volume will be mounted at runtime.
 	Path string `json:"path" yaml:"path"`
 
