@@ -12063,7 +12063,7 @@
                 ],
                 "operationId": "PushImage",
                 "summary": "Push a sandbox image",
-                "description": "With image supplied, import the registry image asynchronously. Otherwise return an upload URL for a ZIP source archive containing its Dockerfile and build context. The uploaded ZIP archive must not exceed 5 GB. Processing starts after upload. No sandbox is created. Poll the image until BUILT or FAILED.",
+                "description": "With image supplied, import the registry image asynchronously. Otherwise return an upload URL for a ZIP source archive containing its Dockerfile and build context. The uploaded ZIP archive must not exceed 5 GB. Processing starts after upload. No sandbox is created. Poll the image until BUILT or FAILED. Set build_memory and build_volume to size the temporary environment that builds or imports the image; for a source archive, upload with the returned upload_headers.",
                 "tags": [
                     "Images"
                 ],
@@ -38444,6 +38444,20 @@
                         "description": "Optional serialized registry authentication configuration for importing a private image. Used only when image is supplied; never returned.",
                         "writeOnly": true,
                         "example": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}"
+                    },
+                    "build_memory": {
+                        "type": "integer",
+                        "description": "Memory in megabytes of the temporary environment that builds the source archive or imports the registry image. Omit it to use the default size. Does not change the memory of sandboxes created from the image.",
+                        "minimum": 1,
+                        "maximum": 32768,
+                        "example": 16384
+                    },
+                    "build_volume": {
+                        "type": "integer",
+                        "description": "Scratch disk in megabytes attached to the temporary build environment for intermediate layers. Set it for large images that run out of space while building or importing. 0 builds in memory, which is the default. Teams with HIPAA compliance enabled accept only 0.",
+                        "minimum": 0,
+                        "maximum": 131072,
+                        "example": 32768
                     }
                 },
                 "required": [
@@ -38452,7 +38466,9 @@
                 "example": {
                     "name": "base-image",
                     "image": "docker.io/b10/base-image:latest",
-                    "docker_config": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}"
+                    "docker_config": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}",
+                    "build_memory": 16384,
+                    "build_volume": 32768
                 }
             },
             "PushSandboxImageResponseV1": {
@@ -38478,6 +38494,13 @@
                         "description": "Temporary signed URL for uploading the source ZIP archive with HTTP PUT. Present only when no source image was supplied. The uploaded ZIP archive must not exceed 5 GB. Uploading starts asynchronous processing. This storage upload is separate from the API endpoints.",
                         "format": "uri",
                         "example": "https://uploads.b10.run/images/base-image/20260916212658/source.zip?expires=2026-09-16T22%3A26%3A58Z&signature=demo-not-a-valid-upload-signature"
+                    },
+                    "upload_headers": {
+                        "type": "object",
+                        "description": "Headers the source archive upload must send, in addition to Content-Type, with exactly these names and values. Present only with upload_url, when build_memory or build_volume was set. upload_url is signed for these headers, so storage rejects an upload that omits or changes them. Treat names and values as opaque.",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
                     },
                     "image": {
                         "type": "string",
@@ -39805,7 +39828,9 @@
                 "value": {
                     "name": "base-image",
                     "image": "docker.io/b10/base-image:latest",
-                    "docker_config": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}"
+                    "docker_config": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}",
+                    "build_memory": 16384,
+                    "build_volume": 32768
                 },
                 "description": "Shows every request field. docker_config is serialized registry configuration with a deliberately invalid demonstration credential."
             },
