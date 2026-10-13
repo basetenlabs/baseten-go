@@ -3444,20 +3444,20 @@
                 }
             ]
         },
-        "/v1/models/{model_id}/deployments/{deployment_id}/cold_starts": {
+        "/v1/models/{model_id}/deployments/{deployment_id}/startups": {
             "get": {
-                "summary": "Lists the cold starts of a model deployment",
+                "summary": "Lists the startups of a model deployment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/cold_starts \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/startups \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/cold_starts\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_epoch_millis': None, 'end_epoch_millis': None, 'min_duration_ms': None, 'cursor': None, 'phase': None, 'search': None, 'sort_by': None, 'direction': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/startups\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_epoch_millis': None, 'end_epoch_millis': None, 'min_duration_ms': None, 'cursor': None, 'phase': None, 'search': None, 'sort_by': None, 'direction': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists replica cold starts in the given time range, newest first by default. Pass the `cursor` from a response to fetch the next page.",
+                "description": "Lists replica startups in the given time range, newest first by default. Pass the `cursor` from a response to fetch the next page.",
                 "parameters": [
                     {
                         "name": "start_epoch_millis",
@@ -3483,7 +3483,7 @@
                         "name": "min_duration_ms",
                         "in": "query",
                         "required": false,
-                        "description": "Only include cold starts that lasted at least this many milliseconds.",
+                        "description": "Only include startups that lasted at least this many milliseconds.",
                         "schema": {
                             "anyOf": [
                                 {
@@ -3536,7 +3536,7 @@
                         "description": "Only include attempts with one of these outcomes. Repeat to pass several.",
                         "schema": {
                             "items": {
-                                "$ref": "#/components/schemas/ColdStartOutcomeV1"
+                                "$ref": "#/components/schemas/StartupOutcomeV1"
                             },
                             "title": "Outcomes",
                             "type": "array"
@@ -3550,7 +3550,7 @@
                         "schema": {
                             "anyOf": [
                                 {
-                                    "$ref": "#/components/schemas/ColdStartPhaseV1"
+                                    "$ref": "#/components/schemas/StartupPhaseV1"
                                 },
                                 {
                                     "type": "null"
@@ -3585,7 +3585,7 @@
                         "schema": {
                             "anyOf": [
                                 {
-                                    "$ref": "#/components/schemas/ColdStartSortFieldV1"
+                                    "$ref": "#/components/schemas/StartupSortFieldV1"
                                 },
                                 {
                                     "type": "null"
@@ -3618,7 +3618,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ColdStartAttemptsV1"
+                                    "$ref": "#/components/schemas/StartupAttemptsV1"
                                 }
                             }
                         }
@@ -3635,20 +3635,20 @@
                 }
             ]
         },
-        "/v1/models/{model_id}/deployments/{deployment_id}/cold_starts/summary": {
+        "/v1/models/{model_id}/deployments/{deployment_id}/startups/summary": {
             "get": {
-                "summary": "Gets the cold start summary for a model deployment",
+                "summary": "Gets the startup summary for a model deployment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/cold_starts/summary \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/startups/summary \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/cold_starts/summary\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_epoch_millis': None, 'end_epoch_millis': None, 'min_duration_ms': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/startups/summary\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_epoch_millis': None, 'end_epoch_millis': None, 'min_duration_ms': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Gets the distribution of replica cold start durations, in total and per phase, in the given time range.",
+                "description": "Gets the distribution of replica startup durations, in total and per phase, in the given time range.",
                 "parameters": [
                     {
                         "name": "start_epoch_millis",
@@ -3674,7 +3674,7 @@
                         "name": "min_duration_ms",
                         "in": "query",
                         "required": false,
-                        "description": "Only include cold starts that lasted at least this many milliseconds.",
+                        "description": "Only include startups that lasted at least this many milliseconds.",
                         "schema": {
                             "anyOf": [
                                 {
@@ -3696,7 +3696,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ColdStartSummaryV1"
+                                    "$ref": "#/components/schemas/StartupSummaryV1"
                                 }
                             }
                         }
@@ -4295,20 +4295,20 @@
                 }
             ]
         },
-        "/v1/models/{model_id}/environments/{env_name}/cold_starts": {
+        "/v1/models/{model_id}/environments/{env_name}/startups": {
             "get": {
-                "summary": "Lists the cold starts of a model environment",
+                "summary": "Lists the startups of a model environment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/cold_starts \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/startups \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/cold_starts\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_epoch_millis': None, 'end_epoch_millis': None, 'min_duration_ms': None, 'cursor': None, 'phase': None, 'search': None, 'sort_by': None, 'direction': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/startups\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_epoch_millis': None, 'end_epoch_millis': None, 'min_duration_ms': None, 'cursor': None, 'phase': None, 'search': None, 'sort_by': None, 'direction': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists replica cold starts of every deployment that was active on the environment in the given time range, newest first by default. Pass the `cursor` from a response to fetch the next page.",
+                "description": "Lists replica startups of every deployment that was active on the environment in the given time range, newest first by default. Pass the `cursor` from a response to fetch the next page.",
                 "parameters": [
                     {
                         "name": "start_epoch_millis",
@@ -4334,7 +4334,7 @@
                         "name": "min_duration_ms",
                         "in": "query",
                         "required": false,
-                        "description": "Only include cold starts that lasted at least this many milliseconds.",
+                        "description": "Only include startups that lasted at least this many milliseconds.",
                         "schema": {
                             "anyOf": [
                                 {
@@ -4387,7 +4387,7 @@
                         "description": "Only include attempts with one of these outcomes. Repeat to pass several.",
                         "schema": {
                             "items": {
-                                "$ref": "#/components/schemas/ColdStartOutcomeV1"
+                                "$ref": "#/components/schemas/StartupOutcomeV1"
                             },
                             "title": "Outcomes",
                             "type": "array"
@@ -4401,7 +4401,7 @@
                         "schema": {
                             "anyOf": [
                                 {
-                                    "$ref": "#/components/schemas/ColdStartPhaseV1"
+                                    "$ref": "#/components/schemas/StartupPhaseV1"
                                 },
                                 {
                                     "type": "null"
@@ -4436,7 +4436,7 @@
                         "schema": {
                             "anyOf": [
                                 {
-                                    "$ref": "#/components/schemas/ColdStartSortFieldV1"
+                                    "$ref": "#/components/schemas/StartupSortFieldV1"
                                 },
                                 {
                                     "type": "null"
@@ -4469,7 +4469,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ColdStartAttemptsV1"
+                                    "$ref": "#/components/schemas/StartupAttemptsV1"
                                 }
                             }
                         }
@@ -4486,20 +4486,20 @@
                 }
             ]
         },
-        "/v1/models/{model_id}/environments/{env_name}/cold_starts/summary": {
+        "/v1/models/{model_id}/environments/{env_name}/startups/summary": {
             "get": {
-                "summary": "Gets the cold start summary for a model environment",
+                "summary": "Gets the startup summary for a model environment",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/cold_starts/summary \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/startups/summary \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/cold_starts/summary\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_epoch_millis': None, 'end_epoch_millis': None, 'min_duration_ms': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/startups/summary\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_epoch_millis': None, 'end_epoch_millis': None, 'min_duration_ms': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Gets the distribution of replica cold start durations, in total and per phase, across every deployment that was active on the environment in the given time range.",
+                "description": "Gets the distribution of replica startup durations, in total and per phase, across every deployment that was active on the environment in the given time range.",
                 "parameters": [
                     {
                         "name": "start_epoch_millis",
@@ -4525,7 +4525,7 @@
                         "name": "min_duration_ms",
                         "in": "query",
                         "required": false,
-                        "description": "Only include cold starts that lasted at least this many milliseconds.",
+                        "description": "Only include startups that lasted at least this many milliseconds.",
                         "schema": {
                             "anyOf": [
                                 {
@@ -4547,7 +4547,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ColdStartSummaryV1"
+                                    "$ref": "#/components/schemas/StartupSummaryV1"
                                 }
                             }
                         }
@@ -7475,11 +7475,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/checkpoints/validate \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"checkpoint_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\"\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/checkpoints/validate \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"checkpoint_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"run_id\": \"k4q95w5\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/checkpoints/validate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'checkpoint_path': 'bt://loops:k4q95w5/sampler_weights/step-100'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/checkpoints/validate\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'checkpoint_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'run_id': 'k4q95w5'}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Returns whether the caller can manage and use this checkpoint.",
@@ -10405,6 +10405,40 @@
                 },
                 "x-stability": "unstable"
             }
+        },
+        "/v1/routes/settings/users/{user_id}/teams": {
+            "get": {
+                "summary": "Lists a user's route settings in each of their teams",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/users/{user_id}/teams \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}/teams\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns the user's settings in each team they have a role in and in any team they have Code spend in this month, alphabetical by team name: their spend limit for Baseten Code in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; organization admins can read anyone's.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteUserTeamSettingsListV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/user_id"
+                }
+            ]
         },
         "/v1/routes/settings/teams/{team_id}": {
             "get": {
@@ -20896,8 +20930,8 @@
                 "title": "GetDeploymentMetricsRequestV1",
                 "type": "object"
             },
-            "ColdStartAttemptV1": {
-                "description": "One cold start attempt of a replica.",
+            "StartupAttemptV1": {
+                "description": "One startup attempt of a replica.",
                 "properties": {
                     "model_id": {
                         "description": "Unique identifier of the model.",
@@ -20968,13 +21002,13 @@
                         "type": "integer"
                     },
                     "outcome": {
-                        "$ref": "#/components/schemas/ColdStartOutcomeV1",
+                        "$ref": "#/components/schemas/StartupOutcomeV1",
                         "description": "Outcome of the attempt."
                     },
                     "phase_summary": {
                         "description": "Phases recorded during the attempt.",
                         "items": {
-                            "$ref": "#/components/schemas/ColdStartPhaseSummaryV1"
+                            "$ref": "#/components/schemas/StartupPhaseSummaryV1"
                         },
                         "title": "Phase Summary",
                         "type": "array"
@@ -20992,37 +21026,37 @@
                     "outcome",
                     "phase_summary"
                 ],
-                "title": "ColdStartAttemptV1",
+                "title": "StartupAttemptV1",
                 "type": "object"
             },
-            "ColdStartOutcomeV1": {
-                "description": "Outcome of a whole cold start attempt.",
+            "StartupOutcomeV1": {
+                "description": "Outcome of a whole startup attempt.",
                 "enum": [
                     "SUCCESS",
                     "FAILED",
                     "STALLED"
                 ],
-                "title": "ColdStartOutcomeV1",
+                "title": "StartupOutcomeV1",
                 "type": "string"
             },
-            "ColdStartPhaseStatusV1": {
-                "description": "Outcome of one phase, independent of the outcome of the whole cold start.",
+            "StartupPhaseStatusV1": {
+                "description": "Outcome of one phase, independent of the outcome of the whole startup.",
                 "enum": [
                     "COMPLETED",
                     "FAILED"
                 ],
-                "title": "ColdStartPhaseStatusV1",
+                "title": "StartupPhaseStatusV1",
                 "type": "string"
             },
-            "ColdStartPhaseSummaryV1": {
-                "description": "One phase recorded during a cold start attempt.",
+            "StartupPhaseSummaryV1": {
+                "description": "One phase recorded during a startup attempt.",
                 "properties": {
                     "phase": {
-                        "$ref": "#/components/schemas/ColdStartPhaseV1",
+                        "$ref": "#/components/schemas/StartupPhaseV1",
                         "description": "The phase."
                     },
                     "status": {
-                        "$ref": "#/components/schemas/ColdStartPhaseStatusV1",
+                        "$ref": "#/components/schemas/StartupPhaseStatusV1",
                         "description": "Outcome of the phase."
                     },
                     "offset_ms": {
@@ -21049,11 +21083,11 @@
                     "offset_ms",
                     "duration_ms"
                 ],
-                "title": "ColdStartPhaseSummaryV1",
+                "title": "StartupPhaseSummaryV1",
                 "type": "object"
             },
-            "ColdStartPhaseV1": {
-                "description": "A stage of a replica cold start.\n\n- ``SCHEDULING``: waiting for the replica to be placed on a node.\n- ``IMAGE_PULL``: pulling the container image.\n- ``WEIGHT_DOWNLOAD``: downloading model weights.\n- ``CONTAINER_CREATE``: creating and starting the model container, including\n  ``CONTAINER_START`` and ``READINESS``.\n- ``CONTAINER_START``: starting the model container.\n- ``READINESS``: waiting for the model to pass its readiness check.\n\n``CONTAINER_START`` and ``READINESS`` are accepted as filters but are reported only as\npart of ``CONTAINER_CREATE``.",
+            "StartupPhaseV1": {
+                "description": "A stage of a replica startup.\n\n- ``SCHEDULING``: waiting for the replica to be placed on a node.\n- ``IMAGE_PULL``: pulling the container image.\n- ``WEIGHT_DOWNLOAD``: downloading model weights.\n- ``CONTAINER_CREATE``: creating and starting the model container, including\n  ``CONTAINER_START`` and ``READINESS``.\n- ``CONTAINER_START``: starting the model container.\n- ``READINESS``: waiting for the model to pass its readiness check.\n\n``CONTAINER_START`` and ``READINESS`` are accepted as filters but are reported only as\npart of ``CONTAINER_CREATE``.",
                 "enum": [
                     "SCHEDULING",
                     "IMAGE_PULL",
@@ -21062,16 +21096,16 @@
                     "CONTAINER_START",
                     "READINESS"
                 ],
-                "title": "ColdStartPhaseV1",
+                "title": "StartupPhaseV1",
                 "type": "string"
             },
-            "ColdStartAttemptsV1": {
-                "description": "A page of cold start attempts, newest first by default.",
+            "StartupAttemptsV1": {
+                "description": "A page of startup attempts, newest first by default.",
                 "properties": {
                     "items": {
                         "description": "Items in this page.",
                         "items": {
-                            "$ref": "#/components/schemas/ColdStartAttemptV1"
+                            "$ref": "#/components/schemas/StartupAttemptV1"
                         },
                         "title": "Items",
                         "type": "array"
@@ -21081,7 +21115,7 @@
                         "description": "Pagination metadata for the page."
                     },
                     "total_count": {
-                        "description": "Number of attempts matching the filters, counted within the 1,000 most recent cold starts in the window.",
+                        "description": "Number of attempts matching the filters, counted within the 1,000 most recent startups in the window.",
                         "title": "Total Count",
                         "type": "integer"
                     }
@@ -21091,22 +21125,22 @@
                     "pagination",
                     "total_count"
                 ],
-                "title": "ColdStartAttemptsV1",
+                "title": "StartupAttemptsV1",
                 "type": "object"
             },
-            "ColdStartSortFieldV1": {
-                "description": "Field to sort cold start attempts by.",
+            "StartupSortFieldV1": {
+                "description": "Field to sort startup attempts by.",
                 "enum": [
                     "OUTCOME",
                     "STARTED_AT",
                     "READY_AT",
                     "DURATION"
                 ],
-                "title": "ColdStartSortFieldV1",
+                "title": "StartupSortFieldV1",
                 "type": "string"
             },
-            "GetColdStartAttemptsRequestV1": {
-                "description": "Query params for a cold start attempts request (a deployment or an environment).",
+            "GetStartupAttemptsRequestV1": {
+                "description": "Query params for a startup attempts request (a deployment or an environment).",
                 "properties": {
                     "start_epoch_millis": {
                         "description": "Start of the query window, in epoch milliseconds.",
@@ -21129,7 +21163,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Only include cold starts that lasted at least this many milliseconds.",
+                        "description": "Only include startups that lasted at least this many milliseconds.",
                         "title": "Min Duration Ms"
                     },
                     "cursor": {
@@ -21156,7 +21190,7 @@
                     "outcomes": {
                         "description": "Only include attempts with one of these outcomes. Repeat to pass several.",
                         "items": {
-                            "$ref": "#/components/schemas/ColdStartOutcomeV1"
+                            "$ref": "#/components/schemas/StartupOutcomeV1"
                         },
                         "title": "Outcomes",
                         "type": "array"
@@ -21164,7 +21198,7 @@
                     "phase": {
                         "anyOf": [
                             {
-                                "$ref": "#/components/schemas/ColdStartPhaseV1"
+                                "$ref": "#/components/schemas/StartupPhaseV1"
                             },
                             {
                                 "type": "null"
@@ -21189,7 +21223,7 @@
                     "sort_by": {
                         "anyOf": [
                             {
-                                "$ref": "#/components/schemas/ColdStartSortFieldV1"
+                                "$ref": "#/components/schemas/StartupSortFieldV1"
                             },
                             {
                                 "type": "null"
@@ -21215,14 +21249,14 @@
                     "start_epoch_millis",
                     "end_epoch_millis"
                 ],
-                "title": "GetColdStartAttemptsRequestV1",
+                "title": "GetStartupAttemptsRequestV1",
                 "type": "object"
             },
-            "ColdStartPercentilesV1": {
-                "description": "A distribution of cold start durations.\n\nStatistics cover only samples longer than 0 ms and are null when there are none.",
+            "StartupPercentilesV1": {
+                "description": "A distribution of startup durations.\n\nStatistics cover only samples longer than 0 ms and are null when there are none.",
                 "properties": {
                     "sample_count": {
-                        "description": "Number of cold starts in the distribution, including those that took 0 ms. A phase that finishes within a second can record 0 ms.",
+                        "description": "Number of startups in the distribution, including those that took 0 ms. A phase that finishes within a second can record 0 ms.",
                         "title": "Sample Count",
                         "type": "integer"
                     },
@@ -21295,18 +21329,18 @@
                     "p95_ms",
                     "p99_ms"
                 ],
-                "title": "ColdStartPercentilesV1",
+                "title": "StartupPercentilesV1",
                 "type": "object"
             },
-            "ColdStartPhasePercentilesV1": {
-                "description": "The duration distribution of one cold start phase.",
+            "StartupPhasePercentilesV1": {
+                "description": "The duration distribution of one startup phase.",
                 "properties": {
                     "phase": {
-                        "$ref": "#/components/schemas/ColdStartPhaseV1",
+                        "$ref": "#/components/schemas/StartupPhaseV1",
                         "description": "The phase."
                     },
                     "duration_ms": {
-                        "$ref": "#/components/schemas/ColdStartPercentilesV1",
+                        "$ref": "#/components/schemas/StartupPercentilesV1",
                         "description": "Durations of the phase."
                     }
                 },
@@ -21314,11 +21348,11 @@
                     "phase",
                     "duration_ms"
                 ],
-                "title": "ColdStartPhasePercentilesV1",
+                "title": "StartupPhasePercentilesV1",
                 "type": "object"
             },
-            "ColdStartSummaryV1": {
-                "description": "Cold start duration distributions over a time window.",
+            "StartupSummaryV1": {
+                "description": "Startup duration distributions over a time window.",
                 "properties": {
                     "start_epoch_millis": {
                         "description": "Start of the returned window.",
@@ -21331,13 +21365,13 @@
                         "type": "integer"
                     },
                     "total_duration_ms": {
-                        "$ref": "#/components/schemas/ColdStartPercentilesV1",
-                        "description": "Durations of whole cold starts, sampled from the 1,000 most recent in the window."
+                        "$ref": "#/components/schemas/StartupPercentilesV1",
+                        "description": "Durations of whole startups, sampled from the 1,000 most recent in the window."
                     },
                     "phase_duration_ms": {
                         "description": "Durations of each phase that was recorded in the window.",
                         "items": {
-                            "$ref": "#/components/schemas/ColdStartPhasePercentilesV1"
+                            "$ref": "#/components/schemas/StartupPhasePercentilesV1"
                         },
                         "title": "Phase Duration Ms",
                         "type": "array"
@@ -21349,11 +21383,11 @@
                     "total_duration_ms",
                     "phase_duration_ms"
                 ],
-                "title": "ColdStartSummaryV1",
+                "title": "StartupSummaryV1",
                 "type": "object"
             },
-            "GetColdStartSummaryRequestV1": {
-                "description": "Query params for a cold start summary request (a deployment or an environment).",
+            "GetStartupSummaryRequestV1": {
+                "description": "Query params for a startup summary request (a deployment or an environment).",
                 "properties": {
                     "start_epoch_millis": {
                         "description": "Start of the query window, in epoch milliseconds.",
@@ -21376,7 +21410,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Only include cold starts that lasted at least this many milliseconds.",
+                        "description": "Only include startups that lasted at least this many milliseconds.",
                         "title": "Min Duration Ms"
                     }
                 },
@@ -21384,7 +21418,7 @@
                     "start_epoch_millis",
                     "end_epoch_millis"
                 ],
-                "title": "GetColdStartSummaryRequestV1",
+                "title": "GetStartupSummaryRequestV1",
                 "type": "object"
             },
             "TerminateReplicaResponseV1": {
@@ -27011,6 +27045,19 @@
                         "title": "Base Model",
                         "type": "string"
                     },
+                    "lora_config_version": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The run's immutable LoRA config version.",
+                        "title": "Lora Config Version"
+                    },
                     "base_url": {
                         "description": "The run's base URL.",
                         "title": "Base Url",
@@ -27815,6 +27862,17 @@
                         "title": "Id",
                         "type": "string"
                     },
+                    "lora_config": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LoopsLoRAConfigV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The immutable LoRA config used to save this checkpoint. Null means the checkpoint is unsupported and cannot be loaded."
+                    },
                     "run_id": {
                         "description": "The ID of the run that produced the checkpoint.",
                         "title": "Run Id",
@@ -27833,10 +27891,53 @@
                     "lora_adapter_config",
                     "size_bytes",
                     "id",
+                    "lora_config",
                     "run_id",
                     "target"
                 ],
                 "title": "LoopsCheckpointV1",
+                "type": "object"
+            },
+            "LoopsLoRAConfigV1": {
+                "description": "A published LoRA config: which modules the adapter targets and how experts are laid out.",
+                "properties": {
+                    "config_version": {
+                        "description": "The config version, unique per base model.",
+                        "title": "Config Version",
+                        "type": "string"
+                    },
+                    "targets": {
+                        "description": "The module names the LoRA adapter targets.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Targets",
+                        "type": "array"
+                    },
+                    "expert_layout": {
+                        "anyOf": [
+                            {
+                                "enum": [
+                                    "per_expert",
+                                    "shared_outer",
+                                    "shared_adapter"
+                                ],
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "How routed-expert LoRA weights are laid out. Null when no experts are targeted.",
+                        "title": "Expert Layout"
+                    }
+                },
+                "required": [
+                    "config_version",
+                    "targets"
+                ],
+                "title": "LoopsLoRAConfigV1",
                 "type": "object"
             },
             "TrainerCheckpointTarget": {
@@ -27931,6 +28032,22 @@
                         ],
                         "title": "Checkpoint Path",
                         "type": "string"
+                    },
+                    "run_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Loops run whose sampler will load the checkpoint. The checkpoint must use the run's LoRA config.",
+                        "examples": [
+                            "k4q95w5"
+                        ],
+                        "title": "Run Id"
                     }
                 },
                 "required": [
@@ -27940,7 +28057,7 @@
                 "type": "object"
             },
             "ValidateLoopsCheckpointResponseV1": {
-                "description": "Response for ``POST /v1/loops/checkpoints/validate``. Empty on success;\ninaccessible or malformed paths raise 400.",
+                "description": "Response for ``POST /v1/loops/checkpoints/validate``. Empty on success;\ninaccessible or malformed paths, and checkpoints of another LoRA config than\n``run_id``'s, raise 400.",
                 "properties": {},
                 "title": "ValidateLoopsCheckpointResponseV1",
                 "type": "object"
@@ -34276,6 +34393,114 @@
                 "title": "UpdateRouteUserSettingsRequestV1",
                 "type": "object"
             },
+            "RouteSpendBlockedByV1": {
+                "enum": [
+                    "member",
+                    "team"
+                ],
+                "title": "RouteSpendBlockedByV1",
+                "type": "string"
+            },
+            "RouteTeamUserSettingsV1": {
+                "properties": {
+                    "team_id": {
+                        "description": "ID of the team.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "description": "Name of the team.",
+                        "examples": [
+                            "Engineering"
+                        ],
+                        "title": "Team Name",
+                        "type": "string"
+                    },
+                    "user_id": {
+                        "description": "ID of the user.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "User Id",
+                        "type": "string"
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Email address of the user.",
+                        "examples": [
+                            "dev@example.com"
+                        ],
+                        "title": "Email"
+                    },
+                    "spend_limit": {
+                        "$ref": "#/components/schemas/RouteSpendLimitSettingV1",
+                        "description": "Spend limit for Baseten Code in the team. Applies to requests with Routes keys the user created in the team; personal API keys are not limited."
+                    },
+                    "month_spend_usd": {
+                        "description": "The user's metered Code spend in USD in the team this UTC calendar month, returned as an exact decimal string.",
+                        "examples": [
+                            "12.5"
+                        ],
+                        "title": "Month Spend Usd",
+                        "type": "string"
+                    },
+                    "is_blocked": {
+                        "description": "Whether the user's spend this month reached their limit, or the team's spend reached its team-wide limit, so requests with Routes keys they created in the team are rejected.",
+                        "title": "Is Blocked",
+                        "type": "boolean"
+                    },
+                    "blocked_by": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteSpendBlockedByV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "`member` when the user's spend this month reached their limit, `team` when the team's spend reached its team-wide limit. Null when the user is not blocked."
+                    }
+                },
+                "required": [
+                    "team_id",
+                    "team_name",
+                    "user_id",
+                    "email",
+                    "spend_limit",
+                    "month_spend_usd",
+                    "is_blocked",
+                    "blocked_by"
+                ],
+                "title": "RouteTeamUserSettingsV1",
+                "type": "object"
+            },
+            "RouteUserTeamSettingsListV1": {
+                "properties": {
+                    "teams": {
+                        "description": "The user's settings in each team they have a role in and in any team they have Code spend in this month, alphabetical by team name.",
+                        "items": {
+                            "$ref": "#/components/schemas/RouteTeamUserSettingsV1"
+                        },
+                        "title": "Teams",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "teams"
+                ],
+                "title": "RouteUserTeamSettingsListV1",
+                "type": "object"
+            },
             "BackgroundHarnessDefaultsV1": {
                 "properties": {
                     "primary": {
@@ -34645,68 +34870,6 @@
                     }
                 },
                 "title": "UpdateRouteTeamSettingsRequestV1",
-                "type": "object"
-            },
-            "RouteTeamUserSettingsV1": {
-                "properties": {
-                    "team_id": {
-                        "description": "ID of the team.",
-                        "examples": [
-                            "abc1234"
-                        ],
-                        "title": "Team Id",
-                        "type": "string"
-                    },
-                    "user_id": {
-                        "description": "ID of the user.",
-                        "examples": [
-                            "abc1234"
-                        ],
-                        "title": "User Id",
-                        "type": "string"
-                    },
-                    "email": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Email address of the user.",
-                        "examples": [
-                            "dev@example.com"
-                        ],
-                        "title": "Email"
-                    },
-                    "spend_limit": {
-                        "$ref": "#/components/schemas/RouteSpendLimitSettingV1",
-                        "description": "Spend limit for Baseten Code in the team. Applies to requests with Routes keys the user created in the team; personal API keys are not limited."
-                    },
-                    "month_spend_usd": {
-                        "description": "The user's metered Code spend in USD in the team this UTC calendar month, returned as an exact decimal string.",
-                        "examples": [
-                            "12.5"
-                        ],
-                        "title": "Month Spend Usd",
-                        "type": "string"
-                    },
-                    "is_blocked": {
-                        "description": "Whether the user's spend this month reached their limit, or the team's spend reached its team-wide limit, so requests with Routes keys they created in the team are rejected.",
-                        "title": "Is Blocked",
-                        "type": "boolean"
-                    }
-                },
-                "required": [
-                    "team_id",
-                    "user_id",
-                    "email",
-                    "spend_limit",
-                    "month_spend_usd",
-                    "is_blocked"
-                ],
-                "title": "RouteTeamUserSettingsV1",
                 "type": "object"
             },
             "RouteTeamUserSettingsListV1": {

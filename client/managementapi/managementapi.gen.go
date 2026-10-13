@@ -584,99 +584,6 @@ func (e CheckpointSyncStatus) Valid() bool {
 	}
 }
 
-// Defines values for ColdStartOutcome.
-const (
-	ColdStartOutcome_FAILED  ColdStartOutcome = "FAILED"
-	ColdStartOutcome_STALLED ColdStartOutcome = "STALLED"
-	ColdStartOutcome_SUCCESS ColdStartOutcome = "SUCCESS"
-)
-
-// Valid indicates whether the value is a known member of the ColdStartOutcome enum.
-func (e ColdStartOutcome) Valid() bool {
-	switch e {
-	case ColdStartOutcome_FAILED:
-		return true
-	case ColdStartOutcome_STALLED:
-		return true
-	case ColdStartOutcome_SUCCESS:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ColdStartPhase.
-const (
-	ColdStartPhase_CONTAINER_CREATE ColdStartPhase = "CONTAINER_CREATE"
-	ColdStartPhase_CONTAINER_START  ColdStartPhase = "CONTAINER_START"
-	ColdStartPhase_IMAGE_PULL       ColdStartPhase = "IMAGE_PULL"
-	ColdStartPhase_READINESS        ColdStartPhase = "READINESS"
-	ColdStartPhase_SCHEDULING       ColdStartPhase = "SCHEDULING"
-	ColdStartPhase_WEIGHT_DOWNLOAD  ColdStartPhase = "WEIGHT_DOWNLOAD"
-)
-
-// Valid indicates whether the value is a known member of the ColdStartPhase enum.
-func (e ColdStartPhase) Valid() bool {
-	switch e {
-	case ColdStartPhase_CONTAINER_CREATE:
-		return true
-	case ColdStartPhase_CONTAINER_START:
-		return true
-	case ColdStartPhase_IMAGE_PULL:
-		return true
-	case ColdStartPhase_READINESS:
-		return true
-	case ColdStartPhase_SCHEDULING:
-		return true
-	case ColdStartPhase_WEIGHT_DOWNLOAD:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ColdStartPhaseStatus.
-const (
-	ColdStartPhaseStatus_COMPLETED ColdStartPhaseStatus = "COMPLETED"
-	ColdStartPhaseStatus_FAILED    ColdStartPhaseStatus = "FAILED"
-)
-
-// Valid indicates whether the value is a known member of the ColdStartPhaseStatus enum.
-func (e ColdStartPhaseStatus) Valid() bool {
-	switch e {
-	case ColdStartPhaseStatus_COMPLETED:
-		return true
-	case ColdStartPhaseStatus_FAILED:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ColdStartSortField.
-const (
-	ColdStartSortField_DURATION   ColdStartSortField = "DURATION"
-	ColdStartSortField_OUTCOME    ColdStartSortField = "OUTCOME"
-	ColdStartSortField_READY_AT   ColdStartSortField = "READY_AT"
-	ColdStartSortField_STARTED_AT ColdStartSortField = "STARTED_AT"
-)
-
-// Valid indicates whether the value is a known member of the ColdStartSortField enum.
-func (e ColdStartSortField) Valid() bool {
-	switch e {
-	case ColdStartSortField_DURATION:
-		return true
-	case ColdStartSortField_OUTCOME:
-		return true
-	case ColdStartSortField_READY_AT:
-		return true
-	case ColdStartSortField_STARTED_AT:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for DeploymentConfigOutputFormat.
 const (
 	DeploymentConfigOutputFormat_both   DeploymentConfigOutputFormat = "both"
@@ -980,6 +887,27 @@ func (e LoopsCheckpointConfigTarget) Valid() bool {
 	case LoopsCheckpointConfigTarget_sampler:
 		return true
 	case LoopsCheckpointConfigTarget_trainer:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for LoopsLoRAConfigExpertLayout.
+const (
+	LoopsLoRAConfigExpertLayout_per_expert     LoopsLoRAConfigExpertLayout = "per_expert"
+	LoopsLoRAConfigExpertLayout_shared_adapter LoopsLoRAConfigExpertLayout = "shared_adapter"
+	LoopsLoRAConfigExpertLayout_shared_outer   LoopsLoRAConfigExpertLayout = "shared_outer"
+)
+
+// Valid indicates whether the value is a known member of the LoopsLoRAConfigExpertLayout enum.
+func (e LoopsLoRAConfigExpertLayout) Valid() bool {
+	switch e {
+	case LoopsLoRAConfigExpertLayout_per_expert:
+		return true
+	case LoopsLoRAConfigExpertLayout_shared_adapter:
+		return true
+	case LoopsLoRAConfigExpertLayout_shared_outer:
 		return true
 	default:
 		return false
@@ -1298,6 +1226,24 @@ func (e RouteSettingSource) Valid() bool {
 	}
 }
 
+// Defines values for RouteSpendBlockedBy.
+const (
+	RouteSpendBlockedBy_member RouteSpendBlockedBy = "member"
+	RouteSpendBlockedBy_team   RouteSpendBlockedBy = "team"
+)
+
+// Valid indicates whether the value is a known member of the RouteSpendBlockedBy enum.
+func (e RouteSpendBlockedBy) Valid() bool {
+	switch e {
+	case RouteSpendBlockedBy_member:
+		return true
+	case RouteSpendBlockedBy_team:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for RouteUsageDimension.
 const (
 	RouteUsageDimension_MODEL    RouteUsageDimension = "MODEL"
@@ -1553,6 +1499,99 @@ func (e SortOrder) Valid() bool {
 	case SortOrder_asc:
 		return true
 	case SortOrder_desc:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for StartupOutcome.
+const (
+	StartupOutcome_FAILED  StartupOutcome = "FAILED"
+	StartupOutcome_STALLED StartupOutcome = "STALLED"
+	StartupOutcome_SUCCESS StartupOutcome = "SUCCESS"
+)
+
+// Valid indicates whether the value is a known member of the StartupOutcome enum.
+func (e StartupOutcome) Valid() bool {
+	switch e {
+	case StartupOutcome_FAILED:
+		return true
+	case StartupOutcome_STALLED:
+		return true
+	case StartupOutcome_SUCCESS:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for StartupPhase.
+const (
+	StartupPhase_CONTAINER_CREATE StartupPhase = "CONTAINER_CREATE"
+	StartupPhase_CONTAINER_START  StartupPhase = "CONTAINER_START"
+	StartupPhase_IMAGE_PULL       StartupPhase = "IMAGE_PULL"
+	StartupPhase_READINESS        StartupPhase = "READINESS"
+	StartupPhase_SCHEDULING       StartupPhase = "SCHEDULING"
+	StartupPhase_WEIGHT_DOWNLOAD  StartupPhase = "WEIGHT_DOWNLOAD"
+)
+
+// Valid indicates whether the value is a known member of the StartupPhase enum.
+func (e StartupPhase) Valid() bool {
+	switch e {
+	case StartupPhase_CONTAINER_CREATE:
+		return true
+	case StartupPhase_CONTAINER_START:
+		return true
+	case StartupPhase_IMAGE_PULL:
+		return true
+	case StartupPhase_READINESS:
+		return true
+	case StartupPhase_SCHEDULING:
+		return true
+	case StartupPhase_WEIGHT_DOWNLOAD:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for StartupPhaseStatus.
+const (
+	StartupPhaseStatus_COMPLETED StartupPhaseStatus = "COMPLETED"
+	StartupPhaseStatus_FAILED    StartupPhaseStatus = "FAILED"
+)
+
+// Valid indicates whether the value is a known member of the StartupPhaseStatus enum.
+func (e StartupPhaseStatus) Valid() bool {
+	switch e {
+	case StartupPhaseStatus_COMPLETED:
+		return true
+	case StartupPhaseStatus_FAILED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for StartupSortField.
+const (
+	StartupSortField_DURATION   StartupSortField = "DURATION"
+	StartupSortField_OUTCOME    StartupSortField = "OUTCOME"
+	StartupSortField_READY_AT   StartupSortField = "READY_AT"
+	StartupSortField_STARTED_AT StartupSortField = "STARTED_AT"
+)
+
+// Valid indicates whether the value is a known member of the StartupSortField enum.
+func (e StartupSortField) Valid() bool {
+	switch e {
+	case StartupSortField_DURATION:
+		return true
+	case StartupSortField_OUTCOME:
+		return true
+	case StartupSortField_READY_AT:
+		return true
+	case StartupSortField_STARTED_AT:
 		return true
 	default:
 		return false
@@ -3104,160 +3143,6 @@ type CleanupSandboxImagesResponse struct {
 
 	// Message Human-readable cleanup result.
 	Message string `json:"message"`
-}
-
-// ColdStartAttempt One cold start attempt of a replica.
-type ColdStartAttempt struct {
-	// DeploymentId Unique identifier of the deployment.
-	DeploymentId *string `json:"deployment_id"`
-
-	// DeploymentName Name of the deployment.
-	DeploymentName string `json:"deployment_name"`
-
-	// DurationMs Duration of the attempt, in milliseconds.
-	DurationMs int `json:"duration_ms"`
-
-	// EnvironmentName Name of the environment. Null when querying a deployment.
-	EnvironmentName *string `json:"environment_name"`
-
-	// ModelId Unique identifier of the model.
-	ModelId string `json:"model_id"`
-
-	// Outcome Outcome of a whole cold start attempt.
-	Outcome ColdStartOutcome `json:"outcome"`
-
-	// PhaseSummary Phases recorded during the attempt.
-	PhaseSummary []ColdStartPhaseSummary `json:"phase_summary"`
-
-	// ReadyAtEpochMillis Time the replica became ready, in epoch milliseconds. Null if it never did.
-	ReadyAtEpochMillis *int `json:"ready_at_epoch_millis"`
-
-	// ReplicaId Identifier of the replica that started.
-	ReplicaId *string `json:"replica_id"`
-
-	// StartedAtEpochMillis Time the attempt started, in epoch milliseconds.
-	StartedAtEpochMillis int `json:"started_at_epoch_millis"`
-}
-
-// ColdStartAttempts A page of cold start attempts, newest first by default.
-type ColdStartAttempts struct {
-	// Items Items in this page.
-	Items      []ColdStartAttempt `json:"items"`
-	Pagination PaginationResponse `json:"pagination"`
-
-	// TotalCount Number of attempts matching the filters, counted within the 1,000 most recent cold starts in the window.
-	TotalCount int `json:"total_count"`
-}
-
-// ColdStartOutcome Outcome of a whole cold start attempt.
-type ColdStartOutcome string
-
-// ColdStartPercentiles A distribution of cold start durations.
-//
-// Statistics cover only samples longer than 0 ms and are null when there are none.
-type ColdStartPercentiles struct {
-	// MeanMs Mean duration, in milliseconds.
-	MeanMs *int `json:"mean_ms"`
-
-	// P50Ms 50th percentile duration, in milliseconds.
-	P50Ms *int `json:"p50_ms"`
-
-	// P90Ms 90th percentile duration, in milliseconds.
-	P90Ms *int `json:"p90_ms"`
-
-	// P95Ms 95th percentile duration, in milliseconds.
-	P95Ms *int `json:"p95_ms"`
-
-	// P99Ms 99th percentile duration, in milliseconds.
-	P99Ms *int `json:"p99_ms"`
-
-	// SampleCount Number of cold starts in the distribution, including those that took 0 ms. A phase that finishes within a second can record 0 ms.
-	SampleCount int `json:"sample_count"`
-}
-
-// ColdStartPhase A stage of a replica cold start.
-//
-//   - “SCHEDULING“: waiting for the replica to be placed on a node.
-//   - “IMAGE_PULL“: pulling the container image.
-//   - “WEIGHT_DOWNLOAD“: downloading model weights.
-//   - “CONTAINER_CREATE“: creating and starting the model container, including
-//     “CONTAINER_START“ and “READINESS“.
-//   - “CONTAINER_START“: starting the model container.
-//   - “READINESS“: waiting for the model to pass its readiness check.
-//
-// “CONTAINER_START“ and “READINESS“ are accepted as filters but are reported only as
-// part of “CONTAINER_CREATE“.
-type ColdStartPhase string
-
-// ColdStartPhasePercentiles The duration distribution of one cold start phase.
-type ColdStartPhasePercentiles struct {
-	// DurationMs A distribution of cold start durations.
-	//
-	// Statistics cover only samples longer than 0 ms and are null when there are none.
-	DurationMs ColdStartPercentiles `json:"duration_ms"`
-
-	// Phase A stage of a replica cold start.
-	//
-	// - ``SCHEDULING``: waiting for the replica to be placed on a node.
-	// - ``IMAGE_PULL``: pulling the container image.
-	// - ``WEIGHT_DOWNLOAD``: downloading model weights.
-	// - ``CONTAINER_CREATE``: creating and starting the model container, including
-	//   ``CONTAINER_START`` and ``READINESS``.
-	// - ``CONTAINER_START``: starting the model container.
-	// - ``READINESS``: waiting for the model to pass its readiness check.
-	//
-	// ``CONTAINER_START`` and ``READINESS`` are accepted as filters but are reported only as
-	// part of ``CONTAINER_CREATE``.
-	Phase ColdStartPhase `json:"phase"`
-}
-
-// ColdStartPhaseStatus Outcome of one phase, independent of the outcome of the whole cold start.
-type ColdStartPhaseStatus string
-
-// ColdStartPhaseSummary One phase recorded during a cold start attempt.
-type ColdStartPhaseSummary struct {
-	// DurationMs Duration of the phase, in milliseconds. Can be 0 for a phase that finished within a second. Null if the phase did not finish.
-	DurationMs *int `json:"duration_ms"`
-
-	// OffsetMs Time from the start of the attempt to the start of the phase, in milliseconds.
-	OffsetMs int `json:"offset_ms"`
-
-	// Phase A stage of a replica cold start.
-	//
-	// - ``SCHEDULING``: waiting for the replica to be placed on a node.
-	// - ``IMAGE_PULL``: pulling the container image.
-	// - ``WEIGHT_DOWNLOAD``: downloading model weights.
-	// - ``CONTAINER_CREATE``: creating and starting the model container, including
-	//   ``CONTAINER_START`` and ``READINESS``.
-	// - ``CONTAINER_START``: starting the model container.
-	// - ``READINESS``: waiting for the model to pass its readiness check.
-	//
-	// ``CONTAINER_START`` and ``READINESS`` are accepted as filters but are reported only as
-	// part of ``CONTAINER_CREATE``.
-	Phase ColdStartPhase `json:"phase"`
-
-	// Status Outcome of one phase, independent of the outcome of the whole cold start.
-	Status ColdStartPhaseStatus `json:"status"`
-}
-
-// ColdStartSortField Field to sort cold start attempts by.
-type ColdStartSortField string
-
-// ColdStartSummary Cold start duration distributions over a time window.
-type ColdStartSummary struct {
-	// EndEpochMillis End of the returned window.
-	EndEpochMillis int `json:"end_epoch_millis"`
-
-	// PhaseDurationMs Durations of each phase that was recorded in the window.
-	PhaseDurationMs []ColdStartPhasePercentiles `json:"phase_duration_ms"`
-
-	// StartEpochMillis Start of the returned window.
-	StartEpochMillis int `json:"start_epoch_millis"`
-
-	// TotalDurationMs A distribution of cold start durations.
-	//
-	// Statistics cover only samples longer than 0 ms and are null when there are none.
-	TotalDurationMs ColdStartPercentiles `json:"total_duration_ms"`
 }
 
 // CreateAPIKeyRequest Request to create an API key.
@@ -5838,6 +5723,9 @@ type LoopsCheckpoint struct {
 	// LoraAdapterConfig The adapter config of the checkpoint.
 	LoraAdapterConfig *map[string]interface{} `json:"lora_adapter_config"`
 
+	// LoraConfig The immutable LoRA config used to save this checkpoint. Null means the checkpoint is unsupported and cannot be loaded.
+	LoraConfig *LoopsLoRAConfig `json:"lora_config"`
+
 	// RunId The ID of the run that produced the checkpoint.
 	RunId string `json:"run_id"`
 
@@ -6029,6 +5917,21 @@ type LoopsDeploymentStatus struct {
 	Name Name `json:"name"`
 }
 
+// LoopsLoRAConfig A published LoRA config: which modules the adapter targets and how experts are laid out.
+type LoopsLoRAConfig struct {
+	// ConfigVersion The config version, unique per base model.
+	ConfigVersion string `json:"config_version"`
+
+	// ExpertLayout How routed-expert LoRA weights are laid out. Null when no experts are targeted.
+	ExpertLayout *LoopsLoRAConfigExpertLayout `json:"expert_layout,omitempty"`
+
+	// Targets The module names the LoRA adapter targets.
+	Targets []string `json:"targets"`
+}
+
+// LoopsLoRAConfigExpertLayout How routed-expert LoRA weights are laid out. Null when no experts are targeted.
+type LoopsLoRAConfigExpertLayout string
+
 // LoopsRun defines model for LoopsRun.
 type LoopsRun struct {
 	// BaseModel The HuggingFace base model the run is fine-tuning.
@@ -6045,6 +5948,9 @@ type LoopsRun struct {
 
 	// Id The run ID.
 	Id string `json:"id"`
+
+	// LoraConfigVersion The run's immutable LoRA config version.
+	LoraConfigVersion *string `json:"lora_config_version,omitempty"`
 
 	// Name The run's display name.
 	Name string `json:"name"`
@@ -7122,6 +7028,9 @@ type RouteRef struct {
 // RouteSettingSource defines model for RouteSettingSource.
 type RouteSettingSource string
 
+// RouteSpendBlockedBy defines model for RouteSpendBlockedBy.
+type RouteSpendBlockedBy string
+
 // RouteSpendLimitSetting defines model for RouteSpendLimitSetting.
 type RouteSpendLimitSetting struct {
 	Effective RouteEffectiveSpendLimit `json:"effective"`
@@ -7205,6 +7114,9 @@ type RouteTeamSpendLimitSetting struct {
 
 // RouteTeamUserSettings defines model for RouteTeamUserSettings.
 type RouteTeamUserSettings struct {
+	// BlockedBy `member` when the user's spend this month reached their limit, `team` when the team's spend reached its team-wide limit. Null when the user is not blocked.
+	BlockedBy *RouteSpendBlockedBy `json:"blocked_by"`
+
 	// Email Email address of the user.
 	Email *string `json:"email"`
 
@@ -7217,6 +7129,9 @@ type RouteTeamUserSettings struct {
 
 	// TeamId ID of the team.
 	TeamId string `json:"team_id"`
+
+	// TeamName Name of the team.
+	TeamName string `json:"team_name"`
 
 	// UserId ID of the user.
 	UserId string `json:"user_id"`
@@ -7248,6 +7163,12 @@ type RouteUserSettings struct {
 
 	// UserId ID of the user.
 	UserId string `json:"user_id"`
+}
+
+// RouteUserTeamSettingsList defines model for RouteUserTeamSettingsList.
+type RouteUserTeamSettingsList struct {
+	// Teams The user's settings in each team they have a role in and in any team they have Code spend in this month, alphabetical by team name.
+	Teams []RouteTeamUserSettings `json:"teams"`
 }
 
 // RoutesResponse defines model for RoutesResponse.
@@ -7862,6 +7783,160 @@ type SignalPromotionResponse struct {
 
 // SortOrder defines model for SortOrder.
 type SortOrder string
+
+// StartupAttempt One startup attempt of a replica.
+type StartupAttempt struct {
+	// DeploymentId Unique identifier of the deployment.
+	DeploymentId *string `json:"deployment_id"`
+
+	// DeploymentName Name of the deployment.
+	DeploymentName string `json:"deployment_name"`
+
+	// DurationMs Duration of the attempt, in milliseconds.
+	DurationMs int `json:"duration_ms"`
+
+	// EnvironmentName Name of the environment. Null when querying a deployment.
+	EnvironmentName *string `json:"environment_name"`
+
+	// ModelId Unique identifier of the model.
+	ModelId string `json:"model_id"`
+
+	// Outcome Outcome of a whole startup attempt.
+	Outcome StartupOutcome `json:"outcome"`
+
+	// PhaseSummary Phases recorded during the attempt.
+	PhaseSummary []StartupPhaseSummary `json:"phase_summary"`
+
+	// ReadyAtEpochMillis Time the replica became ready, in epoch milliseconds. Null if it never did.
+	ReadyAtEpochMillis *int `json:"ready_at_epoch_millis"`
+
+	// ReplicaId Identifier of the replica that started.
+	ReplicaId *string `json:"replica_id"`
+
+	// StartedAtEpochMillis Time the attempt started, in epoch milliseconds.
+	StartedAtEpochMillis int `json:"started_at_epoch_millis"`
+}
+
+// StartupAttempts A page of startup attempts, newest first by default.
+type StartupAttempts struct {
+	// Items Items in this page.
+	Items      []StartupAttempt   `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+
+	// TotalCount Number of attempts matching the filters, counted within the 1,000 most recent startups in the window.
+	TotalCount int `json:"total_count"`
+}
+
+// StartupOutcome Outcome of a whole startup attempt.
+type StartupOutcome string
+
+// StartupPercentiles A distribution of startup durations.
+//
+// Statistics cover only samples longer than 0 ms and are null when there are none.
+type StartupPercentiles struct {
+	// MeanMs Mean duration, in milliseconds.
+	MeanMs *int `json:"mean_ms"`
+
+	// P50Ms 50th percentile duration, in milliseconds.
+	P50Ms *int `json:"p50_ms"`
+
+	// P90Ms 90th percentile duration, in milliseconds.
+	P90Ms *int `json:"p90_ms"`
+
+	// P95Ms 95th percentile duration, in milliseconds.
+	P95Ms *int `json:"p95_ms"`
+
+	// P99Ms 99th percentile duration, in milliseconds.
+	P99Ms *int `json:"p99_ms"`
+
+	// SampleCount Number of startups in the distribution, including those that took 0 ms. A phase that finishes within a second can record 0 ms.
+	SampleCount int `json:"sample_count"`
+}
+
+// StartupPhase A stage of a replica startup.
+//
+//   - “SCHEDULING“: waiting for the replica to be placed on a node.
+//   - “IMAGE_PULL“: pulling the container image.
+//   - “WEIGHT_DOWNLOAD“: downloading model weights.
+//   - “CONTAINER_CREATE“: creating and starting the model container, including
+//     “CONTAINER_START“ and “READINESS“.
+//   - “CONTAINER_START“: starting the model container.
+//   - “READINESS“: waiting for the model to pass its readiness check.
+//
+// “CONTAINER_START“ and “READINESS“ are accepted as filters but are reported only as
+// part of “CONTAINER_CREATE“.
+type StartupPhase string
+
+// StartupPhasePercentiles The duration distribution of one startup phase.
+type StartupPhasePercentiles struct {
+	// DurationMs A distribution of startup durations.
+	//
+	// Statistics cover only samples longer than 0 ms and are null when there are none.
+	DurationMs StartupPercentiles `json:"duration_ms"`
+
+	// Phase A stage of a replica startup.
+	//
+	// - ``SCHEDULING``: waiting for the replica to be placed on a node.
+	// - ``IMAGE_PULL``: pulling the container image.
+	// - ``WEIGHT_DOWNLOAD``: downloading model weights.
+	// - ``CONTAINER_CREATE``: creating and starting the model container, including
+	//   ``CONTAINER_START`` and ``READINESS``.
+	// - ``CONTAINER_START``: starting the model container.
+	// - ``READINESS``: waiting for the model to pass its readiness check.
+	//
+	// ``CONTAINER_START`` and ``READINESS`` are accepted as filters but are reported only as
+	// part of ``CONTAINER_CREATE``.
+	Phase StartupPhase `json:"phase"`
+}
+
+// StartupPhaseStatus Outcome of one phase, independent of the outcome of the whole startup.
+type StartupPhaseStatus string
+
+// StartupPhaseSummary One phase recorded during a startup attempt.
+type StartupPhaseSummary struct {
+	// DurationMs Duration of the phase, in milliseconds. Can be 0 for a phase that finished within a second. Null if the phase did not finish.
+	DurationMs *int `json:"duration_ms"`
+
+	// OffsetMs Time from the start of the attempt to the start of the phase, in milliseconds.
+	OffsetMs int `json:"offset_ms"`
+
+	// Phase A stage of a replica startup.
+	//
+	// - ``SCHEDULING``: waiting for the replica to be placed on a node.
+	// - ``IMAGE_PULL``: pulling the container image.
+	// - ``WEIGHT_DOWNLOAD``: downloading model weights.
+	// - ``CONTAINER_CREATE``: creating and starting the model container, including
+	//   ``CONTAINER_START`` and ``READINESS``.
+	// - ``CONTAINER_START``: starting the model container.
+	// - ``READINESS``: waiting for the model to pass its readiness check.
+	//
+	// ``CONTAINER_START`` and ``READINESS`` are accepted as filters but are reported only as
+	// part of ``CONTAINER_CREATE``.
+	Phase StartupPhase `json:"phase"`
+
+	// Status Outcome of one phase, independent of the outcome of the whole startup.
+	Status StartupPhaseStatus `json:"status"`
+}
+
+// StartupSortField Field to sort startup attempts by.
+type StartupSortField string
+
+// StartupSummary Startup duration distributions over a time window.
+type StartupSummary struct {
+	// EndEpochMillis End of the returned window.
+	EndEpochMillis int `json:"end_epoch_millis"`
+
+	// PhaseDurationMs Durations of each phase that was recorded in the window.
+	PhaseDurationMs []StartupPhasePercentiles `json:"phase_duration_ms"`
+
+	// StartEpochMillis Start of the returned window.
+	StartEpochMillis int `json:"start_epoch_millis"`
+
+	// TotalDurationMs A distribution of startup durations.
+	//
+	// Statistics cover only samples longer than 0 ms and are null when there are none.
+	TotalDurationMs StartupPercentiles `json:"total_duration_ms"`
+}
 
 // StopTrainingJobRequest A request to stop a training job.
 type StopTrainingJobRequest = map[string]interface{}
@@ -8866,10 +8941,14 @@ type V1InteractiveSessionTrigger string
 type ValidateLoopsCheckpointRequest struct {
 	// CheckpointPath bt:// URI of a sampler checkpoint. Form: bt://loops:<run_id>/sampler_weights/<checkpoint_name>.
 	CheckpointPath string `json:"checkpoint_path"`
+
+	// RunId Loops run whose sampler will load the checkpoint. The checkpoint must use the run's LoRA config.
+	RunId *string `json:"run_id,omitempty"`
 }
 
 // ValidateLoopsCheckpointResponse Response for “POST /v1/loops/checkpoints/validate“. Empty on success;
-// inaccessible or malformed paths raise 400.
+// inaccessible or malformed paths, and checkpoints of another LoRA config than
+// “run_id“'s, raise 400.
 type ValidateLoopsCheckpointResponse = map[string]interface{}
 
 // VertexTargetConfig defines model for VertexTargetConfig.
@@ -9676,51 +9755,6 @@ type GetV1ModelsModelIdDeploymentsParams struct {
 	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
-// GetV1ModelsModelIdDeploymentsDeploymentIdColdStartsParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdColdStarts.
-type GetV1ModelsModelIdDeploymentsDeploymentIdColdStartsParams struct {
-	// StartEpochMillis Start of the query window, in epoch milliseconds.
-	StartEpochMillis int `form:"start_epoch_millis" json:"start_epoch_millis"`
-
-	// EndEpochMillis End of the query window, in epoch milliseconds. Must be after the start.
-	EndEpochMillis int `form:"end_epoch_millis" json:"end_epoch_millis"`
-
-	// MinDurationMs Only include cold starts that lasted at least this many milliseconds.
-	MinDurationMs *int `form:"min_duration_ms,omitempty" json:"min_duration_ms,omitempty"`
-
-	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page. Pass the same filters and sort as the request that returned it.
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
-
-	// Limit Maximum number of attempts to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
-
-	// Outcomes Only include attempts with one of these outcomes. Repeat to pass several.
-	Outcomes *[]ColdStartOutcome `form:"outcomes,omitempty" json:"outcomes,omitempty"`
-
-	// Phase Only include attempts that spent longer than 0 ms in this phase.
-	Phase *ColdStartPhase `form:"phase,omitempty" json:"phase,omitempty"`
-
-	// Search Only include attempts whose replica ID matches exactly, or whose deployment name contains this text (case-insensitive).
-	Search *string `form:"search,omitempty" json:"search,omitempty"`
-
-	// SortBy Field to sort attempts by. Defaults to `STARTED_AT`.
-	SortBy *ColdStartSortField `form:"sort_by,omitempty" json:"sort_by,omitempty"`
-
-	// Direction Sort direction. Defaults to `desc`.
-	Direction *SortOrder `form:"direction,omitempty" json:"direction,omitempty"`
-}
-
-// GetV1ModelsModelIdDeploymentsDeploymentIdColdStartsSummaryParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdColdStartsSummary.
-type GetV1ModelsModelIdDeploymentsDeploymentIdColdStartsSummaryParams struct {
-	// StartEpochMillis Start of the query window, in epoch milliseconds.
-	StartEpochMillis int `form:"start_epoch_millis" json:"start_epoch_millis"`
-
-	// EndEpochMillis End of the query window, in epoch milliseconds. Must be after the start.
-	EndEpochMillis int `form:"end_epoch_millis" json:"end_epoch_millis"`
-
-	// MinDurationMs Only include cold starts that lasted at least this many milliseconds.
-	MinDurationMs *int `form:"min_duration_ms,omitempty" json:"min_duration_ms,omitempty"`
-}
-
 // GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdConfig.
 type GetV1ModelsModelIdDeploymentsDeploymentIdConfigParams struct {
 	// OutputFormat 'raw': verbatim config.yaml with comments (not available for deployments created before 2026-04-30). 'parsed': dict with server-side defaults applied (always available). 'both': both fields populated.
@@ -9778,15 +9812,15 @@ type GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams struct {
 	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
 }
 
-// GetV1ModelsModelIdEnvironmentsEnvNameColdStartsParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameColdStarts.
-type GetV1ModelsModelIdEnvironmentsEnvNameColdStartsParams struct {
+// GetV1ModelsModelIdDeploymentsDeploymentIdStartupsParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdStartups.
+type GetV1ModelsModelIdDeploymentsDeploymentIdStartupsParams struct {
 	// StartEpochMillis Start of the query window, in epoch milliseconds.
 	StartEpochMillis int `form:"start_epoch_millis" json:"start_epoch_millis"`
 
 	// EndEpochMillis End of the query window, in epoch milliseconds. Must be after the start.
 	EndEpochMillis int `form:"end_epoch_millis" json:"end_epoch_millis"`
 
-	// MinDurationMs Only include cold starts that lasted at least this many milliseconds.
+	// MinDurationMs Only include startups that lasted at least this many milliseconds.
 	MinDurationMs *int `form:"min_duration_ms,omitempty" json:"min_duration_ms,omitempty"`
 
 	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page. Pass the same filters and sort as the request that returned it.
@@ -9796,30 +9830,30 @@ type GetV1ModelsModelIdEnvironmentsEnvNameColdStartsParams struct {
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Outcomes Only include attempts with one of these outcomes. Repeat to pass several.
-	Outcomes *[]ColdStartOutcome `form:"outcomes,omitempty" json:"outcomes,omitempty"`
+	Outcomes *[]StartupOutcome `form:"outcomes,omitempty" json:"outcomes,omitempty"`
 
 	// Phase Only include attempts that spent longer than 0 ms in this phase.
-	Phase *ColdStartPhase `form:"phase,omitempty" json:"phase,omitempty"`
+	Phase *StartupPhase `form:"phase,omitempty" json:"phase,omitempty"`
 
 	// Search Only include attempts whose replica ID matches exactly, or whose deployment name contains this text (case-insensitive).
 	Search *string `form:"search,omitempty" json:"search,omitempty"`
 
 	// SortBy Field to sort attempts by. Defaults to `STARTED_AT`.
-	SortBy *ColdStartSortField `form:"sort_by,omitempty" json:"sort_by,omitempty"`
+	SortBy *StartupSortField `form:"sort_by,omitempty" json:"sort_by,omitempty"`
 
 	// Direction Sort direction. Defaults to `desc`.
 	Direction *SortOrder `form:"direction,omitempty" json:"direction,omitempty"`
 }
 
-// GetV1ModelsModelIdEnvironmentsEnvNameColdStartsSummaryParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameColdStartsSummary.
-type GetV1ModelsModelIdEnvironmentsEnvNameColdStartsSummaryParams struct {
+// GetV1ModelsModelIdDeploymentsDeploymentIdStartupsSummaryParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdStartupsSummary.
+type GetV1ModelsModelIdDeploymentsDeploymentIdStartupsSummaryParams struct {
 	// StartEpochMillis Start of the query window, in epoch milliseconds.
 	StartEpochMillis int `form:"start_epoch_millis" json:"start_epoch_millis"`
 
 	// EndEpochMillis End of the query window, in epoch milliseconds. Must be after the start.
 	EndEpochMillis int `form:"end_epoch_millis" json:"end_epoch_millis"`
 
-	// MinDurationMs Only include cold starts that lasted at least this many milliseconds.
+	// MinDurationMs Only include startups that lasted at least this many milliseconds.
 	MinDurationMs *int `form:"min_duration_ms,omitempty" json:"min_duration_ms,omitempty"`
 }
 
@@ -9872,6 +9906,51 @@ type GetV1ModelsModelIdEnvironmentsEnvNameMetricsParams struct {
 
 	// Metrics Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply are omitted from the response.
 	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
+}
+
+// GetV1ModelsModelIdEnvironmentsEnvNameStartupsParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameStartups.
+type GetV1ModelsModelIdEnvironmentsEnvNameStartupsParams struct {
+	// StartEpochMillis Start of the query window, in epoch milliseconds.
+	StartEpochMillis int `form:"start_epoch_millis" json:"start_epoch_millis"`
+
+	// EndEpochMillis End of the query window, in epoch milliseconds. Must be after the start.
+	EndEpochMillis int `form:"end_epoch_millis" json:"end_epoch_millis"`
+
+	// MinDurationMs Only include startups that lasted at least this many milliseconds.
+	MinDurationMs *int `form:"min_duration_ms,omitempty" json:"min_duration_ms,omitempty"`
+
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page. Pass the same filters and sort as the request that returned it.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of attempts to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Outcomes Only include attempts with one of these outcomes. Repeat to pass several.
+	Outcomes *[]StartupOutcome `form:"outcomes,omitempty" json:"outcomes,omitempty"`
+
+	// Phase Only include attempts that spent longer than 0 ms in this phase.
+	Phase *StartupPhase `form:"phase,omitempty" json:"phase,omitempty"`
+
+	// Search Only include attempts whose replica ID matches exactly, or whose deployment name contains this text (case-insensitive).
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// SortBy Field to sort attempts by. Defaults to `STARTED_AT`.
+	SortBy *StartupSortField `form:"sort_by,omitempty" json:"sort_by,omitempty"`
+
+	// Direction Sort direction. Defaults to `desc`.
+	Direction *SortOrder `form:"direction,omitempty" json:"direction,omitempty"`
+}
+
+// GetV1ModelsModelIdEnvironmentsEnvNameStartupsSummaryParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameStartupsSummary.
+type GetV1ModelsModelIdEnvironmentsEnvNameStartupsSummaryParams struct {
+	// StartEpochMillis Start of the query window, in epoch milliseconds.
+	StartEpochMillis int `form:"start_epoch_millis" json:"start_epoch_millis"`
+
+	// EndEpochMillis End of the query window, in epoch milliseconds. Must be after the start.
+	EndEpochMillis int `form:"end_epoch_millis" json:"end_epoch_millis"`
+
+	// MinDurationMs Only include startups that lasted at least this many milliseconds.
+	MinDurationMs *int `form:"min_duration_ms,omitempty" json:"min_duration_ms,omitempty"`
 }
 
 // GetV1RoutesParams defines parameters for GetV1Routes.
