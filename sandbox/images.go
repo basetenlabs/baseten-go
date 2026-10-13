@@ -143,19 +143,19 @@ type ImagePushOptions struct {
 	// in memory.
 	NoTempFile bool
 
-	// BuildMemory is the memory in megabytes, from 1 to 32768, of the
+	// MemoryMB is the memory in megabytes, from 1 to 32768, of the
 	// temporary environment that builds the build context or imports the
 	// registry image. Zero uses the default size. It does not change the
 	// memory of sandboxes created from the image.
-	BuildMemory int
+	MemoryMB int
 
-	// BuildVolume is the scratch disk in megabytes, from 0 to 131072,
+	// VolumeMB is the scratch disk in megabytes, from 0 to 131072,
 	// attached to the temporary build environment for intermediate layers.
 	// Set it for a large image that runs out of space while building or
 	// importing. 0 builds in memory. Nil is not sent, so the server uses its
 	// default, which also builds in memory. Teams with HIPAA compliance
 	// enabled accept only 0.
-	BuildVolume *int
+	VolumeMB *int
 
 	// NoWait returns as soon as the image is pushed, instead of waiting for
 	// it to be ready to use.
@@ -201,9 +201,9 @@ func (c *ImageClient) Push(ctx context.Context, opts ImagePushOptions) (*ImageIn
 	}
 	defer archive.close()
 	request := managementapi.PushSandboxImageRequest{
-		Name:        opts.Name,
-		BuildMemory: optional(opts.BuildMemory),
-		BuildVolume: opts.BuildVolume,
+		Name:     opts.Name,
+		MemoryMb: optional(opts.MemoryMB),
+		VolumeMb: opts.VolumeMB,
 	}
 	if registry := opts.SourceRegistry; registry != nil {
 		request.Image = &registry.Image

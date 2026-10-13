@@ -6695,20 +6695,20 @@ type PromotionSettings struct {
 
 // PushSandboxImageRequest Push a sandbox image from a source archive or an existing registry image.
 type PushSandboxImageRequest struct {
-	// BuildMemory Memory in megabytes of the temporary environment that builds the source archive or imports the registry image. Omit it to use the default size. Does not change the memory of sandboxes created from the image.
-	BuildMemory *int `json:"build_memory,omitempty"`
-
-	// BuildVolume Scratch disk in megabytes attached to the temporary build environment for intermediate layers. Set it for large images that run out of space while building or importing. 0 builds in memory, which is the default. Teams with HIPAA compliance enabled accept only 0.
-	BuildVolume *int `json:"build_volume,omitempty"`
-
 	// DockerConfig Optional serialized registry authentication configuration for importing a private image. Used only when image is supplied; never returned.
 	DockerConfig *string `json:"docker_config,omitempty"`
 
 	// Image Optional source registry image reference including a registry hostname. When omitted, the response provides an archive upload URL. The uploaded ZIP archive must not exceed 5 GB.
 	Image *string `json:"image,omitempty"`
 
+	// MemoryMb Memory in megabytes of the temporary environment that builds the source archive or imports the registry image. Omit it to use the default size. Does not change the memory of sandboxes created from the image.
+	MemoryMb *int `json:"memory_mb,omitempty"`
+
 	// Name Target image repository name. Reusing a name pushes a new version to the existing repository.
 	Name string `json:"name"`
+
+	// VolumeMb Scratch disk in megabytes attached to the temporary build environment for intermediate layers. Set it for large images that run out of space while building or importing. 0 builds in memory, which is the default. Teams with HIPAA compliance enabled accept only 0.
+	VolumeMb *int `json:"volume_mb,omitempty"`
 }
 
 // PushSandboxImageResponse Accepted image push. Acceptance does not imply readiness; poll GET /sandboxes/images/{image_name} until status is BUILT or FAILED.
@@ -6722,7 +6722,7 @@ type PushSandboxImageResponse struct {
 	// Status Image processing status. Only BUILT images are ready to use.
 	Status SandboxImageStatus `json:"status"`
 
-	// UploadHeaders Headers the source archive upload must send, in addition to Content-Type, with exactly these names and values. Present only with upload_url, when build_memory or build_volume was set. upload_url is signed for these headers, so storage rejects an upload that omits or changes them. Treat names and values as opaque.
+	// UploadHeaders Headers the source archive upload must send, in addition to Content-Type, with exactly these names and values. Present only with upload_url, when memory_mb or volume_mb was set. upload_url is signed for these headers, so storage rejects an upload that omits or changes them. Treat names and values as opaque.
 	UploadHeaders *map[string]string `json:"upload_headers,omitempty"`
 
 	// UploadUrl Temporary signed URL for uploading the source ZIP archive with HTTP PUT. Present only when no source image was supplied. The uploaded ZIP archive must not exceed 5 GB. Uploading starts asynchronous processing. This storage upload is separate from the API endpoints.
