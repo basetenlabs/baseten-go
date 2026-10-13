@@ -364,3 +364,37 @@ func TestUploadObjectWaitsForTheTransportToReleaseTheBody(t *testing.T) {
 		t.Errorf("the transport read %q — bytes written after UploadObject returned", got)
 	}
 }
+
+func TestUploadTrafficIncludesRetries(t *testing.T) {
+	digest := volume.Digest{1}
+	var attempts atomic.Int64
+	client, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.Copy(io.Discard, r.Body)
+		if attempts.Add(1) == 1 {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+		writeJSON(t, w, http.StatusOK, map[string]any{
+			"digest": digest.String(), "target": volume.TargetForDigest(digest), "created": false,
+		})
+	})
+	var transferred atomic.Int64
+	_, err := client.UploadObjectWithProgress(context.Background(), testSession("/objects/{digest}"),
+		ContentTypeChunk, digest, []byte("chunk"), func(n int64) { transferred.Add(n) })
+	require.NoError(t, err)
+	require.Equal(t, int64(2), attempts.Load())
+	require.Equal(t, int64(10), transferred.Load())
+}
+
+func TestTrackedBodyCopyCountsBytes(t *testing.T) {
+	var bodies sync.WaitGroup
+	bodies.Add(1)
+	var total int64
+	body := &trackedBody{Reader: bytes.NewReader([]byte("chunk")), bodies: &bodies,
+		onRead: func(n int64) { total += n }}
+	_, err := io.Copy(io.Discard, body)
+	require.NoError(t, err)
+	require.NoError(t, body.Close())
+	bodies.Wait()
+	require.Equal(t, int64(5), total)
+}

@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/basetenlabs/baseten-go/internal/volume"
 	"github.com/basetenlabs/baseten-go/internal/volume/bdn"
@@ -105,6 +106,11 @@ type PushResult struct {
 
 	Files int64
 	Bytes int64
+
+	// TransferredBytes is total observed chunk payload for this transfer,
+	// available even when no progress callback is supplied.
+	// It follows the accounting semantics of volume.Progress.TransferredBytes.
+	TransferredBytes int64
 
 	// Chunks counts every object the push accounted for: chunks, chunkmaps,
 	// and the manifest.
@@ -292,6 +298,7 @@ func (p *pusher) uploadManifest(
 
 // pusher holds the state one push shares across its files.
 type pusher struct {
+	transferred atomic.Int64
 	client      *bdn.Client
 	opts        PushOptions
 	grants      bdn.Grants
@@ -680,7 +687,7 @@ func (p *pusher) pushChunk(
 	}
 
 	result, reused, waited, err := p.uploadOnce(ctx, uploadKey{kind: objectChunk, digest: digest}, func() (*bdn.UploadResult, error) {
-		return p.client.UploadObject(ctx, p.session, bdn.ContentTypeChunk, digest, buffer)
+		return p.client.UploadObjectWithProgress(ctx, p.session, bdn.ContentTypeChunk, digest, buffer, p.addTransferred)
 	})
 	if err != nil {
 		permit.CompleteUntimed(failureOutcome(ctx, err))
@@ -854,16 +861,17 @@ func (p *pusher) commit(ctx context.Context, digest volume.Digest) (*PushResult,
 	p.stats.mu.Lock()
 	defer p.stats.mu.Unlock()
 	push := &PushResult{
-		ManifestDigest: digest,
-		Sequence:       result.Sequence,
-		HeadUpdated:    result.HeadUpdated,
-		HeadMoveDenied: !p.headAllowed,
-		Files:          p.stats.files,
-		Bytes:          p.stats.bytes,
-		Chunks:         p.stats.chunks,
-		Unique:         p.stats.unique,
-		Reused:         p.stats.reused,
-		Existing:       p.stats.existing,
+		ManifestDigest:   digest,
+		Sequence:         result.Sequence,
+		HeadUpdated:      result.HeadUpdated,
+		HeadMoveDenied:   !p.headAllowed,
+		Files:            p.stats.files,
+		Bytes:            p.stats.bytes,
+		TransferredBytes: p.transferred.Load(),
+		Chunks:           p.stats.chunks,
+		Unique:           p.stats.unique,
+		Reused:           p.stats.reused,
+		Existing:         p.stats.existing,
 	}
 	if result.TagApplied {
 		push.TagsApplied = p.opts.Tags

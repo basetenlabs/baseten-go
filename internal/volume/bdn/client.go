@@ -209,6 +209,14 @@ func (c *Client) UploadObject(
 	digest volume.Digest,
 	body []byte,
 ) (*UploadResult, error) {
+	return c.UploadObjectWithProgress(ctx, session, contentType, digest, body, nil)
+}
+
+// UploadObjectWithProgress reports payload reads across attempts and replays.
+// onRead may run on transport goroutines and must return quickly.
+func (c *Client) UploadObjectWithProgress(ctx context.Context, session *UploadSession,
+	contentType string, digest volume.Digest, body []byte, onRead func(int64),
+) (*UploadResult, error) {
 	path := strings.Replace(session.ObjectUploadPath, digestPlaceholder, digest.String(), 1)
 
 	var out uploadResponse
@@ -216,6 +224,7 @@ func (c *Client) UploadObject(
 		method:      http.MethodPut,
 		path:        path,
 		body:        body,
+		onRead:      onRead,
 		contentType: contentType,
 	}, &out)
 	if err != nil {
@@ -493,6 +502,7 @@ func NewIdempotencyKey() (string, error) {
 
 // request is one logical call, which the retry loop may send several times.
 type request struct {
+	onRead      func(int64)
 	method      string
 	path        string
 	body        []byte
@@ -612,9 +622,26 @@ func (c *Client) send(ctx context.Context, req request) (*rawResponse, volume.Ou
 // can no longer be reading the bytes, and the WaitGroup carries it back to
 // the attempt.
 type trackedBody struct {
+	onRead func(int64)
 	*bytes.Reader
 	once   sync.Once
 	bodies *sync.WaitGroup
+}
+
+func (b *trackedBody) Read(p []byte) (int, error) {
+	n, err := b.Reader.Read(p)
+	if n > 0 && b.onRead != nil {
+		b.onRead(int64(n))
+	}
+	return n, err
+}
+
+// Override bytes.Reader.WriteTo so io.Copy cannot bypass Read accounting.
+func (b *trackedBody) WriteTo(w io.Writer) (int64, error) {
+	if b.onRead == nil {
+		return b.Reader.WriteTo(w)
+	}
+	return io.Copy(w, struct{ io.Reader }{b})
 }
 
 func (b *trackedBody) Close() error {
@@ -639,7 +666,7 @@ func (c *Client) attempt(ctx context.Context, host, token string, req request) (
 	var bodies sync.WaitGroup
 	tracked := func() io.ReadCloser {
 		bodies.Add(1)
-		return &trackedBody{Reader: bytes.NewReader(req.body), bodies: &bodies}
+		return &trackedBody{Reader: bytes.NewReader(req.body), bodies: &bodies, onRead: req.onRead}
 	}
 	// The service requires a length on object uploads. A body of a type
 	// net/http does not recognize means no inferred length, so the length is
