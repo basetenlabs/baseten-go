@@ -149,13 +149,12 @@ type ImagePushOptions struct {
 	// memory of sandboxes created from the image.
 	Memory int
 
-	// Volume is the scratch disk in megabytes, from 0 to 131072,
-	// attached to the temporary build environment for intermediate layers.
-	// Set it for a large image that runs out of space while building or
-	// importing. 0 builds in memory. Nil is not sent, so the server uses its
-	// default, which also builds in memory. Teams with HIPAA compliance
-	// enabled accept only 0.
-	Volume *int
+	// Volume is the scratch disk in megabytes, up to 131072, attached to
+	// the temporary build environment for intermediate layers. Set it for a
+	// large image that runs out of space while building or importing. Zero
+	// uses the default, which builds in memory. Teams with HIPAA compliance
+	// enabled accept only zero.
+	Volume int
 
 	// NoWait returns as soon as the image is pushed, instead of waiting for
 	// it to be ready to use.
@@ -203,7 +202,7 @@ func (c *ImageClient) Push(ctx context.Context, opts ImagePushOptions) (*ImageIn
 	request := managementapi.PushSandboxImageRequest{
 		Name:   opts.Name,
 		Memory: optional(opts.Memory),
-		Volume: opts.Volume,
+		Volume: optional(opts.Volume),
 	}
 	if registry := opts.SourceRegistry; registry != nil {
 		request.Image = &registry.Image

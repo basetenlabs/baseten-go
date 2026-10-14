@@ -101,18 +101,14 @@ func TestImagePush(t *testing.T) {
 	})
 
 	t.Run("SendsBuildSizesOnlyWhenSet", func(t *testing.T) {
-		zero, volume := 0, 8192
 		for _, c := range []struct {
 			opts ImagePushOptions
 			body string
 		}{
 			{ImagePushOptions{SourceFiles: dockerfileOnly}, `{"name":"img"}`},
-			{ImagePushOptions{SourceFiles: dockerfileOnly, Memory: 2048, Volume: &volume}, `{"memory":2048,"name":"img","volume":8192}`},
-			// 0 builds in memory, as the server's default does, but is still
-			// sent when set.
-			{ImagePushOptions{SourceFiles: dockerfileOnly, Volume: &zero}, `{"name":"img","volume":0}`},
+			{ImagePushOptions{SourceFiles: dockerfileOnly, Memory: 2048, Volume: 8192}, `{"memory":2048,"name":"img","volume":8192}`},
 			{
-				ImagePushOptions{SourceRegistry: &ImageRegistrySource{Image: "debian:bookworm"}, Memory: 2048, Volume: &volume},
+				ImagePushOptions{SourceRegistry: &ImageRegistrySource{Image: "debian:bookworm"}, Memory: 2048, Volume: 8192},
 				`{"image":"debian:bookworm","memory":2048,"name":"img","volume":8192}`,
 			},
 		} {
