@@ -107,13 +107,13 @@ func TestImagePush(t *testing.T) {
 			body string
 		}{
 			{ImagePushOptions{SourceFiles: dockerfileOnly}, `{"name":"img"}`},
-			{ImagePushOptions{SourceFiles: dockerfileOnly, MemoryMB: 2048, VolumeMB: &volume}, `{"memory_mb":2048,"name":"img","volume_mb":8192}`},
+			{ImagePushOptions{SourceFiles: dockerfileOnly, Memory: 2048, Volume: &volume}, `{"memory":2048,"name":"img","volume":8192}`},
 			// 0 builds in memory, as the server's default does, but is still
 			// sent when set.
-			{ImagePushOptions{SourceFiles: dockerfileOnly, VolumeMB: &zero}, `{"name":"img","volume_mb":0}`},
+			{ImagePushOptions{SourceFiles: dockerfileOnly, Volume: &zero}, `{"name":"img","volume":0}`},
 			{
-				ImagePushOptions{SourceRegistry: &ImageRegistrySource{Image: "debian:bookworm"}, MemoryMB: 2048, VolumeMB: &volume},
-				`{"image":"debian:bookworm","memory_mb":2048,"name":"img","volume_mb":8192}`,
+				ImagePushOptions{SourceRegistry: &ImageRegistrySource{Image: "debian:bookworm"}, Memory: 2048, Volume: &volume},
+				`{"image":"debian:bookworm","memory":2048,"name":"img","volume":8192}`,
 			},
 		} {
 			cp := newControlPlane(t)
@@ -136,7 +136,7 @@ func TestImagePush(t *testing.T) {
 		plain := store.header
 		cp.respond("POST", "/v1/sandboxes/images", 202, `{"name":"img","status":"UPLOADING","upload_url":"`+store.URL+`",
 			"upload_headers":{"x-signed-memory":"2048","X-Signed-Other":"a, b"}}`)
-		_, err = images.Push(t.Context(), ImagePushOptions{Name: "img", SourceFiles: dockerfileOnly, MemoryMB: 2048, NoWait: true})
+		_, err = images.Push(t.Context(), ImagePushOptions{Name: "img", SourceFiles: dockerfileOnly, Memory: 2048, NoWait: true})
 		require.NoError(t, err)
 		// Exactly the returned headers are added to the upload, with their
 		// values as returned, and Content-Type is kept.

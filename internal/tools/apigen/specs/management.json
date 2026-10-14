@@ -12063,7 +12063,7 @@
                 ],
                 "operationId": "PushImage",
                 "summary": "Push a sandbox image",
-                "description": "With image supplied, import the registry image asynchronously. Otherwise return an upload URL for a ZIP source archive containing its Dockerfile and build context. The uploaded ZIP archive must not exceed 5 GB. Processing starts after upload. No sandbox is created. Poll the image until BUILT or FAILED. Set memory_mb and volume_mb to size the temporary environment that builds or imports the image; for a source archive, upload with the returned upload_headers.",
+                "description": "With image supplied, import the registry image asynchronously. Otherwise return an upload URL for a ZIP source archive containing its Dockerfile and build context. The uploaded ZIP archive must not exceed 5 GB. Processing starts after upload. No sandbox is created. Poll the image until BUILT or FAILED. Set memory and volume to size the temporary environment that builds or imports the image; for a source archive, upload with the returned upload_headers.",
                 "tags": [
                     "Images"
                 ],
@@ -38445,14 +38445,14 @@
                         "writeOnly": true,
                         "example": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}"
                     },
-                    "memory_mb": {
+                    "memory": {
                         "type": "integer",
                         "description": "Memory in megabytes of the temporary environment that builds the source archive or imports the registry image. Omit it to use the default size. Does not change the memory of sandboxes created from the image.",
                         "minimum": 1,
                         "maximum": 32768,
                         "example": 16384
                     },
-                    "volume_mb": {
+                    "volume": {
                         "type": "integer",
                         "description": "Scratch disk in megabytes attached to the temporary build environment for intermediate layers. Set it for large images that run out of space while building or importing. 0 builds in memory, which is the default. Teams with HIPAA compliance enabled accept only 0.",
                         "minimum": 0,
@@ -38467,8 +38467,8 @@
                     "name": "base-image",
                     "image": "docker.io/b10/base-image:latest",
                     "docker_config": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}",
-                    "memory_mb": 16384,
-                    "volume_mb": 32768
+                    "memory": 16384,
+                    "volume": 32768
                 }
             },
             "PushSandboxImageResponseV1": {
@@ -38497,7 +38497,7 @@
                     },
                     "upload_headers": {
                         "type": "object",
-                        "description": "Headers the source archive upload must send, in addition to Content-Type, with exactly these names and values. Present only with upload_url, when memory_mb or volume_mb was set. upload_url is signed for these headers, so storage rejects an upload that omits or changes them. Treat names and values as opaque.",
+                        "description": "Headers the source archive upload must send, in addition to Content-Type, with exactly these names and values. Present only with upload_url, when memory or volume was set. upload_url is signed for these headers, so storage rejects an upload that omits or changes them. Treat names and values as opaque.",
                         "additionalProperties": {
                             "type": "string"
                         }
@@ -39829,8 +39829,8 @@
                     "name": "base-image",
                     "image": "docker.io/b10/base-image:latest",
                     "docker_config": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}",
-                    "memory_mb": 16384,
-                    "volume_mb": 32768
+                    "memory": 16384,
+                    "volume": 32768
                 },
                 "description": "Shows every request field. docker_config is serialized registry configuration with a deliberately invalid demonstration credential."
             },
