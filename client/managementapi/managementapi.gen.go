@@ -181,6 +181,9 @@ const (
 	AuditLogEventType_USER_ROLE_UPDATED                                      AuditLogEventType = "USER_ROLE_UPDATED"
 	AuditLogEventType_USER_TEAM_ROLE_UPDATED                                 AuditLogEventType = "USER_TEAM_ROLE_UPDATED"
 	AuditLogEventType_VOLUME_DELETED                                         AuditLogEventType = "VOLUME_DELETED"
+	AuditLogEventType_VOLUME_TAG_DELETED                                     AuditLogEventType = "VOLUME_TAG_DELETED"
+	AuditLogEventType_VOLUME_TAG_SET                                         AuditLogEventType = "VOLUME_TAG_SET"
+	AuditLogEventType_VOLUME_UPDATED                                         AuditLogEventType = "VOLUME_UPDATED"
 	AuditLogEventType_VOLUME_VERSION_DELETED                                 AuditLogEventType = "VOLUME_VERSION_DELETED"
 	AuditLogEventType_VOLUME_VERSION_RESTORED                                AuditLogEventType = "VOLUME_VERSION_RESTORED"
 	AuditLogEventType_WEBHOOK_SIGNING_SECRET_CREATED                         AuditLogEventType = "WEBHOOK_SIGNING_SECRET_CREATED"
@@ -280,6 +283,12 @@ func (e AuditLogEventType) Valid() bool {
 	case AuditLogEventType_USER_TEAM_ROLE_UPDATED:
 		return true
 	case AuditLogEventType_VOLUME_DELETED:
+		return true
+	case AuditLogEventType_VOLUME_TAG_DELETED:
+		return true
+	case AuditLogEventType_VOLUME_TAG_SET:
+		return true
+	case AuditLogEventType_VOLUME_UPDATED:
 		return true
 	case AuditLogEventType_VOLUME_VERSION_DELETED:
 		return true
@@ -1248,6 +1257,7 @@ func (e RouteSpendBlockedBy) Valid() bool {
 const (
 	RouteUsageDimension_MODEL    RouteUsageDimension = "MODEL"
 	RouteUsageDimension_PROVIDER RouteUsageDimension = "PROVIDER"
+	RouteUsageDimension_ROUTER   RouteUsageDimension = "ROUTER"
 	RouteUsageDimension_TEAM     RouteUsageDimension = "TEAM"
 	RouteUsageDimension_USER     RouteUsageDimension = "USER"
 )
@@ -1258,6 +1268,8 @@ func (e RouteUsageDimension) Valid() bool {
 	case RouteUsageDimension_MODEL:
 		return true
 	case RouteUsageDimension_PROVIDER:
+		return true
+	case RouteUsageDimension_ROUTER:
 		return true
 	case RouteUsageDimension_TEAM:
 		return true
@@ -1316,6 +1328,87 @@ func (e SandboxImageStatus) Valid() bool {
 	case SandboxImageStatus_FAILED:
 		return true
 	case SandboxImageStatus_UPLOADING:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxMetricDescriptorKind.
+const (
+	SandboxMetricDescriptorKind_COUNTER SandboxMetricDescriptorKind = "COUNTER"
+	SandboxMetricDescriptorKind_GAUGE   SandboxMetricDescriptorKind = "GAUGE"
+)
+
+// Valid indicates whether the value is a known member of the SandboxMetricDescriptorKind enum.
+func (e SandboxMetricDescriptorKind) Valid() bool {
+	switch e {
+	case SandboxMetricDescriptorKind_COUNTER:
+		return true
+	case SandboxMetricDescriptorKind_GAUGE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxMetricDescriptorUnitHint.
+const (
+	SandboxMetricDescriptorUnitHint_BYTES SandboxMetricDescriptorUnitHint = "BYTES"
+	SandboxMetricDescriptorUnitHint_CORES SandboxMetricDescriptorUnitHint = "CORES"
+	SandboxMetricDescriptorUnitHint_COUNT SandboxMetricDescriptorUnitHint = "COUNT"
+)
+
+// Valid indicates whether the value is a known member of the SandboxMetricDescriptorUnitHint enum.
+func (e SandboxMetricDescriptorUnitHint) Valid() bool {
+	switch e {
+	case SandboxMetricDescriptorUnitHint_BYTES:
+		return true
+	case SandboxMetricDescriptorUnitHint_CORES:
+		return true
+	case SandboxMetricDescriptorUnitHint_COUNT:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxMetricMode.
+const (
+	SandboxMetricMode_CURRENT SandboxMetricMode = "CURRENT"
+	SandboxMetricMode_SERIES  SandboxMetricMode = "SERIES"
+	SandboxMetricMode_SUMMARY SandboxMetricMode = "SUMMARY"
+)
+
+// Valid indicates whether the value is a known member of the SandboxMetricMode enum.
+func (e SandboxMetricMode) Valid() bool {
+	switch e {
+	case SandboxMetricMode_CURRENT:
+		return true
+	case SandboxMetricMode_SERIES:
+		return true
+	case SandboxMetricMode_SUMMARY:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SandboxMetricName.
+const (
+	SandboxMetricName_baseten_sandbox_cpu_usage_cores SandboxMetricName = "baseten_sandbox_cpu_usage_cores"
+	SandboxMetricName_baseten_sandbox_memory_bytes    SandboxMetricName = "baseten_sandbox_memory_bytes"
+	SandboxMetricName_baseten_sandbox_requests_total  SandboxMetricName = "baseten_sandbox_requests_total"
+)
+
+// Valid indicates whether the value is a known member of the SandboxMetricName enum.
+func (e SandboxMetricName) Valid() bool {
+	switch e {
+	case SandboxMetricName_baseten_sandbox_cpu_usage_cores:
+		return true
+	case SandboxMetricName_baseten_sandbox_memory_bytes:
+		return true
+	case SandboxMetricName_baseten_sandbox_requests_total:
 		return true
 	default:
 		return false
@@ -1656,6 +1749,7 @@ func (e UpdateAutoscalingSettingsStatus) Valid() bool {
 const (
 	UsageDimension_api_key UsageDimension = "api_key"
 	UsageDimension_model   UsageDimension = "model"
+	UsageDimension_team    UsageDimension = "team"
 	UsageDimension_user    UsageDimension = "user"
 )
 
@@ -1665,6 +1759,8 @@ func (e UsageDimension) Valid() bool {
 	case UsageDimension_api_key:
 		return true
 	case UsageDimension_model:
+		return true
+	case UsageDimension_team:
 		return true
 	case UsageDimension_user:
 		return true
@@ -1811,36 +1907,6 @@ func (e VolumeTokenScope) Valid() bool {
 	case VolumeTokenScope_PUSH:
 		return true
 	case VolumeTokenScope_TAG:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for GetSandboxMetricsParamsIntervalSeconds.
-const (
-	GetSandboxMetricsParamsIntervalSecondsN10   GetSandboxMetricsParamsIntervalSeconds = 10
-	GetSandboxMetricsParamsIntervalSecondsN30   GetSandboxMetricsParamsIntervalSeconds = 30
-	GetSandboxMetricsParamsIntervalSecondsN300  GetSandboxMetricsParamsIntervalSeconds = 300
-	GetSandboxMetricsParamsIntervalSecondsN3600 GetSandboxMetricsParamsIntervalSeconds = 3600
-	GetSandboxMetricsParamsIntervalSecondsN60   GetSandboxMetricsParamsIntervalSeconds = 60
-	GetSandboxMetricsParamsIntervalSecondsN900  GetSandboxMetricsParamsIntervalSeconds = 900
-)
-
-// Valid indicates whether the value is a known member of the GetSandboxMetricsParamsIntervalSeconds enum.
-func (e GetSandboxMetricsParamsIntervalSeconds) Valid() bool {
-	switch e {
-	case GetSandboxMetricsParamsIntervalSecondsN10:
-		return true
-	case GetSandboxMetricsParamsIntervalSecondsN30:
-		return true
-	case GetSandboxMetricsParamsIntervalSecondsN300:
-		return true
-	case GetSandboxMetricsParamsIntervalSecondsN3600:
-		return true
-	case GetSandboxMetricsParamsIntervalSecondsN60:
-		return true
-	case GetSandboxMetricsParamsIntervalSecondsN900:
 		return true
 	default:
 		return false
@@ -2561,6 +2627,34 @@ type AuditLogEventVolumeDeleted struct {
 	VersionsDeleted int    `json:"versions_deleted"`
 	VolumeName      string `json:"volume_name"`
 	VolumeRef       string `json:"volume_ref"`
+}
+
+// AuditLogEventVolumeTagDeleted Deleting a volume tag succeeded. `deleted` is false if the tag was already absent.
+type AuditLogEventVolumeTagDeleted struct {
+	Deleted   bool   `json:"deleted"`
+	EventType string `json:"event_type"`
+	Tag       string `json:"tag"`
+	VolumeRef string `json:"volume_ref"`
+}
+
+// AuditLogEventVolumeTagSet A volume tag was set on a version.
+type AuditLogEventVolumeTagSet struct {
+	Digest    string `json:"digest"`
+	EventType string `json:"event_type"`
+	Tag       string `json:"tag"`
+	VolumeRef string `json:"volume_ref"`
+}
+
+// AuditLogEventVolumeUpdated A volume's settings were updated.
+type AuditLogEventVolumeUpdated struct {
+	EventType string `json:"event_type"`
+
+	// ExpiresAt The volume's expiration time after the update, as an ISO 8601 string. Null when the update cleared it.
+	ExpiresAt *string `json:"expires_at"`
+
+	// PreviousExpiresAt The expiration time the update replaced, as an ISO 8601 string. Null when the volume had none.
+	PreviousExpiresAt *string `json:"previous_expires_at"`
+	VolumeRef         string  `json:"volume_ref"`
 }
 
 // AuditLogEventVolumeVersionDeleted One version of a volume was deleted.
@@ -3376,6 +3470,9 @@ type CreateLibraryListingRequest struct {
 	// DisplayName Display name of the library listing
 	DisplayName string `json:"display_name"`
 
+	// IsListed Whether the listing appears in catalogs; unlisted listings still deploy from a direct link
+	IsListed *bool `json:"is_listed,omitempty"`
+
 	// IsPublic Whether the listing is publicly accessible
 	IsPublic *bool `json:"is_public,omitempty"`
 
@@ -3394,11 +3491,17 @@ type CreateLibraryListingVersionRequest struct {
 	// DisplayName Display name of the library listing. Required when creating a new listing.
 	DisplayName *string `json:"display_name,omitempty"`
 
+	// IsListed Whether the listing appears in catalogs; unlisted listings still deploy from a direct link. Only used when creating a new listing.
+	IsListed *bool `json:"is_listed,omitempty"`
+
 	// IsPublic Whether the listing is publicly accessible. Only used when creating a new listing.
 	IsPublic *bool `json:"is_public,omitempty"`
 
 	// OracleVersionId Id of the source model version to publish
 	OracleVersionId string `json:"oracle_version_id"`
+
+	// ReplaceModel Allow publishing from a different model than the listing's current one. The listing then points at the new model; earlier versions and existing deployments are unaffected. Fails if the new model already backs another listing.
+	ReplaceModel *bool `json:"replace_model,omitempty"`
 
 	// VersionTag Human-readable tag for this version
 	VersionTag string `json:"version_tag"`
@@ -3616,7 +3719,7 @@ type CreateSandboxRequest struct {
 	// Lifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
 	Lifecycle *SandboxLifecycle `json:"lifecycle,omitempty"`
 
-	// Memory Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Defaults to 4096.
+	// Memory Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Defaults to 4096. Must be between 1024 and 262144.
 	Memory *int `json:"memory,omitempty"`
 
 	// Name Optional unique sandbox name. Generated by the server when omitted; immutable after creation.
@@ -4120,6 +4223,30 @@ type DeleteVolumeResponse struct {
 
 	// VersionsDeleted Number of versions this request deleted. Zero when the volume had no live versions left, which is not an error.
 	VersionsDeleted int `json:"versions_deleted"`
+
+	// VolumeSequence Revision of the volume after the delete.
+	VolumeSequence int `json:"volume_sequence"`
+}
+
+// DeleteVolumeTagRequest defines model for DeleteVolumeTagRequest.
+type DeleteVolumeTagRequest struct {
+	// ExpectedSequence Revision the volume is expected to be at. When set, the delete fails with a conflict if the volume has changed since, so it cannot delete a tag someone else has just set on another version. Take the value from volume_sequence.
+	ExpectedSequence *int `json:"expected_sequence,omitempty"`
+}
+
+// DeleteVolumeTagResponse defines model for DeleteVolumeTagResponse.
+type DeleteVolumeTagResponse struct {
+	// Deleted Whether the tag existed and was deleted. False when the volume had no tag by that name, which is not an error.
+	Deleted bool `json:"deleted"`
+
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
+
+	// Tag Tag name from the request, with its original capitalization.
+	Tag string `json:"tag"`
+
+	// Volume Name of the volume, in lowercase.
+	Volume string `json:"volume"`
 
 	// VolumeSequence Revision of the volume after the delete.
 	VolumeSequence int `json:"volume_sequence"`
@@ -5450,6 +5577,9 @@ type LibraryListing struct {
 	// DisplayName Display name of the library listing
 	DisplayName string `json:"display_name"`
 
+	// IsListed Whether the listing appears in catalogs; unlisted listings still deploy from a direct link
+	IsListed bool `json:"is_listed"`
+
 	// IsPublic Whether the listing is publicly accessible
 	IsPublic bool `json:"is_public"`
 
@@ -5604,7 +5734,7 @@ type ListSandboxImageTagsResponse struct {
 // ListSandboxImagesResponse One page of image repository summaries. Fetch tags through the separate tag listing endpoint.
 type ListSandboxImagesResponse struct {
 	// Items Image repositories on this page.
-	Items []SandboxImageSummary `json:"items"`
+	Items []SandboxImage `json:"items"`
 
 	// Pagination Cursor pagination information. The cursor is present only when another page is available.
 	Pagination SandboxApiPagination `json:"pagination"`
@@ -5986,15 +6116,15 @@ type LoopsSampler struct {
 	// CreatedAt Time the sampler was created in ISO 8601 format
 	CreatedAt time.Time `json:"created_at"`
 
-	// DeploymentId Hashid of the specific model deployment (version).
-	DeploymentId string `json:"deployment_id"`
-	Id           string `json:"id"`
+	// DeploymentId Hashid of the specific model deployment (version). Null for a serverless sampler.
+	DeploymentId *string `json:"deployment_id,omitempty"`
+	Id           string  `json:"id"`
 
 	// InstanceType Instance type serving the sampler.
 	InstanceType *InstanceType `json:"instance_type,omitempty"`
 
-	// ModelId Hashid of the underlying Baseten model.
-	ModelId string `json:"model_id"`
+	// ModelId Hashid of the underlying Baseten model. Null for a serverless sampler.
+	ModelId *string `json:"model_id,omitempty"`
 
 	// NodeCount Number of nodes serving the sampler.
 	NodeCount *int `json:"node_count,omitempty"`
@@ -6296,6 +6426,9 @@ type ModelApisUsageResult struct {
 	// RequestCount Total number of requests.
 	RequestCount int `json:"request_count"`
 
+	// TeamId Team the usage is attributed to. Null when not grouping by team or when team attribution is unavailable.
+	TeamId *string `json:"team_id,omitempty"`
+
 	// UncachedInputTokens Input tokens not served from the prompt cache.
 	UncachedInputTokens int `json:"uncached_input_tokens"`
 
@@ -6561,6 +6694,30 @@ type PatchTeamTrainingGpuCapacityResponse struct {
 	TeamGpuCapacity TeamTrainingGpuCapacityItem `json:"team_gpu_capacity"`
 }
 
+// PatchVolumeRequest defines model for PatchVolumeRequest.
+type PatchVolumeRequest struct {
+	// ExpectedSequence Revision the volume is expected to be at. When set, the update fails with a conflict if the volume has changed since. Take the value from a volume's sequence, or from volume_sequence.
+	ExpectedSequence *int `json:"expected_sequence,omitempty"`
+
+	// ExpiresAt Time at which the volume expires, in ISO 8601 format, with a UTC offset. It must be in the future and at most ten years ahead. Set it to null to clear the expiration time. A body that sets no field is rejected. When the volume expires, all live versions are deleted, all tags are removed, and the volume disappears from listings. Clearing the expiration time afterward does not restore deleted versions. Each deleted version can be restored until its delete_after time. Setting or clearing the expiration time requires the same permission as deleting the volume.
+	ExpiresAt Optional[time.Time] `json:"expires_at,omitzero"`
+}
+
+// PatchVolumeResponse defines model for PatchVolumeResponse.
+type PatchVolumeResponse struct {
+	// ExpiresAt Volume expiration time in ISO 8601 format. Null when no expiration time is set.
+	ExpiresAt *time.Time `json:"expires_at"`
+
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
+
+	// Volume Name of the volume, in lowercase.
+	Volume string `json:"volume"`
+
+	// VolumeSequence Revision of the volume after the update.
+	VolumeSequence int `json:"volume_sequence"`
+}
+
 // PendingJobAheadAtSubmit A PENDING job in the same (org, gpu_type) pool that was ahead of the
 // target in dequeue FIFO order at submitted_at — higher priority, or same
 // priority and earlier submission.
@@ -6713,7 +6870,7 @@ type PushSandboxImageRequest struct {
 
 // PushSandboxImageResponse Accepted image push. Acceptance does not imply readiness; poll GET /sandboxes/images/{image_name} until status is BUILT or FAILED.
 type PushSandboxImageResponse struct {
-	// Image Registered image reference including its tag, when available. Tags are assigned by the service; GET /sandboxes/images/{image_name} returns the available tags once processing completes.
+	// Image Registered image reference including its tag, when available. Tags are assigned by the service; GET /sandboxes/images/{image_name}/tags returns the available tags once processing completes.
 	Image *string `json:"image,omitempty"`
 
 	// Name Target image repository name.
@@ -7164,16 +7321,6 @@ type RouteTombstone struct {
 // RouteUsageDimension defines model for RouteUsageDimension.
 type RouteUsageDimension string
 
-// RouteUserSettings defines model for RouteUserSettings.
-type RouteUserSettings struct {
-	// Email Email address of the user.
-	Email      *string                `json:"email"`
-	SpendLimit RouteSpendLimitSetting `json:"spend_limit"`
-
-	// UserId ID of the user.
-	UserId string `json:"user_id"`
-}
-
 // RouteUserTeamSettingsList defines model for RouteUserTeamSettingsList.
 type RouteUserTeamSettingsList struct {
 	// Teams The user's settings in each team they have a role in and in any team they have Code spend in this month, alphabetical by team name.
@@ -7223,6 +7370,12 @@ type RoutesUsageResult struct {
 	// Provider Provider that served the requests. Null when not grouping by PROVIDER.
 	Provider *RouteProvider `json:"provider,omitempty"`
 
+	// Requests Number of requests; with ROUTER, the requests sent through that router. Usage recorded before requests were counted adds zero.
+	Requests int `json:"requests"`
+
+	// RouterId Slug of the intelligent router, matching its name in `GET /v1/routes`. Null when not grouping by ROUTER.
+	RouterId *string `json:"router_id,omitempty"`
+
 	// TeamId ID of the team the usage was metered in. Null when not grouping by TEAM, and for usage metered before it was attributed to teams.
 	TeamId *string `json:"team_id,omitempty"`
 
@@ -7262,7 +7415,7 @@ type Sandbox struct {
 	// Lifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
 	Lifecycle *SandboxLifecycle `json:"lifecycle,omitempty"`
 
-	// Memory Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs).
+	// Memory Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Must be between 1024 and 262144.
 	Memory *int `json:"memory,omitempty"`
 
 	// Name Immutable sandbox name, provided by the client or generated by the server, used in sandbox_name path parameters.
@@ -7316,7 +7469,7 @@ type SandboxConfiguration struct {
 	// Lifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
 	Lifecycle *SandboxLifecycle `json:"lifecycle,omitempty"`
 
-	// Memory Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs).
+	// Memory Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Must be between 1024 and 262144.
 	Memory *int `json:"memory,omitempty"`
 
 	// Network Network configuration for a sandbox including subnet, domain filtering, and proxy settings
@@ -7347,7 +7500,7 @@ type SandboxDuration = string
 
 // SandboxEnv Environment variable with name and value
 type SandboxEnv struct {
-	// Name Name of the environment variable
+	// Name Name of the environment variable. Must start with a letter or underscore and contain only letters, digits and underscores (^[A-Za-z_][A-Za-z0-9_]*$); create and update reject other names.
 	Name *string `json:"name,omitempty"`
 
 	// Secret Whether the value is a secret. Defaults to true; secret values are returned as "****". Set false explicitly to return the original value.
@@ -7362,7 +7515,7 @@ type SandboxExpirationPolicy struct {
 	union json.RawMessage
 }
 
-// SandboxImage defines model for SandboxImage.
+// SandboxImage Sandbox image repository summary. Fetch tags through GET /sandboxes/images/{image_name}/tags.
 type SandboxImage struct {
 	// CreatedAt Time the image was created.
 	CreatedAt *time.Time `json:"created_at,omitempty"`
@@ -7381,9 +7534,6 @@ type SandboxImage struct {
 
 	// TagCount Number of image versions in the repository.
 	TagCount *int64 `json:"tag_count,omitempty"`
-
-	// Tags Empty for get summary responses. Use GET /sandboxes/images/{image_name}/tags to retrieve paginated image versions.
-	Tags []SandboxImageTag `json:"tags"`
 
 	// UpdatedAt Time the image was last updated.
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
@@ -7408,30 +7558,6 @@ type SandboxImageBuildLogsResponse struct {
 
 // SandboxImageStatus Image processing status. Only BUILT images are ready to use.
 type SandboxImageStatus string
-
-// SandboxImageSummary Sandbox image repository summary. Fetch tags through GET /sandboxes/images/{image_name}/tags.
-type SandboxImageSummary struct {
-	// CreatedAt Time the image was created.
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-
-	// LastDeployedAt Most recent deployment time across all tags, if deployed.
-	LastDeployedAt *time.Time `json:"last_deployed_at,omitempty"`
-
-	// Name Stable repository name supplied when pushing the image.
-	Name string `json:"name"`
-
-	// Size Total repository size in bytes.
-	Size *int64 `json:"size,omitempty"`
-
-	// Status Image processing status. Only BUILT images are ready to use.
-	Status SandboxImageStatus `json:"status"`
-
-	// TagCount Number of image versions in the repository.
-	TagCount *int64 `json:"tag_count,omitempty"`
-
-	// UpdatedAt Time the image was last updated.
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
-}
 
 // SandboxImageTag A tag identifying a version of a sandbox image.
 type SandboxImageTag struct {
@@ -7566,31 +7692,52 @@ type SandboxLogs struct {
 // SandboxMetadataLabels Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.
 type SandboxMetadataLabels map[string]string
 
-// SandboxMetrics defines model for SandboxMetrics.
-type SandboxMetrics struct {
-	Data            []SandboxMetricsPoint `json:"data"`
-	EndTime         time.Time             `json:"end_time"`
-	IntervalSeconds int                   `json:"interval_seconds"`
-	SandboxName     string                `json:"sandbox_name"`
-	StartTime       time.Time             `json:"start_time"`
+// SandboxMetricDescriptor defines model for SandboxMetricDescriptor.
+type SandboxMetricDescriptor struct {
+	Kind SandboxMetricDescriptorKind `json:"kind"`
+
+	// LabelSets Requests use status=2xx,4xx,5xx; CPU and memory use stat=avg,max.
+	LabelSets []map[string]string `json:"label_sets"`
+	Name      SandboxMetricName   `json:"name"`
+
+	// UnitHint Requests use COUNT, CPU uses CORES (1 means one fully used core), and memory uses BYTES.
+	UnitHint SandboxMetricDescriptorUnitHint `json:"unit_hint"`
 }
 
-// SandboxMetricsPoint defines model for SandboxMetricsPoint.
-type SandboxMetricsPoint struct {
-	// CpuPercent Peak CPU usage in this interval, where 100 is one full CPU core. Null without a sample.
-	CpuPercent *float32 `json:"cpu_percent"`
+// SandboxMetricDescriptorKind defines model for SandboxMetricDescriptor.Kind.
+type SandboxMetricDescriptorKind string
 
-	// ErrorRate Fraction of requests returning 4xx or 5xx. Null when there are no requests.
-	ErrorRate *float32 `json:"error_rate"`
+// SandboxMetricDescriptorUnitHint Requests use COUNT, CPU uses CORES (1 means one fully used core), and memory uses BYTES.
+type SandboxMetricDescriptorUnitHint string
 
-	// MemoryBytes Memory usage in bytes, averaged per series then maximum across series. Null without a sample.
-	MemoryBytes *float32 `json:"memory_bytes"`
+// SandboxMetricMode defines model for SandboxMetricMode.
+type SandboxMetricMode string
 
-	// Requests Request count. Zero without traffic; null for intervals entirely before creation.
-	Requests *float32 `json:"requests"`
+// SandboxMetricName defines model for SandboxMetricName.
+type SandboxMetricName string
 
-	// Timestamp Start of this interval.
-	Timestamp time.Time `json:"timestamp"`
+// SandboxMetricValueSet defines model for SandboxMetricValueSet.
+type SandboxMetricValueSet struct {
+	// StartEpochMillis Start of the SERIES interval or SUMMARY window; snapshot timestamp in CURRENT.
+	StartEpochMillis int64 `json:"start_epoch_millis"`
+
+	// Values Values indexed first by metric_descriptors, then by that descriptor's label_sets. Null means no sample.
+	Values [][]*float64 `json:"values"`
+}
+
+// SandboxMetrics defines model for SandboxMetrics.
+type SandboxMetrics struct {
+	// EndEpochMillis Returned exclusive window end, snapped outward in SERIES. Snapshot timestamp for CURRENT.
+	EndEpochMillis    int64                     `json:"end_epoch_millis"`
+	MetricDescriptors []SandboxMetricDescriptor `json:"metric_descriptors"`
+	MetricValues      []SandboxMetricValueSet   `json:"metric_values"`
+	Mode              SandboxMetricMode         `json:"mode"`
+
+	// StartEpochMillis Returned window start, snapped outward in SERIES. Equal to end for CURRENT.
+	StartEpochMillis int64 `json:"start_epoch_millis"`
+
+	// StepSeconds Seconds per SERIES interval; null in CURRENT and SUMMARY.
+	StepSeconds *int `json:"step_seconds"`
 }
 
 // SandboxNetwork Network configuration for a sandbox including subnet, domain filtering, and proxy settings
@@ -7755,6 +7902,45 @@ type SecretTombstone struct {
 // Secrets A list of Baseten secrets.
 type Secrets struct {
 	Secrets []Secret `json:"secrets"`
+}
+
+// SetVolumeTagRequest defines model for SetVolumeTagRequest.
+type SetVolumeTagRequest struct {
+	// ExpectedSequence Revision the volume is expected to be at. When set, the request fails with a conflict if the volume has changed since. Take the value from volume_sequence.
+	ExpectedSequence *int `json:"expected_sequence,omitempty"`
+
+	// ExpiresAt Time at which the tag expires, in ISO 8601 format, with a UTC offset. It must be in the future and at most ten years ahead. Omit it for a tag with no expiration time of its own. Omitting it also clears the expiration time of an existing tag. Version or volume expiration still deletes the tag. Do not specify it when setting `head`.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	// Tag Name of the tag to set. Tags are case-sensitive. Setting a tag that already exists overwrites it, and the version it pointed at before stays reachable by digest.
+	Tag string `json:"tag"`
+
+	// Version Version to set the tag on. Address it with `:<tag>` for a tag, `@<digest>` for a full content digest or a prefix of at least 12 hexadecimal characters, or `head` for the version a reference with no tag or digest resolves to.
+	Version string `json:"version"`
+}
+
+// SetVolumeTagResponse defines model for SetVolumeTagResponse.
+type SetVolumeTagResponse struct {
+	// Digest Content digest of the version the tag points at, as `b3:<hex>`.
+	Digest string `json:"digest"`
+
+	// ExpiresAt Tag expiration time in ISO 8601 format. Null when the tag has no expiration time of its own.
+	ExpiresAt *time.Time `json:"expires_at"`
+
+	// Namespace Namespace the volume belongs to, in lowercase.
+	Namespace string `json:"namespace"`
+
+	// Tag Name of the tag that was set, with its original capitalization.
+	Tag string `json:"tag"`
+
+	// VersionRef Full address of the tagged version, as `bdn:<namespace>/<volume>@<digest>`. Paste it into a config.yaml to pin this version, even if the tag is later set on another version.
+	VersionRef string `json:"version_ref"`
+
+	// Volume Name of the volume, in lowercase.
+	Volume string `json:"volume"`
+
+	// VolumeSequence Revision of the volume after the tag was set.
+	VolumeSequence int `json:"volume_sequence"`
 }
 
 // SharedEndpointRegion defines model for SharedEndpointRegion.
@@ -8594,6 +8780,9 @@ type UpdateGroupRequest struct {
 type UpdateLibraryListingRequest struct {
 	// DisplayName New display name for the library listing
 	DisplayName *string `json:"display_name,omitempty"`
+
+	// IsListed Whether the listing appears in catalogs; unlisted listings still deploy from a direct link
+	IsListed *bool `json:"is_listed,omitempty"`
 
 	// IsPublic Whether the listing is publicly accessible
 	IsPublic *bool `json:"is_public,omitempty"`
@@ -9694,7 +9883,7 @@ type GetV1ModelApisUsageParams struct {
 	// BucketWidth Width of each time bucket: 1m, 1h, or 1d. Defaults to 1d.
 	BucketWidth *BucketWidth `form:"bucket_width,omitempty" json:"bucket_width,omitempty"`
 
-	// GroupBy Dimensions to break usage down by, repeated once per dimension: api_key, user, model. Defaults to model.
+	// GroupBy Dimensions to break usage down by, repeated once per dimension: api_key, user, model, or team. Defaults to model.
 	GroupBy *[]UsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
 
 	// ApiKeys Return only usage for these API key prefixes, repeated once per prefix.
@@ -9705,6 +9894,9 @@ type GetV1ModelApisUsageParams struct {
 
 	// Models Return only usage for these models, repeated once per model.
 	Models *[]string `form:"models,omitempty" json:"models,omitempty"`
+
+	// TeamIds Return only usage for these teams, repeated once per team. Defaults to all teams you can manage.
+	TeamIds *[]string `form:"team_ids,omitempty" json:"team_ids,omitempty"`
 
 	// Limit Number of time buckets to return. Defaults and maximums depend on bucket_width: 1d defaults to 7 and allows 31, 1h defaults to 24 and allows 168, 1m defaults to 60 and allows 1440.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
@@ -9989,12 +10181,6 @@ type GetV1RoutesConnectionsParams struct {
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
-// GetV1RoutesSettingsUsersUserIdParams defines parameters for GetV1RoutesSettingsUsersUserId.
-type GetV1RoutesSettingsUsersUserIdParams struct {
-	// TeamId ID of the team to read the user's spend limit in. Defaults to the only team the user has Code spend in this month, else their only team.
-	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
-}
-
 // GetV1RoutesUsageParams defines parameters for GetV1RoutesUsage.
 type GetV1RoutesUsageParams struct {
 	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
@@ -10012,7 +10198,7 @@ type GetV1RoutesUsageParams struct {
 	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included.
 	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
 
-	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.
+	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, or ROUTER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. Defaults to MODEL.
 	GroupBy *[]RouteUsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
 
 	// UserIds Return only usage from Routes keys created by these user IDs, repeated once per ID.
@@ -10175,14 +10361,20 @@ type GetSandboxLogsParams struct {
 // GetSandboxMetricsParams defines parameters for GetSandboxMetrics.
 type GetSandboxMetricsParams struct {
 	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
-	TeamId          *string                                `form:"team_id,omitempty" json:"team_id,omitempty"`
-	StartTime       time.Time                              `form:"start_time" json:"start_time"`
-	EndTime         time.Time                              `form:"end_time" json:"end_time"`
-	IntervalSeconds GetSandboxMetricsParamsIntervalSeconds `form:"interval_seconds" json:"interval_seconds"`
-}
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 
-// GetSandboxMetricsParamsIntervalSeconds defines parameters for GetSandboxMetrics.
-type GetSandboxMetricsParamsIntervalSeconds int
+	// Mode Defaults to CURRENT, which rejects start_epoch_millis and end_epoch_millis. SERIES uses a server-selected step of 30 seconds up to 2 hours, 60 seconds up to 1 day, 600 seconds up to 3 days, and 3600 seconds beyond 3 days.
+	Mode *SandboxMetricMode `form:"mode,omitempty" json:"mode,omitempty"`
+
+	// StartEpochMillis Unix milliseconds. Defaults to one hour before end; SERIES snaps outward.
+	StartEpochMillis *int64 `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// EndEpochMillis Exclusive end in Unix milliseconds, default now. Maximum aligned window is 7 days.
+	EndEpochMillis *int64 `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
+
+	// Metrics Metric names in response order. Omit to request all three signals.
+	Metrics *[]SandboxMetricName `form:"metrics,omitempty" json:"metrics,omitempty"`
+}
 
 // GetV1TeamsParams defines parameters for GetV1Teams.
 type GetV1TeamsParams struct {
@@ -10451,9 +10643,6 @@ type PatchV1RoutesSettingsTeamsTeamIdJSONRequestBody = UpdateRouteTeamSettingsRe
 // PatchV1RoutesSettingsTeamsTeamIdUsersUserIdJSONRequestBody defines body for PatchV1RoutesSettingsTeamsTeamIdUsersUserId for application/json ContentType.
 type PatchV1RoutesSettingsTeamsTeamIdUsersUserIdJSONRequestBody = UpdateRouteUserSettingsRequest
 
-// PatchV1RoutesSettingsUsersUserIdJSONRequestBody defines body for PatchV1RoutesSettingsUsersUserId for application/json ContentType.
-type PatchV1RoutesSettingsUsersUserIdJSONRequestBody = UpdateRouteUserSettingsRequest
-
 // PatchV1RoutesRouteIdJSONRequestBody defines body for PatchV1RoutesRouteId for application/json ContentType.
 type PatchV1RoutesRouteIdJSONRequestBody = UpdateRouteRequest
 
@@ -10537,6 +10726,15 @@ type PostV1VolumesTokenJSONRequestBody = CreateVolumeTokenRequest
 
 // DeleteV1VolumesVolumeNamespaceVolumeNameJSONRequestBody defines body for DeleteV1VolumesVolumeNamespaceVolumeName for application/json ContentType.
 type DeleteV1VolumesVolumeNamespaceVolumeNameJSONRequestBody = DeleteVolumeRequest
+
+// PatchV1VolumesVolumeNamespaceVolumeNameJSONRequestBody defines body for PatchV1VolumesVolumeNamespaceVolumeName for application/json ContentType.
+type PatchV1VolumesVolumeNamespaceVolumeNameJSONRequestBody = PatchVolumeRequest
+
+// PostV1VolumesVolumeNamespaceVolumeNameTagsJSONRequestBody defines body for PostV1VolumesVolumeNamespaceVolumeNameTags for application/json ContentType.
+type PostV1VolumesVolumeNamespaceVolumeNameTagsJSONRequestBody = SetVolumeTagRequest
+
+// DeleteV1VolumesVolumeNamespaceVolumeNameTagsVolumeTagJSONRequestBody defines body for DeleteV1VolumesVolumeNamespaceVolumeNameTagsVolumeTag for application/json ContentType.
+type DeleteV1VolumesVolumeNamespaceVolumeNameTagsVolumeTagJSONRequestBody = DeleteVolumeTagRequest
 
 // DeleteV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersionJSONRequestBody defines body for DeleteV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersion for application/json ContentType.
 type DeleteV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersionJSONRequestBody = DeleteVolumeVersionRequest
@@ -11294,6 +11492,51 @@ func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeVersionRestored(v Audit
 	return err
 }
 
+// AsAuditLogEventVolumeTagSet returns the union data inside the AuditLogEntry_EventData as a AuditLogEventVolumeTagSet
+func (t AuditLogEntry_EventData) AsAuditLogEventVolumeTagSet() (AuditLogEventVolumeTagSet, error) {
+	var body AuditLogEventVolumeTagSet
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventVolumeTagSet overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventVolumeTagSet
+func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeTagSet(v AuditLogEventVolumeTagSet) error {
+	v.EventType = "VOLUME_TAG_SET"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventVolumeTagDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventVolumeTagDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventVolumeTagDeleted() (AuditLogEventVolumeTagDeleted, error) {
+	var body AuditLogEventVolumeTagDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventVolumeTagDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventVolumeTagDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeTagDeleted(v AuditLogEventVolumeTagDeleted) error {
+	v.EventType = "VOLUME_TAG_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventVolumeUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventVolumeUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventVolumeUpdated() (AuditLogEventVolumeUpdated, error) {
+	var body AuditLogEventVolumeUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventVolumeUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventVolumeUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeUpdated(v AuditLogEventVolumeUpdated) error {
+	v.EventType = "VOLUME_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t AuditLogEntry_EventData) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"event_type"`
@@ -11398,6 +11641,12 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventUserTeamRoleUpdated()
 	case "VOLUME_DELETED":
 		return t.AsAuditLogEventVolumeDeleted()
+	case "VOLUME_TAG_DELETED":
+		return t.AsAuditLogEventVolumeTagDeleted()
+	case "VOLUME_TAG_SET":
+		return t.AsAuditLogEventVolumeTagSet()
+	case "VOLUME_UPDATED":
+		return t.AsAuditLogEventVolumeUpdated()
 	case "VOLUME_VERSION_DELETED":
 		return t.AsAuditLogEventVolumeVersionDeleted()
 	case "VOLUME_VERSION_RESTORED":

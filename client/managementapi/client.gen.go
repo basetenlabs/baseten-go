@@ -295,6 +295,18 @@ func (c *Client) DeleteVolumes(ctx context.Context, volumeNamespace string, volu
 	})
 }
 
+// DeleteVolumesTags: Deletes a volume tag
+func (c *Client) DeleteVolumesTags(ctx context.Context, volumeNamespace string, volumeName string, volumeTag string, body DeleteVolumeTagRequest) (*DeleteVolumeTagResponse, error) {
+	return doJSON[DeleteVolumeTagResponse](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/volumes/%s/%s/tags/%s",
+		pathArgs:     []any{volumeNamespace, volumeName, volumeTag},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // DeleteVolumesVersions: Deletes one version of a volume
 func (c *Client) DeleteVolumesVersions(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string, body DeleteVolumeVersionRequest) (*DeleteVolumeVersionResponse, error) {
 	return doJSON[DeleteVolumeVersionResponse](c, ctx, apiRequest{
@@ -1200,18 +1212,6 @@ func (c *Client) GetRoutesSettingsTeamsUsersUserId(ctx context.Context, teamId s
 	})
 }
 
-// GetRoutesSettingsUsers: Gets a user's route settings
-func (c *Client) GetRoutesSettingsUsers(ctx context.Context, userId string, params GetV1RoutesSettingsUsersUserIdParams) (*RouteUserSettings, error) {
-	return doJSON[RouteUserSettings](c, ctx, apiRequest{
-		method:       "GET",
-		pathFmt:      "/v1/routes/settings/users/%s",
-		pathArgs:     []any{userId},
-		queryParams:  params,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
 // GetRoutesSettingsUsersTeams: Lists a user's route settings in each of their teams
 func (c *Client) GetRoutesSettingsUsersTeams(ctx context.Context, userId string) (*RouteUserTeamSettingsList, error) {
 	return doJSON[RouteUserTeamSettingsList](c, ctx, apiRequest{
@@ -1932,18 +1932,6 @@ func (c *Client) PatchRoutesSettingsTeamsUsers(ctx context.Context, teamId strin
 	})
 }
 
-// PatchRoutesSettingsUsers: Updates a user's route settings
-func (c *Client) PatchRoutesSettingsUsers(ctx context.Context, userId string, body UpdateRouteUserSettingsRequest) (*RouteUserSettings, error) {
-	return doJSON[RouteUserSettings](c, ctx, apiRequest{
-		method:       "PATCH",
-		pathFmt:      "/v1/routes/settings/users/%s",
-		pathArgs:     []any{userId},
-		body:         body,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
 // PatchTeamsEnvironmentGroups: Updates an environment group's restriction settings
 func (c *Client) PatchTeamsEnvironmentGroups(ctx context.Context, teamId string, envName string, body UpdateEnvironmentGroupRequest) (*EnvironmentGroup, error) {
 	return doJSON[EnvironmentGroup](c, ctx, apiRequest{
@@ -1986,6 +1974,18 @@ func (c *Client) PatchTrainingProjectsJobsInteractiveSessions(ctx context.Contex
 		method:       "PATCH",
 		pathFmt:      "/v1/training_projects/%s/jobs/%s/interactive_sessions/%s",
 		pathArgs:     []any{trainingProjectId, trainingJobId, sessionId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PatchVolumes: Updates a volume
+func (c *Client) PatchVolumes(ctx context.Context, volumeNamespace string, volumeName string, body PatchVolumeRequest) (*PatchVolumeResponse, error) {
+	return doJSON[PatchVolumeResponse](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/volumes/%s/%s",
+		pathArgs:     []any{volumeNamespace, volumeName},
 		body:         body,
 		successCodes: []int{200},
 		errorCodes:   nil,
@@ -2839,6 +2839,18 @@ func (c *Client) PostVolumesSyncsCancel(ctx context.Context, volumeSyncId string
 		method:       "POST",
 		pathFmt:      "/v1/volumes/syncs/%s/cancel",
 		pathArgs:     []any{volumeSyncId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PostVolumesTags: Sets a volume tag
+func (c *Client) PostVolumesTags(ctx context.Context, volumeNamespace string, volumeName string, body SetVolumeTagRequest) (*SetVolumeTagResponse, error) {
+	return doJSON[SetVolumeTagResponse](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/volumes/%s/%s/tags",
+		pathArgs:     []any{volumeNamespace, volumeName},
+		body:         body,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})

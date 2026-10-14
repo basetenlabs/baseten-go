@@ -444,6 +444,43 @@
                     }
                 },
                 "x-stability": "unstable"
+            },
+            "patch": {
+                "summary": "Updates a volume",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"expires_at\": \"2030-01-01T00:00:00Z\",\n  \"expected_sequence\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'expires_at': '2030-01-01T00:00:00Z', 'expected_sequence': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Updates a volume's settings, such as its expiration time. Only the settings in the request change.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchVolumeRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PatchVolumeResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
             }
         },
         "/v1/volumes/{volume_namespace}/{volume_name}/versions": {
@@ -620,6 +657,103 @@
                 },
                 {
                     "$ref": "#/components/parameters/volume_version"
+                }
+            ]
+        },
+        "/v1/volumes/{volume_namespace}/{volume_name}/tags": {
+            "post": {
+                "summary": "Sets a volume tag",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"tag\": \"nightly\",\n  \"version\": \"head\",\n  \"expires_at\": null,\n  \"expected_sequence\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'tag': 'nightly', 'version': 'head', 'expires_at': None, 'expected_sequence': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Setting an existing tag overwrites it. The previous version remains available by digest. Pass `expires_at` to set the tag's expiration time. Omit `expires_at` to clear any expiration time on the tag. Version or volume expiration still deletes the tag. Setting `head` changes the version used by references without a tag or digest. You cannot set `head` on an expiring version or supply `expires_at` when setting `head`.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SetVolumeTagRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SetVolumeTagResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/volume_namespace"
+                },
+                {
+                    "$ref": "#/components/parameters/volume_name"
+                }
+            ]
+        },
+        "/v1/volumes/{volume_namespace}/{volume_name}/tags/{volume_tag}": {
+            "delete": {
+                "summary": "Deletes a volume tag",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags/{volume_tag} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"expected_sequence\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags/{volume_tag}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={'expected_sequence': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "The version remains available by digest and any other tags. If the tag is absent, the request succeeds with `deleted` set to `false`. Deleting `head` makes references without a tag or digest stop resolving until `head` is set again.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteVolumeTagRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeleteVolumeTagResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/volume_namespace"
+                },
+                {
+                    "$ref": "#/components/parameters/volume_name"
+                },
+                {
+                    "$ref": "#/components/parameters/volume_tag"
                 }
             ]
         },
@@ -8697,7 +8831,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/model_apis/usage\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_time': None, 'end_time': None, 'bucket_width': '1m', 'limit': None, 'cursor': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns your organization's Model APIs token usage as a series of contiguous time buckets, broken down by the dimensions you pass in group_by. Buckets with no usage are included, so the series has no gaps. Usage is retained for 92 days, so buckets older than that are returned with no results.",
+                "description": "Returns Model APIs token usage for the teams you can manage as a series of contiguous time buckets, broken down by the dimensions you pass in group_by. Organization admins receive organization-wide totals by default; other callers may receive lower totals than callers with management-access to more teams. Buckets with no usage are included, so the series has no gaps. Usage is retained for 92 days, so buckets older than that are returned with no results.",
                 "parameters": [
                     {
                         "name": "start_time",
@@ -8751,7 +8885,7 @@
                         "name": "group_by",
                         "in": "query",
                         "required": false,
-                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, user, model. Defaults to model.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, user, model, or team. Defaults to model.",
                         "schema": {
                             "items": {
                                 "$ref": "#/components/schemas/UsageDimensionV1"
@@ -8796,6 +8930,19 @@
                                 "type": "string"
                             },
                             "title": "Models",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "team_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage for these teams, repeated once per team. Defaults to all teams you can manage.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Team Ids",
                             "type": "array"
                         }
                     },
@@ -9131,14 +9278,14 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/library_listings/{user_defined_listing_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"display_name\": null,\n  \"is_public\": null,\n  \"trending\": null,\n  \"metadata\": null\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/library_listings/{user_defined_listing_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"display_name\": null,\n  \"is_public\": null,\n  \"trending\": null,\n  \"is_listed\": null,\n  \"metadata\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/library_listings/{user_defined_listing_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'display_name': None, 'is_public': None, 'trending': None, 'metadata': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/library_listings/{user_defined_listing_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'display_name': None, 'is_public': None, 'trending': None, 'is_listed': None, 'metadata': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Updates a library listing. Supported fields are the display name, public visibility, trending status, and the model-level metadata. When metadata is provided, it replaces the stored metadata.",
+                "description": "Updates a library listing. Supported fields are the display name, public visibility, listed status, trending status, and the model-level metadata. An unlisted listing is left out of catalogs but still deploys from its direct link. When metadata is provided, it replaces the stored metadata.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -10248,7 +10395,7 @@
                         "name": "group_by",
                         "in": "query",
                         "required": false,
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, or ROUTER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. Defaults to MODEL.",
                         "schema": {
                             "items": {
                                 "$ref": "#/components/schemas/RouteUsageDimensionV1"
@@ -10312,100 +10459,6 @@
                 "x-stability": "unstable"
             }
         },
-        "/v1/routes/settings/users/{user_id}": {
-            "get": {
-                "summary": "Gets a user's route settings",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'team_id': 'abc1234'}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Returns the settings that apply to the user, including the spend limit that caps what they can spend on Baseten Code each month: the limit set on the user, their team's per-member limit, and the effective limit for this user. The user limit always overrides the team's per-member limit. The limits are read in `team_id` when given, else in the only team the user has Code spend in this month, else in their only team; they are null when there is none.",
-                "parameters": [
-                    {
-                        "name": "team_id",
-                        "in": "query",
-                        "required": false,
-                        "description": "ID of the team to read the user's spend limit in. Defaults to the only team the user has Code spend in this month, else their only team.",
-                        "schema": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "null"
-                                }
-                            ],
-                            "default": null,
-                            "examples": [
-                                "abc1234"
-                            ],
-                            "title": "Team Id"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/RouteUserSettingsV1"
-                                }
-                            }
-                        }
-                    }
-                },
-                "x-stability": "unstable"
-            },
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/user_id"
-                }
-            ],
-            "patch": {
-                "summary": "Updates a user's route settings",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/settings/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"spend_limit\": null\n}'"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'spend_limit': None}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Changes only the fields in the request. Once the user's metered spend in a team in a month reaches the spend limit, requests with Routes keys they created in that team are rejected until the limit is raised or the next month starts. Spend is metered every 15 minutes and can lag, so a user can go over the limit. The user's own limit supersedes their team's per-member limit. The limit is set in the only team the user has Code spend in this month, else in their only team; the request fails when there is none.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/UpdateRouteUserSettingsRequestV1"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/RouteUserSettingsV1"
-                                }
-                            }
-                        }
-                    }
-                },
-                "x-stability": "unstable"
-            }
-        },
         "/v1/routes/settings/users/{user_id}/teams": {
             "get": {
                 "summary": "Lists a user's route settings in each of their teams",
@@ -10419,7 +10472,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}/teams\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the user's settings in each team they have a role in and in any team they have Code spend in this month, alphabetical by team name: their spend limit for Baseten Code in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; organization admins can read anyone's.",
+                "description": "Returns the user's settings in each team they belong to (every team, for organization admins), alphabetical by team name: their spend limit for Baseten Code in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; organization admins can read anyone's.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -10524,7 +10577,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}/users\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the settings in the team of each user with a role in the team and of anyone with Code spend in the team this month. Requires team admin for the specified team or organization admin.",
+                "description": "Returns the settings in the team of each member of the team, including organization admins and Code service accounts. Requires team admin for the specified team or organization admin.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -11336,64 +11389,18 @@
                 }
             ]
         },
-        "/v1/sandboxes/configuration": {
-            "get": {
-                "operationId": "GetSandboxConfiguration",
-                "summary": "Get sandbox configuration",
-                "description": "Return available Carbon-compatible sandbox regions. Configuration is the same for every team, so no team is selected. Only enabled regions supporting Carbon are returned. This describes regional capability, not the runtime selected for a particular team or sandbox. Region configuration is cached for up to 30 seconds.",
-                "tags": [
-                    "Sandboxes"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/GetSandboxConfigurationResponseV1"
-                                },
-                                "example": {
-                                    "regions": [
-                                        {
-                                            "name": "us-was-1",
-                                            "country": "us",
-                                            "continent": "na",
-                                            "location": "Washington",
-                                            "info_generation": "CARBON"
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/SandboxError400"
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/SandboxError401"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/SandboxError403"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/SandboxError429"
-                    },
-                    "500": {
-                        "$ref": "#/components/responses/SandboxError500"
-                    }
-                },
-                "x-stability": "unstable"
-            }
-        },
         "/v1/sandboxes/instances/{sandbox_name}/metrics": {
             "get": {
                 "operationId": "GetSandboxMetrics",
                 "summary": "Get sandbox metrics",
-                "description": "Returns every interval in the requested half-open range [start_time, end_time).\nBuckets align to UTC interval boundaries; partial boundary buckets include only samples\nwithin the requested range. The first bucket may start before start_time. Ranges are limited to 31 days\nand 10000 buckets. Request counts are zero when there is no traffic, and null\nfor buckets entirely before sandbox creation. CPU and memory are null without\nsamples, including standby. Error rate is the fraction of requests returning\n4xx or 5xx, null when there are no requests. Telemetry failures return an error.\n",
+                "description": "Returns every interval with labeled request counts, CPU cores, and RSS memory bytes. CURRENT returns one snapshot at now, with\nrequest counts over the preceding minute and latest gauges.\nSUMMARY returns one value set over the window. SERIES snaps the window outward\nto UTC step boundaries and echoes those boundaries; each value covers\n[start_epoch_millis, start_epoch_millis + step_seconds).\nMissing gauge samples remain null. Request counts are zero after\ncreation without traffic, and null before creation. CPU averages are averages\nof valid sampled CPU rates; memory averages are averages of sampled RSS.\nWindows default to one hour, are limited to 7 days after alignment, and at most\n10000 intervals. Telemetry failures return an error.\n",
                 "tags": [
                     "Sandboxes"
                 ],
                 "parameters": [
+                    {
+                        "$ref": "#/components/parameters/SandboxName"
+                    },
                     {
                         "$ref": "#/components/parameters/TeamId"
                     },
@@ -11401,46 +11408,21 @@
                         "$ref": "#/components/parameters/TeamIdHeader"
                     },
                     {
-                        "$ref": "#/components/parameters/SandboxName"
+                        "$ref": "#/components/parameters/SandboxMetricMode"
                     },
                     {
-                        "name": "start_time",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time"
-                        }
+                        "$ref": "#/components/parameters/SandboxMetricStart"
                     },
                     {
-                        "name": "end_time",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time"
-                        }
+                        "$ref": "#/components/parameters/SandboxMetricEnd"
                     },
                     {
-                        "name": "interval_seconds",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "enum": [
-                                10,
-                                30,
-                                60,
-                                300,
-                                900,
-                                3600
-                            ]
-                        }
+                        "$ref": "#/components/parameters/SandboxMetricNames"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Complete sandbox metrics time series.",
+                        "description": "Index-aligned sandbox metrics.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -11450,7 +11432,7 @@
                         }
                     },
                     "400": {
-                        "description": "Invalid range, interval, or query parameter."
+                        "description": "Invalid range, mode, step, metric selection, or response size."
                     },
                     "401": {
                         "description": "Authentication required."
@@ -11558,6 +11540,55 @@
                     },
                     "503": {
                         "description": "Logs are unavailable."
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/sandboxes/configuration": {
+            "get": {
+                "operationId": "GetSandboxConfiguration",
+                "summary": "Get sandbox configuration",
+                "description": "Return available Carbon-compatible sandbox regions. Configuration is the same for every team, so no team is selected. Only enabled regions supporting Carbon are returned. This describes regional capability, not the runtime selected for a particular team or sandbox. Region configuration is cached for up to 30 seconds.",
+                "tags": [
+                    "Sandboxes"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetSandboxConfigurationResponseV1"
+                                },
+                                "example": {
+                                    "regions": [
+                                        {
+                                            "name": "us-was-1",
+                                            "country": "us",
+                                            "continent": "na",
+                                            "location": "Washington",
+                                            "info_generation": "CARBON"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
                     }
                 },
                 "x-stability": "unstable"
@@ -12494,7 +12525,7 @@
                 ],
                 "operationId": "DeleteImageTag",
                 "summary": "Delete an image tag",
-                "description": "Delete a specific image version. Reject deletion if the version is referenced by an active deployment. Return the updated image with its remaining tags, possibly empty.",
+                "description": "Delete a specific image version. Reject deletion if the version is referenced by an active deployment. Return the updated repository summary. Use the tag listing endpoint for remaining image versions.",
                 "tags": [
                     "Images"
                 ],
@@ -13752,10 +13783,12 @@
                 "type": "object"
             },
             "DeleteVolumeRequestV1": {
+                "additionalProperties": false,
                 "properties": {
                     "expected_sequence": {
                         "anyOf": [
                             {
+                                "minimum": 0,
                                 "type": "integer"
                             },
                             {
@@ -13800,6 +13833,85 @@
                     "volume_sequence"
                 ],
                 "title": "DeleteVolumeResponseV1",
+                "type": "object"
+            },
+            "PatchVolumeRequestV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Time at which the volume expires, in ISO 8601 format, with a UTC offset. It must be in the future and at most ten years ahead. Set it to null to clear the expiration time. A body that sets no field is rejected. When the volume expires, all live versions are deleted, all tags are removed, and the volume disappears from listings. Clearing the expiration time afterward does not restore deleted versions. Each deleted version can be restored until its delete_after time. Setting or clearing the expiration time requires the same permission as deleting the volume.",
+                        "examples": [
+                            "2030-01-01T00:00:00Z"
+                        ],
+                        "title": "Expires At",
+                        "x-null-distinct": true
+                    },
+                    "expected_sequence": {
+                        "anyOf": [
+                            {
+                                "minimum": 0,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Revision the volume is expected to be at. When set, the update fails with a conflict if the volume has changed since. Take the value from a volume's sequence, or from volume_sequence.",
+                        "title": "Expected Sequence"
+                    }
+                },
+                "title": "PatchVolumeRequestV1",
+                "type": "object"
+            },
+            "PatchVolumeResponseV1": {
+                "properties": {
+                    "namespace": {
+                        "description": "Namespace the volume belongs to, in lowercase.",
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume": {
+                        "description": "Name of the volume, in lowercase.",
+                        "title": "Volume",
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Volume expiration time in ISO 8601 format. Null when no expiration time is set.",
+                        "title": "Expires At"
+                    },
+                    "volume_sequence": {
+                        "description": "Revision of the volume after the update.",
+                        "title": "Volume Sequence",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "volume",
+                    "expires_at",
+                    "volume_sequence"
+                ],
+                "title": "PatchVolumeResponseV1",
                 "type": "object"
             },
             "VolumeVersionV1": {
@@ -13967,10 +14079,12 @@
                 "type": "object"
             },
             "DeleteVolumeVersionRequestV1": {
+                "additionalProperties": false,
                 "properties": {
                     "expected_sequence": {
                         "anyOf": [
                             {
+                                "minimum": 0,
                                 "type": "integer"
                             },
                             {
@@ -14185,10 +14299,12 @@
                 "type": "object"
             },
             "RestoreVolumeVersionRequestV1": {
+                "additionalProperties": false,
                 "properties": {
                     "expected_sequence": {
                         "anyOf": [
                             {
+                                "minimum": 0,
                                 "type": "integer"
                             },
                             {
@@ -14245,6 +14361,179 @@
                     "volume_sequence"
                 ],
                 "title": "RestoreVolumeVersionResponseV1",
+                "type": "object"
+            },
+            "SetVolumeTagRequestV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "tag": {
+                        "description": "Name of the tag to set. Tags are case-sensitive. Setting a tag that already exists overwrites it, and the version it pointed at before stays reachable by digest.",
+                        "examples": [
+                            "nightly"
+                        ],
+                        "pattern": "^[A-Za-z0-9_][A-Za-z0-9._-]{0,127}$",
+                        "title": "Tag",
+                        "type": "string"
+                    },
+                    "version": {
+                        "description": "Version to set the tag on. Address it with `:<tag>` for a tag, `@<digest>` for a full content digest or a prefix of at least 12 hexadecimal characters, or `head` for the version a reference with no tag or digest resolves to.",
+                        "examples": [
+                            "head"
+                        ],
+                        "title": "Version",
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Time at which the tag expires, in ISO 8601 format, with a UTC offset. It must be in the future and at most ten years ahead. Omit it for a tag with no expiration time of its own. Omitting it also clears the expiration time of an existing tag. Version or volume expiration still deletes the tag. Do not specify it when setting `head`.",
+                        "title": "Expires At"
+                    },
+                    "expected_sequence": {
+                        "anyOf": [
+                            {
+                                "minimum": 0,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Revision the volume is expected to be at. When set, the request fails with a conflict if the volume has changed since. Take the value from volume_sequence.",
+                        "title": "Expected Sequence"
+                    }
+                },
+                "required": [
+                    "tag",
+                    "version"
+                ],
+                "title": "SetVolumeTagRequestV1",
+                "type": "object"
+            },
+            "SetVolumeTagResponseV1": {
+                "properties": {
+                    "namespace": {
+                        "description": "Namespace the volume belongs to, in lowercase.",
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume": {
+                        "description": "Name of the volume, in lowercase.",
+                        "title": "Volume",
+                        "type": "string"
+                    },
+                    "tag": {
+                        "description": "Name of the tag that was set, with its original capitalization.",
+                        "title": "Tag",
+                        "type": "string"
+                    },
+                    "digest": {
+                        "description": "Content digest of the version the tag points at, as `b3:<hex>`.",
+                        "title": "Digest",
+                        "type": "string"
+                    },
+                    "version_ref": {
+                        "description": "Full address of the tagged version, as `bdn:<namespace>/<volume>@<digest>`. Paste it into a config.yaml to pin this version, even if the tag is later set on another version.",
+                        "title": "Version Ref",
+                        "type": "string"
+                    },
+                    "volume_sequence": {
+                        "description": "Revision of the volume after the tag was set.",
+                        "title": "Volume Sequence",
+                        "type": "integer"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Tag expiration time in ISO 8601 format. Null when the tag has no expiration time of its own.",
+                        "title": "Expires At"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "volume",
+                    "tag",
+                    "digest",
+                    "version_ref",
+                    "volume_sequence",
+                    "expires_at"
+                ],
+                "title": "SetVolumeTagResponseV1",
+                "type": "object"
+            },
+            "DeleteVolumeTagRequestV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "expected_sequence": {
+                        "anyOf": [
+                            {
+                                "minimum": 0,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Revision the volume is expected to be at. When set, the delete fails with a conflict if the volume has changed since, so it cannot delete a tag someone else has just set on another version. Take the value from volume_sequence.",
+                        "title": "Expected Sequence"
+                    }
+                },
+                "title": "DeleteVolumeTagRequestV1",
+                "type": "object"
+            },
+            "DeleteVolumeTagResponseV1": {
+                "properties": {
+                    "namespace": {
+                        "description": "Namespace the volume belongs to, in lowercase.",
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume": {
+                        "description": "Name of the volume, in lowercase.",
+                        "title": "Volume",
+                        "type": "string"
+                    },
+                    "tag": {
+                        "description": "Tag name from the request, with its original capitalization.",
+                        "title": "Tag",
+                        "type": "string"
+                    },
+                    "deleted": {
+                        "description": "Whether the tag existed and was deleted. False when the volume had no tag by that name, which is not an error.",
+                        "title": "Deleted",
+                        "type": "boolean"
+                    },
+                    "volume_sequence": {
+                        "description": "Revision of the volume after the delete.",
+                        "title": "Volume Sequence",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "volume",
+                    "tag",
+                    "deleted",
+                    "volume_sequence"
+                ],
+                "title": "DeleteVolumeTagResponseV1",
                 "type": "object"
             },
             "TokenScopeV1": {
@@ -15348,6 +15637,9 @@
                                 "USER_ROLE_UPDATED": "#/components/schemas/AuditLogEventUserRoleUpdatedV1",
                                 "USER_TEAM_ROLE_UPDATED": "#/components/schemas/AuditLogEventUserTeamRoleUpdatedV1",
                                 "VOLUME_DELETED": "#/components/schemas/AuditLogEventVolumeDeletedV1",
+                                "VOLUME_TAG_DELETED": "#/components/schemas/AuditLogEventVolumeTagDeletedV1",
+                                "VOLUME_TAG_SET": "#/components/schemas/AuditLogEventVolumeTagSetV1",
+                                "VOLUME_UPDATED": "#/components/schemas/AuditLogEventVolumeUpdatedV1",
                                 "VOLUME_VERSION_DELETED": "#/components/schemas/AuditLogEventVolumeVersionDeletedV1",
                                 "VOLUME_VERSION_RESTORED": "#/components/schemas/AuditLogEventVolumeVersionRestoredV1",
                                 "WEBHOOK_SIGNING_SECRET_CREATED": "#/components/schemas/AuditLogEventWebhookSigningSecretCreatedV1",
@@ -15506,6 +15798,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventVolumeVersionRestoredV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventVolumeTagSetV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventVolumeTagDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventVolumeUpdatedV1"
                             }
                         ],
                         "title": "Event Data"
@@ -18447,7 +18748,10 @@
                     "SSH_CERTIFICATE_SIGNED",
                     "VOLUME_DELETED",
                     "VOLUME_VERSION_DELETED",
-                    "VOLUME_VERSION_RESTORED"
+                    "VOLUME_VERSION_RESTORED",
+                    "VOLUME_TAG_SET",
+                    "VOLUME_TAG_DELETED",
+                    "VOLUME_UPDATED"
                 ],
                 "title": "AuditLogEventTypeV1",
                 "type": "string"
@@ -18625,6 +18929,112 @@
                     "versions_deleted"
                 ],
                 "title": "AuditLogEventVolumeDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventVolumeTagDeletedV1": {
+                "description": "Deleting a volume tag succeeded. `deleted` is false if the tag was already absent.",
+                "properties": {
+                    "event_type": {
+                        "const": "VOLUME_TAG_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "tag": {
+                        "title": "Tag",
+                        "type": "string"
+                    },
+                    "deleted": {
+                        "title": "Deleted",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "volume_ref",
+                    "tag",
+                    "deleted"
+                ],
+                "title": "AuditLogEventVolumeTagDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventVolumeTagSetV1": {
+                "description": "A volume tag was set on a version.",
+                "properties": {
+                    "event_type": {
+                        "const": "VOLUME_TAG_SET",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "tag": {
+                        "title": "Tag",
+                        "type": "string"
+                    },
+                    "digest": {
+                        "title": "Digest",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "volume_ref",
+                    "tag",
+                    "digest"
+                ],
+                "title": "AuditLogEventVolumeTagSetV1",
+                "type": "object"
+            },
+            "AuditLogEventVolumeUpdatedV1": {
+                "description": "A volume's settings were updated.",
+                "properties": {
+                    "event_type": {
+                        "const": "VOLUME_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The volume's expiration time after the update, as an ISO 8601 string. Null when the update cleared it.",
+                        "title": "Expires At"
+                    },
+                    "previous_expires_at": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The expiration time the update replaced, as an ISO 8601 string. Null when the volume had none.",
+                        "title": "Previous Expires At"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "volume_ref",
+                    "expires_at",
+                    "previous_expires_at"
+                ],
+                "title": "AuditLogEventVolumeUpdatedV1",
                 "type": "object"
             },
             "AuditLogEventVolumeVersionDeletedV1": {
@@ -27139,14 +27549,30 @@
                         "type": "string"
                     },
                     "model_id": {
-                        "description": "Hashid of the underlying Baseten model.",
-                        "title": "Model Id",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Hashid of the underlying Baseten model. Null for a serverless sampler.",
+                        "title": "Model Id"
                     },
                     "deployment_id": {
-                        "description": "Hashid of the specific model deployment (version).",
-                        "title": "Deployment Id",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Hashid of the specific model deployment (version). Null for a serverless sampler.",
+                        "title": "Deployment Id"
                     },
                     "status": {
                         "$ref": "#/components/schemas/LoopsSamplerStatusV1",
@@ -27180,8 +27606,6 @@
                     "base_url",
                     "base_model",
                     "created_at",
-                    "model_id",
-                    "deployment_id",
                     "status",
                     "user"
                 ],
@@ -30128,6 +30552,19 @@
                         "description": "Model that served the usage. Null when not grouping by model.",
                         "title": "Model"
                     },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Team the usage is attributed to. Null when not grouping by team or when team attribution is unavailable.",
+                        "title": "Team Id"
+                    },
                     "input_tokens": {
                         "description": "Total input tokens, cached and uncached combined.",
                         "title": "Input Tokens",
@@ -30200,7 +30637,8 @@
                 "enum": [
                     "api_key",
                     "user",
-                    "model"
+                    "model",
+                    "team"
                 ],
                 "title": "UsageDimensionV1",
                 "type": "string"
@@ -30241,7 +30679,7 @@
                         "description": "Width of each time bucket: 1m, 1h, or 1d. Defaults to 1d."
                     },
                     "group_by": {
-                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, user, model. Defaults to model.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, user, model, or team. Defaults to model.",
                         "items": {
                             "$ref": "#/components/schemas/UsageDimensionV1"
                         },
@@ -30270,6 +30708,14 @@
                             "type": "string"
                         },
                         "title": "Models",
+                        "type": "array"
+                    },
+                    "team_ids": {
+                        "description": "Return only usage for these teams, repeated once per team. Defaults to all teams you can manage.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Team Ids",
                         "type": "array"
                     },
                     "limit": {
@@ -30895,6 +31341,11 @@
                         "title": "Is Public",
                         "type": "boolean"
                     },
+                    "is_listed": {
+                        "description": "Whether the listing appears in catalogs; unlisted listings still deploy from a direct link",
+                        "title": "Is Listed",
+                        "type": "boolean"
+                    },
                     "trending": {
                         "anyOf": [
                             {
@@ -30941,6 +31392,7 @@
                     "display_name",
                     "user_defined_id",
                     "is_public",
+                    "is_listed",
                     "trending",
                     "closed_source",
                     "created_at",
@@ -30983,6 +31435,12 @@
                         "default": false,
                         "description": "Whether the listing is publicly accessible",
                         "title": "Is Public",
+                        "type": "boolean"
+                    },
+                    "is_listed": {
+                        "default": true,
+                        "description": "Whether the listing appears in catalogs; unlisted listings still deploy from a direct link",
+                        "title": "Is Listed",
                         "type": "boolean"
                     },
                     "closed_source": {
@@ -31061,6 +31519,19 @@
                         "default": null,
                         "description": "Whether the listing is trending",
                         "title": "Trending"
+                    },
+                    "is_listed": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Whether the listing appears in catalogs; unlisted listings still deploy from a direct link",
+                        "title": "Is Listed"
                     },
                     "metadata": {
                         "anyOf": [
@@ -31447,6 +31918,18 @@
                         "description": "Human-readable tag for this version",
                         "title": "Version Tag",
                         "type": "string"
+                    },
+                    "is_listed": {
+                        "default": true,
+                        "description": "Whether the listing appears in catalogs; unlisted listings still deploy from a direct link. Only used when creating a new listing.",
+                        "title": "Is Listed",
+                        "type": "boolean"
+                    },
+                    "replace_model": {
+                        "default": false,
+                        "description": "Allow publishing from a different model than the listing's current one. The listing then points at the new model; earlier versions and existing deployments are unaffected. Fails if the new model already backs another listing.",
+                        "title": "Replace Model",
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -33956,6 +34439,19 @@
                         "default": null,
                         "description": "Provider that served the requests. Null when not grouping by PROVIDER."
                     },
+                    "router_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Slug of the intelligent router, matching its name in `GET /v1/routes`. Null when not grouping by ROUTER.",
+                        "title": "Router Id"
+                    },
                     "cost_usd": {
                         "description": "Estimated cost in USD, returned as an exact decimal string. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.",
                         "examples": [
@@ -33983,6 +34479,11 @@
                         "description": "Output tokens.",
                         "title": "Output Tokens",
                         "type": "integer"
+                    },
+                    "requests": {
+                        "description": "Number of requests; with ROUTER, the requests sent through that router. Usage recorded before requests were counted adds zero.",
+                        "title": "Requests",
+                        "type": "integer"
                     }
                 },
                 "required": [
@@ -33990,7 +34491,8 @@
                     "input_tokens",
                     "cached_input_tokens",
                     "uncached_input_tokens",
-                    "output_tokens"
+                    "output_tokens",
+                    "requests"
                 ],
                 "title": "RoutesUsageResultV1",
                 "type": "object"
@@ -34022,7 +34524,8 @@
                     "USER",
                     "TEAM",
                     "MODEL",
-                    "PROVIDER"
+                    "PROVIDER",
+                    "ROUTER"
                 ],
                 "title": "RouteUsageDimensionV1",
                 "type": "string"
@@ -34092,7 +34595,7 @@
                         "title": "End Date"
                     },
                     "group_by": {
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, or ROUTER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. Defaults to MODEL.",
                         "items": {
                             "$ref": "#/components/schemas/RouteUsageDimensionV1"
                         },
@@ -34169,6 +34672,14 @@
                     "team"
                 ],
                 "title": "RouteSettingSourceV1",
+                "type": "string"
+            },
+            "RouteSpendBlockedByV1": {
+                "enum": [
+                    "member",
+                    "team"
+                ],
+                "title": "RouteSpendBlockedByV1",
                 "type": "string"
             },
             "RouteSpendLimitSettingV1": {
@@ -34269,137 +34780,6 @@
                 ],
                 "title": "RouteSpendLimitTeamDefaultV1",
                 "type": "object"
-            },
-            "RouteUserSettingsV1": {
-                "properties": {
-                    "user_id": {
-                        "description": "ID of the user.",
-                        "examples": [
-                            "abc1234"
-                        ],
-                        "title": "User Id",
-                        "type": "string"
-                    },
-                    "email": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Email address of the user.",
-                        "examples": [
-                            "dev@example.com"
-                        ],
-                        "title": "Email"
-                    },
-                    "spend_limit": {
-                        "$ref": "#/components/schemas/RouteSpendLimitSettingV1",
-                        "description": "Spend limit for Baseten Code. Applies to requests with Routes keys the user created; personal API keys are not limited."
-                    }
-                },
-                "required": [
-                    "user_id",
-                    "email",
-                    "spend_limit"
-                ],
-                "title": "RouteUserSettingsV1",
-                "type": "object"
-            },
-            "RouteUserSettingsRequestV1": {
-                "properties": {
-                    "team_id": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "ID of the team to read the user's spend limit in. Defaults to the only team the user has Code spend in this month, else their only team.",
-                        "examples": [
-                            "abc1234"
-                        ],
-                        "title": "Team Id"
-                    }
-                },
-                "title": "RouteUserSettingsRequestV1",
-                "type": "object"
-            },
-            "UpdateRouteSpendLimitSettingV1": {
-                "additionalProperties": false,
-                "minProperties": 1,
-                "properties": {
-                    "user_monthly_limit_usd": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Standing spend limit in USD for each UTC calendar month. Send null to remove the limit; omit to leave it unchanged.",
-                        "examples": [
-                            "200"
-                        ],
-                        "title": "User Monthly Limit Usd",
-                        "x-null-distinct": true
-                    },
-                    "month_override_usd": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Spend limit in USD for the current UTC calendar month, which supersedes the standing limit. Send null to remove it; omit to leave it unchanged.",
-                        "examples": [
-                            "300"
-                        ],
-                        "title": "Month Override Usd",
-                        "x-null-distinct": true
-                    }
-                },
-                "title": "UpdateRouteSpendLimitSettingV1",
-                "type": "object"
-            },
-            "UpdateRouteUserSettingsRequestV1": {
-                "additionalProperties": false,
-                "minProperties": 1,
-                "properties": {
-                    "spend_limit": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/UpdateRouteSpendLimitSettingV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Spend limit fields to change. Pass null to remove the user's limit; omit to leave it unchanged.",
-                        "x-null-distinct": true
-                    }
-                },
-                "title": "UpdateRouteUserSettingsRequestV1",
-                "type": "object"
-            },
-            "RouteSpendBlockedByV1": {
-                "enum": [
-                    "member",
-                    "team"
-                ],
-                "title": "RouteSpendBlockedByV1",
-                "type": "string"
             },
             "RouteTeamUserSettingsV1": {
                 "properties": {
@@ -34887,6 +35267,69 @@
                     "users"
                 ],
                 "title": "RouteTeamUserSettingsListV1",
+                "type": "object"
+            },
+            "UpdateRouteSpendLimitSettingV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "user_monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Standing spend limit in USD for each UTC calendar month. Send null to remove the limit; omit to leave it unchanged.",
+                        "examples": [
+                            "200"
+                        ],
+                        "title": "User Monthly Limit Usd",
+                        "x-null-distinct": true
+                    },
+                    "month_override_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Spend limit in USD for the current UTC calendar month, which supersedes the standing limit. Send null to remove it; omit to leave it unchanged.",
+                        "examples": [
+                            "300"
+                        ],
+                        "title": "Month Override Usd",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdateRouteSpendLimitSettingV1",
+                "type": "object"
+            },
+            "UpdateRouteUserSettingsRequestV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "spend_limit": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateRouteSpendLimitSettingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Spend limit fields to change. Pass null to remove the user's limit; omit to leave it unchanged.",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdateRouteUserSettingsRequestV1",
                 "type": "object"
             },
             "RouteConnectionConfigAnthropicV1": {
@@ -36430,60 +36873,6 @@
                 "title": "RegisterAPIKeyResponseV1",
                 "type": "object"
             },
-            "GetSandboxConfigurationResponseV1": {
-                "type": "object",
-                "required": [
-                    "regions"
-                ],
-                "properties": {
-                    "regions": {
-                        "type": "array",
-                        "description": "Available Carbon-compatible regions, sorted by name. Empty when none are available.",
-                        "items": {
-                            "$ref": "#/components/schemas/SandboxRegionV1"
-                        }
-                    }
-                }
-            },
-            "SandboxRegionV1": {
-                "type": "object",
-                "required": [
-                    "name",
-                    "country",
-                    "continent",
-                    "location",
-                    "info_generation"
-                ],
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "Public region identifier to use when creating a sandbox.",
-                        "example": "us-was-1"
-                    },
-                    "country": {
-                        "type": "string",
-                        "description": "Country code.",
-                        "example": "us"
-                    },
-                    "continent": {
-                        "type": "string",
-                        "description": "Continent code.",
-                        "example": "na"
-                    },
-                    "location": {
-                        "type": "string",
-                        "description": "Region location.",
-                        "example": "Washington"
-                    },
-                    "info_generation": {
-                        "type": "string",
-                        "description": "Runtime generation supported by this region, using the public name CARBON. Actual runtime selection depends on the team and sandbox configuration.",
-                        "enum": [
-                            "CARBON"
-                        ]
-                    }
-                }
-            },
             "SandboxLogsV1": {
                 "type": "object",
                 "required": [
@@ -36555,98 +36944,200 @@
                     }
                 }
             },
+            "SandboxMetricModeV1": {
+                "type": "string",
+                "enum": [
+                    "CURRENT",
+                    "SUMMARY",
+                    "SERIES"
+                ]
+            },
+            "SandboxMetricNameV1": {
+                "type": "string",
+                "enum": [
+                    "baseten_sandbox_requests_total",
+                    "baseten_sandbox_cpu_usage_cores",
+                    "baseten_sandbox_memory_bytes"
+                ]
+            },
             "SandboxMetricsV1": {
                 "type": "object",
                 "required": [
-                    "sandbox_name",
-                    "start_time",
-                    "end_time",
-                    "interval_seconds",
-                    "data"
+                    "start_epoch_millis",
+                    "end_epoch_millis",
+                    "mode",
+                    "step_seconds",
+                    "metric_descriptors",
+                    "metric_values"
                 ],
                 "properties": {
-                    "sandbox_name": {
-                        "type": "string"
+                    "start_epoch_millis": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Returned window start, snapped outward in SERIES. Equal to end for CURRENT."
                     },
-                    "start_time": {
-                        "type": "string",
-                        "format": "date-time"
+                    "end_epoch_millis": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Returned exclusive window end, snapped outward in SERIES. Snapshot timestamp for CURRENT."
                     },
-                    "end_time": {
-                        "type": "string",
-                        "format": "date-time"
+                    "mode": {
+                        "$ref": "#/components/schemas/SandboxMetricModeV1"
                     },
-                    "interval_seconds": {
-                        "type": "integer"
+                    "step_seconds": {
+                        "description": "Seconds per SERIES interval; null in CURRENT and SUMMARY.",
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
-                    "data": {
+                    "metric_descriptors": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 3,
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxMetricDescriptorV1"
+                        }
+                    },
+                    "metric_values": {
                         "type": "array",
                         "maxItems": 10000,
                         "items": {
-                            "$ref": "#/components/schemas/SandboxMetricsPointV1"
+                            "$ref": "#/components/schemas/SandboxMetricValueSetV1"
                         }
                     }
                 }
             },
-            "SandboxMetricsPointV1": {
+            "SandboxMetricDescriptorV1": {
                 "type": "object",
                 "required": [
-                    "timestamp",
-                    "requests",
-                    "cpu_percent",
-                    "memory_bytes",
-                    "error_rate"
+                    "name",
+                    "unit_hint",
+                    "kind",
+                    "label_sets"
                 ],
                 "properties": {
-                    "timestamp": {
+                    "name": {
+                        "$ref": "#/components/schemas/SandboxMetricNameV1"
+                    },
+                    "unit_hint": {
                         "type": "string",
-                        "format": "date-time",
-                        "description": "Start of this interval."
+                        "enum": [
+                            "COUNT",
+                            "CORES",
+                            "BYTES"
+                        ],
+                        "description": "Requests use COUNT, CPU uses CORES (1 means one fully used core), and memory uses BYTES."
                     },
-                    "requests": {
-                        "description": "Request count. Zero without traffic; null for intervals entirely before creation.",
-                        "anyOf": [
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "null"
-                            }
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "GAUGE",
+                            "COUNTER"
                         ]
                     },
-                    "cpu_percent": {
-                        "description": "Peak CPU usage in this interval, where 100 is one full CPU core. Null without a sample.",
-                        "anyOf": [
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "null"
+                    "label_sets": {
+                        "type": "array",
+                        "maxItems": 3,
+                        "description": "Requests use status=2xx,4xx,5xx; CPU and memory use stat=avg,max.\n",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
-                        ]
+                        }
+                    }
+                }
+            },
+            "SandboxMetricValueSetV1": {
+                "type": "object",
+                "required": [
+                    "start_epoch_millis",
+                    "values"
+                ],
+                "properties": {
+                    "start_epoch_millis": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Start of the SERIES interval or SUMMARY window; snapshot timestamp in CURRENT."
                     },
-                    "memory_bytes": {
-                        "description": "Memory usage in bytes, averaged per series then maximum across series. Null without a sample.",
-                        "anyOf": [
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "null"
+                    "values": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 3,
+                        "description": "Values indexed first by metric_descriptors, then by that descriptor's label_sets. Null means no sample.",
+                        "items": {
+                            "type": "array",
+                            "maxItems": 3,
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
                             }
-                        ]
+                        }
+                    }
+                }
+            },
+            "GetSandboxConfigurationResponseV1": {
+                "type": "object",
+                "required": [
+                    "regions"
+                ],
+                "properties": {
+                    "regions": {
+                        "type": "array",
+                        "description": "Available Carbon-compatible regions, sorted by name. Empty when none are available.",
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxRegionV1"
+                        }
+                    }
+                }
+            },
+            "SandboxRegionV1": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "country",
+                    "continent",
+                    "location",
+                    "info_generation"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Public region identifier to use when creating a sandbox.",
+                        "example": "us-was-1"
                     },
-                    "error_rate": {
-                        "description": "Fraction of requests returning 4xx or 5xx. Null when there are no requests.",
-                        "anyOf": [
-                            {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                            },
-                            {
-                                "type": "null"
-                            }
+                    "country": {
+                        "type": "string",
+                        "description": "Country code.",
+                        "example": "us"
+                    },
+                    "continent": {
+                        "type": "string",
+                        "description": "Continent code.",
+                        "example": "na"
+                    },
+                    "location": {
+                        "type": "string",
+                        "description": "Region location.",
+                        "example": "Washington"
+                    },
+                    "info_generation": {
+                        "type": "string",
+                        "description": "Runtime generation supported by this region, using the public name CARBON. Actual runtime selection depends on the team and sandbox configuration.",
+                        "enum": [
+                            "CARBON"
                         ]
                     }
                 }
@@ -37108,7 +37599,7 @@
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": "Name of the environment variable",
+                        "description": "Name of the environment variable. Must start with a letter or underscore and contain only letters, digits and underscores (^[A-Za-z_][A-Za-z0-9_]*$); create and update reject other names.",
                         "example": "NODE_ENV"
                     },
                     "secret": {
@@ -37297,9 +37788,10 @@
                     },
                     "memory": {
                         "type": "integer",
-                        "description": "Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs).",
+                        "description": "Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Must be between 1024 and 262144.",
                         "example": 4096,
-                        "minimum": 1
+                        "minimum": 512,
+                        "maximum": 262144
                     },
                     "ports": {
                         "description": "Set of ports for a resource",
@@ -37538,10 +38030,11 @@
                     },
                     "memory": {
                         "type": "integer",
-                        "description": "Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Defaults to 4096.",
+                        "description": "Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Defaults to 4096. Must be between 1024 and 262144.",
                         "default": 4096,
                         "example": 4096,
-                        "minimum": 1
+                        "minimum": 512,
+                        "maximum": 262144
                     },
                     "ports": {
                         "description": "Set of ports for a resource",
@@ -38235,7 +38728,7 @@
                         "type": "array",
                         "description": "Image repositories on this page.",
                         "items": {
-                            "$ref": "#/components/schemas/SandboxImageSummaryV1"
+                            "$ref": "#/components/schemas/SandboxImageV1"
                         }
                     },
                     "pagination": {
@@ -38320,7 +38813,7 @@
                     "size": 134217728
                 }
             },
-            "SandboxImageSummaryV1": {
+            "SandboxImageV1": {
                 "type": "object",
                 "description": "Sandbox image repository summary. Fetch tags through GET /sandboxes/images/{image_name}/tags.",
                 "properties": {
@@ -38388,40 +38881,6 @@
                     "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
                     "size": 260046848,
                     "tag_count": 2
-                }
-            },
-            "SandboxImageV1": {
-                "description": "Sandbox image repository. Get operations return a summary with an empty tags array.",
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/SandboxImageSummaryV1"
-                    },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "tags": {
-                                "type": "array",
-                                "description": "Empty for get summary responses. Use GET /sandboxes/images/{image_name}/tags to retrieve paginated image versions.",
-                                "items": {
-                                    "$ref": "#/components/schemas/SandboxImageTagV1"
-                                },
-                                "example": []
-                            }
-                        },
-                        "required": [
-                            "tags"
-                        ]
-                    }
-                ],
-                "example": {
-                    "name": "base-image",
-                    "status": "BUILT",
-                    "created_at": "2026-09-15T21:20:00Z",
-                    "updated_at": "2026-09-16T21:25:00Z",
-                    "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
-                    "size": 260046848,
-                    "tag_count": 2,
-                    "tags": []
                 }
             },
             "PushSandboxImageRequestV1": {
@@ -38504,7 +38963,7 @@
                     },
                     "image": {
                         "type": "string",
-                        "description": "Registered image reference including its tag, when available. Tags are assigned by the service; GET /sandboxes/images/{image_name} returns the available tags once processing completes.",
+                        "description": "Registered image reference including its tag, when available. Tags are assigned by the service; GET /sandboxes/images/{image_name}/tags returns the available tags once processing completes.",
                         "example": "b10/base-image:latest"
                     }
                 },
@@ -38738,6 +39197,14 @@
                 "in": "path",
                 "required": true
             },
+            "volume_tag": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "volume_tag",
+                "in": "path",
+                "required": true
+            },
             "secret_name": {
                 "schema": {
                     "type": "string"
@@ -38929,6 +39396,50 @@
                 "name": "group_id",
                 "in": "path",
                 "required": true
+            },
+            "SandboxMetricMode": {
+                "name": "mode",
+                "in": "query",
+                "schema": {
+                    "$ref": "#/components/schemas/SandboxMetricModeV1"
+                },
+                "description": "Defaults to CURRENT, which rejects start_epoch_millis and end_epoch_millis. SERIES uses a server-selected step of 30 seconds up to 2 hours, 60 seconds up to 1 day, 600 seconds up to 3 days, and 3600 seconds beyond 3 days."
+            },
+            "SandboxMetricStart": {
+                "name": "start_epoch_millis",
+                "in": "query",
+                "schema": {
+                    "type": "integer",
+                    "format": "int64",
+                    "minimum": 0
+                },
+                "description": "Unix milliseconds. Defaults to one hour before end; SERIES snaps outward."
+            },
+            "SandboxMetricEnd": {
+                "name": "end_epoch_millis",
+                "in": "query",
+                "schema": {
+                    "type": "integer",
+                    "format": "int64",
+                    "minimum": 0
+                },
+                "description": "Exclusive end in Unix milliseconds, default now. Maximum aligned window is 7 days."
+            },
+            "SandboxMetricNames": {
+                "name": "metrics",
+                "in": "query",
+                "style": "form",
+                "explode": true,
+                "schema": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 3,
+                    "uniqueItems": true,
+                    "items": {
+                        "$ref": "#/components/schemas/SandboxMetricNameV1"
+                    }
+                },
+                "description": "Metric names in response order. Omit to request all three signals."
             },
             "TeamId": {
                 "name": "team_id",
@@ -39742,28 +40253,14 @@
                 }
             },
             "ImageReady": {
-                "summary": "Built image with all metadata and tags",
+                "summary": "Built image repository summary",
                 "value": {
                     "name": "base-image",
                     "status": "BUILT",
                     "created_at": "2026-09-15T21:20:00Z",
                     "updated_at": "2026-09-16T21:25:00Z",
                     "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
-                    "size": 260046848,
-                    "tags": [
-                        {
-                            "name": "latest",
-                            "created_at": "2026-09-16T21:20:00Z",
-                            "updated_at": "2026-09-16T21:25:00Z",
-                            "size": 134217728
-                        },
-                        {
-                            "name": "20260915212000",
-                            "created_at": "2026-09-15T21:20:00Z",
-                            "updated_at": "2026-09-15T21:25:00Z",
-                            "size": 125829120
-                        }
-                    ]
+                    "size": 260046848
                 },
                 "description": "Dates and byte sizes are representative example data. Image references use the b10 namespace."
             },
@@ -39775,15 +40272,7 @@
                     "created_at": "2026-09-15T21:20:00Z",
                     "updated_at": "2026-09-16T21:41:13Z",
                     "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
-                    "size": 134217728,
-                    "tags": [
-                        {
-                            "name": "latest",
-                            "created_at": "2026-09-16T21:20:00Z",
-                            "updated_at": "2026-09-16T21:25:00Z",
-                            "size": 134217728
-                        }
-                    ]
+                    "size": 134217728
                 }
             },
             "ImageSummary": {
@@ -39793,8 +40282,7 @@
                     "status": "BUILT",
                     "created_at": "2026-09-15T21:20:00Z",
                     "size": 260046848,
-                    "tag_count": 2,
-                    "tags": []
+                    "tag_count": 2
                 }
             },
             "ImagesList": {

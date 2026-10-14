@@ -307,23 +307,15 @@ func (c *ImageClient) List(ctx context.Context, opts ImageListOptions) iter.Seq2
 			Sort:   optional(string(opts.Sort)),
 			Q:      optional(opts.NamePrefix),
 		}
-		paginate(yield, "image list", func(cursor *string) ([]managementapi.SandboxImageSummary, managementapi.SandboxApiPagination, error) {
+		paginate(yield, "image list", func(cursor *string) ([]managementapi.SandboxImage, managementapi.SandboxApiPagination, error) {
 			params.Cursor = cursor
 			page, err := c.client.api.ListImages(ctx, params)
 			if err != nil {
 				return nil, managementapi.SandboxApiPagination{}, err
 			}
 			return page.Items, page.Pagination, nil
-		}, func(image *managementapi.SandboxImageSummary) (ImageInfo, error) {
-			return ImageInfo{
-				Name:           image.Name,
-				Status:         ImageStatus(image.Status),
-				CreatedAt:      deref(image.CreatedAt),
-				UpdatedAt:      deref(image.UpdatedAt),
-				LastDeployedAt: deref(image.LastDeployedAt),
-				SizeBytes:      deref(image.Size),
-				TagCount:       int(deref(image.TagCount)),
-			}, nil
+		}, func(image *managementapi.SandboxImage) (ImageInfo, error) {
+			return imageInfoFromAPI(image), nil
 		})
 	}
 }

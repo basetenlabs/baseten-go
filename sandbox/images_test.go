@@ -48,7 +48,7 @@ func newStorage(t *testing.T, status int) *storage {
 }
 
 func image(status string) string {
-	return `{"name":"img","status":"` + status + `","tags":[]}`
+	return `{"name":"img","status":"` + status + `"}`
 }
 
 var dockerfileOnly = map[string][]byte{"Dockerfile": []byte("FROM debian\n")}
