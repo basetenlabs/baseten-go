@@ -444,6 +444,43 @@
                     }
                 },
                 "x-stability": "unstable"
+            },
+            "patch": {
+                "summary": "Updates a volume",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"expires_at\": \"2030-01-01T00:00:00Z\",\n  \"expected_sequence\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'expires_at': '2030-01-01T00:00:00Z', 'expected_sequence': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Updates a volume's settings, such as its expiration time. Only the settings in the request change.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchVolumeRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PatchVolumeResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
             }
         },
         "/v1/volumes/{volume_namespace}/{volume_name}/versions": {
@@ -620,6 +657,103 @@
                 },
                 {
                     "$ref": "#/components/parameters/volume_version"
+                }
+            ]
+        },
+        "/v1/volumes/{volume_namespace}/{volume_name}/tags": {
+            "post": {
+                "summary": "Sets a volume tag",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"tag\": \"nightly\",\n  \"version\": \"head\",\n  \"expires_at\": null,\n  \"expected_sequence\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'tag': 'nightly', 'version': 'head', 'expires_at': None, 'expected_sequence': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Setting an existing tag overwrites it. The previous version remains available by digest. Pass `expires_at` to set the tag's expiration time. Omit `expires_at` to clear any expiration time on the tag. Version or volume expiration still deletes the tag. Setting `head` changes the version used by references without a tag or digest. You cannot set `head` on an expiring version or supply `expires_at` when setting `head`.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SetVolumeTagRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SetVolumeTagResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/volume_namespace"
+                },
+                {
+                    "$ref": "#/components/parameters/volume_name"
+                }
+            ]
+        },
+        "/v1/volumes/{volume_namespace}/{volume_name}/tags/{volume_tag}": {
+            "delete": {
+                "summary": "Deletes a volume tag",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags/{volume_tag} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"expected_sequence\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags/{volume_tag}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={'expected_sequence': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "The version remains available by digest and any other tags. If the tag is absent, the request succeeds with `deleted` set to `false`. Deleting `head` makes references without a tag or digest stop resolving until `head` is set again.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteVolumeTagRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeleteVolumeTagResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/volume_namespace"
+                },
+                {
+                    "$ref": "#/components/parameters/volume_name"
+                },
+                {
+                    "$ref": "#/components/parameters/volume_tag"
                 }
             ]
         },
@@ -8697,7 +8831,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/model_apis/usage\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_time': None, 'end_time': None, 'bucket_width': '1m', 'limit': None, 'cursor': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns your organization's Model APIs token usage as a series of contiguous time buckets, broken down by the dimensions you pass in group_by. Buckets with no usage are included, so the series has no gaps. Usage is retained for 92 days, so buckets older than that are returned with no results.",
+                "description": "Returns Model APIs token usage for the teams you can manage as a series of contiguous time buckets, broken down by the dimensions you pass in group_by. Organization admins receive organization-wide totals by default; other callers may receive lower totals than callers with management-access to more teams. Buckets with no usage are included, so the series has no gaps. Usage is retained for 92 days, so buckets older than that are returned with no results.",
                 "parameters": [
                     {
                         "name": "start_time",
@@ -8751,7 +8885,7 @@
                         "name": "group_by",
                         "in": "query",
                         "required": false,
-                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, user, model. Defaults to model.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, user, model, or team. Defaults to model.",
                         "schema": {
                             "items": {
                                 "$ref": "#/components/schemas/UsageDimensionV1"
@@ -8796,6 +8930,19 @@
                                 "type": "string"
                             },
                             "title": "Models",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "team_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage for these teams, repeated once per team. Defaults to all teams you can manage.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Team Ids",
                             "type": "array"
                         }
                     },
@@ -9131,14 +9278,14 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/library_listings/{user_defined_listing_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"display_name\": null,\n  \"is_public\": null,\n  \"trending\": null,\n  \"metadata\": null\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/library_listings/{user_defined_listing_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"display_name\": null,\n  \"is_public\": null,\n  \"trending\": null,\n  \"is_listed\": null,\n  \"metadata\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/library_listings/{user_defined_listing_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'display_name': None, 'is_public': None, 'trending': None, 'metadata': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/library_listings/{user_defined_listing_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'display_name': None, 'is_public': None, 'trending': None, 'is_listed': None, 'metadata': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Updates a library listing. Supported fields are the display name, public visibility, trending status, and the model-level metadata. When metadata is provided, it replaces the stored metadata.",
+                "description": "Updates a library listing. Supported fields are the display name, public visibility, listed status, trending status, and the model-level metadata. An unlisted listing is left out of catalogs but still deploys from its direct link. When metadata is provided, it replaces the stored metadata.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -10248,7 +10395,7 @@
                         "name": "group_by",
                         "in": "query",
                         "required": false,
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, or ROUTER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. Defaults to MODEL.",
                         "schema": {
                             "items": {
                                 "$ref": "#/components/schemas/RouteUsageDimensionV1"
@@ -10325,13 +10472,13 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'team_id': 'abc1234'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the settings that apply to the user, including the spend limit that caps what they can spend on Baseten Code each month: the limit set on the user, their team's per-member limit, and the effective limit for this user. The user limit always overrides the team's per-member limit. The limits are read in `team_id` when given, else in the only team the user has Code spend in this month, else in their only team; they are null when there is none.",
+                "description": "Returns the settings that apply to the user, including the spend limit that caps what they can spend on Baseten Code each month: the limit set on the user, their team's per-member limit, and the effective limit for this user. The user limit always overrides the team's per-member limit. The limits are read in `team_id` when given, else in the only team the user has a role in; the request fails when they belong to none or several.",
                 "parameters": [
                     {
                         "name": "team_id",
                         "in": "query",
                         "required": false,
-                        "description": "ID of the team to read the user's spend limit in. Defaults to the only team the user has Code spend in this month, else their only team.",
+                        "description": "ID of the team to read the user's spend limit in. Defaults to the only team the user has a role in.",
                         "schema": {
                             "anyOf": [
                                 {
@@ -10380,7 +10527,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'spend_limit': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Changes only the fields in the request. Once the user's metered spend in a team in a month reaches the spend limit, requests with Routes keys they created in that team are rejected until the limit is raised or the next month starts. Spend is metered every 15 minutes and can lag, so a user can go over the limit. The user's own limit supersedes their team's per-member limit. The limit is set in the only team the user has Code spend in this month, else in their only team; the request fails when there is none.",
+                "description": "Changes only the fields in the request. Once the user's metered spend in a team in a month reaches the spend limit, requests with Routes keys they created in that team are rejected until the limit is raised or the next month starts. Spend is metered every 15 minutes and can lag, so a user can go over the limit. The user's own limit supersedes their team's per-member limit. The limit is set in the only team the user has a role in; when they belong to none or several, use `PATCH /v1/routes/settings/teams/{team_id}/users/{user_id}` instead.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -13752,10 +13899,12 @@
                 "type": "object"
             },
             "DeleteVolumeRequestV1": {
+                "additionalProperties": false,
                 "properties": {
                     "expected_sequence": {
                         "anyOf": [
                             {
+                                "minimum": 0,
                                 "type": "integer"
                             },
                             {
@@ -13800,6 +13949,85 @@
                     "volume_sequence"
                 ],
                 "title": "DeleteVolumeResponseV1",
+                "type": "object"
+            },
+            "PatchVolumeRequestV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Time at which the volume expires, in ISO 8601 format, with a UTC offset. It must be in the future and at most ten years ahead. Set it to null to clear the expiration time. A body that sets no field is rejected. When the volume expires, all live versions are deleted, all tags are removed, and the volume disappears from listings. Clearing the expiration time afterward does not restore deleted versions. Each deleted version can be restored until its delete_after time. Setting or clearing the expiration time requires the same permission as deleting the volume.",
+                        "examples": [
+                            "2030-01-01T00:00:00Z"
+                        ],
+                        "title": "Expires At",
+                        "x-null-distinct": true
+                    },
+                    "expected_sequence": {
+                        "anyOf": [
+                            {
+                                "minimum": 0,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Revision the volume is expected to be at. When set, the update fails with a conflict if the volume has changed since. Take the value from a volume's sequence, or from volume_sequence.",
+                        "title": "Expected Sequence"
+                    }
+                },
+                "title": "PatchVolumeRequestV1",
+                "type": "object"
+            },
+            "PatchVolumeResponseV1": {
+                "properties": {
+                    "namespace": {
+                        "description": "Namespace the volume belongs to, in lowercase.",
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume": {
+                        "description": "Name of the volume, in lowercase.",
+                        "title": "Volume",
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Volume expiration time in ISO 8601 format. Null when no expiration time is set.",
+                        "title": "Expires At"
+                    },
+                    "volume_sequence": {
+                        "description": "Revision of the volume after the update.",
+                        "title": "Volume Sequence",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "volume",
+                    "expires_at",
+                    "volume_sequence"
+                ],
+                "title": "PatchVolumeResponseV1",
                 "type": "object"
             },
             "VolumeVersionV1": {
@@ -13967,10 +14195,12 @@
                 "type": "object"
             },
             "DeleteVolumeVersionRequestV1": {
+                "additionalProperties": false,
                 "properties": {
                     "expected_sequence": {
                         "anyOf": [
                             {
+                                "minimum": 0,
                                 "type": "integer"
                             },
                             {
@@ -14185,10 +14415,12 @@
                 "type": "object"
             },
             "RestoreVolumeVersionRequestV1": {
+                "additionalProperties": false,
                 "properties": {
                     "expected_sequence": {
                         "anyOf": [
                             {
+                                "minimum": 0,
                                 "type": "integer"
                             },
                             {
@@ -14245,6 +14477,179 @@
                     "volume_sequence"
                 ],
                 "title": "RestoreVolumeVersionResponseV1",
+                "type": "object"
+            },
+            "SetVolumeTagRequestV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "tag": {
+                        "description": "Name of the tag to set. Tags are case-sensitive. Setting a tag that already exists overwrites it, and the version it pointed at before stays reachable by digest.",
+                        "examples": [
+                            "nightly"
+                        ],
+                        "pattern": "^[A-Za-z0-9_][A-Za-z0-9._-]{0,127}$",
+                        "title": "Tag",
+                        "type": "string"
+                    },
+                    "version": {
+                        "description": "Version to set the tag on. Address it with `:<tag>` for a tag, `@<digest>` for a full content digest or a prefix of at least 12 hexadecimal characters, or `head` for the version a reference with no tag or digest resolves to.",
+                        "examples": [
+                            "head"
+                        ],
+                        "title": "Version",
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Time at which the tag expires, in ISO 8601 format, with a UTC offset. It must be in the future and at most ten years ahead. Omit it for a tag with no expiration time of its own. Omitting it also clears the expiration time of an existing tag. Version or volume expiration still deletes the tag. Do not specify it when setting `head`.",
+                        "title": "Expires At"
+                    },
+                    "expected_sequence": {
+                        "anyOf": [
+                            {
+                                "minimum": 0,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Revision the volume is expected to be at. When set, the request fails with a conflict if the volume has changed since. Take the value from volume_sequence.",
+                        "title": "Expected Sequence"
+                    }
+                },
+                "required": [
+                    "tag",
+                    "version"
+                ],
+                "title": "SetVolumeTagRequestV1",
+                "type": "object"
+            },
+            "SetVolumeTagResponseV1": {
+                "properties": {
+                    "namespace": {
+                        "description": "Namespace the volume belongs to, in lowercase.",
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume": {
+                        "description": "Name of the volume, in lowercase.",
+                        "title": "Volume",
+                        "type": "string"
+                    },
+                    "tag": {
+                        "description": "Name of the tag that was set, with its original capitalization.",
+                        "title": "Tag",
+                        "type": "string"
+                    },
+                    "digest": {
+                        "description": "Content digest of the version the tag points at, as `b3:<hex>`.",
+                        "title": "Digest",
+                        "type": "string"
+                    },
+                    "version_ref": {
+                        "description": "Full address of the tagged version, as `bdn:<namespace>/<volume>@<digest>`. Paste it into a config.yaml to pin this version, even if the tag is later set on another version.",
+                        "title": "Version Ref",
+                        "type": "string"
+                    },
+                    "volume_sequence": {
+                        "description": "Revision of the volume after the tag was set.",
+                        "title": "Volume Sequence",
+                        "type": "integer"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Tag expiration time in ISO 8601 format. Null when the tag has no expiration time of its own.",
+                        "title": "Expires At"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "volume",
+                    "tag",
+                    "digest",
+                    "version_ref",
+                    "volume_sequence",
+                    "expires_at"
+                ],
+                "title": "SetVolumeTagResponseV1",
+                "type": "object"
+            },
+            "DeleteVolumeTagRequestV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "expected_sequence": {
+                        "anyOf": [
+                            {
+                                "minimum": 0,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Revision the volume is expected to be at. When set, the delete fails with a conflict if the volume has changed since, so it cannot delete a tag someone else has just set on another version. Take the value from volume_sequence.",
+                        "title": "Expected Sequence"
+                    }
+                },
+                "title": "DeleteVolumeTagRequestV1",
+                "type": "object"
+            },
+            "DeleteVolumeTagResponseV1": {
+                "properties": {
+                    "namespace": {
+                        "description": "Namespace the volume belongs to, in lowercase.",
+                        "title": "Namespace",
+                        "type": "string"
+                    },
+                    "volume": {
+                        "description": "Name of the volume, in lowercase.",
+                        "title": "Volume",
+                        "type": "string"
+                    },
+                    "tag": {
+                        "description": "Tag name from the request, with its original capitalization.",
+                        "title": "Tag",
+                        "type": "string"
+                    },
+                    "deleted": {
+                        "description": "Whether the tag existed and was deleted. False when the volume had no tag by that name, which is not an error.",
+                        "title": "Deleted",
+                        "type": "boolean"
+                    },
+                    "volume_sequence": {
+                        "description": "Revision of the volume after the delete.",
+                        "title": "Volume Sequence",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "volume",
+                    "tag",
+                    "deleted",
+                    "volume_sequence"
+                ],
+                "title": "DeleteVolumeTagResponseV1",
                 "type": "object"
             },
             "TokenScopeV1": {
@@ -15348,6 +15753,9 @@
                                 "USER_ROLE_UPDATED": "#/components/schemas/AuditLogEventUserRoleUpdatedV1",
                                 "USER_TEAM_ROLE_UPDATED": "#/components/schemas/AuditLogEventUserTeamRoleUpdatedV1",
                                 "VOLUME_DELETED": "#/components/schemas/AuditLogEventVolumeDeletedV1",
+                                "VOLUME_TAG_DELETED": "#/components/schemas/AuditLogEventVolumeTagDeletedV1",
+                                "VOLUME_TAG_SET": "#/components/schemas/AuditLogEventVolumeTagSetV1",
+                                "VOLUME_UPDATED": "#/components/schemas/AuditLogEventVolumeUpdatedV1",
                                 "VOLUME_VERSION_DELETED": "#/components/schemas/AuditLogEventVolumeVersionDeletedV1",
                                 "VOLUME_VERSION_RESTORED": "#/components/schemas/AuditLogEventVolumeVersionRestoredV1",
                                 "WEBHOOK_SIGNING_SECRET_CREATED": "#/components/schemas/AuditLogEventWebhookSigningSecretCreatedV1",
@@ -15506,6 +15914,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventVolumeVersionRestoredV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventVolumeTagSetV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventVolumeTagDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventVolumeUpdatedV1"
                             }
                         ],
                         "title": "Event Data"
@@ -18447,7 +18864,10 @@
                     "SSH_CERTIFICATE_SIGNED",
                     "VOLUME_DELETED",
                     "VOLUME_VERSION_DELETED",
-                    "VOLUME_VERSION_RESTORED"
+                    "VOLUME_VERSION_RESTORED",
+                    "VOLUME_TAG_SET",
+                    "VOLUME_TAG_DELETED",
+                    "VOLUME_UPDATED"
                 ],
                 "title": "AuditLogEventTypeV1",
                 "type": "string"
@@ -18625,6 +19045,112 @@
                     "versions_deleted"
                 ],
                 "title": "AuditLogEventVolumeDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventVolumeTagDeletedV1": {
+                "description": "Deleting a volume tag succeeded. `deleted` is false if the tag was already absent.",
+                "properties": {
+                    "event_type": {
+                        "const": "VOLUME_TAG_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "tag": {
+                        "title": "Tag",
+                        "type": "string"
+                    },
+                    "deleted": {
+                        "title": "Deleted",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "volume_ref",
+                    "tag",
+                    "deleted"
+                ],
+                "title": "AuditLogEventVolumeTagDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventVolumeTagSetV1": {
+                "description": "A volume tag was set on a version.",
+                "properties": {
+                    "event_type": {
+                        "const": "VOLUME_TAG_SET",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "tag": {
+                        "title": "Tag",
+                        "type": "string"
+                    },
+                    "digest": {
+                        "title": "Digest",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "volume_ref",
+                    "tag",
+                    "digest"
+                ],
+                "title": "AuditLogEventVolumeTagSetV1",
+                "type": "object"
+            },
+            "AuditLogEventVolumeUpdatedV1": {
+                "description": "A volume's settings were updated.",
+                "properties": {
+                    "event_type": {
+                        "const": "VOLUME_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The volume's expiration time after the update, as an ISO 8601 string. Null when the update cleared it.",
+                        "title": "Expires At"
+                    },
+                    "previous_expires_at": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The expiration time the update replaced, as an ISO 8601 string. Null when the volume had none.",
+                        "title": "Previous Expires At"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "volume_ref",
+                    "expires_at",
+                    "previous_expires_at"
+                ],
+                "title": "AuditLogEventVolumeUpdatedV1",
                 "type": "object"
             },
             "AuditLogEventVolumeVersionDeletedV1": {
@@ -30128,6 +30654,19 @@
                         "description": "Model that served the usage. Null when not grouping by model.",
                         "title": "Model"
                     },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Team the usage is attributed to. Null when not grouping by team or when team attribution is unavailable.",
+                        "title": "Team Id"
+                    },
                     "input_tokens": {
                         "description": "Total input tokens, cached and uncached combined.",
                         "title": "Input Tokens",
@@ -30200,7 +30739,8 @@
                 "enum": [
                     "api_key",
                     "user",
-                    "model"
+                    "model",
+                    "team"
                 ],
                 "title": "UsageDimensionV1",
                 "type": "string"
@@ -30241,7 +30781,7 @@
                         "description": "Width of each time bucket: 1m, 1h, or 1d. Defaults to 1d."
                     },
                     "group_by": {
-                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, user, model. Defaults to model.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: api_key, user, model, or team. Defaults to model.",
                         "items": {
                             "$ref": "#/components/schemas/UsageDimensionV1"
                         },
@@ -30270,6 +30810,14 @@
                             "type": "string"
                         },
                         "title": "Models",
+                        "type": "array"
+                    },
+                    "team_ids": {
+                        "description": "Return only usage for these teams, repeated once per team. Defaults to all teams you can manage.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Team Ids",
                         "type": "array"
                     },
                     "limit": {
@@ -30895,6 +31443,11 @@
                         "title": "Is Public",
                         "type": "boolean"
                     },
+                    "is_listed": {
+                        "description": "Whether the listing appears in catalogs; unlisted listings still deploy from a direct link",
+                        "title": "Is Listed",
+                        "type": "boolean"
+                    },
                     "trending": {
                         "anyOf": [
                             {
@@ -30941,6 +31494,7 @@
                     "display_name",
                     "user_defined_id",
                     "is_public",
+                    "is_listed",
                     "trending",
                     "closed_source",
                     "created_at",
@@ -30983,6 +31537,12 @@
                         "default": false,
                         "description": "Whether the listing is publicly accessible",
                         "title": "Is Public",
+                        "type": "boolean"
+                    },
+                    "is_listed": {
+                        "default": true,
+                        "description": "Whether the listing appears in catalogs; unlisted listings still deploy from a direct link",
+                        "title": "Is Listed",
                         "type": "boolean"
                     },
                     "closed_source": {
@@ -31061,6 +31621,19 @@
                         "default": null,
                         "description": "Whether the listing is trending",
                         "title": "Trending"
+                    },
+                    "is_listed": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Whether the listing appears in catalogs; unlisted listings still deploy from a direct link",
+                        "title": "Is Listed"
                     },
                     "metadata": {
                         "anyOf": [
@@ -31447,6 +32020,18 @@
                         "description": "Human-readable tag for this version",
                         "title": "Version Tag",
                         "type": "string"
+                    },
+                    "is_listed": {
+                        "default": true,
+                        "description": "Whether the listing appears in catalogs; unlisted listings still deploy from a direct link. Only used when creating a new listing.",
+                        "title": "Is Listed",
+                        "type": "boolean"
+                    },
+                    "replace_model": {
+                        "default": false,
+                        "description": "Allow publishing from a different model than the listing's current one. The listing then points at the new model; earlier versions and existing deployments are unaffected. Fails if the new model already backs another listing.",
+                        "title": "Replace Model",
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -33956,6 +34541,19 @@
                         "default": null,
                         "description": "Provider that served the requests. Null when not grouping by PROVIDER."
                     },
+                    "router_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Slug of the intelligent router, matching its name in `GET /v1/routes`. Null when not grouping by ROUTER.",
+                        "title": "Router Id"
+                    },
                     "cost_usd": {
                         "description": "Estimated cost in USD, returned as an exact decimal string. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.",
                         "examples": [
@@ -33983,6 +34581,11 @@
                         "description": "Output tokens.",
                         "title": "Output Tokens",
                         "type": "integer"
+                    },
+                    "requests": {
+                        "description": "Number of requests; with ROUTER, the requests sent through that router. Usage recorded before requests were counted adds zero.",
+                        "title": "Requests",
+                        "type": "integer"
                     }
                 },
                 "required": [
@@ -33990,7 +34593,8 @@
                     "input_tokens",
                     "cached_input_tokens",
                     "uncached_input_tokens",
-                    "output_tokens"
+                    "output_tokens",
+                    "requests"
                 ],
                 "title": "RoutesUsageResultV1",
                 "type": "object"
@@ -34022,7 +34626,8 @@
                     "USER",
                     "TEAM",
                     "MODEL",
-                    "PROVIDER"
+                    "PROVIDER",
+                    "ROUTER"
                 ],
                 "title": "RouteUsageDimensionV1",
                 "type": "string"
@@ -34092,7 +34697,7 @@
                         "title": "End Date"
                     },
                     "group_by": {
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, or PROVIDER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, or ROUTER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. Defaults to MODEL.",
                         "items": {
                             "$ref": "#/components/schemas/RouteUsageDimensionV1"
                         },
@@ -34320,7 +34925,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "ID of the team to read the user's spend limit in. Defaults to the only team the user has Code spend in this month, else their only team.",
+                        "description": "ID of the team to read the user's spend limit in. Defaults to the only team the user has a role in.",
                         "examples": [
                             "abc1234"
                         ],
@@ -38712,6 +39317,14 @@
                     "type": "string"
                 },
                 "name": "volume_version",
+                "in": "path",
+                "required": true
+            },
+            "volume_tag": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "volume_tag",
                 "in": "path",
                 "required": true
             },
