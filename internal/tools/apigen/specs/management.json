@@ -10459,100 +10459,6 @@
                 "x-stability": "unstable"
             }
         },
-        "/v1/routes/settings/users/{user_id}": {
-            "get": {
-                "summary": "Gets a user's route settings",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'team_id': 'abc1234'}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Returns the settings that apply to the user, including the spend limit that caps what they can spend on Baseten Code each month: the limit set on the user, their team's per-member limit, and the effective limit for this user. The user limit always overrides the team's per-member limit. The limits are read in `team_id` when given, else in the only team the user has a role in; the request fails when they belong to none or several.",
-                "parameters": [
-                    {
-                        "name": "team_id",
-                        "in": "query",
-                        "required": false,
-                        "description": "ID of the team to read the user's spend limit in. Defaults to the only team the user has a role in.",
-                        "schema": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "null"
-                                }
-                            ],
-                            "default": null,
-                            "examples": [
-                                "abc1234"
-                            ],
-                            "title": "Team Id"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/RouteUserSettingsV1"
-                                }
-                            }
-                        }
-                    }
-                },
-                "x-stability": "unstable"
-            },
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/user_id"
-                }
-            ],
-            "patch": {
-                "summary": "Updates a user's route settings",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/settings/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"spend_limit\": null\n}'"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'spend_limit': None}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Changes only the fields in the request. Once the user's metered spend in a team in a month reaches the spend limit, requests with Routes keys they created in that team are rejected until the limit is raised or the next month starts. Spend is metered every 15 minutes and can lag, so a user can go over the limit. The user's own limit supersedes their team's per-member limit. The limit is set in the only team the user has a role in; when they belong to none or several, use `PATCH /v1/routes/settings/teams/{team_id}/users/{user_id}` instead.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/UpdateRouteUserSettingsRequestV1"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/RouteUserSettingsV1"
-                                }
-                            }
-                        }
-                    }
-                },
-                "x-stability": "unstable"
-            }
-        },
         "/v1/routes/settings/users/{user_id}/teams": {
             "get": {
                 "summary": "Lists a user's route settings in each of their teams",
@@ -10566,7 +10472,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}/teams\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the user's settings in each team they have a role in and in any team they have Code spend in this month, alphabetical by team name: their spend limit for Baseten Code in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; organization admins can read anyone's.",
+                "description": "Returns the user's settings in each team they belong to (every team, for organization admins), alphabetical by team name: their spend limit for Baseten Code in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; organization admins can read anyone's.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -10671,7 +10577,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}/users\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the settings in the team of each user with a role in the team and of anyone with Code spend in the team this month. Requires team admin for the specified team or organization admin.",
+                "description": "Returns the settings in the team of each member of the team, including organization admins and Code service accounts. Requires team admin for the specified team or organization admin.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -11483,64 +11389,18 @@
                 }
             ]
         },
-        "/v1/sandboxes/configuration": {
-            "get": {
-                "operationId": "GetSandboxConfiguration",
-                "summary": "Get sandbox configuration",
-                "description": "Return available Carbon-compatible sandbox regions. Configuration is the same for every team, so no team is selected. Only enabled regions supporting Carbon are returned. This describes regional capability, not the runtime selected for a particular team or sandbox. Region configuration is cached for up to 30 seconds.",
-                "tags": [
-                    "Sandboxes"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/GetSandboxConfigurationResponseV1"
-                                },
-                                "example": {
-                                    "regions": [
-                                        {
-                                            "name": "us-was-1",
-                                            "country": "us",
-                                            "continent": "na",
-                                            "location": "Washington",
-                                            "info_generation": "CARBON"
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/SandboxError400"
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/SandboxError401"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/SandboxError403"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/SandboxError429"
-                    },
-                    "500": {
-                        "$ref": "#/components/responses/SandboxError500"
-                    }
-                },
-                "x-stability": "unstable"
-            }
-        },
         "/v1/sandboxes/instances/{sandbox_name}/metrics": {
             "get": {
                 "operationId": "GetSandboxMetrics",
                 "summary": "Get sandbox metrics",
-                "description": "Returns every interval in the requested half-open range [start_time, end_time).\nBuckets align to UTC interval boundaries; partial boundary buckets include only samples\nwithin the requested range. The first bucket may start before start_time. Ranges are limited to 31 days\nand 10000 buckets. Request counts are zero when there is no traffic, and null\nfor buckets entirely before sandbox creation. CPU and memory are null without\nsamples, including standby. Error rate is the fraction of requests returning\n4xx or 5xx, null when there are no requests. Telemetry failures return an error.\n",
+                "description": "Returns every interval with labeled request counts, CPU cores, and RSS memory bytes. CURRENT returns one snapshot at now, with\nrequest counts over the preceding minute and latest gauges.\nSUMMARY returns one value set over the window. SERIES snaps the window outward\nto UTC step boundaries and echoes those boundaries; each value covers\n[start_epoch_millis, start_epoch_millis + step_seconds).\nMissing gauge samples remain null. Request counts are zero after\ncreation without traffic, and null before creation. CPU averages are averages\nof valid sampled CPU rates; memory averages are averages of sampled RSS.\nWindows default to one hour, are limited to 7 days after alignment, and at most\n10000 intervals. Telemetry failures return an error.\n",
                 "tags": [
                     "Sandboxes"
                 ],
                 "parameters": [
+                    {
+                        "$ref": "#/components/parameters/SandboxName"
+                    },
                     {
                         "$ref": "#/components/parameters/TeamId"
                     },
@@ -11548,46 +11408,21 @@
                         "$ref": "#/components/parameters/TeamIdHeader"
                     },
                     {
-                        "$ref": "#/components/parameters/SandboxName"
+                        "$ref": "#/components/parameters/SandboxMetricMode"
                     },
                     {
-                        "name": "start_time",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time"
-                        }
+                        "$ref": "#/components/parameters/SandboxMetricStart"
                     },
                     {
-                        "name": "end_time",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time"
-                        }
+                        "$ref": "#/components/parameters/SandboxMetricEnd"
                     },
                     {
-                        "name": "interval_seconds",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "enum": [
-                                10,
-                                30,
-                                60,
-                                300,
-                                900,
-                                3600
-                            ]
-                        }
+                        "$ref": "#/components/parameters/SandboxMetricNames"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Complete sandbox metrics time series.",
+                        "description": "Index-aligned sandbox metrics.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -11597,7 +11432,7 @@
                         }
                     },
                     "400": {
-                        "description": "Invalid range, interval, or query parameter."
+                        "description": "Invalid range, mode, step, metric selection, or response size."
                     },
                     "401": {
                         "description": "Authentication required."
@@ -11705,6 +11540,55 @@
                     },
                     "503": {
                         "description": "Logs are unavailable."
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/sandboxes/configuration": {
+            "get": {
+                "operationId": "GetSandboxConfiguration",
+                "summary": "Get sandbox configuration",
+                "description": "Return available Carbon-compatible sandbox regions. Configuration is the same for every team, so no team is selected. Only enabled regions supporting Carbon are returned. This describes regional capability, not the runtime selected for a particular team or sandbox. Region configuration is cached for up to 30 seconds.",
+                "tags": [
+                    "Sandboxes"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetSandboxConfigurationResponseV1"
+                                },
+                                "example": {
+                                    "regions": [
+                                        {
+                                            "name": "us-was-1",
+                                            "country": "us",
+                                            "continent": "na",
+                                            "location": "Washington",
+                                            "info_generation": "CARBON"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
                     }
                 },
                 "x-stability": "unstable"
@@ -12210,7 +12094,7 @@
                 ],
                 "operationId": "PushImage",
                 "summary": "Push a sandbox image",
-                "description": "With image supplied, import the registry image asynchronously. Otherwise return an upload URL for a ZIP source archive containing its Dockerfile and build context. The uploaded ZIP archive must not exceed 5 GB. Processing starts after upload. No sandbox is created. Poll the image until BUILT or FAILED.",
+                "description": "With image supplied, import the registry image asynchronously. Otherwise return an upload URL for a ZIP source archive containing its Dockerfile and build context. The uploaded ZIP archive must not exceed 5 GB. Processing starts after upload. No sandbox is created. Poll the image until BUILT or FAILED. Set memory and volume to size the temporary environment that builds or imports the image; for a source archive, upload with the returned upload_headers.",
                 "tags": [
                     "Images"
                 ],
@@ -12641,7 +12525,7 @@
                 ],
                 "operationId": "DeleteImageTag",
                 "summary": "Delete an image tag",
-                "description": "Delete a specific image version. Reject deletion if the version is referenced by an active deployment. Return the updated image with its remaining tags, possibly empty.",
+                "description": "Delete a specific image version. Reject deletion if the version is referenced by an active deployment. Return the updated repository summary. Use the tag listing endpoint for remaining image versions.",
                 "tags": [
                     "Images"
                 ],
@@ -27665,14 +27549,30 @@
                         "type": "string"
                     },
                     "model_id": {
-                        "description": "Hashid of the underlying Baseten model.",
-                        "title": "Model Id",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Hashid of the underlying Baseten model. Null for a serverless sampler.",
+                        "title": "Model Id"
                     },
                     "deployment_id": {
-                        "description": "Hashid of the specific model deployment (version).",
-                        "title": "Deployment Id",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Hashid of the specific model deployment (version). Null for a serverless sampler.",
+                        "title": "Deployment Id"
                     },
                     "status": {
                         "$ref": "#/components/schemas/LoopsSamplerStatusV1",
@@ -27706,8 +27606,6 @@
                     "base_url",
                     "base_model",
                     "created_at",
-                    "model_id",
-                    "deployment_id",
                     "status",
                     "user"
                 ],
@@ -34776,6 +34674,14 @@
                 "title": "RouteSettingSourceV1",
                 "type": "string"
             },
+            "RouteSpendBlockedByV1": {
+                "enum": [
+                    "member",
+                    "team"
+                ],
+                "title": "RouteSpendBlockedByV1",
+                "type": "string"
+            },
             "RouteSpendLimitSettingV1": {
                 "properties": {
                     "user_monthly_limit_usd": {
@@ -34874,137 +34780,6 @@
                 ],
                 "title": "RouteSpendLimitTeamDefaultV1",
                 "type": "object"
-            },
-            "RouteUserSettingsV1": {
-                "properties": {
-                    "user_id": {
-                        "description": "ID of the user.",
-                        "examples": [
-                            "abc1234"
-                        ],
-                        "title": "User Id",
-                        "type": "string"
-                    },
-                    "email": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Email address of the user.",
-                        "examples": [
-                            "dev@example.com"
-                        ],
-                        "title": "Email"
-                    },
-                    "spend_limit": {
-                        "$ref": "#/components/schemas/RouteSpendLimitSettingV1",
-                        "description": "Spend limit for Baseten Code. Applies to requests with Routes keys the user created; personal API keys are not limited."
-                    }
-                },
-                "required": [
-                    "user_id",
-                    "email",
-                    "spend_limit"
-                ],
-                "title": "RouteUserSettingsV1",
-                "type": "object"
-            },
-            "RouteUserSettingsRequestV1": {
-                "properties": {
-                    "team_id": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "ID of the team to read the user's spend limit in. Defaults to the only team the user has a role in.",
-                        "examples": [
-                            "abc1234"
-                        ],
-                        "title": "Team Id"
-                    }
-                },
-                "title": "RouteUserSettingsRequestV1",
-                "type": "object"
-            },
-            "UpdateRouteSpendLimitSettingV1": {
-                "additionalProperties": false,
-                "minProperties": 1,
-                "properties": {
-                    "user_monthly_limit_usd": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Standing spend limit in USD for each UTC calendar month. Send null to remove the limit; omit to leave it unchanged.",
-                        "examples": [
-                            "200"
-                        ],
-                        "title": "User Monthly Limit Usd",
-                        "x-null-distinct": true
-                    },
-                    "month_override_usd": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Spend limit in USD for the current UTC calendar month, which supersedes the standing limit. Send null to remove it; omit to leave it unchanged.",
-                        "examples": [
-                            "300"
-                        ],
-                        "title": "Month Override Usd",
-                        "x-null-distinct": true
-                    }
-                },
-                "title": "UpdateRouteSpendLimitSettingV1",
-                "type": "object"
-            },
-            "UpdateRouteUserSettingsRequestV1": {
-                "additionalProperties": false,
-                "minProperties": 1,
-                "properties": {
-                    "spend_limit": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/UpdateRouteSpendLimitSettingV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Spend limit fields to change. Pass null to remove the user's limit; omit to leave it unchanged.",
-                        "x-null-distinct": true
-                    }
-                },
-                "title": "UpdateRouteUserSettingsRequestV1",
-                "type": "object"
-            },
-            "RouteSpendBlockedByV1": {
-                "enum": [
-                    "member",
-                    "team"
-                ],
-                "title": "RouteSpendBlockedByV1",
-                "type": "string"
             },
             "RouteTeamUserSettingsV1": {
                 "properties": {
@@ -35492,6 +35267,69 @@
                     "users"
                 ],
                 "title": "RouteTeamUserSettingsListV1",
+                "type": "object"
+            },
+            "UpdateRouteSpendLimitSettingV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "user_monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Standing spend limit in USD for each UTC calendar month. Send null to remove the limit; omit to leave it unchanged.",
+                        "examples": [
+                            "200"
+                        ],
+                        "title": "User Monthly Limit Usd",
+                        "x-null-distinct": true
+                    },
+                    "month_override_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Spend limit in USD for the current UTC calendar month, which supersedes the standing limit. Send null to remove it; omit to leave it unchanged.",
+                        "examples": [
+                            "300"
+                        ],
+                        "title": "Month Override Usd",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdateRouteSpendLimitSettingV1",
+                "type": "object"
+            },
+            "UpdateRouteUserSettingsRequestV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "spend_limit": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateRouteSpendLimitSettingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Spend limit fields to change. Pass null to remove the user's limit; omit to leave it unchanged.",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdateRouteUserSettingsRequestV1",
                 "type": "object"
             },
             "RouteConnectionConfigAnthropicV1": {
@@ -37035,60 +36873,6 @@
                 "title": "RegisterAPIKeyResponseV1",
                 "type": "object"
             },
-            "GetSandboxConfigurationResponseV1": {
-                "type": "object",
-                "required": [
-                    "regions"
-                ],
-                "properties": {
-                    "regions": {
-                        "type": "array",
-                        "description": "Available Carbon-compatible regions, sorted by name. Empty when none are available.",
-                        "items": {
-                            "$ref": "#/components/schemas/SandboxRegionV1"
-                        }
-                    }
-                }
-            },
-            "SandboxRegionV1": {
-                "type": "object",
-                "required": [
-                    "name",
-                    "country",
-                    "continent",
-                    "location",
-                    "info_generation"
-                ],
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "Public region identifier to use when creating a sandbox.",
-                        "example": "us-was-1"
-                    },
-                    "country": {
-                        "type": "string",
-                        "description": "Country code.",
-                        "example": "us"
-                    },
-                    "continent": {
-                        "type": "string",
-                        "description": "Continent code.",
-                        "example": "na"
-                    },
-                    "location": {
-                        "type": "string",
-                        "description": "Region location.",
-                        "example": "Washington"
-                    },
-                    "info_generation": {
-                        "type": "string",
-                        "description": "Runtime generation supported by this region, using the public name CARBON. Actual runtime selection depends on the team and sandbox configuration.",
-                        "enum": [
-                            "CARBON"
-                        ]
-                    }
-                }
-            },
             "SandboxLogsV1": {
                 "type": "object",
                 "required": [
@@ -37160,98 +36944,200 @@
                     }
                 }
             },
+            "SandboxMetricModeV1": {
+                "type": "string",
+                "enum": [
+                    "CURRENT",
+                    "SUMMARY",
+                    "SERIES"
+                ]
+            },
+            "SandboxMetricNameV1": {
+                "type": "string",
+                "enum": [
+                    "baseten_sandbox_requests_total",
+                    "baseten_sandbox_cpu_usage_cores",
+                    "baseten_sandbox_memory_bytes"
+                ]
+            },
             "SandboxMetricsV1": {
                 "type": "object",
                 "required": [
-                    "sandbox_name",
-                    "start_time",
-                    "end_time",
-                    "interval_seconds",
-                    "data"
+                    "start_epoch_millis",
+                    "end_epoch_millis",
+                    "mode",
+                    "step_seconds",
+                    "metric_descriptors",
+                    "metric_values"
                 ],
                 "properties": {
-                    "sandbox_name": {
-                        "type": "string"
+                    "start_epoch_millis": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Returned window start, snapped outward in SERIES. Equal to end for CURRENT."
                     },
-                    "start_time": {
-                        "type": "string",
-                        "format": "date-time"
+                    "end_epoch_millis": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Returned exclusive window end, snapped outward in SERIES. Snapshot timestamp for CURRENT."
                     },
-                    "end_time": {
-                        "type": "string",
-                        "format": "date-time"
+                    "mode": {
+                        "$ref": "#/components/schemas/SandboxMetricModeV1"
                     },
-                    "interval_seconds": {
-                        "type": "integer"
+                    "step_seconds": {
+                        "description": "Seconds per SERIES interval; null in CURRENT and SUMMARY.",
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
-                    "data": {
+                    "metric_descriptors": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 3,
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxMetricDescriptorV1"
+                        }
+                    },
+                    "metric_values": {
                         "type": "array",
                         "maxItems": 10000,
                         "items": {
-                            "$ref": "#/components/schemas/SandboxMetricsPointV1"
+                            "$ref": "#/components/schemas/SandboxMetricValueSetV1"
                         }
                     }
                 }
             },
-            "SandboxMetricsPointV1": {
+            "SandboxMetricDescriptorV1": {
                 "type": "object",
                 "required": [
-                    "timestamp",
-                    "requests",
-                    "cpu_percent",
-                    "memory_bytes",
-                    "error_rate"
+                    "name",
+                    "unit_hint",
+                    "kind",
+                    "label_sets"
                 ],
                 "properties": {
-                    "timestamp": {
+                    "name": {
+                        "$ref": "#/components/schemas/SandboxMetricNameV1"
+                    },
+                    "unit_hint": {
                         "type": "string",
-                        "format": "date-time",
-                        "description": "Start of this interval."
+                        "enum": [
+                            "COUNT",
+                            "CORES",
+                            "BYTES"
+                        ],
+                        "description": "Requests use COUNT, CPU uses CORES (1 means one fully used core), and memory uses BYTES."
                     },
-                    "requests": {
-                        "description": "Request count. Zero without traffic; null for intervals entirely before creation.",
-                        "anyOf": [
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "null"
-                            }
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "GAUGE",
+                            "COUNTER"
                         ]
                     },
-                    "cpu_percent": {
-                        "description": "Peak CPU usage in this interval, where 100 is one full CPU core. Null without a sample.",
-                        "anyOf": [
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "null"
+                    "label_sets": {
+                        "type": "array",
+                        "maxItems": 3,
+                        "description": "Requests use status=2xx,4xx,5xx; CPU and memory use stat=avg,max.\n",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
-                        ]
+                        }
+                    }
+                }
+            },
+            "SandboxMetricValueSetV1": {
+                "type": "object",
+                "required": [
+                    "start_epoch_millis",
+                    "values"
+                ],
+                "properties": {
+                    "start_epoch_millis": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Start of the SERIES interval or SUMMARY window; snapshot timestamp in CURRENT."
                     },
-                    "memory_bytes": {
-                        "description": "Memory usage in bytes, averaged per series then maximum across series. Null without a sample.",
-                        "anyOf": [
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "null"
+                    "values": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 3,
+                        "description": "Values indexed first by metric_descriptors, then by that descriptor's label_sets. Null means no sample.",
+                        "items": {
+                            "type": "array",
+                            "maxItems": 3,
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
                             }
-                        ]
+                        }
+                    }
+                }
+            },
+            "GetSandboxConfigurationResponseV1": {
+                "type": "object",
+                "required": [
+                    "regions"
+                ],
+                "properties": {
+                    "regions": {
+                        "type": "array",
+                        "description": "Available Carbon-compatible regions, sorted by name. Empty when none are available.",
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxRegionV1"
+                        }
+                    }
+                }
+            },
+            "SandboxRegionV1": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "country",
+                    "continent",
+                    "location",
+                    "info_generation"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Public region identifier to use when creating a sandbox.",
+                        "example": "us-was-1"
                     },
-                    "error_rate": {
-                        "description": "Fraction of requests returning 4xx or 5xx. Null when there are no requests.",
-                        "anyOf": [
-                            {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                            },
-                            {
-                                "type": "null"
-                            }
+                    "country": {
+                        "type": "string",
+                        "description": "Country code.",
+                        "example": "us"
+                    },
+                    "continent": {
+                        "type": "string",
+                        "description": "Continent code.",
+                        "example": "na"
+                    },
+                    "location": {
+                        "type": "string",
+                        "description": "Region location.",
+                        "example": "Washington"
+                    },
+                    "info_generation": {
+                        "type": "string",
+                        "description": "Runtime generation supported by this region, using the public name CARBON. Actual runtime selection depends on the team and sandbox configuration.",
+                        "enum": [
+                            "CARBON"
                         ]
                     }
                 }
@@ -37713,7 +37599,7 @@
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": "Name of the environment variable",
+                        "description": "Name of the environment variable. Must start with a letter or underscore and contain only letters, digits and underscores (^[A-Za-z_][A-Za-z0-9_]*$); create and update reject other names.",
                         "example": "NODE_ENV"
                     },
                     "secret": {
@@ -37902,9 +37788,10 @@
                     },
                     "memory": {
                         "type": "integer",
-                        "description": "Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs).",
+                        "description": "Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Must be between 1024 and 262144.",
                         "example": 4096,
-                        "minimum": 1
+                        "minimum": 512,
+                        "maximum": 262144
                     },
                     "ports": {
                         "description": "Set of ports for a resource",
@@ -38143,10 +38030,11 @@
                     },
                     "memory": {
                         "type": "integer",
-                        "description": "Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Defaults to 4096.",
+                        "description": "Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Defaults to 4096. Must be between 1024 and 262144.",
                         "default": 4096,
                         "example": 4096,
-                        "minimum": 1
+                        "minimum": 512,
+                        "maximum": 262144
                     },
                     "ports": {
                         "description": "Set of ports for a resource",
@@ -38840,7 +38728,7 @@
                         "type": "array",
                         "description": "Image repositories on this page.",
                         "items": {
-                            "$ref": "#/components/schemas/SandboxImageSummaryV1"
+                            "$ref": "#/components/schemas/SandboxImageV1"
                         }
                     },
                     "pagination": {
@@ -38925,7 +38813,7 @@
                     "size": 134217728
                 }
             },
-            "SandboxImageSummaryV1": {
+            "SandboxImageV1": {
                 "type": "object",
                 "description": "Sandbox image repository summary. Fetch tags through GET /sandboxes/images/{image_name}/tags.",
                 "properties": {
@@ -38995,40 +38883,6 @@
                     "tag_count": 2
                 }
             },
-            "SandboxImageV1": {
-                "description": "Sandbox image repository. Get operations return a summary with an empty tags array.",
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/SandboxImageSummaryV1"
-                    },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "tags": {
-                                "type": "array",
-                                "description": "Empty for get summary responses. Use GET /sandboxes/images/{image_name}/tags to retrieve paginated image versions.",
-                                "items": {
-                                    "$ref": "#/components/schemas/SandboxImageTagV1"
-                                },
-                                "example": []
-                            }
-                        },
-                        "required": [
-                            "tags"
-                        ]
-                    }
-                ],
-                "example": {
-                    "name": "base-image",
-                    "status": "BUILT",
-                    "created_at": "2026-09-15T21:20:00Z",
-                    "updated_at": "2026-09-16T21:25:00Z",
-                    "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
-                    "size": 260046848,
-                    "tag_count": 2,
-                    "tags": []
-                }
-            },
             "PushSandboxImageRequestV1": {
                 "type": "object",
                 "description": "Push a sandbox image from a source archive or an existing registry image.",
@@ -39049,6 +38903,20 @@
                         "description": "Optional serialized registry authentication configuration for importing a private image. Used only when image is supplied; never returned.",
                         "writeOnly": true,
                         "example": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}"
+                    },
+                    "memory": {
+                        "type": "integer",
+                        "description": "Memory in megabytes of the temporary environment that builds the source archive or imports the registry image. Omit it to use the default size. Does not change the memory of sandboxes created from the image.",
+                        "minimum": 1,
+                        "maximum": 32768,
+                        "example": 16384
+                    },
+                    "volume": {
+                        "type": "integer",
+                        "description": "Scratch disk in megabytes attached to the temporary build environment for intermediate layers. Set it for large images that run out of space while building or importing. 0 builds in memory, which is the default. Teams with HIPAA compliance enabled accept only 0.",
+                        "minimum": 0,
+                        "maximum": 131072,
+                        "example": 32768
                     }
                 },
                 "required": [
@@ -39057,7 +38925,9 @@
                 "example": {
                     "name": "base-image",
                     "image": "docker.io/b10/base-image:latest",
-                    "docker_config": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}"
+                    "docker_config": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}",
+                    "memory": 16384,
+                    "volume": 32768
                 }
             },
             "PushSandboxImageResponseV1": {
@@ -39084,9 +38954,16 @@
                         "format": "uri",
                         "example": "https://uploads.b10.run/images/base-image/20260916212658/source.zip?expires=2026-09-16T22%3A26%3A58Z&signature=demo-not-a-valid-upload-signature"
                     },
+                    "upload_headers": {
+                        "type": "object",
+                        "description": "Headers the source archive upload must send, in addition to Content-Type, with exactly these names and values. Present only with upload_url, when memory or volume was set. upload_url is signed for these headers, so storage rejects an upload that omits or changes them. Treat names and values as opaque.",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
                     "image": {
                         "type": "string",
-                        "description": "Registered image reference including its tag, when available. Tags are assigned by the service; GET /sandboxes/images/{image_name} returns the available tags once processing completes.",
+                        "description": "Registered image reference including its tag, when available. Tags are assigned by the service; GET /sandboxes/images/{image_name}/tags returns the available tags once processing completes.",
                         "example": "b10/base-image:latest"
                     }
                 },
@@ -39519,6 +39396,50 @@
                 "name": "group_id",
                 "in": "path",
                 "required": true
+            },
+            "SandboxMetricMode": {
+                "name": "mode",
+                "in": "query",
+                "schema": {
+                    "$ref": "#/components/schemas/SandboxMetricModeV1"
+                },
+                "description": "Defaults to CURRENT, which rejects start_epoch_millis and end_epoch_millis. SERIES uses a server-selected step of 30 seconds up to 2 hours, 60 seconds up to 1 day, 600 seconds up to 3 days, and 3600 seconds beyond 3 days."
+            },
+            "SandboxMetricStart": {
+                "name": "start_epoch_millis",
+                "in": "query",
+                "schema": {
+                    "type": "integer",
+                    "format": "int64",
+                    "minimum": 0
+                },
+                "description": "Unix milliseconds. Defaults to one hour before end; SERIES snaps outward."
+            },
+            "SandboxMetricEnd": {
+                "name": "end_epoch_millis",
+                "in": "query",
+                "schema": {
+                    "type": "integer",
+                    "format": "int64",
+                    "minimum": 0
+                },
+                "description": "Exclusive end in Unix milliseconds, default now. Maximum aligned window is 7 days."
+            },
+            "SandboxMetricNames": {
+                "name": "metrics",
+                "in": "query",
+                "style": "form",
+                "explode": true,
+                "schema": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 3,
+                    "uniqueItems": true,
+                    "items": {
+                        "$ref": "#/components/schemas/SandboxMetricNameV1"
+                    }
+                },
+                "description": "Metric names in response order. Omit to request all three signals."
             },
             "TeamId": {
                 "name": "team_id",
@@ -40332,28 +40253,14 @@
                 }
             },
             "ImageReady": {
-                "summary": "Built image with all metadata and tags",
+                "summary": "Built image repository summary",
                 "value": {
                     "name": "base-image",
                     "status": "BUILT",
                     "created_at": "2026-09-15T21:20:00Z",
                     "updated_at": "2026-09-16T21:25:00Z",
                     "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
-                    "size": 260046848,
-                    "tags": [
-                        {
-                            "name": "latest",
-                            "created_at": "2026-09-16T21:20:00Z",
-                            "updated_at": "2026-09-16T21:25:00Z",
-                            "size": 134217728
-                        },
-                        {
-                            "name": "20260915212000",
-                            "created_at": "2026-09-15T21:20:00Z",
-                            "updated_at": "2026-09-15T21:25:00Z",
-                            "size": 125829120
-                        }
-                    ]
+                    "size": 260046848
                 },
                 "description": "Dates and byte sizes are representative example data. Image references use the b10 namespace."
             },
@@ -40365,15 +40272,7 @@
                     "created_at": "2026-09-15T21:20:00Z",
                     "updated_at": "2026-09-16T21:41:13Z",
                     "last_deployed_at": "2026-09-16T21:26:58.545765901Z",
-                    "size": 134217728,
-                    "tags": [
-                        {
-                            "name": "latest",
-                            "created_at": "2026-09-16T21:20:00Z",
-                            "updated_at": "2026-09-16T21:25:00Z",
-                            "size": 134217728
-                        }
-                    ]
+                    "size": 134217728
                 }
             },
             "ImageSummary": {
@@ -40383,8 +40282,7 @@
                     "status": "BUILT",
                     "created_at": "2026-09-15T21:20:00Z",
                     "size": 260046848,
-                    "tag_count": 2,
-                    "tags": []
+                    "tag_count": 2
                 }
             },
             "ImagesList": {
@@ -40418,7 +40316,9 @@
                 "value": {
                     "name": "base-image",
                     "image": "docker.io/b10/base-image:latest",
-                    "docker_config": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}"
+                    "docker_config": "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"YjEwLXJldmlldzpkZW1vLW5vdC1hLXZhbGlkLXJlZ2lzdHJ5LXRva2Vu\"}}}",
+                    "memory": 16384,
+                    "volume": 32768
                 },
                 "description": "Shows every request field. docker_config is serialized registry configuration with a deliberately invalid demonstration credential."
             },

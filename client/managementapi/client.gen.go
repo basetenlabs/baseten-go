@@ -1212,18 +1212,6 @@ func (c *Client) GetRoutesSettingsTeamsUsersUserId(ctx context.Context, teamId s
 	})
 }
 
-// GetRoutesSettingsUsers: Gets a user's route settings
-func (c *Client) GetRoutesSettingsUsers(ctx context.Context, userId string, params GetV1RoutesSettingsUsersUserIdParams) (*RouteUserSettings, error) {
-	return doJSON[RouteUserSettings](c, ctx, apiRequest{
-		method:       "GET",
-		pathFmt:      "/v1/routes/settings/users/%s",
-		pathArgs:     []any{userId},
-		queryParams:  params,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
 // GetRoutesSettingsUsersTeams: Lists a user's route settings in each of their teams
 func (c *Client) GetRoutesSettingsUsersTeams(ctx context.Context, userId string) (*RouteUserTeamSettingsList, error) {
 	return doJSON[RouteUserTeamSettingsList](c, ctx, apiRequest{
@@ -1938,18 +1926,6 @@ func (c *Client) PatchRoutesSettingsTeamsUsers(ctx context.Context, teamId strin
 		method:       "PATCH",
 		pathFmt:      "/v1/routes/settings/teams/%s/users/%s",
 		pathArgs:     []any{teamId, userId},
-		body:         body,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// PatchRoutesSettingsUsers: Updates a user's route settings
-func (c *Client) PatchRoutesSettingsUsers(ctx context.Context, userId string, body UpdateRouteUserSettingsRequest) (*RouteUserSettings, error) {
-	return doJSON[RouteUserSettings](c, ctx, apiRequest{
-		method:       "PATCH",
-		pathFmt:      "/v1/routes/settings/users/%s",
-		pathArgs:     []any{userId},
 		body:         body,
 		successCodes: []int{200},
 		errorCodes:   nil,

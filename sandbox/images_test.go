@@ -24,6 +24,7 @@ type storage struct {
 	contentType   string
 	authorization string
 	contentLength int64
+	header        http.Header
 	body          []byte
 }
 
@@ -36,6 +37,7 @@ func newStorage(t *testing.T, status int) *storage {
 		s.contentType = r.Header.Get("Content-Type")
 		s.authorization = r.Header.Get("Authorization")
 		s.contentLength = r.ContentLength
+		s.header = r.Header.Clone()
 		s.body = body
 		s.mu.Unlock()
 		w.WriteHeader(status)
@@ -46,7 +48,7 @@ func newStorage(t *testing.T, status int) *storage {
 }
 
 func image(status string) string {
-	return `{"name":"img","status":"` + status + `","tags":[]}`
+	return `{"name":"img","status":"` + status + `"}`
 }
 
 var dockerfileOnly = map[string][]byte{"Dockerfile": []byte("FROM debian\n")}
@@ -96,6 +98,54 @@ func TestImagePush(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, ImageStatusUploading, info.Status)
 		require.Equal(t, `{"docker_config":"{}","image":"debian:bookworm","name":"img"}`, cp.lastRequest(t).body)
+	})
+
+	t.Run("SendsBuildSizesOnlyWhenSet", func(t *testing.T) {
+		for _, c := range []struct {
+			opts ImagePushOptions
+			body string
+		}{
+			{ImagePushOptions{SourceFiles: dockerfileOnly}, `{"name":"img"}`},
+			{ImagePushOptions{SourceFiles: dockerfileOnly, Memory: 2048, Volume: 8192}, `{"memory":2048,"name":"img","volume":8192}`},
+			{
+				ImagePushOptions{SourceRegistry: &ImageRegistrySource{Image: "debian:bookworm"}, Memory: 2048, Volume: 8192},
+				`{"image":"debian:bookworm","memory":2048,"name":"img","volume":8192}`,
+			},
+		} {
+			cp := newControlPlane(t)
+			store := newStorage(t, http.StatusOK)
+			cp.respond("POST", "/v1/sandboxes/images", 202, `{"name":"img","status":"UPLOADING","upload_url":"`+store.URL+`"}`)
+			c.opts.Name, c.opts.NoWait = "img", true
+			_, err := cp.client(t, ClientOptions{}).Images().Push(t.Context(), c.opts)
+			require.NoError(t, err)
+			require.Equal(t, c.body, cp.lastRequest(t).body)
+		}
+	})
+
+	t.Run("UploadSendsReturnedHeaders", func(t *testing.T) {
+		cp := newControlPlane(t)
+		store := newStorage(t, http.StatusOK)
+		images := cp.client(t, ClientOptions{}).Images()
+		cp.respond("POST", "/v1/sandboxes/images", 202, `{"name":"img","status":"UPLOADING","upload_url":"`+store.URL+`"}`)
+		_, err := images.Push(t.Context(), ImagePushOptions{Name: "img", SourceFiles: dockerfileOnly, NoWait: true})
+		require.NoError(t, err)
+		plain := store.header
+		cp.respond("POST", "/v1/sandboxes/images", 202, `{"name":"img","status":"UPLOADING","upload_url":"`+store.URL+`",
+			"upload_headers":{"x-signed-memory":"2048","X-Signed-Other":"a, b"}}`)
+		_, err = images.Push(t.Context(), ImagePushOptions{Name: "img", SourceFiles: dockerfileOnly, Memory: 2048, NoWait: true})
+		require.NoError(t, err)
+		// Exactly the returned headers are added to the upload, with their
+		// values as returned, and Content-Type is kept.
+		added := map[string][]string{}
+		for key, values := range store.header {
+			if _, ok := plain[key]; !ok {
+				added[key] = values
+			}
+		}
+		require.Equal(t, 2, len(added))
+		require.Equal(t, "2048", store.header.Get("X-Signed-Memory"))
+		require.Equal(t, "a, b", store.header.Get("X-Signed-Other"))
+		require.Equal(t, "application/zip", store.header.Get("Content-Type"))
 	})
 
 	t.Run("ExactlyOneSource", func(t *testing.T) {

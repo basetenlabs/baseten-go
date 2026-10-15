@@ -143,6 +143,19 @@ type ImagePushOptions struct {
 	// in memory.
 	NoTempFile bool
 
+	// Memory is the memory in megabytes, from 1 to 32768, of the
+	// temporary environment that builds the build context or imports the
+	// registry image. Zero uses the default size. It does not change the
+	// memory of sandboxes created from the image.
+	Memory int
+
+	// Volume is the scratch disk in megabytes, up to 131072, attached to
+	// the temporary build environment for intermediate layers. Set it for a
+	// large image that runs out of space while building or importing. Zero
+	// uses the default, which builds in memory. Teams with HIPAA compliance
+	// enabled accept only zero.
+	Volume int
+
 	// NoWait returns as soon as the image is pushed, instead of waiting for
 	// it to be ready to use.
 	NoWait bool
@@ -186,7 +199,11 @@ func (c *ImageClient) Push(ctx context.Context, opts ImagePushOptions) (*ImageIn
 		return nil, err
 	}
 	defer archive.close()
-	request := managementapi.PushSandboxImageRequest{Name: opts.Name}
+	request := managementapi.PushSandboxImageRequest{
+		Name:   opts.Name,
+		Memory: optional(opts.Memory),
+		Volume: optional(opts.Volume),
+	}
 	if registry := opts.SourceRegistry; registry != nil {
 		request.Image = &registry.Image
 		request.DockerConfig = optional(registry.DockerConfig)
@@ -199,7 +216,7 @@ func (c *ImageClient) Push(ctx context.Context, opts ImagePushOptions) (*ImageIn
 		if response.UploadUrl == nil {
 			return nil, fmt.Errorf("pushing image %s returned no upload URL", opts.Name)
 		}
-		if err := c.upload(ctx, opts.Name, *response.UploadUrl, archive); err != nil {
+		if err := c.upload(ctx, opts.Name, *response.UploadUrl, deref(response.UploadHeaders), archive); err != nil {
 			return nil, err
 		}
 	}
@@ -290,23 +307,15 @@ func (c *ImageClient) List(ctx context.Context, opts ImageListOptions) iter.Seq2
 			Sort:   optional(string(opts.Sort)),
 			Q:      optional(opts.NamePrefix),
 		}
-		paginate(yield, "image list", func(cursor *string) ([]managementapi.SandboxImageSummary, managementapi.SandboxApiPagination, error) {
+		paginate(yield, "image list", func(cursor *string) ([]managementapi.SandboxImage, managementapi.SandboxApiPagination, error) {
 			params.Cursor = cursor
 			page, err := c.client.api.ListImages(ctx, params)
 			if err != nil {
 				return nil, managementapi.SandboxApiPagination{}, err
 			}
 			return page.Items, page.Pagination, nil
-		}, func(image *managementapi.SandboxImageSummary) (ImageInfo, error) {
-			return ImageInfo{
-				Name:           image.Name,
-				Status:         ImageStatus(image.Status),
-				CreatedAt:      deref(image.CreatedAt),
-				UpdatedAt:      deref(image.UpdatedAt),
-				LastDeployedAt: deref(image.LastDeployedAt),
-				SizeBytes:      deref(image.Size),
-				TagCount:       int(deref(image.TagCount)),
-			}, nil
+		}, func(image *managementapi.SandboxImage) (ImageInfo, error) {
+			return imageInfoFromAPI(image), nil
 		})
 	}
 }
@@ -614,8 +623,9 @@ func (c *ImageClient) ListLibrary(ctx context.Context, opts ImageListLibraryOpti
 	return images, nil
 }
 
-// upload puts a build context to the signed storage URL a push returned.
-func (c *ImageClient) upload(ctx context.Context, name, url string, archive *pushArchive) error {
+// upload puts a build context to the signed storage URL a push returned, with
+// the headers the push returned for it.
+func (c *ImageClient) upload(ctx context.Context, name, url string, headers map[string]string, archive *pushArchive) error {
 	// The URL is signed for storage, so none of the API's headers or
 	// credentials go with it.
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, archive.newBody())
@@ -627,6 +637,11 @@ func (c *ImageClient) upload(ctx context.Context, name, url string, archive *pus
 	req.ContentLength = archive.size
 	req.GetBody = func() (io.ReadCloser, error) { return io.NopCloser(archive.newBody()), nil }
 	req.Header.Set("Content-Type", "application/zip")
+	// The URL is signed for these as well, so storage rejects the upload if
+	// any is missing or changed.
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
 	resp, err := c.client.httpClient.Do(req)
 	if err != nil {
 		return err

@@ -61,11 +61,6 @@ func TestTypeParity(t *testing.T) {
 		{name: "ProcessLogs", ours: ProcessLogs{}, generated: sandboxapi.ProcessLogs{}},
 		{
 			name: "ImageInfo", ours: ImageInfo{}, generated: managementapi.SandboxImage{},
-			renamed:       map[string]string{"SizeBytes": "Size"},
-			generatedOnly: map[string]string{"Tags": "always empty; ImageClient.ListTags lists them"},
-		},
-		{
-			name: "ImageInfo/Summary", ours: ImageInfo{}, generated: managementapi.SandboxImageSummary{},
 			renamed: map[string]string{"SizeBytes": "Size"},
 		},
 		{
