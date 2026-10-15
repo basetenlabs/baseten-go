@@ -1439,6 +1439,33 @@ func (e SandboxPortProtocol) Valid() bool {
 	}
 }
 
+// Defines values for SandboxPreviewStatus.
+const (
+	SandboxPreviewStatus_DELETING   SandboxPreviewStatus = "DELETING"
+	SandboxPreviewStatus_DEPLOYED   SandboxPreviewStatus = "DEPLOYED"
+	SandboxPreviewStatus_DEPLOYING  SandboxPreviewStatus = "DEPLOYING"
+	SandboxPreviewStatus_FAILED     SandboxPreviewStatus = "FAILED"
+	SandboxPreviewStatus_TERMINATED SandboxPreviewStatus = "TERMINATED"
+)
+
+// Valid indicates whether the value is a known member of the SandboxPreviewStatus enum.
+func (e SandboxPreviewStatus) Valid() bool {
+	switch e {
+	case SandboxPreviewStatus_DELETING:
+		return true
+	case SandboxPreviewStatus_DEPLOYED:
+		return true
+	case SandboxPreviewStatus_DEPLOYING:
+		return true
+	case SandboxPreviewStatus_FAILED:
+		return true
+	case SandboxPreviewStatus_TERMINATED:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SandboxRegionInfoGeneration.
 const (
 	SandboxRegionInfoGeneration_CARBON SandboxRegionInfoGeneration = "CARBON"
@@ -3699,6 +3726,42 @@ type CreateRouteRequest_Target struct {
 	union json.RawMessage
 }
 
+// CreateSandboxPreviewRequest defines model for CreateSandboxPreviewRequest.
+type CreateSandboxPreviewRequest struct {
+	// CreateIfNotExists When true, return the existing preview with this name instead of failing with a conflict. Without name, the name is public-<port> or private-<port>, so the same port and visibility return the same preview. Existing configuration is preserved. Defaults to false when omitted.
+	CreateIfNotExists *bool `json:"create_if_not_exists,omitempty"`
+
+	// ExpiresAt Time at which the preview is deleted. Must be in the future.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	// Name Preview name, unique within the sandbox. When omitted, generated from the sandbox name and port, or public-<port> or private-<port> when create_if_not_exists is true.
+	Name *string `json:"name,omitempty"`
+
+	// Port Sandbox port to expose.
+	Port int `json:"port"`
+
+	// Public Whether the URL is reachable without a preview token. Defaults to false.
+	Public *bool `json:"public,omitempty"`
+
+	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set.
+	RequestHeaders *SandboxPreviewHeaders `json:"request_headers,omitempty"`
+
+	// ResponseHeaders Headers added to every response served by the preview, for example CORS headers.
+	ResponseHeaders *SandboxPreviewHeaders `json:"response_headers,omitempty"`
+
+	// Ttl Lifetime counted from the request, using seconds, minutes, hours or composite durations such as 1h30m. Whole days are also supported, for example 7d; days cannot be combined with other units. The preview is deleted when it elapses.
+	Ttl *SandboxPreviewTtl `json:"ttl,omitempty"`
+}
+
+// CreateSandboxPreviewTokenRequest defines model for CreateSandboxPreviewTokenRequest.
+type CreateSandboxPreviewTokenRequest struct {
+	// CreateIfNotExists When true, return an existing unexpired token of this preview that stays valid at least until expires_at instead of creating a new one. Defaults to false when omitted.
+	CreateIfNotExists *bool `json:"create_if_not_exists,omitempty"`
+
+	// ExpiresAt Time at which the token stops working. Must be in the future.
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
 // CreateSandboxRequest Configuration for a new sandbox. The client may provide a name; otherwise the server generates one. The name is immutable after creation.
 type CreateSandboxRequest struct {
 	// CreateIfNotExists When true, return the existing live sandbox with this name or recreate it if it is failed, terminated, or being deleted. The server handles concurrent creation and deletion races with a bounded wait; persistent contention returns a conflict. Requires name. Existing configuration is preserved. Defaults to false when omitted.
@@ -5746,6 +5809,24 @@ type ListSandboxLibraryImagesResponse struct {
 	Items []SandboxLibraryImage `json:"items"`
 }
 
+// ListSandboxPreviewTokensResponse One page of tokens of a preview.
+type ListSandboxPreviewTokensResponse struct {
+	// Items Resources on this page.
+	Items []SandboxPreviewToken `json:"items"`
+
+	// Pagination Cursor pagination information. The cursor is present only when another page is available.
+	Pagination SandboxApiPagination `json:"pagination"`
+}
+
+// ListSandboxPreviewsResponse One page of previews of a sandbox.
+type ListSandboxPreviewsResponse struct {
+	// Items Resources on this page.
+	Items []SandboxPreview `json:"items"`
+
+	// Pagination Cursor pagination information. The cursor is present only when another page is available.
+	Pagination SandboxApiPagination `json:"pagination"`
+}
+
 // ListSandboxesResponse One page of sandboxes.
 type ListSandboxesResponse struct {
 	// Items Resources on this page.
@@ -7767,6 +7848,84 @@ type SandboxPortProtocol string
 // SandboxPorts Set of ports for a resource
 type SandboxPorts = []SandboxPort
 
+// SandboxPreview defines model for SandboxPreview.
+type SandboxPreview struct {
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	CreatedBy *string    `json:"created_by,omitempty"`
+
+	// ExpiresAt Time at which the preview is deleted. Must be in the future.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	// Name Preview name, used in preview_name path parameters.
+	Name *string `json:"name,omitempty"`
+
+	// Port Exposed sandbox port.
+	Port *int `json:"port,omitempty"`
+
+	// Public Whether the URL is reachable without a preview token. Defaults to false.
+	Public bool `json:"public"`
+
+	// Region Region serving the preview, the sandbox's region.
+	Region *string `json:"region,omitempty"`
+
+	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set.
+	RequestHeaders *SandboxPreviewHeaders `json:"request_headers,omitempty"`
+
+	// ResponseHeaders Headers added to every response served by the preview, for example CORS headers.
+	ResponseHeaders *SandboxPreviewHeaders `json:"response_headers,omitempty"`
+
+	// Status Preview status, always uppercase.
+	Status *SandboxPreviewStatus `json:"status,omitempty"`
+
+	// Ttl Lifetime counted from the request, using seconds, minutes, hours or composite durations such as 1h30m. Whole days are also supported, for example 7d; days cannot be combined with other units. The preview is deleted when it elapses.
+	Ttl       *SandboxPreviewTtl `json:"ttl,omitempty"`
+	UpdatedAt *time.Time         `json:"updated_at,omitempty"`
+	UpdatedBy *string            `json:"updated_by,omitempty"`
+
+	// Url HTTPS URL serving the port, including the region label. Use this exact URL. Requests to a private preview need a token.
+	Url *string `json:"url,omitempty"`
+}
+
+// SandboxPreviewConfiguration Mutable preview configuration. ttl and expires_at are mutually exclusive; supplying both returns 400.
+type SandboxPreviewConfiguration struct {
+	// ExpiresAt Time at which the preview is deleted. Must be in the future.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	// Public Whether the URL is reachable without a preview token. Defaults to false.
+	Public *bool `json:"public,omitempty"`
+
+	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set.
+	RequestHeaders *SandboxPreviewHeaders `json:"request_headers,omitempty"`
+
+	// ResponseHeaders Headers added to every response served by the preview, for example CORS headers.
+	ResponseHeaders *SandboxPreviewHeaders `json:"response_headers,omitempty"`
+
+	// Ttl Lifetime counted from the request, using seconds, minutes, hours or composite durations such as 1h30m. Whole days are also supported, for example 7d; days cannot be combined with other units. The preview is deleted when it elapses.
+	Ttl *SandboxPreviewTtl `json:"ttl,omitempty"`
+}
+
+// SandboxPreviewHeaders HTTP headers as name-value pairs.
+type SandboxPreviewHeaders map[string]string
+
+// SandboxPreviewStatus Preview status, always uppercase.
+type SandboxPreviewStatus string
+
+// SandboxPreviewToken Access token for a private preview.
+type SandboxPreviewToken struct {
+	// Expired Whether expires_at has passed.
+	Expired   bool      `json:"expired"`
+	ExpiresAt time.Time `json:"expires_at"`
+
+	// Name Token name, used in token_name path parameters.
+	Name string `json:"name"`
+
+	// Token Value to send as the bl_preview_token query parameter.
+	Token string `json:"token"`
+}
+
+// SandboxPreviewTtl Lifetime counted from the request, using seconds, minutes, hours or composite durations such as 1h30m. Whole days are also supported, for example 7d; days cannot be combined with other units. The preview is deleted when it elapses.
+type SandboxPreviewTtl = string
+
 // SandboxProxyConfig Proxy configuration for routing sandbox HTTP traffic through the platform proxy with MITM inspection and per-destination header/body injection
 type SandboxProxyConfig struct {
 	// AllowedDomains List of allowed external domains (allowlist). When set, only these domains are reachable. Supports wildcards (e.g. *.storage.example.com).
@@ -8938,6 +9097,9 @@ type UpdateRouteUserSettingsRequest struct {
 	// SpendLimit Spend limit fields to change. Pass null to remove the user's limit; omit to leave it unchanged.
 	SpendLimit Optional[UpdateRouteSpendLimitSetting] `json:"spend_limit,omitzero"`
 }
+
+// UpdateSandboxPreviewRequest Mutable preview configuration. ttl and expires_at are mutually exclusive; supplying both returns 400.
+type UpdateSandboxPreviewRequest = SandboxPreviewConfiguration
 
 // UpdateSandboxRequest Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, network, region, image, and ports are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.
 type UpdateSandboxRequest struct {
@@ -10376,6 +10538,69 @@ type GetSandboxMetricsParams struct {
 	Metrics *[]SandboxMetricName `form:"metrics,omitempty" json:"metrics,omitempty"`
 }
 
+// ListSandboxPreviewsParams defines parameters for ListSandboxPreviews.
+type ListSandboxPreviewsParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Cursor Opaque cursor from the previous page; omit for the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// CreateSandboxPreviewParams defines parameters for CreateSandboxPreview.
+type CreateSandboxPreviewParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// DeleteSandboxPreviewParams defines parameters for DeleteSandboxPreview.
+type DeleteSandboxPreviewParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// GetSandboxPreviewParams defines parameters for GetSandboxPreview.
+type GetSandboxPreviewParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// ShowSecrets Reveal request header values for workspace administrators, for example to change one header and send the full set back in a PATCH. Defaults to false. Callers without the admin role receive masked values even when true.
+	ShowSecrets *bool `form:"show_secrets,omitempty" json:"show_secrets,omitempty"`
+}
+
+// UpdateSandboxPreviewParams defines parameters for UpdateSandboxPreview.
+type UpdateSandboxPreviewParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// ListSandboxPreviewTokensParams defines parameters for ListSandboxPreviewTokens.
+type ListSandboxPreviewTokensParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Cursor Opaque cursor from the previous page; omit for the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// CreateSandboxPreviewTokenParams defines parameters for CreateSandboxPreviewToken.
+type CreateSandboxPreviewTokenParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// DeleteSandboxPreviewTokenParams defines parameters for DeleteSandboxPreviewToken.
+type DeleteSandboxPreviewTokenParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
 // GetV1TeamsParams defines parameters for GetV1Teams.
 type GetV1TeamsParams struct {
 	// Name When set, returns only the team with this exact name, if any.
@@ -10654,6 +10879,15 @@ type CreateSandboxJSONRequestBody = CreateSandboxRequest
 
 // UpdateSandboxJSONRequestBody defines body for UpdateSandbox for application/json ContentType.
 type UpdateSandboxJSONRequestBody = UpdateSandboxRequest
+
+// CreateSandboxPreviewJSONRequestBody defines body for CreateSandboxPreview for application/json ContentType.
+type CreateSandboxPreviewJSONRequestBody = CreateSandboxPreviewRequest
+
+// UpdateSandboxPreviewJSONRequestBody defines body for UpdateSandboxPreview for application/json ContentType.
+type UpdateSandboxPreviewJSONRequestBody = UpdateSandboxPreviewRequest
+
+// CreateSandboxPreviewTokenJSONRequestBody defines body for CreateSandboxPreviewToken for application/json ContentType.
+type CreateSandboxPreviewTokenJSONRequestBody = CreateSandboxPreviewTokenRequest
 
 // PostV1SecretsJSONRequestBody defines body for PostV1Secrets for application/json ContentType.
 type PostV1SecretsJSONRequestBody = UpsertSecretRequest

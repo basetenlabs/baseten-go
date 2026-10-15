@@ -59,6 +59,8 @@ func TestTypeParity(t *testing.T) {
 		{name: "NetworkProxyRoute", ours: NetworkProxyRoute{}, generated: managementapi.SandboxProxyTarget{}},
 		{name: "ProcessInfo", ours: ProcessInfo{}, generated: sandboxapi.ProcessResponse{}},
 		{name: "ProcessLogs", ours: ProcessLogs{}, generated: sandboxapi.ProcessLogs{}},
+		{name: "PreviewInfo", ours: PreviewInfo{}, generated: managementapi.SandboxPreview{}},
+		{name: "PreviewTokenInfo", ours: PreviewTokenInfo{}, generated: managementapi.SandboxPreviewToken{}},
 		{
 			name: "ImageInfo", ours: ImageInfo{}, generated: managementapi.SandboxImage{},
 			renamed: map[string]string{"SizeBytes": "Size"},
