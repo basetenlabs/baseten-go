@@ -10181,6 +10181,12 @@ type GetV1RoutesConnectionsParams struct {
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
+// GetV1RoutesSettingsUsersUserIdParams defines parameters for GetV1RoutesSettingsUsersUserId.
+type GetV1RoutesSettingsUsersUserIdParams struct {
+	// TeamId ID of the team to read the user's spend limit in. Defaults to the only team the user has a role in.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
 // GetV1RoutesUsageParams defines parameters for GetV1RoutesUsage.
 type GetV1RoutesUsageParams struct {
 	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
