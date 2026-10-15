@@ -1149,11 +1149,14 @@ func TestE2EPreview(t *testing.T) {
 			return status == http.StatusOK
 		})
 
-		// A public preview has no tokens.
+		// A public preview has no tokens, so listing them is rejected.
+		yielded := 0
 		for _, err := range previews.ListTokens(t.Context(), sandbox.PreviewListTokensOptions{PreviewName: name}) {
+			yielded++
 			apiErr := require.ErrorAs[*sandbox.APIError](t, err)
 			require.Equal(t, http.StatusBadRequest, apiErr.Status)
 		}
+		require.Equal(t, 1, yielded)
 	})
 
 	t.Run("Delete", func(t *testing.T) {
