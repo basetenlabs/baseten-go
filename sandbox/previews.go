@@ -309,7 +309,9 @@ type PreviewCreateTokenOptions struct {
 	ExpiresAt time.Time
 
 	// CreateIfNotExists returns an existing unexpired token of the preview
-	// that stays valid at least until ExpiresAt, instead of creating one.
+	// that stays valid at least until ExpiresAt, instead of creating one. A
+	// token created moments before may not be found yet, so a new one may be
+	// created anyway.
 	CreateIfNotExists bool
 }
 

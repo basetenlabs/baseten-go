@@ -1103,11 +1103,15 @@ func TestE2EPreview(t *testing.T) {
 		token, err := previews.CreateToken(t.Context(), sandbox.PreviewCreateTokenOptions{PreviewName: name, ExpiresAt: time.Now().Add(time.Hour)})
 		require.NoError(t, err)
 		require.False(t, token.Expired, "new token not expired")
+		// The server may not find the token just created yet, so the result may
+		// be that token or a new one, either valid at least as long as asked.
+		reusedUntil := time.Now().Add(30 * time.Minute)
 		reused, err := previews.CreateToken(t.Context(), sandbox.PreviewCreateTokenOptions{
-			PreviewName: name, ExpiresAt: time.Now().Add(30 * time.Minute), CreateIfNotExists: true,
+			PreviewName: name, ExpiresAt: reusedUntil, CreateIfNotExists: true,
 		})
 		require.NoError(t, err)
-		require.Equal(t, token.Name, reused.Name)
+		require.False(t, reused.Expired, "reused token not expired")
+		require.False(t, reused.ExpiresAt.Before(reusedUntil.Add(-e2eClockSkew)), "reused token expires at %v, before %v", reused.ExpiresAt, reusedUntil)
 
 		var tokenNames []string
 		for info, err := range previews.ListTokens(t.Context(), sandbox.PreviewListTokensOptions{PreviewName: name}) {
@@ -1115,6 +1119,7 @@ func TestE2EPreview(t *testing.T) {
 			tokenNames = append(tokenNames, info.Name)
 		}
 		require.True(t, contains(tokenNames, token.Name), "%s not in %v", token.Name, tokenNames)
+		require.True(t, contains(tokenNames, reused.Name), "%s not in %v", reused.Name, tokenNames)
 
 		// The preview adds its response header, and the app sees the request
 		// header the preview adds.
