@@ -1118,8 +1118,7 @@ func TestE2EPreview(t *testing.T) {
 
 		// The preview adds its response header, and the app sees the request
 		// header the preview adds.
-		// TODO: Use ?preview_token= once the server accepts it.
-		withToken := created.URL + "?bl_preview_token=" + token.Token
+		withToken := created.URL + "?preview_token=" + token.Token
 		header, _ := fetchPreview(t, withToken, "served with the token and the request header", func(status int, body string) bool {
 			return status == http.StatusOK && body == "hello injected"
 		})

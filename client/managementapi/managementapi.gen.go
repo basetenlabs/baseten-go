@@ -7165,6 +7165,15 @@ type Route_Target struct {
 	union json.RawMessage
 }
 
+// RouteClassifierListingRef defines model for RouteClassifierListingRef.
+type RouteClassifierListingRef struct {
+	// Id Stable classifier identifier.
+	Id string `json:"id"`
+
+	// Name Display name of the classifier.
+	Name string `json:"name"`
+}
+
 // RouteConnection defines model for RouteConnection.
 type RouteConnection struct {
 	// Config Provider the connection authenticates with, and the team secret holding its API key.
@@ -7313,19 +7322,16 @@ type RouteTargetBasetenModelAPI struct {
 	Type string `json:"type"`
 }
 
-// RouteTargetClassifierModelBased defines model for RouteTargetClassifierModelBased.
-type RouteTargetClassifierModelBased struct {
+// RouteTargetClassifier defines model for RouteTargetClassifier.
+type RouteTargetClassifier struct {
 	// AllowedRoutes Routes the classifier may pick, in creation order.
 	AllowedRoutes []RouteRef `json:"allowed_routes"`
 
-	// ClassifierEnvironmentName Environment of the classifier model. Null for production.
-	ClassifierEnvironmentName *string `json:"classifier_environment_name"`
+	// Classifier Classifier that picks a route for each request. Null for routers created before classifiers could be selected.
+	Classifier   *RouteClassifierListingRef `json:"classifier"`
+	DefaultRoute RouteRef                   `json:"default_route"`
 
-	// ClassifierModelId ID of the Baseten model that picks a route for each request.
-	ClassifierModelId string   `json:"classifier_model_id"`
-	DefaultRoute      RouteRef `json:"default_route"`
-
-	// Type Target kind for a classifier-model-based route.
+	// Type Target kind for a classifier-based route.
 	Type string `json:"type"`
 }
 
@@ -7352,10 +7358,10 @@ type RouteTeamSettings struct {
 
 // RouteTeamSpendLimitSetting defines model for RouteTeamSpendLimitSetting.
 type RouteTeamSpendLimitSetting struct {
-	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member's Code spend in this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.
+	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member's Grid spend in this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.
 	PerMemberMonthlyLimitUsd *string `json:"per_member_monthly_limit_usd"`
 
-	// TeamWideMonthlyLimitUsd Spend limit in USD for each UTC calendar month on the Code spend of all members in this team together. Once it is reached, every member's requests in the team are rejected. Returned as an exact decimal string. Null when the team has no team-wide limit.
+	// TeamWideMonthlyLimitUsd Spend limit in USD for each UTC calendar month on the Grid spend of all members in this team together. Once it is reached, every member's requests in the team are rejected. Returned as an exact decimal string. Null when the team has no team-wide limit.
 	TeamWideMonthlyLimitUsd *string `json:"team_wide_monthly_limit_usd"`
 }
 
@@ -7370,7 +7376,7 @@ type RouteTeamUserSettings struct {
 	// IsBlocked Whether the user's spend this month reached their limit, or the team's spend reached its team-wide limit, so requests with Routes keys they created in the team are rejected.
 	IsBlocked bool `json:"is_blocked"`
 
-	// MonthSpendUsd The user's metered Code spend in USD in the team this UTC calendar month, returned as an exact decimal string.
+	// MonthSpendUsd The user's metered Grid spend in USD in the team this UTC calendar month, returned as an exact decimal string.
 	MonthSpendUsd string                 `json:"month_spend_usd"`
 	SpendLimit    RouteSpendLimitSetting `json:"spend_limit"`
 
@@ -7386,7 +7392,7 @@ type RouteTeamUserSettings struct {
 
 // RouteTeamUserSettingsList defines model for RouteTeamUserSettingsList.
 type RouteTeamUserSettingsList struct {
-	// Users Settings of each user with a role in the team and of anyone with Code spend in the team this month.
+	// Users Settings of each user with a role in the team and of anyone with Grid spend in the team this month.
 	Users []RouteTeamUserSettings `json:"users"`
 }
 
@@ -7404,7 +7410,7 @@ type RouteUsageDimension string
 
 // RouteUserTeamSettingsList defines model for RouteUserTeamSettingsList.
 type RouteUserTeamSettingsList struct {
-	// Teams The user's settings in each team they have a role in and in any team they have Code spend in this month, alphabetical by team name.
+	// Teams The user's settings in each team they have a role in and in any team they have Grid spend in this month, alphabetical by team name.
 	Teams []RouteTeamUserSettings `json:"teams"`
 }
 
@@ -9056,11 +9062,11 @@ type UpdateRouteRequest struct {
 	// DisplayName New display label. Omit to keep the current label; null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
 
-	// Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER_MODEL_BASED configuration of a router route is mutable.
+	// Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER configuration of a router route is mutable.
 	Target Optional[UpdateRouteRequest_Target] `json:"target,omitzero"`
 }
 
-// UpdateRouteRequest_Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER_MODEL_BASED configuration of a router route is mutable.
+// UpdateRouteRequest_Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER configuration of a router route is mutable.
 type UpdateRouteRequest_Target struct {
 	union json.RawMessage
 }
@@ -9085,10 +9091,10 @@ type UpdateRouteTeamSettingsRequest struct {
 
 // UpdateRouteTeamSpendLimitSetting defines model for UpdateRouteTeamSpendLimitSetting.
 type UpdateRouteTeamSpendLimitSetting struct {
-	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member's Code spend in this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.
+	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member's Grid spend in this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.
 	PerMemberMonthlyLimitUsd Optional[string] `json:"per_member_monthly_limit_usd,omitzero"`
 
-	// TeamWideMonthlyLimitUsd Spend limit in USD for each UTC calendar month on the Code spend of all members in this team together. Send null to remove it; omit to leave it unchanged.
+	// TeamWideMonthlyLimitUsd Spend limit in USD for each UTC calendar month on the Grid spend of all members in this team together. Send null to remove it; omit to leave it unchanged.
 	TeamWideMonthlyLimitUsd Optional[string] `json:"team_wide_monthly_limit_usd,omitzero"`
 }
 
@@ -9169,21 +9175,18 @@ type UpsertRouteTargetBasetenModelAPI struct {
 	Type string `json:"type"`
 }
 
-// UpsertRouteTargetClassifierModelBased defines model for UpsertRouteTargetClassifierModelBased.
-type UpsertRouteTargetClassifierModelBased struct {
+// UpsertRouteTargetClassifier defines model for UpsertRouteTargetClassifier.
+type UpsertRouteTargetClassifier struct {
 	// AllowedRouteIds IDs of the routes the classifier may pick. All must belong to the route's team and must not be routers themselves.
 	AllowedRouteIds []string `json:"allowed_route_ids"`
 
-	// ClassifierEnvironmentName Environment of the classifier model. Omit for production, which is returned as null.
-	ClassifierEnvironmentName *string `json:"classifier_environment_name,omitempty"`
-
-	// ClassifierModelId ID of the Baseten model that picks a route for each request. Only classifiers deployed by Baseten's post-training team are supported.
-	ClassifierModelId string `json:"classifier_model_id"`
+	// ClassifierId ID of the classifier that picks a route for each request.
+	ClassifierId string `json:"classifier_id"`
 
 	// DefaultRouteId ID of the allowed route used when the classifier picks none.
 	DefaultRouteId string `json:"default_route_id"`
 
-	// Type Target kind for a classifier-model-based route. Not intended for general use: classifiers are deployed by Baseten's post-training team.
+	// Type Target kind for a classifier-based route.
 	Type string `json:"type"`
 }
 
@@ -12265,16 +12268,16 @@ func (t *CreateRouteRequest_Target) FromUpsertRouteTargetConnection(v UpsertRout
 	return err
 }
 
-// AsUpsertRouteTargetClassifierModelBased returns the union data inside the CreateRouteRequest_Target as a UpsertRouteTargetClassifierModelBased
-func (t CreateRouteRequest_Target) AsUpsertRouteTargetClassifierModelBased() (UpsertRouteTargetClassifierModelBased, error) {
-	var body UpsertRouteTargetClassifierModelBased
+// AsUpsertRouteTargetClassifier returns the union data inside the CreateRouteRequest_Target as a UpsertRouteTargetClassifier
+func (t CreateRouteRequest_Target) AsUpsertRouteTargetClassifier() (UpsertRouteTargetClassifier, error) {
+	var body UpsertRouteTargetClassifier
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromUpsertRouteTargetClassifierModelBased overwrites any union data inside the CreateRouteRequest_Target as the provided UpsertRouteTargetClassifierModelBased
-func (t *CreateRouteRequest_Target) FromUpsertRouteTargetClassifierModelBased(v UpsertRouteTargetClassifierModelBased) error {
-	v.Type = "CLASSIFIER_MODEL_BASED"
+// FromUpsertRouteTargetClassifier overwrites any union data inside the CreateRouteRequest_Target as the provided UpsertRouteTargetClassifier
+func (t *CreateRouteRequest_Target) FromUpsertRouteTargetClassifier(v UpsertRouteTargetClassifier) error {
+	v.Type = "CLASSIFIER"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -12296,8 +12299,8 @@ func (t CreateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
 	switch discriminator {
 	case "BASETEN_MODEL_API":
 		return t.AsUpsertRouteTargetBasetenModelAPI()
-	case "CLASSIFIER_MODEL_BASED":
-		return t.AsUpsertRouteTargetClassifierModelBased()
+	case "CLASSIFIER":
+		return t.AsUpsertRouteTargetClassifier()
 	case "CONNECTION":
 		return t.AsUpsertRouteTargetConnection()
 	default:
@@ -13387,16 +13390,16 @@ func (t *Route_Target) FromRouteTargetConnection(v RouteTargetConnection) error 
 	return err
 }
 
-// AsRouteTargetClassifierModelBased returns the union data inside the Route_Target as a RouteTargetClassifierModelBased
-func (t Route_Target) AsRouteTargetClassifierModelBased() (RouteTargetClassifierModelBased, error) {
-	var body RouteTargetClassifierModelBased
+// AsRouteTargetClassifier returns the union data inside the Route_Target as a RouteTargetClassifier
+func (t Route_Target) AsRouteTargetClassifier() (RouteTargetClassifier, error) {
+	var body RouteTargetClassifier
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetClassifierModelBased overwrites any union data inside the Route_Target as the provided RouteTargetClassifierModelBased
-func (t *Route_Target) FromRouteTargetClassifierModelBased(v RouteTargetClassifierModelBased) error {
-	v.Type = "CLASSIFIER_MODEL_BASED"
+// FromRouteTargetClassifier overwrites any union data inside the Route_Target as the provided RouteTargetClassifier
+func (t *Route_Target) FromRouteTargetClassifier(v RouteTargetClassifier) error {
+	v.Type = "CLASSIFIER"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -13418,8 +13421,8 @@ func (t Route_Target) ValueByDiscriminator() (interface{}, error) {
 	switch discriminator {
 	case "BASETEN_MODEL_API":
 		return t.AsRouteTargetBasetenModelAPI()
-	case "CLASSIFIER_MODEL_BASED":
-		return t.AsRouteTargetClassifierModelBased()
+	case "CLASSIFIER":
+		return t.AsRouteTargetClassifier()
 	case "CONNECTION":
 		return t.AsRouteTargetConnection()
 	default:
@@ -13921,16 +13924,16 @@ func (t *UpdateRouteRequest_Target) FromUpsertRouteTargetConnection(v UpsertRout
 	return err
 }
 
-// AsUpsertRouteTargetClassifierModelBased returns the union data inside the UpdateRouteRequest_Target as a UpsertRouteTargetClassifierModelBased
-func (t UpdateRouteRequest_Target) AsUpsertRouteTargetClassifierModelBased() (UpsertRouteTargetClassifierModelBased, error) {
-	var body UpsertRouteTargetClassifierModelBased
+// AsUpsertRouteTargetClassifier returns the union data inside the UpdateRouteRequest_Target as a UpsertRouteTargetClassifier
+func (t UpdateRouteRequest_Target) AsUpsertRouteTargetClassifier() (UpsertRouteTargetClassifier, error) {
+	var body UpsertRouteTargetClassifier
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromUpsertRouteTargetClassifierModelBased overwrites any union data inside the UpdateRouteRequest_Target as the provided UpsertRouteTargetClassifierModelBased
-func (t *UpdateRouteRequest_Target) FromUpsertRouteTargetClassifierModelBased(v UpsertRouteTargetClassifierModelBased) error {
-	v.Type = "CLASSIFIER_MODEL_BASED"
+// FromUpsertRouteTargetClassifier overwrites any union data inside the UpdateRouteRequest_Target as the provided UpsertRouteTargetClassifier
+func (t *UpdateRouteRequest_Target) FromUpsertRouteTargetClassifier(v UpsertRouteTargetClassifier) error {
+	v.Type = "CLASSIFIER"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -13952,8 +13955,8 @@ func (t UpdateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
 	switch discriminator {
 	case "BASETEN_MODEL_API":
 		return t.AsUpsertRouteTargetBasetenModelAPI()
-	case "CLASSIFIER_MODEL_BASED":
-		return t.AsUpsertRouteTargetClassifierModelBased()
+	case "CLASSIFIER":
+		return t.AsUpsertRouteTargetClassifier()
 	case "CONNECTION":
 		return t.AsUpsertRouteTargetConnection()
 	default:
