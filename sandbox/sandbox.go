@@ -6,26 +6,29 @@ import (
 	"github.com/basetenlabs/baseten-go/client/sandboxapi"
 )
 
-// Sandbox works in one sandbox: running processes and reading and writing its
-// filesystem.
+// Sandbox works in one sandbox: running processes, reading and writing its
+// filesystem, and managing its previews.
 //
 // Get one from [Client.Create] or [Client.Get], or, without a call, from
 // [Client.SandboxFromURL] when the sandbox's URL is already known. A Sandbox
 // uses its client's credentials, HTTP client, headers, and retries.
 type Sandbox struct {
-	name    string
-	url     string
-	api     *sandboxapi.Client
-	retries RetryOptions
-	process *ProcessService
-	fs      *FileSystemService
+	client   *Client
+	name     string
+	url      string
+	api      *sandboxapi.Client
+	retries  RetryOptions
+	process  *ProcessService
+	fs       *FileSystemService
+	previews *PreviewService
 }
 
 func (c *Client) newSandbox(name, url string) *Sandbox {
 	url = strings.TrimRight(url, "/")
 	sandbox := &Sandbox{
-		name: name,
-		url:  url,
+		client: c,
+		name:   name,
+		url:    url,
 		api: &sandboxapi.Client{
 			BaseURL:    url,
 			HTTPClient: &authenticatedClient{inner: c.httpClient, tokens: c.tokens},
@@ -35,6 +38,7 @@ func (c *Client) newSandbox(name, url string) *Sandbox {
 	}
 	sandbox.process = newProcessService(sandbox)
 	sandbox.fs = newFileSystemService(sandbox)
+	sandbox.previews = newPreviewService(sandbox)
 	return sandbox
 }
 
@@ -57,6 +61,13 @@ func (s *Sandbox) Process() *ProcessService {
 // FS reads and writes files and directories in the sandbox.
 func (s *Sandbox) FS() *FileSystemService {
 	return s.fs
+}
+
+// Previews manages the sandbox's previews, which expose its ports on HTTPS
+// URLs. Every call fails on a Sandbox from [Client.SandboxFromURL], which has
+// no name.
+func (s *Sandbox) Previews() *PreviewService {
+	return s.previews
 }
 
 // API returns the underlying generated execution API client for this

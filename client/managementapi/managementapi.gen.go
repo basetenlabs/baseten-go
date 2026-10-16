@@ -1439,6 +1439,33 @@ func (e SandboxPortProtocol) Valid() bool {
 	}
 }
 
+// Defines values for SandboxPreviewStatus.
+const (
+	SandboxPreviewStatus_DELETING   SandboxPreviewStatus = "DELETING"
+	SandboxPreviewStatus_DEPLOYED   SandboxPreviewStatus = "DEPLOYED"
+	SandboxPreviewStatus_DEPLOYING  SandboxPreviewStatus = "DEPLOYING"
+	SandboxPreviewStatus_FAILED     SandboxPreviewStatus = "FAILED"
+	SandboxPreviewStatus_TERMINATED SandboxPreviewStatus = "TERMINATED"
+)
+
+// Valid indicates whether the value is a known member of the SandboxPreviewStatus enum.
+func (e SandboxPreviewStatus) Valid() bool {
+	switch e {
+	case SandboxPreviewStatus_DELETING:
+		return true
+	case SandboxPreviewStatus_DEPLOYED:
+		return true
+	case SandboxPreviewStatus_DEPLOYING:
+		return true
+	case SandboxPreviewStatus_FAILED:
+		return true
+	case SandboxPreviewStatus_TERMINATED:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SandboxRegionInfoGeneration.
 const (
 	SandboxRegionInfoGeneration_CARBON SandboxRegionInfoGeneration = "CARBON"
@@ -3699,6 +3726,42 @@ type CreateRouteRequest_Target struct {
 	union json.RawMessage
 }
 
+// CreateSandboxPreviewRequest defines model for CreateSandboxPreviewRequest.
+type CreateSandboxPreviewRequest struct {
+	// CreateIfNotExists When true, return the existing preview with this name instead of failing with a conflict. Without name, the name is public-<port> or private-<port>, so the same port and visibility return the same preview. Existing configuration is preserved. Defaults to false when omitted.
+	CreateIfNotExists *bool `json:"create_if_not_exists,omitempty"`
+
+	// ExpiresAt Time at which the preview is deleted. Must be in the future.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	// Name Preview name, unique within the sandbox. When omitted, generated from the sandbox name and port, or public-<port> or private-<port> when create_if_not_exists is true.
+	Name *string `json:"name,omitempty"`
+
+	// Port Sandbox port to expose.
+	Port int `json:"port"`
+
+	// Public Whether the URL is reachable without a preview token. Defaults to false.
+	Public *bool `json:"public,omitempty"`
+
+	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set.
+	RequestHeaders *SandboxPreviewHeaders `json:"request_headers,omitempty"`
+
+	// ResponseHeaders Headers added to every response served by the preview, for example CORS headers.
+	ResponseHeaders *SandboxPreviewHeaders `json:"response_headers,omitempty"`
+
+	// Ttl Lifetime counted from the request, using seconds, minutes, hours or composite durations such as 1h30m. Whole days are also supported, for example 7d; days cannot be combined with other units. The preview is deleted when it elapses.
+	Ttl *SandboxPreviewTtl `json:"ttl,omitempty"`
+}
+
+// CreateSandboxPreviewTokenRequest defines model for CreateSandboxPreviewTokenRequest.
+type CreateSandboxPreviewTokenRequest struct {
+	// CreateIfNotExists When true, return an existing unexpired token of this preview that stays valid at least until expires_at instead of creating a new one. Defaults to false when omitted.
+	CreateIfNotExists *bool `json:"create_if_not_exists,omitempty"`
+
+	// ExpiresAt Time at which the token stops working. Must be in the future.
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
 // CreateSandboxRequest Configuration for a new sandbox. The client may provide a name; otherwise the server generates one. The name is immutable after creation.
 type CreateSandboxRequest struct {
 	// CreateIfNotExists When true, return the existing live sandbox with this name or recreate it if it is failed, terminated, or being deleted. The server handles concurrent creation and deletion races with a bounded wait; persistent contention returns a conflict. Requires name. Existing configuration is preserved. Defaults to false when omitted.
@@ -5746,6 +5809,24 @@ type ListSandboxLibraryImagesResponse struct {
 	Items []SandboxLibraryImage `json:"items"`
 }
 
+// ListSandboxPreviewTokensResponse One page of tokens of a preview.
+type ListSandboxPreviewTokensResponse struct {
+	// Items Resources on this page.
+	Items []SandboxPreviewToken `json:"items"`
+
+	// Pagination Cursor pagination information. The cursor is present only when another page is available.
+	Pagination SandboxApiPagination `json:"pagination"`
+}
+
+// ListSandboxPreviewsResponse One page of previews of a sandbox.
+type ListSandboxPreviewsResponse struct {
+	// Items Resources on this page.
+	Items []SandboxPreview `json:"items"`
+
+	// Pagination Cursor pagination information. The cursor is present only when another page is available.
+	Pagination SandboxApiPagination `json:"pagination"`
+}
+
 // ListSandboxesResponse One page of sandboxes.
 type ListSandboxesResponse struct {
 	// Items Resources on this page.
@@ -7084,6 +7165,15 @@ type Route_Target struct {
 	union json.RawMessage
 }
 
+// RouteClassifierListingRef defines model for RouteClassifierListingRef.
+type RouteClassifierListingRef struct {
+	// Id Stable classifier identifier.
+	Id string `json:"id"`
+
+	// Name Display name of the classifier.
+	Name string `json:"name"`
+}
+
 // RouteConnection defines model for RouteConnection.
 type RouteConnection struct {
 	// Config Provider the connection authenticates with, and the team secret holding its API key.
@@ -7232,19 +7322,16 @@ type RouteTargetBasetenModelAPI struct {
 	Type string `json:"type"`
 }
 
-// RouteTargetClassifierModelBased defines model for RouteTargetClassifierModelBased.
-type RouteTargetClassifierModelBased struct {
+// RouteTargetClassifier defines model for RouteTargetClassifier.
+type RouteTargetClassifier struct {
 	// AllowedRoutes Routes the classifier may pick, in creation order.
 	AllowedRoutes []RouteRef `json:"allowed_routes"`
 
-	// ClassifierEnvironmentName Environment of the classifier model. Null for production.
-	ClassifierEnvironmentName *string `json:"classifier_environment_name"`
+	// Classifier Classifier that picks a route for each request. Null for routers created before classifiers could be selected.
+	Classifier   *RouteClassifierListingRef `json:"classifier"`
+	DefaultRoute RouteRef                   `json:"default_route"`
 
-	// ClassifierModelId ID of the Baseten model that picks a route for each request.
-	ClassifierModelId string   `json:"classifier_model_id"`
-	DefaultRoute      RouteRef `json:"default_route"`
-
-	// Type Target kind for a classifier-model-based route.
+	// Type Target kind for a classifier-based route.
 	Type string `json:"type"`
 }
 
@@ -7271,10 +7358,10 @@ type RouteTeamSettings struct {
 
 // RouteTeamSpendLimitSetting defines model for RouteTeamSpendLimitSetting.
 type RouteTeamSpendLimitSetting struct {
-	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member's Code spend in this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.
+	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member's Grid spend in this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.
 	PerMemberMonthlyLimitUsd *string `json:"per_member_monthly_limit_usd"`
 
-	// TeamWideMonthlyLimitUsd Spend limit in USD for each UTC calendar month on the Code spend of all members in this team together. Once it is reached, every member's requests in the team are rejected. Returned as an exact decimal string. Null when the team has no team-wide limit.
+	// TeamWideMonthlyLimitUsd Spend limit in USD for each UTC calendar month on the Grid spend of all members in this team together. Once it is reached, every member's requests in the team are rejected. Returned as an exact decimal string. Null when the team has no team-wide limit.
 	TeamWideMonthlyLimitUsd *string `json:"team_wide_monthly_limit_usd"`
 }
 
@@ -7289,7 +7376,7 @@ type RouteTeamUserSettings struct {
 	// IsBlocked Whether the user's spend this month reached their limit, or the team's spend reached its team-wide limit, so requests with Routes keys they created in the team are rejected.
 	IsBlocked bool `json:"is_blocked"`
 
-	// MonthSpendUsd The user's metered Code spend in USD in the team this UTC calendar month, returned as an exact decimal string.
+	// MonthSpendUsd The user's metered Grid spend in USD in the team this UTC calendar month, returned as an exact decimal string.
 	MonthSpendUsd string                 `json:"month_spend_usd"`
 	SpendLimit    RouteSpendLimitSetting `json:"spend_limit"`
 
@@ -7305,7 +7392,7 @@ type RouteTeamUserSettings struct {
 
 // RouteTeamUserSettingsList defines model for RouteTeamUserSettingsList.
 type RouteTeamUserSettingsList struct {
-	// Users Settings of each user with a role in the team and of anyone with Code spend in the team this month.
+	// Users Settings of each user with a role in the team and of anyone with Grid spend in the team this month.
 	Users []RouteTeamUserSettings `json:"users"`
 }
 
@@ -7323,7 +7410,7 @@ type RouteUsageDimension string
 
 // RouteUserTeamSettingsList defines model for RouteUserTeamSettingsList.
 type RouteUserTeamSettingsList struct {
-	// Teams The user's settings in each team they have a role in and in any team they have Code spend in this month, alphabetical by team name.
+	// Teams The user's settings in each team they have a role in and in any team they have Grid spend in this month, alphabetical by team name.
 	Teams []RouteTeamUserSettings `json:"teams"`
 }
 
@@ -7766,6 +7853,84 @@ type SandboxPortProtocol string
 
 // SandboxPorts Set of ports for a resource
 type SandboxPorts = []SandboxPort
+
+// SandboxPreview defines model for SandboxPreview.
+type SandboxPreview struct {
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	CreatedBy *string    `json:"created_by,omitempty"`
+
+	// ExpiresAt Time at which the preview is deleted. Must be in the future.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	// Name Preview name, used in preview_name path parameters.
+	Name *string `json:"name,omitempty"`
+
+	// Port Exposed sandbox port.
+	Port *int `json:"port,omitempty"`
+
+	// Public Whether the URL is reachable without a preview token. Defaults to false.
+	Public bool `json:"public"`
+
+	// Region Region serving the preview, the sandbox's region.
+	Region *string `json:"region,omitempty"`
+
+	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set.
+	RequestHeaders *SandboxPreviewHeaders `json:"request_headers,omitempty"`
+
+	// ResponseHeaders Headers added to every response served by the preview, for example CORS headers.
+	ResponseHeaders *SandboxPreviewHeaders `json:"response_headers,omitempty"`
+
+	// Status Preview status, always uppercase.
+	Status *SandboxPreviewStatus `json:"status,omitempty"`
+
+	// Ttl Lifetime counted from the request, using seconds, minutes, hours or composite durations such as 1h30m. Whole days are also supported, for example 7d; days cannot be combined with other units. The preview is deleted when it elapses.
+	Ttl       *SandboxPreviewTtl `json:"ttl,omitempty"`
+	UpdatedAt *time.Time         `json:"updated_at,omitempty"`
+	UpdatedBy *string            `json:"updated_by,omitempty"`
+
+	// Url HTTPS URL serving the port, including the region label. Use this exact URL. Requests to a private preview need a token.
+	Url *string `json:"url,omitempty"`
+}
+
+// SandboxPreviewConfiguration Mutable preview configuration. ttl and expires_at are mutually exclusive; supplying both returns 400.
+type SandboxPreviewConfiguration struct {
+	// ExpiresAt Time at which the preview is deleted. Must be in the future.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	// Public Whether the URL is reachable without a preview token. Defaults to false.
+	Public *bool `json:"public,omitempty"`
+
+	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set.
+	RequestHeaders *SandboxPreviewHeaders `json:"request_headers,omitempty"`
+
+	// ResponseHeaders Headers added to every response served by the preview, for example CORS headers.
+	ResponseHeaders *SandboxPreviewHeaders `json:"response_headers,omitempty"`
+
+	// Ttl Lifetime counted from the request, using seconds, minutes, hours or composite durations such as 1h30m. Whole days are also supported, for example 7d; days cannot be combined with other units. The preview is deleted when it elapses.
+	Ttl *SandboxPreviewTtl `json:"ttl,omitempty"`
+}
+
+// SandboxPreviewHeaders HTTP headers as name-value pairs.
+type SandboxPreviewHeaders map[string]string
+
+// SandboxPreviewStatus Preview status, always uppercase.
+type SandboxPreviewStatus string
+
+// SandboxPreviewToken Access token for a private preview.
+type SandboxPreviewToken struct {
+	// Expired Whether expires_at has passed.
+	Expired   bool      `json:"expired"`
+	ExpiresAt time.Time `json:"expires_at"`
+
+	// Name Token name, used in token_name path parameters.
+	Name string `json:"name"`
+
+	// Token Value to send as the bl_preview_token query parameter.
+	Token string `json:"token"`
+}
+
+// SandboxPreviewTtl Lifetime counted from the request, using seconds, minutes, hours or composite durations such as 1h30m. Whole days are also supported, for example 7d; days cannot be combined with other units. The preview is deleted when it elapses.
+type SandboxPreviewTtl = string
 
 // SandboxProxyConfig Proxy configuration for routing sandbox HTTP traffic through the platform proxy with MITM inspection and per-destination header/body injection
 type SandboxProxyConfig struct {
@@ -8897,11 +9062,11 @@ type UpdateRouteRequest struct {
 	// DisplayName New display label. Omit to keep the current label; null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
 
-	// Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER_MODEL_BASED configuration of a router route is mutable.
+	// Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER configuration of a router route is mutable.
 	Target Optional[UpdateRouteRequest_Target] `json:"target,omitzero"`
 }
 
-// UpdateRouteRequest_Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER_MODEL_BASED configuration of a router route is mutable.
+// UpdateRouteRequest_Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER configuration of a router route is mutable.
 type UpdateRouteRequest_Target struct {
 	union json.RawMessage
 }
@@ -8926,10 +9091,10 @@ type UpdateRouteTeamSettingsRequest struct {
 
 // UpdateRouteTeamSpendLimitSetting defines model for UpdateRouteTeamSpendLimitSetting.
 type UpdateRouteTeamSpendLimitSetting struct {
-	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member's Code spend in this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.
+	// PerMemberMonthlyLimitUsd Spend limit in USD for each UTC calendar month that applies to each member's Grid spend in this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.
 	PerMemberMonthlyLimitUsd Optional[string] `json:"per_member_monthly_limit_usd,omitzero"`
 
-	// TeamWideMonthlyLimitUsd Spend limit in USD for each UTC calendar month on the Code spend of all members in this team together. Send null to remove it; omit to leave it unchanged.
+	// TeamWideMonthlyLimitUsd Spend limit in USD for each UTC calendar month on the Grid spend of all members in this team together. Send null to remove it; omit to leave it unchanged.
 	TeamWideMonthlyLimitUsd Optional[string] `json:"team_wide_monthly_limit_usd,omitzero"`
 }
 
@@ -8938,6 +9103,9 @@ type UpdateRouteUserSettingsRequest struct {
 	// SpendLimit Spend limit fields to change. Pass null to remove the user's limit; omit to leave it unchanged.
 	SpendLimit Optional[UpdateRouteSpendLimitSetting] `json:"spend_limit,omitzero"`
 }
+
+// UpdateSandboxPreviewRequest Mutable preview configuration. ttl and expires_at are mutually exclusive; supplying both returns 400.
+type UpdateSandboxPreviewRequest = SandboxPreviewConfiguration
 
 // UpdateSandboxRequest Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, network, region, image, and ports are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.
 type UpdateSandboxRequest struct {
@@ -9007,21 +9175,18 @@ type UpsertRouteTargetBasetenModelAPI struct {
 	Type string `json:"type"`
 }
 
-// UpsertRouteTargetClassifierModelBased defines model for UpsertRouteTargetClassifierModelBased.
-type UpsertRouteTargetClassifierModelBased struct {
+// UpsertRouteTargetClassifier defines model for UpsertRouteTargetClassifier.
+type UpsertRouteTargetClassifier struct {
 	// AllowedRouteIds IDs of the routes the classifier may pick. All must belong to the route's team and must not be routers themselves.
 	AllowedRouteIds []string `json:"allowed_route_ids"`
 
-	// ClassifierEnvironmentName Environment of the classifier model. Omit for production, which is returned as null.
-	ClassifierEnvironmentName *string `json:"classifier_environment_name,omitempty"`
-
-	// ClassifierModelId ID of the Baseten model that picks a route for each request. Only classifiers deployed by Baseten's post-training team are supported.
-	ClassifierModelId string `json:"classifier_model_id"`
+	// ClassifierId ID of the classifier that picks a route for each request.
+	ClassifierId string `json:"classifier_id"`
 
 	// DefaultRouteId ID of the allowed route used when the classifier picks none.
 	DefaultRouteId string `json:"default_route_id"`
 
-	// Type Target kind for a classifier-model-based route. Not intended for general use: classifiers are deployed by Baseten's post-training team.
+	// Type Target kind for a classifier-based route.
 	Type string `json:"type"`
 }
 
@@ -10376,6 +10541,69 @@ type GetSandboxMetricsParams struct {
 	Metrics *[]SandboxMetricName `form:"metrics,omitempty" json:"metrics,omitempty"`
 }
 
+// ListSandboxPreviewsParams defines parameters for ListSandboxPreviews.
+type ListSandboxPreviewsParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Cursor Opaque cursor from the previous page; omit for the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// CreateSandboxPreviewParams defines parameters for CreateSandboxPreview.
+type CreateSandboxPreviewParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// DeleteSandboxPreviewParams defines parameters for DeleteSandboxPreview.
+type DeleteSandboxPreviewParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// GetSandboxPreviewParams defines parameters for GetSandboxPreview.
+type GetSandboxPreviewParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// ShowSecrets Reveal request header values for workspace administrators, for example to change one header and send the full set back in a PATCH. Defaults to false. Callers without the admin role receive masked values even when true.
+	ShowSecrets *bool `form:"show_secrets,omitempty" json:"show_secrets,omitempty"`
+}
+
+// UpdateSandboxPreviewParams defines parameters for UpdateSandboxPreview.
+type UpdateSandboxPreviewParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// ListSandboxPreviewTokensParams defines parameters for ListSandboxPreviewTokens.
+type ListSandboxPreviewTokensParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Cursor Opaque cursor from the previous page; omit for the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// CreateSandboxPreviewTokenParams defines parameters for CreateSandboxPreviewToken.
+type CreateSandboxPreviewTokenParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// DeleteSandboxPreviewTokenParams defines parameters for DeleteSandboxPreviewToken.
+type DeleteSandboxPreviewTokenParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
 // GetV1TeamsParams defines parameters for GetV1Teams.
 type GetV1TeamsParams struct {
 	// Name When set, returns only the team with this exact name, if any.
@@ -10654,6 +10882,15 @@ type CreateSandboxJSONRequestBody = CreateSandboxRequest
 
 // UpdateSandboxJSONRequestBody defines body for UpdateSandbox for application/json ContentType.
 type UpdateSandboxJSONRequestBody = UpdateSandboxRequest
+
+// CreateSandboxPreviewJSONRequestBody defines body for CreateSandboxPreview for application/json ContentType.
+type CreateSandboxPreviewJSONRequestBody = CreateSandboxPreviewRequest
+
+// UpdateSandboxPreviewJSONRequestBody defines body for UpdateSandboxPreview for application/json ContentType.
+type UpdateSandboxPreviewJSONRequestBody = UpdateSandboxPreviewRequest
+
+// CreateSandboxPreviewTokenJSONRequestBody defines body for CreateSandboxPreviewToken for application/json ContentType.
+type CreateSandboxPreviewTokenJSONRequestBody = CreateSandboxPreviewTokenRequest
 
 // PostV1SecretsJSONRequestBody defines body for PostV1Secrets for application/json ContentType.
 type PostV1SecretsJSONRequestBody = UpsertSecretRequest
@@ -12031,16 +12268,16 @@ func (t *CreateRouteRequest_Target) FromUpsertRouteTargetConnection(v UpsertRout
 	return err
 }
 
-// AsUpsertRouteTargetClassifierModelBased returns the union data inside the CreateRouteRequest_Target as a UpsertRouteTargetClassifierModelBased
-func (t CreateRouteRequest_Target) AsUpsertRouteTargetClassifierModelBased() (UpsertRouteTargetClassifierModelBased, error) {
-	var body UpsertRouteTargetClassifierModelBased
+// AsUpsertRouteTargetClassifier returns the union data inside the CreateRouteRequest_Target as a UpsertRouteTargetClassifier
+func (t CreateRouteRequest_Target) AsUpsertRouteTargetClassifier() (UpsertRouteTargetClassifier, error) {
+	var body UpsertRouteTargetClassifier
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromUpsertRouteTargetClassifierModelBased overwrites any union data inside the CreateRouteRequest_Target as the provided UpsertRouteTargetClassifierModelBased
-func (t *CreateRouteRequest_Target) FromUpsertRouteTargetClassifierModelBased(v UpsertRouteTargetClassifierModelBased) error {
-	v.Type = "CLASSIFIER_MODEL_BASED"
+// FromUpsertRouteTargetClassifier overwrites any union data inside the CreateRouteRequest_Target as the provided UpsertRouteTargetClassifier
+func (t *CreateRouteRequest_Target) FromUpsertRouteTargetClassifier(v UpsertRouteTargetClassifier) error {
+	v.Type = "CLASSIFIER"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -12062,8 +12299,8 @@ func (t CreateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
 	switch discriminator {
 	case "BASETEN_MODEL_API":
 		return t.AsUpsertRouteTargetBasetenModelAPI()
-	case "CLASSIFIER_MODEL_BASED":
-		return t.AsUpsertRouteTargetClassifierModelBased()
+	case "CLASSIFIER":
+		return t.AsUpsertRouteTargetClassifier()
 	case "CONNECTION":
 		return t.AsUpsertRouteTargetConnection()
 	default:
@@ -13153,16 +13390,16 @@ func (t *Route_Target) FromRouteTargetConnection(v RouteTargetConnection) error 
 	return err
 }
 
-// AsRouteTargetClassifierModelBased returns the union data inside the Route_Target as a RouteTargetClassifierModelBased
-func (t Route_Target) AsRouteTargetClassifierModelBased() (RouteTargetClassifierModelBased, error) {
-	var body RouteTargetClassifierModelBased
+// AsRouteTargetClassifier returns the union data inside the Route_Target as a RouteTargetClassifier
+func (t Route_Target) AsRouteTargetClassifier() (RouteTargetClassifier, error) {
+	var body RouteTargetClassifier
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRouteTargetClassifierModelBased overwrites any union data inside the Route_Target as the provided RouteTargetClassifierModelBased
-func (t *Route_Target) FromRouteTargetClassifierModelBased(v RouteTargetClassifierModelBased) error {
-	v.Type = "CLASSIFIER_MODEL_BASED"
+// FromRouteTargetClassifier overwrites any union data inside the Route_Target as the provided RouteTargetClassifier
+func (t *Route_Target) FromRouteTargetClassifier(v RouteTargetClassifier) error {
+	v.Type = "CLASSIFIER"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -13184,8 +13421,8 @@ func (t Route_Target) ValueByDiscriminator() (interface{}, error) {
 	switch discriminator {
 	case "BASETEN_MODEL_API":
 		return t.AsRouteTargetBasetenModelAPI()
-	case "CLASSIFIER_MODEL_BASED":
-		return t.AsRouteTargetClassifierModelBased()
+	case "CLASSIFIER":
+		return t.AsRouteTargetClassifier()
 	case "CONNECTION":
 		return t.AsRouteTargetConnection()
 	default:
@@ -13687,16 +13924,16 @@ func (t *UpdateRouteRequest_Target) FromUpsertRouteTargetConnection(v UpsertRout
 	return err
 }
 
-// AsUpsertRouteTargetClassifierModelBased returns the union data inside the UpdateRouteRequest_Target as a UpsertRouteTargetClassifierModelBased
-func (t UpdateRouteRequest_Target) AsUpsertRouteTargetClassifierModelBased() (UpsertRouteTargetClassifierModelBased, error) {
-	var body UpsertRouteTargetClassifierModelBased
+// AsUpsertRouteTargetClassifier returns the union data inside the UpdateRouteRequest_Target as a UpsertRouteTargetClassifier
+func (t UpdateRouteRequest_Target) AsUpsertRouteTargetClassifier() (UpsertRouteTargetClassifier, error) {
+	var body UpsertRouteTargetClassifier
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromUpsertRouteTargetClassifierModelBased overwrites any union data inside the UpdateRouteRequest_Target as the provided UpsertRouteTargetClassifierModelBased
-func (t *UpdateRouteRequest_Target) FromUpsertRouteTargetClassifierModelBased(v UpsertRouteTargetClassifierModelBased) error {
-	v.Type = "CLASSIFIER_MODEL_BASED"
+// FromUpsertRouteTargetClassifier overwrites any union data inside the UpdateRouteRequest_Target as the provided UpsertRouteTargetClassifier
+func (t *UpdateRouteRequest_Target) FromUpsertRouteTargetClassifier(v UpsertRouteTargetClassifier) error {
+	v.Type = "CLASSIFIER"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -13718,8 +13955,8 @@ func (t UpdateRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
 	switch discriminator {
 	case "BASETEN_MODEL_API":
 		return t.AsUpsertRouteTargetBasetenModelAPI()
-	case "CLASSIFIER_MODEL_BASED":
-		return t.AsUpsertRouteTargetClassifierModelBased()
+	case "CLASSIFIER":
+		return t.AsUpsertRouteTargetClassifier()
 	case "CONNECTION":
 		return t.AsUpsertRouteTargetConnection()
 	default:

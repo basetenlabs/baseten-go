@@ -44,6 +44,8 @@ jobs:
           BASETEN_E2E_TEST_API_KEY: ${{ secrets.BASETEN_E2E_TEST_API_KEY }}
           BASETEN_E2E_TEST_DOMAIN: ${{ secrets.BASETEN_E2E_TEST_DOMAIN }}
           BASETEN_E2E_TEST_MODEL_ID: ${{ secrets.BASETEN_E2E_TEST_MODEL_ID }}
+        # -v so each test and its logs stream as the run progresses, showing
+        # which test failed or hung and what it logged on the way.
         run: |
-          go test ${{ matrix.test-flags }} ./...
-          (cd internal/separate-module-tests && go test ${{ matrix.test-flags }} ./...)
+          go test -v ${{ matrix.test-flags }} ./...
+          (cd internal/separate-module-tests && go test -v ${{ matrix.test-flags }} ./...)

@@ -71,6 +71,32 @@ func (c *Client) CreateSandbox(ctx context.Context, params CreateSandboxParams, 
 	})
 }
 
+// CreateSandboxPreview: Create a sandbox preview
+func (c *Client) CreateSandboxPreview(ctx context.Context, sandboxName string, params CreateSandboxPreviewParams, body CreateSandboxPreviewRequest) (*SandboxPreview, error) {
+	return doJSON[SandboxPreview](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/sandboxes/instances/%s/previews",
+		pathArgs:     []any{sandboxName},
+		queryParams:  params,
+		body:         body,
+		successCodes: []int{201},
+		errorCodes:   nil,
+	})
+}
+
+// CreateSandboxPreviewToken: Create a preview token
+func (c *Client) CreateSandboxPreviewToken(ctx context.Context, sandboxName string, previewName string, params CreateSandboxPreviewTokenParams, body CreateSandboxPreviewTokenRequest) (*SandboxPreviewToken, error) {
+	return doJSON[SandboxPreviewToken](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/sandboxes/instances/%s/previews/%s/tokens",
+		pathArgs:     []any{sandboxName, previewName},
+		queryParams:  params,
+		body:         body,
+		successCodes: []int{201},
+		errorCodes:   nil,
+	})
+}
+
 // DeleteApiKeys: Deletes an API key by prefix
 func (c *Client) DeleteApiKeys(ctx context.Context, apiKeyPrefix string) (*APIKeyTombstone, error) {
 	return doJSON[APIKeyTombstone](c, ctx, apiRequest{
@@ -235,6 +261,30 @@ func (c *Client) DeleteSandbox(ctx context.Context, sandboxName string, params D
 		pathArgs:     []any{sandboxName},
 		queryParams:  params,
 		successCodes: []int{202},
+		errorCodes:   nil,
+	})
+}
+
+// DeleteSandboxPreview: Delete a sandbox preview
+func (c *Client) DeleteSandboxPreview(ctx context.Context, sandboxName string, previewName string, params DeleteSandboxPreviewParams) (*SandboxPreview, error) {
+	return doJSON[SandboxPreview](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/sandboxes/instances/%s/previews/%s",
+		pathArgs:     []any{sandboxName, previewName},
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// DeleteSandboxPreviewToken: Delete a preview token
+func (c *Client) DeleteSandboxPreviewToken(ctx context.Context, sandboxName string, previewName string, tokenName string, params DeleteSandboxPreviewTokenParams) error {
+	return c.doNoResponse(ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/sandboxes/instances/%s/previews/%s/tokens/%s",
+		pathArgs:     []any{sandboxName, previewName, tokenName},
+		queryParams:  params,
+		successCodes: []int{204},
 		errorCodes:   nil,
 	})
 }
@@ -1282,6 +1332,18 @@ func (c *Client) GetSandboxMetrics(ctx context.Context, sandboxName string, para
 	})
 }
 
+// GetSandboxPreview: Get a sandbox preview
+func (c *Client) GetSandboxPreview(ctx context.Context, sandboxName string, previewName string, params GetSandboxPreviewParams) (*SandboxPreview, error) {
+	return doJSON[SandboxPreview](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/sandboxes/instances/%s/previews/%s",
+		pathArgs:     []any{sandboxName, previewName},
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // GetSecrets: Gets all secrets (metadata only, no plain text keys)
 func (c *Client) GetSecrets(ctx context.Context) (*Secrets, error) {
 	return doJSON[Secrets](c, ctx, apiRequest{
@@ -1687,6 +1749,30 @@ func (c *Client) ListSandboxLibraryImages(ctx context.Context) (*ListSandboxLibr
 		method:       "GET",
 		pathFmt:      "/v1/sandboxes/library_images",
 		pathArgs:     nil,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// ListSandboxPreviewTokens: List preview tokens
+func (c *Client) ListSandboxPreviewTokens(ctx context.Context, sandboxName string, previewName string, params ListSandboxPreviewTokensParams) (*ListSandboxPreviewTokensResponse, error) {
+	return doJSON[ListSandboxPreviewTokensResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/sandboxes/instances/%s/previews/%s/tokens",
+		pathArgs:     []any{sandboxName, previewName},
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// ListSandboxPreviews: List sandbox previews
+func (c *Client) ListSandboxPreviews(ctx context.Context, sandboxName string, params ListSandboxPreviewsParams) (*ListSandboxPreviewsResponse, error) {
+	return doJSON[ListSandboxPreviewsResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/sandboxes/instances/%s/previews",
+		pathArgs:     []any{sandboxName},
+		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -2906,6 +2992,19 @@ func (c *Client) UpdateSandbox(ctx context.Context, sandboxName string, params U
 	})
 }
 
+// UpdateSandboxPreview: Update a sandbox preview
+func (c *Client) UpdateSandboxPreview(ctx context.Context, sandboxName string, previewName string, params UpdateSandboxPreviewParams, body UpdateSandboxPreviewRequest) (*SandboxPreview, error) {
+	return doJSON[SandboxPreview](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/sandboxes/instances/%s/previews/%s",
+		pathArgs:     []any{sandboxName, previewName},
+		queryParams:  params,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // errorType identifies a typed error schema for status-code-based dispatch.
 type errorType int
 
@@ -3068,4 +3167,13 @@ func doJSON[T any](c *Client, ctx context.Context, r apiRequest) (*T, error) {
 		return nil, err
 	}
 	return &result, nil
+}
+
+func (c *Client) doNoResponse(ctx context.Context, r apiRequest) error {
+	resp, err := c.do(ctx, r)
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
+	return nil
 }

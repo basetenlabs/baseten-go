@@ -83,8 +83,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             }
         },
         "/v1/volumes/token": {
@@ -122,8 +121,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             }
         },
         "/v1/volumes/namespaces": {
@@ -184,8 +182,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             }
         },
         "/v1/volumes/syncs": {
@@ -264,8 +261,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             },
             "post": {
                 "summary": "Starts a volume sync",
@@ -301,8 +297,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             }
         },
         "/v1/volumes/syncs/{volume_sync_id}": {
@@ -329,8 +324,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             },
             "parameters": [
                 {
@@ -363,8 +357,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             },
             "parameters": [
                 {
@@ -407,8 +400,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             },
             "parameters": [
                 {
@@ -442,8 +434,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             },
             "patch": {
                 "summary": "Updates a volume",
@@ -479,8 +470,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             }
         },
         "/v1/volumes/{volume_namespace}/{volume_name}/versions": {
@@ -521,8 +511,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             },
             "parameters": [
                 {
@@ -568,8 +557,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             },
             "parameters": [
                 {
@@ -606,8 +594,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             }
         },
         "/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}/restore": {
@@ -645,8 +632,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             },
             "parameters": [
                 {
@@ -695,8 +681,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             },
             "parameters": [
                 {
@@ -742,8 +727,7 @@
                             }
                         }
                     }
-                },
-                "x-stability": "unstable"
+                }
             },
             "parameters": [
                 {
@@ -10472,7 +10456,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}/teams\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the user's settings in each team they belong to (every team, for organization admins), alphabetical by team name: their spend limit for Baseten Code in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; organization admins can read anyone's.",
+                "description": "Returns the user's settings in each team they belong to (every team, for organization admins), alphabetical by team name: their spend limit for Baseten Grid in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; organization admins can read anyone's.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -10577,7 +10561,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}/users\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the settings in the team of each member of the team, including organization admins and Code service accounts. Requires team admin for the specified team or organization admin.",
+                "description": "Returns the settings in the team of each member of the team, including organization admins and Grid service accounts. Requires team admin for the specified team or organization admin.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -10611,7 +10595,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the user's spend limit for Baseten Code in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; team admins can read members' settings in teams they administer, and organization admins can read anyone's.",
+                "description": "Returns the user's spend limit for Baseten Grid in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; team admins can read members' settings in teams they administer, and organization admins can read anyone's.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -11389,6 +11373,55 @@
                 }
             ]
         },
+        "/v1/sandboxes/configuration": {
+            "get": {
+                "operationId": "GetSandboxConfiguration",
+                "summary": "Get sandbox configuration",
+                "description": "Return available Carbon-compatible sandbox regions. Configuration is the same for every team, so no team is selected. Only enabled regions supporting Carbon are returned. This describes regional capability, not the runtime selected for a particular team or sandbox. Region configuration is cached for up to 30 seconds.",
+                "tags": [
+                    "Sandboxes"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetSandboxConfigurationResponseV1"
+                                },
+                                "example": {
+                                    "regions": [
+                                        {
+                                            "name": "us-was-1",
+                                            "country": "us",
+                                            "continent": "na",
+                                            "location": "Washington",
+                                            "info_generation": "CARBON"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
         "/v1/sandboxes/instances/{sandbox_name}/metrics": {
             "get": {
                 "operationId": "GetSandboxMetrics",
@@ -11540,55 +11573,6 @@
                     },
                     "503": {
                         "description": "Logs are unavailable."
-                    }
-                },
-                "x-stability": "unstable"
-            }
-        },
-        "/v1/sandboxes/configuration": {
-            "get": {
-                "operationId": "GetSandboxConfiguration",
-                "summary": "Get sandbox configuration",
-                "description": "Return available Carbon-compatible sandbox regions. Configuration is the same for every team, so no team is selected. Only enabled regions supporting Carbon are returned. This describes regional capability, not the runtime selected for a particular team or sandbox. Region configuration is cached for up to 30 seconds.",
-                "tags": [
-                    "Sandboxes"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/GetSandboxConfigurationResponseV1"
-                                },
-                                "example": {
-                                    "regions": [
-                                        {
-                                            "name": "us-was-1",
-                                            "country": "us",
-                                            "continent": "na",
-                                            "location": "Washington",
-                                            "info_generation": "CARBON"
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/SandboxError400"
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/SandboxError401"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/SandboxError403"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/SandboxError429"
-                    },
-                    "500": {
-                        "$ref": "#/components/responses/SandboxError500"
                     }
                 },
                 "x-stability": "unstable"
@@ -11959,6 +11943,521 @@
                     },
                     "409": {
                         "$ref": "#/components/responses/SandboxError409"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/sandboxes/instances/{sandbox_name}/previews": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/SandboxName"
+                }
+            ],
+            "get": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Cursor"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Limit"
+                    }
+                ],
+                "operationId": "ListSandboxPreviews",
+                "summary": "List sandbox previews",
+                "description": "Return the previews of the sandbox in the paginated list format. cursor and limit are accepted but not applied yet; all previews fit on one page, so has_more is false. Follow pagination.cursor while has_more is true to stay compatible when they are applied.",
+                "tags": [
+                    "Previews"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListSandboxPreviewsResponseV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxPreviewsList"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "post": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "operationId": "CreateSandboxPreview",
+                "summary": "Create a sandbox preview",
+                "description": "Expose a port of the sandbox on an HTTPS URL. A public preview is reachable by anyone with the URL. A private preview requires a preview token, created with the tokens endpoint and sent as the bl_preview_token query parameter; the first request sets a bl_preview_token cookie so a browser can keep navigating without it. Port 80 and the sandbox's reserved system ports are rejected, and port 443 must stay private. Without a name, the name is generated from the sandbox name and port, or is public-<port> or private-<port> when create_if_not_exists is true.",
+                "tags": [
+                    "Previews"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateSandboxPreviewRequestV1"
+                            },
+                            "examples": {
+                                "public": {
+                                    "$ref": "#/components/examples/CreateSandboxPreviewPublic"
+                                },
+                                "private": {
+                                    "$ref": "#/components/examples/CreateSandboxPreviewPrivate"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Preview created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxPreviewV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxPreviewReady"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "409": {
+                        "$ref": "#/components/responses/SandboxError409"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/sandboxes/instances/{sandbox_name}/previews/{preview_name}": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/SandboxName"
+                },
+                {
+                    "$ref": "#/components/parameters/PreviewName"
+                }
+            ],
+            "get": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    },
+                    {
+                        "name": "show_secrets",
+                        "in": "query",
+                        "description": "Reveal request header values for workspace administrators, for example to change one header and send the full set back in a PATCH. Defaults to false. Callers without the admin role receive masked values even when true.",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                ],
+                "operationId": "GetSandboxPreview",
+                "summary": "Get a sandbox preview",
+                "description": "Return the preview configuration, URL and status.",
+                "tags": [
+                    "Previews"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxPreviewV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxPreviewReady"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "patch": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "operationId": "UpdateSandboxPreview",
+                "summary": "Update a sandbox preview",
+                "description": "Partially update the preview. Omitted fields remain unchanged; supplied header maps replace their previous values. The URL does not change. Setting ttl or expires_at replaces any previous expiration and restarts it from now. The name and port are immutable; supplying either returns 400.",
+                "tags": [
+                    "Previews"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateSandboxPreviewRequestV1"
+                            },
+                            "examples": {
+                                "complete": {
+                                    "$ref": "#/components/examples/UpdateSandboxPreview"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxPreviewV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxPreviewReady"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "409": {
+                        "$ref": "#/components/responses/SandboxError409"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "delete": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "operationId": "DeleteSandboxPreview",
+                "summary": "Delete a sandbox preview",
+                "description": "Delete the preview and revoke its tokens. The URL stops serving immediately. Return the deleted preview, with status TERMINATED, or DELETING while a preview with many tokens finishes in the background.",
+                "tags": [
+                    "Previews"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxPreviewV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxPreviewDeleted"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/sandboxes/instances/{sandbox_name}/previews/{preview_name}/tokens": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/SandboxName"
+                },
+                {
+                    "$ref": "#/components/parameters/PreviewName"
+                }
+            ],
+            "get": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Cursor"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Limit"
+                    }
+                ],
+                "operationId": "ListSandboxPreviewTokens",
+                "summary": "List preview tokens",
+                "description": "Return the tokens of a private preview in the paginated list format, including expired tokens until they are removed. cursor and limit are accepted but not applied yet; all tokens fit on one page, so has_more is false. Follow pagination.cursor while has_more is true to stay compatible when they are applied.",
+                "tags": [
+                    "Previews"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListSandboxPreviewTokensResponseV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxPreviewTokensList"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "The preview is public, so it has no tokens. Returns a JSON error with code, message, and optional details.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": "INVALID_REQUEST",
+                                    "message": "Public preview cannot have tokens."
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "post": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "operationId": "CreateSandboxPreviewToken",
+                "summary": "Create a preview token",
+                "description": "Create a token granting access to a private preview until expires_at. Append it to the preview URL as ?bl_preview_token=<token>.",
+                "tags": [
+                    "Previews"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateSandboxPreviewTokenRequestV1"
+                            },
+                            "examples": {
+                                "complete": {
+                                    "$ref": "#/components/examples/CreateSandboxPreviewToken"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Token created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxPreviewTokenV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxPreviewToken"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/sandboxes/instances/{sandbox_name}/previews/{preview_name}/tokens/{token_name}": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/SandboxName"
+                },
+                {
+                    "$ref": "#/components/parameters/PreviewName"
+                },
+                {
+                    "$ref": "#/components/parameters/PreviewTokenName"
+                }
+            ],
+            "delete": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "operationId": "DeleteSandboxPreviewToken",
+                "summary": "Delete a preview token",
+                "description": "Revoke the token. Requests using it are rejected immediately.",
+                "tags": [
+                    "Previews"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Token deleted."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
                     },
                     "429": {
                         "$ref": "#/components/responses/SandboxError429"
@@ -33843,6 +34342,32 @@
                 "title": "ExploreMetadataRequestV1",
                 "type": "object"
             },
+            "RouteClassifierListingRefV1": {
+                "properties": {
+                    "id": {
+                        "description": "Stable classifier identifier.",
+                        "examples": [
+                            "general-v1"
+                        ],
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Display name of the classifier.",
+                        "examples": [
+                            "General"
+                        ],
+                        "title": "Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "title": "RouteClassifierListingRefV1",
+                "type": "object"
+            },
             "RouteRefV1": {
                 "properties": {
                     "id": {
@@ -33885,36 +34410,24 @@
                 "title": "RouteTargetBasetenModelAPIV1",
                 "type": "object"
             },
-            "RouteTargetClassifierModelBasedV1": {
+            "RouteTargetClassifierV1": {
                 "properties": {
                     "type": {
-                        "const": "CLASSIFIER_MODEL_BASED",
-                        "description": "Target kind for a classifier-model-based route.",
+                        "const": "CLASSIFIER",
+                        "description": "Target kind for a classifier-based route.",
                         "title": "Type",
                         "type": "string"
                     },
-                    "classifier_model_id": {
-                        "description": "ID of the Baseten model that picks a route for each request.",
-                        "examples": [
-                            "abcd123"
-                        ],
-                        "title": "Classifier Model Id",
-                        "type": "string"
-                    },
-                    "classifier_environment_name": {
+                    "classifier": {
                         "anyOf": [
                             {
-                                "type": "string"
+                                "$ref": "#/components/schemas/RouteClassifierListingRefV1"
                             },
                             {
                                 "type": "null"
                             }
                         ],
-                        "description": "Environment of the classifier model. Null for production.",
-                        "examples": [
-                            "production"
-                        ],
-                        "title": "Classifier Environment Name"
+                        "description": "Classifier that picks a route for each request. Null for routers created before classifiers could be selected."
                     },
                     "default_route": {
                         "$ref": "#/components/schemas/RouteRefV1",
@@ -33931,12 +34444,11 @@
                 },
                 "required": [
                     "type",
-                    "classifier_model_id",
-                    "classifier_environment_name",
+                    "classifier",
                     "default_route",
                     "allowed_routes"
                 ],
-                "title": "RouteTargetClassifierModelBasedV1",
+                "title": "RouteTargetClassifierV1",
                 "type": "object"
             },
             "RouteTargetConnectionV1": {
@@ -34004,7 +34516,7 @@
                         "discriminator": {
                             "mapping": {
                                 "BASETEN_MODEL_API": "#/components/schemas/RouteTargetBasetenModelAPIV1",
-                                "CLASSIFIER_MODEL_BASED": "#/components/schemas/RouteTargetClassifierModelBasedV1",
+                                "CLASSIFIER": "#/components/schemas/RouteTargetClassifierV1",
                                 "CONNECTION": "#/components/schemas/RouteTargetConnectionV1"
                             },
                             "propertyName": "type"
@@ -34017,7 +34529,7 @@
                                 "$ref": "#/components/schemas/RouteTargetConnectionV1"
                             },
                             {
-                                "$ref": "#/components/schemas/RouteTargetClassifierModelBasedV1"
+                                "$ref": "#/components/schemas/RouteTargetClassifierV1"
                             }
                         ],
                         "title": "Target"
@@ -34158,40 +34670,23 @@
                 "title": "UpsertRouteTargetBasetenModelAPIV1",
                 "type": "object"
             },
-            "UpsertRouteTargetClassifierModelBasedV1": {
+            "UpsertRouteTargetClassifierV1": {
                 "additionalProperties": false,
                 "properties": {
                     "type": {
-                        "const": "CLASSIFIER_MODEL_BASED",
-                        "description": "Target kind for a classifier-model-based route. Not intended for general use: classifiers are deployed by Baseten's post-training team.",
+                        "const": "CLASSIFIER",
+                        "description": "Target kind for a classifier-based route.",
                         "title": "Type",
                         "type": "string"
                     },
-                    "classifier_model_id": {
-                        "description": "ID of the Baseten model that picks a route for each request. Only classifiers deployed by Baseten's post-training team are supported.",
+                    "classifier_id": {
+                        "description": "ID of the classifier that picks a route for each request.",
                         "examples": [
-                            "abcd123"
+                            "general-v1"
                         ],
                         "minLength": 1,
-                        "title": "Classifier Model Id",
+                        "title": "Classifier Id",
                         "type": "string"
-                    },
-                    "classifier_environment_name": {
-                        "anyOf": [
-                            {
-                                "minLength": 1,
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Environment of the classifier model. Omit for production, which is returned as null.",
-                        "examples": [
-                            "production"
-                        ],
-                        "title": "Classifier Environment Name"
                     },
                     "allowed_route_ids": {
                         "description": "IDs of the routes the classifier may pick. All must belong to the route's team and must not be routers themselves.",
@@ -34218,11 +34713,11 @@
                 },
                 "required": [
                     "type",
-                    "classifier_model_id",
+                    "classifier_id",
                     "allowed_route_ids",
                     "default_route_id"
                 ],
-                "title": "UpsertRouteTargetClassifierModelBasedV1",
+                "title": "UpsertRouteTargetClassifierV1",
                 "type": "object"
             },
             "UpsertRouteTargetConnectionV1": {
@@ -34301,7 +34796,7 @@
                         "discriminator": {
                             "mapping": {
                                 "BASETEN_MODEL_API": "#/components/schemas/UpsertRouteTargetBasetenModelAPIV1",
-                                "CLASSIFIER_MODEL_BASED": "#/components/schemas/UpsertRouteTargetClassifierModelBasedV1",
+                                "CLASSIFIER": "#/components/schemas/UpsertRouteTargetClassifierV1",
                                 "CONNECTION": "#/components/schemas/UpsertRouteTargetConnectionV1"
                             },
                             "propertyName": "type"
@@ -34320,7 +34815,7 @@
                                 "$ref": "#/components/schemas/UpsertRouteTargetConnectionV1"
                             },
                             {
-                                "$ref": "#/components/schemas/UpsertRouteTargetClassifierModelBasedV1"
+                                "$ref": "#/components/schemas/UpsertRouteTargetClassifierV1"
                             }
                         ],
                         "title": "Target"
@@ -34824,10 +35319,10 @@
                     },
                     "spend_limit": {
                         "$ref": "#/components/schemas/RouteSpendLimitSettingV1",
-                        "description": "Spend limit for Baseten Code in the team. Applies to requests with Routes keys the user created in the team; personal API keys are not limited."
+                        "description": "Spend limit for Baseten Grid in the team. Applies to requests with Routes keys the user created in the team; personal API keys are not limited."
                     },
                     "month_spend_usd": {
-                        "description": "The user's metered Code spend in USD in the team this UTC calendar month, returned as an exact decimal string.",
+                        "description": "The user's metered Grid spend in USD in the team this UTC calendar month, returned as an exact decimal string.",
                         "examples": [
                             "12.5"
                         ],
@@ -34867,7 +35362,7 @@
             "RouteUserTeamSettingsListV1": {
                 "properties": {
                     "teams": {
-                        "description": "The user's settings in each team they have a role in and in any team they have Code spend in this month, alphabetical by team name.",
+                        "description": "The user's settings in each team they have a role in and in any team they have Grid spend in this month, alphabetical by team name.",
                         "items": {
                             "$ref": "#/components/schemas/RouteTeamUserSettingsV1"
                         },
@@ -34990,7 +35485,7 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Spend limit in USD for each UTC calendar month that applies to each member's Code spend in this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.",
+                        "description": "Spend limit in USD for each UTC calendar month that applies to each member's Grid spend in this team, unless the member has a limit of their own. Returned as an exact decimal string. Null when the team has no per-member limit.",
                         "examples": [
                             "200"
                         ],
@@ -35005,7 +35500,7 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Spend limit in USD for each UTC calendar month on the Code spend of all members in this team together. Once it is reached, every member's requests in the team are rejected. Returned as an exact decimal string. Null when the team has no team-wide limit.",
+                        "description": "Spend limit in USD for each UTC calendar month on the Grid spend of all members in this team together. Once it is reached, every member's requests in the team are rejected. Returned as an exact decimal string. Null when the team has no team-wide limit.",
                         "examples": [
                             "5000"
                         ],
@@ -35035,7 +35530,7 @@
                     },
                     "spend_limit": {
                         "$ref": "#/components/schemas/RouteTeamSpendLimitSettingV1",
-                        "description": "Spend limits for Baseten Code for members' spend in this team."
+                        "description": "Spend limits for Baseten Grid for members' spend in this team."
                     }
                 },
                 "required": [
@@ -35190,7 +35685,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Spend limit in USD for each UTC calendar month that applies to each member's Code spend in this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.",
+                        "description": "Spend limit in USD for each UTC calendar month that applies to each member's Grid spend in this team, unless the member has a limit of their own. Send null to remove it; omit to leave it unchanged.",
                         "examples": [
                             "200"
                         ],
@@ -35207,7 +35702,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Spend limit in USD for each UTC calendar month on the Code spend of all members in this team together. Send null to remove it; omit to leave it unchanged.",
+                        "description": "Spend limit in USD for each UTC calendar month on the Grid spend of all members in this team together. Send null to remove it; omit to leave it unchanged.",
                         "examples": [
                             "5000"
                         ],
@@ -35255,7 +35750,7 @@
             "RouteTeamUserSettingsListV1": {
                 "properties": {
                     "users": {
-                        "description": "Settings of each user with a role in the team and of anyone with Code spend in the team this month.",
+                        "description": "Settings of each user with a role in the team and of anyone with Grid spend in the team this month.",
                         "items": {
                             "$ref": "#/components/schemas/RouteTeamUserSettingsV1"
                         },
@@ -35776,7 +36271,7 @@
                                 "discriminator": {
                                     "mapping": {
                                         "BASETEN_MODEL_API": "#/components/schemas/UpsertRouteTargetBasetenModelAPIV1",
-                                        "CLASSIFIER_MODEL_BASED": "#/components/schemas/UpsertRouteTargetClassifierModelBasedV1",
+                                        "CLASSIFIER": "#/components/schemas/UpsertRouteTargetClassifierV1",
                                         "CONNECTION": "#/components/schemas/UpsertRouteTargetConnectionV1"
                                     },
                                     "propertyName": "type"
@@ -35789,7 +36284,7 @@
                                         "$ref": "#/components/schemas/UpsertRouteTargetConnectionV1"
                                     },
                                     {
-                                        "$ref": "#/components/schemas/UpsertRouteTargetClassifierModelBasedV1"
+                                        "$ref": "#/components/schemas/UpsertRouteTargetClassifierV1"
                                     }
                                 ]
                             },
@@ -35797,7 +36292,7 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER_MODEL_BASED configuration of a router route is mutable.",
+                        "description": "Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER configuration of a router route is mutable.",
                         "title": "Target",
                         "x-null-distinct": true
                     }
@@ -39162,6 +39657,278 @@
                     "deleted": 3,
                     "message": "Removed 3 unused image versions. Image versions used by active sandboxes were retained."
                 }
+            },
+            "SandboxPreviewStatusV1": {
+                "type": "string",
+                "description": "Preview status, always uppercase.",
+                "enum": [
+                    "DEPLOYING",
+                    "DEPLOYED",
+                    "FAILED",
+                    "DELETING",
+                    "TERMINATED"
+                ],
+                "readOnly": true,
+                "example": "DEPLOYED"
+            },
+            "SandboxPreviewTtlV1": {
+                "type": "string",
+                "description": "Lifetime counted from the request, using seconds, minutes, hours or composite durations such as 1h30m. Whole days are also supported, for example 7d; days cannot be combined with other units. The preview is deleted when it elapses.",
+                "pattern": "^([0-9]+d|(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(ns|us|\u00b5s|\u03bcs|ms|s|m|h))+)$",
+                "example": "24h"
+            },
+            "SandboxPreviewHeadersV1": {
+                "type": "object",
+                "description": "HTTP headers as name-value pairs.",
+                "additionalProperties": {
+                    "type": "string"
+                },
+                "example": {
+                    "Access-Control-Allow-Origin": "*"
+                }
+            },
+            "SandboxPreviewConfigurationV1": {
+                "type": "object",
+                "description": "Mutable preview configuration. ttl and expires_at are mutually exclusive; supplying both returns 400.",
+                "properties": {
+                    "public": {
+                        "type": "boolean",
+                        "description": "Whether the URL is reachable without a preview token. Defaults to false.",
+                        "default": false,
+                        "example": true
+                    },
+                    "response_headers": {
+                        "description": "Headers added to every response served by the preview, for example CORS headers.",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxPreviewHeadersV1"
+                            }
+                        ]
+                    },
+                    "request_headers": {
+                        "description": "Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value \"****\", except a GET with show_secrets=true by a workspace administrator. Sending \"****\" back as a value returns 400. A PATCH replaces the whole set.",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxPreviewHeadersV1"
+                            }
+                        ],
+                        "example": {
+                            "Authorization": "Bearer app-internal-token"
+                        }
+                    },
+                    "ttl": {
+                        "$ref": "#/components/schemas/SandboxPreviewTtlV1"
+                    },
+                    "expires_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Time at which the preview is deleted. Must be in the future.",
+                        "example": "2026-10-19T12:00:00Z"
+                    }
+                }
+            },
+            "CreateSandboxPreviewRequestV1": {
+                "description": "Preview to create. Only port is required.",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/SandboxPreviewConfigurationV1"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "create_if_not_exists": {
+                                "type": "boolean",
+                                "description": "When true, return the existing preview with this name instead of failing with a conflict. Without name, the name is public-<port> or private-<port>, so the same port and visibility return the same preview. Existing configuration is preserved. Defaults to false when omitted."
+                            },
+                            "name": {
+                                "type": "string",
+                                "description": "Preview name, unique within the sandbox. When omitted, generated from the sandbox name and port, or public-<port> or private-<port> when create_if_not_exists is true.",
+                                "minLength": 1,
+                                "maxLength": 49,
+                                "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+                                "example": "web"
+                            },
+                            "port": {
+                                "type": "integer",
+                                "description": "Sandbox port to expose.",
+                                "minimum": 1,
+                                "maximum": 65535,
+                                "example": 3000
+                            }
+                        },
+                        "required": [
+                            "port"
+                        ]
+                    }
+                ]
+            },
+            "UpdateSandboxPreviewRequestV1": {
+                "description": "Preview fields to change. name and port cannot be changed.",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/SandboxPreviewConfigurationV1"
+                    }
+                ]
+            },
+            "SandboxPreviewV1": {
+                "description": "Sandbox preview with configuration and server-managed fields at the root.",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/SandboxPreviewConfigurationV1"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Preview name, used in preview_name path parameters.",
+                                "readOnly": true,
+                                "example": "web"
+                            },
+                            "port": {
+                                "type": "integer",
+                                "description": "Exposed sandbox port.",
+                                "readOnly": true,
+                                "example": 3000
+                            },
+                            "url": {
+                                "type": "string",
+                                "format": "uri",
+                                "description": "HTTPS URL serving the port, including the region label. Use this exact URL. Requests to a private preview need a token.",
+                                "readOnly": true,
+                                "example": "https://a1b2c3d4e5f6g7h8.us-pdx-1.preview.b10.co"
+                            },
+                            "status": {
+                                "$ref": "#/components/schemas/SandboxPreviewStatusV1"
+                            },
+                            "region": {
+                                "type": "string",
+                                "description": "Region serving the preview, the sandbox's region.",
+                                "readOnly": true,
+                                "example": "us-pdx-1"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "readOnly": true,
+                                "example": "2026-10-12T12:00:00Z"
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "readOnly": true,
+                                "example": "2026-10-12T12:00:00Z"
+                            },
+                            "created_by": {
+                                "type": "string",
+                                "readOnly": true,
+                                "example": "sandbox-automation"
+                            },
+                            "updated_by": {
+                                "type": "string",
+                                "readOnly": true,
+                                "example": "sandbox-automation"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "port",
+                            "url",
+                            "status",
+                            "public"
+                        ]
+                    }
+                ]
+            },
+            "ListSandboxPreviewsResponseV1": {
+                "type": "object",
+                "description": "One page of previews of a sandbox.",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "description": "Resources on this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxPreviewV1"
+                        }
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/SandboxApiPaginationV1"
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ]
+            },
+            "CreateSandboxPreviewTokenRequestV1": {
+                "type": "object",
+                "properties": {
+                    "create_if_not_exists": {
+                        "type": "boolean",
+                        "description": "When true, return an existing unexpired token of this preview that stays valid at least until expires_at instead of creating a new one. Defaults to false when omitted."
+                    },
+                    "expires_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Time at which the token stops working. Must be in the future.",
+                        "example": "2026-10-13T12:00:00Z"
+                    }
+                },
+                "required": [
+                    "expires_at"
+                ]
+            },
+            "SandboxPreviewTokenV1": {
+                "type": "object",
+                "description": "Access token for a private preview.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Token name, used in token_name path parameters.",
+                        "example": "7f3k2m9q1x8c4v6b0n5z"
+                    },
+                    "token": {
+                        "type": "string",
+                        "description": "Value to send as the bl_preview_token query parameter.",
+                        "example": "7f3k2m9q1x8c4v6b0n5z"
+                    },
+                    "expires_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-10-13T12:00:00Z"
+                    },
+                    "expired": {
+                        "type": "boolean",
+                        "description": "Whether expires_at has passed.",
+                        "example": false
+                    }
+                },
+                "required": [
+                    "name",
+                    "token",
+                    "expires_at",
+                    "expired"
+                ]
+            },
+            "ListSandboxPreviewTokensResponseV1": {
+                "type": "object",
+                "description": "One page of tokens of a preview.",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "description": "Resources on this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxPreviewTokenV1"
+                        }
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/SandboxApiPaginationV1"
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ]
             }
         },
         "parameters": {
@@ -39470,6 +40237,28 @@
                     "type": "string",
                     "minLength": 1,
                     "example": "baseten-api-review-0916"
+                }
+            },
+            "PreviewName": {
+                "name": "preview_name",
+                "in": "path",
+                "required": true,
+                "description": "Preview name returned by creation.",
+                "schema": {
+                    "type": "string",
+                    "minLength": 1,
+                    "example": "web"
+                }
+            },
+            "PreviewTokenName": {
+                "name": "token_name",
+                "in": "path",
+                "required": true,
+                "description": "Token name returned by creation.",
+                "schema": {
+                    "type": "string",
+                    "minLength": 1,
+                    "example": "7f3k2m9q1x8c4v6b0n5z"
                 }
             },
             "SandboxImageName": {
@@ -40376,6 +41165,115 @@
                 "value": {
                     "deleted": 3,
                     "message": "Removed 3 unused image versions. Image versions used by active sandboxes were retained."
+                }
+            },
+            "CreateSandboxPreviewPublic": {
+                "summary": "Public preview of a web server",
+                "value": {
+                    "name": "web",
+                    "port": 3000,
+                    "public": true,
+                    "response_headers": {
+                        "Access-Control-Allow-Origin": "*"
+                    }
+                }
+            },
+            "CreateSandboxPreviewPrivate": {
+                "summary": "Private preview deleted after one day",
+                "value": {
+                    "port": 8080,
+                    "ttl": "24h"
+                }
+            },
+            "UpdateSandboxPreview": {
+                "summary": "Make a preview private and extend it",
+                "value": {
+                    "public": false,
+                    "ttl": "7d"
+                }
+            },
+            "SandboxPreviewReady": {
+                "summary": "Public preview",
+                "value": {
+                    "name": "web",
+                    "port": 3000,
+                    "public": true,
+                    "url": "https://a1b2c3d4e5f6g7h8.us-pdx-1.preview.b10.co",
+                    "status": "DEPLOYED",
+                    "region": "us-pdx-1",
+                    "response_headers": {
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                    "created_at": "2026-10-12T12:00:00Z",
+                    "updated_at": "2026-10-12T12:00:00Z",
+                    "created_by": "sandbox-automation",
+                    "updated_by": "sandbox-automation"
+                }
+            },
+            "SandboxPreviewDeleted": {
+                "summary": "Deleted preview",
+                "value": {
+                    "name": "web",
+                    "port": 3000,
+                    "public": true,
+                    "url": "https://a1b2c3d4e5f6g7h8.us-pdx-1.preview.b10.co",
+                    "status": "TERMINATED",
+                    "region": "us-pdx-1",
+                    "created_at": "2026-10-12T12:00:00Z",
+                    "updated_at": "2026-10-12T12:00:00Z",
+                    "created_by": "sandbox-automation",
+                    "updated_by": "sandbox-automation"
+                }
+            },
+            "SandboxPreviewsList": {
+                "summary": "Previews of a sandbox",
+                "value": {
+                    "items": [
+                        {
+                            "name": "web",
+                            "port": 3000,
+                            "public": true,
+                            "url": "https://a1b2c3d4e5f6g7h8.us-pdx-1.preview.b10.co",
+                            "status": "DEPLOYED",
+                            "region": "us-pdx-1",
+                            "created_at": "2026-10-12T12:00:00Z",
+                            "updated_at": "2026-10-12T12:00:00Z"
+                        }
+                    ],
+                    "pagination": {
+                        "has_more": false
+                    }
+                }
+            },
+            "CreateSandboxPreviewToken": {
+                "summary": "Token valid for one day",
+                "value": {
+                    "expires_at": "2026-10-13T12:00:00Z"
+                }
+            },
+            "SandboxPreviewToken": {
+                "summary": "Created token",
+                "value": {
+                    "name": "7f3k2m9q1x8c4v6b0n5z",
+                    "token": "7f3k2m9q1x8c4v6b0n5z",
+                    "expires_at": "2026-10-13T12:00:00Z",
+                    "expired": false
+                }
+            },
+            "SandboxPreviewTokensList": {
+                "summary": "Tokens of a preview",
+                "value": {
+                    "items": [
+                        {
+                            "name": "7f3k2m9q1x8c4v6b0n5z",
+                            "token": "7f3k2m9q1x8c4v6b0n5z",
+                            "expires_at": "2026-10-13T12:00:00Z",
+                            "expired": false
+                        }
+                    ],
+                    "pagination": {
+                        "has_more": false
+                    }
                 }
             }
         }
