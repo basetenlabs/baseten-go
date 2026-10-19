@@ -4,11 +4,7 @@
         "title": "Baseten management API",
         "version": "1.0.0"
     },
-    "servers": [
-        {
-            "url": "https://api.baseten.co"
-        }
-    ],
+    "servers": [],
     "security": [
         {
             "BearerAuth": []
@@ -10138,17 +10134,17 @@
                 "x-stability": "unstable"
             }
         },
-        "/v1/routes": {
+        "/v1/grid/routes": {
             "get": {
                 "summary": "Lists routes",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/routes \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None, 'name': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/routes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None, 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Lists routes you can invoke in the team, newest first, optionally filtered by exact name.",
@@ -10240,11 +10236,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/routes \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"team_id\": \"abc1234\",\n  \"display_name\": \"Assistant\",\n  \"target\": {\n    \"model\": \"zai-org/GLM-5.3\",\n    \"type\": \"BASETEN_MODEL_API\"\n  },\n  \"description\": \"Assistant for code review and debugging.\"\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/grid/routes \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"team_id\": \"abc1234\",\n  \"display_name\": \"Assistant\",\n  \"target\": {\n    \"model\": \"zai-org/GLM-5.3\",\n    \"type\": \"BASETEN_MODEL_API\"\n  },\n  \"description\": \"Assistant for code review and debugging.\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'team_id': 'abc1234', 'display_name': 'Assistant', 'target': {'model': 'zai-org/GLM-5.3', 'type': 'BASETEN_MODEL_API'}, 'description': 'Assistant for code review and debugging.'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/routes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'team_id': 'abc1234', 'display_name': 'Assistant', 'target': {'model': 'zai-org/GLM-5.3', 'type': 'BASETEN_MODEL_API'}, 'description': 'Assistant for code review and debugging.'}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates and derives a name for the provided route configuration. CONNECTION targets reference a connection owned by the route's team; create the connection first.",
@@ -10273,20 +10269,20 @@
                 "x-stability": "unstable"
             }
         },
-        "/v1/routes/usage": {
+        "/v1/grid/routes/usage": {
             "get": {
-                "summary": "Gets daily route usage and estimated costs",
+                "summary": "Gets daily Grid usage and estimated costs",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/usage \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/routes/usage \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/usage\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None, 'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/routes/usage\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None, 'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Buckets are UTC days, and days with no usage are included. Organization admins see all route usage in the organization. Team admins see usage in teams they manage. Other members, including viewers, see only usage from Routes keys they created, including keys that have since expired, been revoked, or been deleted. Usage can be filtered and grouped by the team it was metered in. Usage is metered every 15 minutes, so the current hour can lag. Model API costs use your prices at the time of each request and include tool calls. xAI costs are the charges xAI reports. OpenAI and Anthropic costs are estimated from Baseten's reference prices and may differ from your provider's bill. Vertex and OpenAI-compatible usage is not included. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges. Usage is retained for 92 days.",
+                "description": "Buckets are UTC days, and days with no usage are included. Organization admins see all Grid usage in the organization. Team admins see usage in teams they manage. Other members, including viewers, see only usage from Routes keys they created, including keys that have since expired, been revoked, or been deleted. Usage can be filtered and grouped by the team it was metered in. Usage is metered every 15 minutes, so the current hour can lag. Model API costs use your prices at the time of each request and include tool calls. xAI costs are the charges xAI reports. OpenAI and Anthropic costs are estimated from Baseten's reference prices and may differ from your provider's bill. Vertex and OpenAI-compatible usage is not included. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges. Usage is retained for 92 days.",
                 "parameters": [
                     {
                         "name": "cursor",
@@ -10443,51 +10439,17 @@
                 "x-stability": "unstable"
             }
         },
-        "/v1/routes/settings/users/{user_id}/teams": {
+        "/v1/grid/settings/teams/{team_id}": {
             "get": {
-                "summary": "Lists a user's route settings in each of their teams",
+                "summary": "Gets a team's Grid settings",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/users/{user_id}/teams \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/settings/teams/{team_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/users/{user_id}/teams\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Returns the user's settings in each team they belong to (every team, for organization admins), alphabetical by team name: their spend limit for Baseten Grid in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; organization admins can read anyone's.",
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/RouteUserTeamSettingsListV1"
-                                }
-                            }
-                        }
-                    }
-                },
-                "x-stability": "unstable"
-            },
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/user_id"
-                }
-            ]
-        },
-        "/v1/routes/settings/teams/{team_id}": {
-            "get": {
-                "summary": "Gets a team's route settings",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/teams/{team_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/settings/teams/{team_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Returns the settings that apply to the team, including the default models for each coding harness and the team's spend limits. Any member who can invoke the team's routes can read them.",
@@ -10511,15 +10473,15 @@
                 }
             ],
             "patch": {
-                "summary": "Updates a team's route settings",
+                "summary": "Updates a team's Grid settings",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/settings/teams/{team_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"harness_defaults\": null,\n  \"spend_limit\": null\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/grid/settings/teams/{team_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"harness_defaults\": null,\n  \"spend_limit\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'harness_defaults': None, 'spend_limit': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/settings/teams/{team_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'harness_defaults': None, 'spend_limit': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Changes only the fields in the request, all or nothing. Requires team admin, and organization admin to change the team-wide spend limit.",
@@ -10548,17 +10510,17 @@
                 "x-stability": "unstable"
             }
         },
-        "/v1/routes/settings/teams/{team_id}/users": {
+        "/v1/grid/settings/teams/{team_id}/users": {
             "get": {
-                "summary": "Lists users' route settings in a team",
+                "summary": "Lists users' Grid settings in a team",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/teams/{team_id}/users \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/settings/teams/{team_id}/users \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}/users\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/settings/teams/{team_id}/users\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Returns the settings in the team of each member of the team, including organization admins and Grid service accounts. Requires team admin for the specified team or organization admin.",
@@ -10582,17 +10544,17 @@
                 }
             ]
         },
-        "/v1/routes/settings/teams/{team_id}/users/{user_id}": {
+        "/v1/grid/settings/teams/{team_id}/users/{user_id}": {
             "get": {
-                "summary": "Gets a user's route settings in a team",
+                "summary": "Gets a user's Grid settings in a team",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/settings/teams/{team_id}/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/settings/teams/{team_id}/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/settings/teams/{team_id}/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Returns the user's spend limit for Baseten Grid in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; team admins can read members' settings in teams they administer, and organization admins can read anyone's.",
@@ -10619,15 +10581,15 @@
                 }
             ],
             "patch": {
-                "summary": "Updates a user's route settings in a team",
+                "summary": "Updates a user's Grid settings in a team",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/settings/teams/{team_id}/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"spend_limit\": null\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/grid/settings/teams/{team_id}/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"spend_limit\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/settings/teams/{team_id}/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'spend_limit': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/settings/teams/{team_id}/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'spend_limit': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Changes only the fields in the request. Once the user's metered spend in the team in a month reaches the spend limit, requests with Routes keys they created in the team are rejected until the limit is raised or the next month starts. Spend is metered every 15 minutes and can lag, so a user can go over the limit. Requires team admin for the specified team or organization admin.",
@@ -10656,17 +10618,202 @@
                 "x-stability": "unstable"
             }
         },
-        "/v1/routes/connections": {
+        "/v1/grid/team_settings": {
+            "get": {
+                "summary": "Gets a team's Grid settings by team ID or your only team",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/team_settings \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/team_settings\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'team_id': 'abc1234'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns the settings that apply to the team, including the default models for each coding harness and the team's spend limits. Any member who can invoke the team's routes can read them. The team comes from `team_id` instead of the path. Omit it to use the team you belong to; when you belong to several, the request fails with a 400.",
+                "parameters": [
+                    {
+                        "name": "team_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "ID of the team. When omitted, the team you belong to; required when you belong to several.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "minLength": 1,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "abc1234"
+                            ],
+                            "title": "Team Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteTeamSettingsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "patch": {
+                "summary": "Updates a team's Grid settings by team ID or your only team",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/grid/team_settings \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"harness_defaults\": null,\n  \"spend_limit\": null,\n  \"team_id\": \"abc1234\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/team_settings\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'harness_defaults': None, 'spend_limit': None, 'team_id': 'abc1234'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Changes only the fields in the request, all or nothing. Requires team admin, and organization admin to change the team-wide spend limit. The team comes from `team_id` instead of the path. Omit it to use the team you belong to; when you belong to several, the request fails with a 400.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateResolvedRouteTeamSettingsRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteTeamSettingsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/grid/team_settings/users/{user_id}": {
+            "get": {
+                "summary": "Gets a user's Grid settings by team ID or your only team",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/team_settings/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/team_settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'team_id': 'abc1234'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns the user's spend limit for Baseten Grid in the team, their spend in the team this month, and whether that spend reached the limit. Members can read their own settings; team admins can read members' settings in teams they administer, and organization admins can read anyone's. The team comes from `team_id` instead of the path. Omit it to use the team you belong to; when you belong to several, the request fails with a 400.",
+                "parameters": [
+                    {
+                        "name": "team_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "ID of the team. When omitted, the team you belong to; required when you belong to several.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "minLength": 1,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "abc1234"
+                            ],
+                            "title": "Team Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteTeamUserSettingsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/user_id"
+                }
+            ],
+            "patch": {
+                "summary": "Updates a user's Grid settings by team ID or your only team",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/grid/team_settings/users/{user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"spend_limit\": null,\n  \"team_id\": \"abc1234\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/team_settings/users/{user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'spend_limit': None, 'team_id': 'abc1234'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Changes only the fields in the request. Once the user's metered spend in the team in a month reaches the spend limit, requests with Routes keys they created in the team are rejected until the limit is raised or the next month starts. Spend is metered every 15 minutes and can lag, so a user can go over the limit. Requires team admin for the specified team or organization admin. The team comes from `team_id` instead of the path. Omit it to use the team you belong to; when you belong to several, the request fails with a 400.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateResolvedRouteUserSettingsRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteTeamUserSettingsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/grid/connections": {
             "get": {
                 "summary": "Lists connections",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/connections \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/connections \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/connections\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/connections\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Lists the team's connections, newest first.",
@@ -10740,11 +10887,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/routes/connections \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"team_id\": \"abc1234\",\n  \"config\": {\n    \"provider\": \"ANTHROPIC\",\n    \"secret_id\": \"abc1234\"\n  }\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/grid/connections \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"team_id\": \"abc1234\",\n  \"config\": {\n    \"provider\": \"ANTHROPIC\",\n    \"secret_id\": \"abc1234\"\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/connections\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'team_id': 'abc1234', 'config': {'provider': 'ANTHROPIC', 'secret_id': 'abc1234'}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/connections\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'team_id': 'abc1234', 'config': {'provider': 'ANTHROPIC', 'secret_id': 'abc1234'}}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a connection from the team to an upstream provider.",
@@ -10773,17 +10920,17 @@
                 "x-stability": "unstable"
             }
         },
-        "/v1/routes/connections/{connection_id}": {
+        "/v1/grid/connections/{connection_id}": {
             "delete": {
                 "summary": "Deletes a connection",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/routes/connections/{connection_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/grid/connections/{connection_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/connections/{connection_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/connections/{connection_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Deletes the connection. The team secret it points at is left in place.",
@@ -10811,11 +10958,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/connections/{connection_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"config\": {\n    \"provider\": \"ANTHROPIC\",\n    \"secret_id\": \"abc1234\"\n  }\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/grid/connections/{connection_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"config\": {\n    \"provider\": \"ANTHROPIC\",\n    \"secret_id\": \"abc1234\"\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/connections/{connection_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'config': {'provider': 'ANTHROPIC', 'secret_id': 'abc1234'}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/connections/{connection_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'config': {'provider': 'ANTHROPIC', 'secret_id': 'abc1234'}}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Updates the connection's fields. The provider and owning team are immutable; point the connection at a new team secret to change its API key, or rotate the key itself by updating the secret.",
@@ -10844,17 +10991,17 @@
                 "x-stability": "unstable"
             }
         },
-        "/v1/routes/{route_id}": {
+        "/v1/grid/routes/{route_id}": {
             "delete": {
                 "summary": "Deletes a route",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/grid/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
                 "responses": {
@@ -10881,11 +11028,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
                 "responses": {
@@ -10907,11 +11054,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"description\": \"Assistant for code review and debugging.\",\n  \"display_name\": \"Assistant\",\n  \"target\": null\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/grid/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"description\": \"Assistant for code review and debugging.\",\n  \"display_name\": \"Assistant\",\n  \"target\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'description': 'Assistant for code review and debugging.', 'display_name': 'Assistant', 'target': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'description': 'Assistant for code review and debugging.', 'display_name': 'Assistant', 'target': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "The route name, target type, and owning team are immutable.",
@@ -21690,14 +21837,16 @@
                 "type": "string"
             },
             "ModelMetricUnitHintV1": {
-                "description": "Advisory unit of a metric's values. Values are reported as scraped, so the\nhint describes the raw value (e.g. GPU memory is reported in mebibytes).\n\n- ``PER_SECOND``: a rate per second.\n- ``SECONDS``: a duration in seconds.\n- ``BYTES``: a size in bytes.\n- ``MEBIBYTES``: a size in mebibytes (MiB).\n- ``COUNT``: a dimensionless tally of discrete things.\n- ``RATIO``: a dimensionless ratio. Usually in ``[0, 1]`` but may exceed 1\n  (e.g. CPU usage in cores = cpu-seconds/second).",
+                "description": "Advisory unit of a metric's values. Values are reported as scraped, so the\nhint describes the raw value (e.g. GPU memory is reported in mebibytes).\n\n- ``PER_SECOND``: a rate per second.\n- ``SECONDS``: a duration in seconds.\n- ``BYTES``: a size in bytes.\n- ``MEBIBYTES``: a size in mebibytes (MiB).\n- ``COUNT``: a dimensionless tally of discrete things.\n- ``RATIO``: a dimensionless ratio. Usually in ``[0, 1]`` but may exceed 1\n  (e.g. CPU usage in cores = cpu-seconds/second).\n- ``CELSIUS``: a temperature in degrees Celsius.\n- ``WATTS``: power draw in watts.",
                 "enum": [
                     "PER_SECOND",
                     "SECONDS",
                     "BYTES",
                     "MEBIBYTES",
                     "COUNT",
-                    "RATIO"
+                    "RATIO",
+                    "CELSIUS",
+                    "WATTS"
                 ],
                 "title": "ModelMetricUnitHintV1",
                 "type": "string"
@@ -24905,7 +25054,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Error message if the training job failed.",
+                        "description": "Error message if the training job failed. While the job is pending, a hint when switching it to spot capacity would let it start sooner.",
                         "title": "Error Message"
                     },
                     "instance_type": {
@@ -28825,7 +28974,7 @@
                 "description": "A published LoRA config: which modules the adapter targets and how experts are laid out.",
                 "properties": {
                     "config_version": {
-                        "description": "The config version, unique per base model.",
+                        "description": "The config version, like v1.",
                         "title": "Config Version",
                         "type": "string"
                     },
@@ -31802,6 +31951,18 @@
                         "default": false,
                         "title": "Trending",
                         "type": "boolean"
+                    },
+                    "model_family": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Model Family"
                     }
                 },
                 "required": [
@@ -34944,7 +35105,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Slug of the intelligent router, matching its name in `GET /v1/routes`. Null when not grouping by ROUTER.",
+                        "description": "Slug of the intelligent router, matching its name in `GET /v1/grid/routes`. Null when not grouping by ROUTER.",
                         "title": "Router Id"
                     },
                     "cost_usd": {
@@ -35125,257 +35286,6 @@
                 "title": "RoutesUsageRequestV1",
                 "type": "object"
             },
-            "RouteEffectiveSpendLimitV1": {
-                "properties": {
-                    "monthly_limit_usd": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Spend limit in USD enforced for the current UTC calendar month: the user's own limit, else the team default. Null when no limit applies.",
-                        "examples": [
-                            "200"
-                        ],
-                        "title": "Monthly Limit Usd"
-                    },
-                    "source": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/RouteSettingSourceV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Where the limit comes from: `user` when it is set on the user, `team` when it is the team default. Null when no limit applies."
-                    }
-                },
-                "required": [
-                    "monthly_limit_usd",
-                    "source"
-                ],
-                "title": "RouteEffectiveSpendLimitV1",
-                "type": "object"
-            },
-            "RouteSettingSourceV1": {
-                "enum": [
-                    "user",
-                    "team"
-                ],
-                "title": "RouteSettingSourceV1",
-                "type": "string"
-            },
-            "RouteSpendBlockedByV1": {
-                "enum": [
-                    "member",
-                    "team"
-                ],
-                "title": "RouteSpendBlockedByV1",
-                "type": "string"
-            },
-            "RouteSpendLimitSettingV1": {
-                "properties": {
-                    "user_monthly_limit_usd": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Standing spend limit in USD for each UTC calendar month set on the user in the team. Null when the user has no limit of their own there.",
-                        "examples": [
-                            "200"
-                        ],
-                        "title": "User Monthly Limit Usd"
-                    },
-                    "month_override_usd": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Spend limit in USD for the current UTC calendar month set on the user in the team, which supersedes their standing limit. Null when there is none.",
-                        "examples": [
-                            "300"
-                        ],
-                        "title": "Month Override Usd"
-                    },
-                    "team_default": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/RouteSpendLimitTeamDefaultV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Per-member limit of the team. This limit applies when the user has no limit of their own. Null when there is none."
-                    },
-                    "effective": {
-                        "$ref": "#/components/schemas/RouteEffectiveSpendLimitV1",
-                        "description": "The effective limit enforced for the current month."
-                    },
-                    "team_wide_monthly_limit_usd": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Team-wide limit of the team in USD for each UTC calendar month. Once all members' spend in the team reaches it, the user's requests in the team are rejected whatever their own limit. Null when there is none.",
-                        "examples": [
-                            "5000"
-                        ],
-                        "title": "Team Wide Monthly Limit Usd"
-                    }
-                },
-                "required": [
-                    "user_monthly_limit_usd",
-                    "month_override_usd",
-                    "team_default",
-                    "effective",
-                    "team_wide_monthly_limit_usd"
-                ],
-                "title": "RouteSpendLimitSettingV1",
-                "type": "object"
-            },
-            "RouteSpendLimitTeamDefaultV1": {
-                "properties": {
-                    "team_id": {
-                        "description": "ID of the team whose per-member limit this is.",
-                        "examples": [
-                            "abc1234"
-                        ],
-                        "title": "Team Id",
-                        "type": "string"
-                    },
-                    "per_member_monthly_limit_usd": {
-                        "description": "The team's per-member spend limit in USD for each UTC calendar month.",
-                        "examples": [
-                            "100"
-                        ],
-                        "title": "Per Member Monthly Limit Usd",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "team_id",
-                    "per_member_monthly_limit_usd"
-                ],
-                "title": "RouteSpendLimitTeamDefaultV1",
-                "type": "object"
-            },
-            "RouteTeamUserSettingsV1": {
-                "properties": {
-                    "team_id": {
-                        "description": "ID of the team.",
-                        "examples": [
-                            "abc1234"
-                        ],
-                        "title": "Team Id",
-                        "type": "string"
-                    },
-                    "team_name": {
-                        "description": "Name of the team.",
-                        "examples": [
-                            "Engineering"
-                        ],
-                        "title": "Team Name",
-                        "type": "string"
-                    },
-                    "user_id": {
-                        "description": "ID of the user.",
-                        "examples": [
-                            "abc1234"
-                        ],
-                        "title": "User Id",
-                        "type": "string"
-                    },
-                    "email": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Email address of the user.",
-                        "examples": [
-                            "dev@example.com"
-                        ],
-                        "title": "Email"
-                    },
-                    "spend_limit": {
-                        "$ref": "#/components/schemas/RouteSpendLimitSettingV1",
-                        "description": "Spend limit for Baseten Grid in the team. Applies to requests with Routes keys the user created in the team; personal API keys are not limited."
-                    },
-                    "month_spend_usd": {
-                        "description": "The user's metered Grid spend in USD in the team this UTC calendar month, returned as an exact decimal string.",
-                        "examples": [
-                            "12.5"
-                        ],
-                        "title": "Month Spend Usd",
-                        "type": "string"
-                    },
-                    "is_blocked": {
-                        "description": "Whether the user's spend this month reached their limit, or the team's spend reached its team-wide limit, so requests with Routes keys they created in the team are rejected.",
-                        "title": "Is Blocked",
-                        "type": "boolean"
-                    },
-                    "blocked_by": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/RouteSpendBlockedByV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "`member` when the user's spend this month reached their limit, `team` when the team's spend reached its team-wide limit. Null when the user is not blocked."
-                    }
-                },
-                "required": [
-                    "team_id",
-                    "team_name",
-                    "user_id",
-                    "email",
-                    "spend_limit",
-                    "month_spend_usd",
-                    "is_blocked",
-                    "blocked_by"
-                ],
-                "title": "RouteTeamUserSettingsV1",
-                "type": "object"
-            },
-            "RouteUserTeamSettingsListV1": {
-                "properties": {
-                    "teams": {
-                        "description": "The user's settings in each team they have a role in and in any team they have Grid spend in this month, alphabetical by team name.",
-                        "items": {
-                            "$ref": "#/components/schemas/RouteTeamUserSettingsV1"
-                        },
-                        "title": "Teams",
-                        "type": "array"
-                    }
-                },
-                "required": [
-                    "teams"
-                ],
-                "title": "RouteUserTeamSettingsListV1",
-                "type": "object"
-            },
             "BackgroundHarnessDefaultsV1": {
                 "properties": {
                     "primary": {
@@ -35473,6 +35383,14 @@
                 ],
                 "title": "RouteHarnessModelV1",
                 "type": "object"
+            },
+            "RouteSettingSourceV1": {
+                "enum": [
+                    "user",
+                    "team"
+                ],
+                "title": "RouteSettingSourceV1",
+                "type": "string"
             },
             "RouteTeamSpendLimitSettingV1": {
                 "properties": {
@@ -35747,6 +35665,232 @@
                 "title": "UpdateRouteTeamSettingsRequestV1",
                 "type": "object"
             },
+            "RouteEffectiveSpendLimitV1": {
+                "properties": {
+                    "monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Spend limit in USD enforced for the current UTC calendar month: the user's own limit, else the team default. Null when no limit applies.",
+                        "examples": [
+                            "200"
+                        ],
+                        "title": "Monthly Limit Usd"
+                    },
+                    "source": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteSettingSourceV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Where the limit comes from: `user` when it is set on the user, `team` when it is the team default. Null when no limit applies."
+                    }
+                },
+                "required": [
+                    "monthly_limit_usd",
+                    "source"
+                ],
+                "title": "RouteEffectiveSpendLimitV1",
+                "type": "object"
+            },
+            "RouteSpendBlockedByV1": {
+                "enum": [
+                    "member",
+                    "team"
+                ],
+                "title": "RouteSpendBlockedByV1",
+                "type": "string"
+            },
+            "RouteSpendLimitSettingV1": {
+                "properties": {
+                    "user_monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Standing spend limit in USD for each UTC calendar month set on the user in the team. Null when the user has no limit of their own there.",
+                        "examples": [
+                            "200"
+                        ],
+                        "title": "User Monthly Limit Usd"
+                    },
+                    "month_override_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Spend limit in USD for the current UTC calendar month set on the user in the team, which supersedes their standing limit. Null when there is none.",
+                        "examples": [
+                            "300"
+                        ],
+                        "title": "Month Override Usd"
+                    },
+                    "team_default": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteSpendLimitTeamDefaultV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Per-member limit of the team. This limit applies when the user has no limit of their own. Null when there is none."
+                    },
+                    "effective": {
+                        "$ref": "#/components/schemas/RouteEffectiveSpendLimitV1",
+                        "description": "The effective limit enforced for the current month."
+                    },
+                    "team_wide_monthly_limit_usd": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Team-wide limit of the team in USD for each UTC calendar month. Once all members' spend in the team reaches it, the user's requests in the team are rejected whatever their own limit. Null when there is none.",
+                        "examples": [
+                            "5000"
+                        ],
+                        "title": "Team Wide Monthly Limit Usd"
+                    }
+                },
+                "required": [
+                    "user_monthly_limit_usd",
+                    "month_override_usd",
+                    "team_default",
+                    "effective",
+                    "team_wide_monthly_limit_usd"
+                ],
+                "title": "RouteSpendLimitSettingV1",
+                "type": "object"
+            },
+            "RouteSpendLimitTeamDefaultV1": {
+                "properties": {
+                    "team_id": {
+                        "description": "ID of the team whose per-member limit this is.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "per_member_monthly_limit_usd": {
+                        "description": "The team's per-member spend limit in USD for each UTC calendar month.",
+                        "examples": [
+                            "100"
+                        ],
+                        "title": "Per Member Monthly Limit Usd",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "team_id",
+                    "per_member_monthly_limit_usd"
+                ],
+                "title": "RouteSpendLimitTeamDefaultV1",
+                "type": "object"
+            },
+            "RouteTeamUserSettingsV1": {
+                "properties": {
+                    "team_id": {
+                        "description": "ID of the team.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "description": "Name of the team.",
+                        "examples": [
+                            "Engineering"
+                        ],
+                        "title": "Team Name",
+                        "type": "string"
+                    },
+                    "user_id": {
+                        "description": "ID of the user.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "User Id",
+                        "type": "string"
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Email address of the user.",
+                        "examples": [
+                            "dev@example.com"
+                        ],
+                        "title": "Email"
+                    },
+                    "spend_limit": {
+                        "$ref": "#/components/schemas/RouteSpendLimitSettingV1",
+                        "description": "Spend limit for Baseten Grid in the team. Applies to requests with Routes keys the user created in the team; personal API keys are not limited."
+                    },
+                    "month_spend_usd": {
+                        "description": "The user's metered Grid spend in USD in the team this UTC calendar month, returned as an exact decimal string.",
+                        "examples": [
+                            "12.5"
+                        ],
+                        "title": "Month Spend Usd",
+                        "type": "string"
+                    },
+                    "is_blocked": {
+                        "description": "Whether the user's spend this month reached their limit, or the team's spend reached its team-wide limit, so requests with Routes keys they created in the team are rejected.",
+                        "title": "Is Blocked",
+                        "type": "boolean"
+                    },
+                    "blocked_by": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RouteSpendBlockedByV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "`member` when the user's spend this month reached their limit, `team` when the team's spend reached its team-wide limit. Null when the user is not blocked."
+                    }
+                },
+                "required": [
+                    "team_id",
+                    "team_name",
+                    "user_id",
+                    "email",
+                    "spend_limit",
+                    "month_spend_usd",
+                    "is_blocked",
+                    "blocked_by"
+                ],
+                "title": "RouteTeamUserSettingsV1",
+                "type": "object"
+            },
             "RouteTeamUserSettingsListV1": {
                 "properties": {
                     "users": {
@@ -35825,6 +35969,116 @@
                     }
                 },
                 "title": "UpdateRouteUserSettingsRequestV1",
+                "type": "object"
+            },
+            "RouteTeamSettingsRequestV1": {
+                "properties": {
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of the team. When omitted, the team you belong to; required when you belong to several.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Team Id"
+                    }
+                },
+                "title": "RouteTeamSettingsRequestV1",
+                "type": "object"
+            },
+            "UpdateResolvedRouteTeamSettingsRequestV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "harness_defaults": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateRouteHarnessDefaultsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Harnesses to change; harnesses left out are unchanged. Pass null to clear every harness, so each role uses the team's default.",
+                        "x-null-distinct": true
+                    },
+                    "spend_limit": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateRouteTeamSpendLimitSettingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Spend limit fields to change. Pass null to remove the team's limits; omit to leave them unchanged.",
+                        "x-null-distinct": true
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of the team. When omitted, the team you belong to; required when you belong to several.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Team Id"
+                    }
+                },
+                "title": "UpdateResolvedRouteTeamSettingsRequestV1",
+                "type": "object"
+            },
+            "UpdateResolvedRouteUserSettingsRequestV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "spend_limit": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateRouteSpendLimitSettingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Spend limit fields to change. Pass null to remove the user's limit; omit to leave it unchanged.",
+                        "x-null-distinct": true
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of the team. When omitted, the team you belong to; required when you belong to several.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Team Id"
+                    }
+                },
+                "title": "UpdateResolvedRouteUserSettingsRequestV1",
                 "type": "object"
             },
             "RouteConnectionConfigAnthropicV1": {

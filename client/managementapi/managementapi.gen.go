@@ -1028,17 +1028,21 @@ func (e ModelMetricMode) Valid() bool {
 // Defines values for ModelMetricUnitHint.
 const (
 	ModelMetricUnitHint_BYTES      ModelMetricUnitHint = "BYTES"
+	ModelMetricUnitHint_CELSIUS    ModelMetricUnitHint = "CELSIUS"
 	ModelMetricUnitHint_COUNT      ModelMetricUnitHint = "COUNT"
 	ModelMetricUnitHint_MEBIBYTES  ModelMetricUnitHint = "MEBIBYTES"
 	ModelMetricUnitHint_PER_SECOND ModelMetricUnitHint = "PER_SECOND"
 	ModelMetricUnitHint_RATIO      ModelMetricUnitHint = "RATIO"
 	ModelMetricUnitHint_SECONDS    ModelMetricUnitHint = "SECONDS"
+	ModelMetricUnitHint_WATTS      ModelMetricUnitHint = "WATTS"
 )
 
 // Valid indicates whether the value is a known member of the ModelMetricUnitHint enum.
 func (e ModelMetricUnitHint) Valid() bool {
 	switch e {
 	case ModelMetricUnitHint_BYTES:
+		return true
+	case ModelMetricUnitHint_CELSIUS:
 		return true
 	case ModelMetricUnitHint_COUNT:
 		return true
@@ -1049,6 +1053,8 @@ func (e ModelMetricUnitHint) Valid() bool {
 	case ModelMetricUnitHint_RATIO:
 		return true
 	case ModelMetricUnitHint_SECONDS:
+		return true
+	case ModelMetricUnitHint_WATTS:
 		return true
 	default:
 		return false
@@ -5666,6 +5672,7 @@ type LibraryListingMetadata struct {
 	InputModalities  *[]LibraryListingModality `json:"input_modalities,omitempty"`
 	License          string                    `json:"license"`
 	ModelApiSlug     *string                   `json:"model_api_slug,omitempty"`
+	ModelFamily      *string                   `json:"model_family,omitempty"`
 	OutputModalities *[]LibraryListingModality `json:"output_modalities,omitempty"`
 	ParameterCount   *int                      `json:"parameter_count,omitempty"`
 	Publisher        *string                   `json:"publisher,omitempty"`
@@ -6130,7 +6137,7 @@ type LoopsDeploymentStatus struct {
 
 // LoopsLoRAConfig A published LoRA config: which modules the adapter targets and how experts are laid out.
 type LoopsLoRAConfig struct {
-	// ConfigVersion The config version, unique per base model.
+	// ConfigVersion The config version, like v1.
 	ConfigVersion string `json:"config_version"`
 
 	// ExpertLayout How routed-expert LoRA weights are laid out. Null when no experts are targeted.
@@ -6579,6 +6586,8 @@ type ModelMetricDescriptor struct {
 	// - ``COUNT``: a dimensionless tally of discrete things.
 	// - ``RATIO``: a dimensionless ratio. Usually in ``[0, 1]`` but may exceed 1
 	//   (e.g. CPU usage in cores = cpu-seconds/second).
+	// - ``CELSIUS``: a temperature in degrees Celsius.
+	// - ``WATTS``: power draw in watts.
 	UnitHint ModelMetricUnitHint `json:"unit_hint"`
 }
 
@@ -6604,6 +6613,8 @@ type ModelMetricMode string
 //   - “COUNT“: a dimensionless tally of discrete things.
 //   - “RATIO“: a dimensionless ratio. Usually in “[0, 1]“ but may exceed 1
 //     (e.g. CPU usage in cores = cpu-seconds/second).
+//   - “CELSIUS“: a temperature in degrees Celsius.
+//   - “WATTS“: power draw in watts.
 type ModelMetricUnitHint string
 
 // ModelMetricValueSet The metric values for one time step. “values“ is aligned by index to the
@@ -7408,12 +7419,6 @@ type RouteTombstone struct {
 // RouteUsageDimension defines model for RouteUsageDimension.
 type RouteUsageDimension string
 
-// RouteUserTeamSettingsList defines model for RouteUserTeamSettingsList.
-type RouteUserTeamSettingsList struct {
-	// Teams The user's settings in each team they have a role in and in any team they have Grid spend in this month, alphabetical by team name.
-	Teams []RouteTeamUserSettings `json:"teams"`
-}
-
 // RoutesResponse defines model for RoutesResponse.
 type RoutesResponse struct {
 	// Items Items in this page.
@@ -7460,7 +7465,7 @@ type RoutesUsageResult struct {
 	// Requests Number of requests; with ROUTER, the requests sent through that router. Usage recorded before requests were counted adds zero.
 	Requests int `json:"requests"`
 
-	// RouterId Slug of the intelligent router, matching its name in `GET /v1/routes`. Null when not grouping by ROUTER.
+	// RouterId Slug of the intelligent router, matching its name in `GET /v1/grid/routes`. Null when not grouping by ROUTER.
 	RouterId *string `json:"router_id,omitempty"`
 
 	// TeamId ID of the team the usage was metered in. Null when not grouping by TEAM, and for usage metered before it was attributed to teams.
@@ -8528,7 +8533,7 @@ type TrainingJob struct {
 	// CurrentStatus Current status of the training job.
 	CurrentStatus string `json:"current_status"`
 
-	// ErrorMessage Error message if the training job failed.
+	// ErrorMessage Error message if the training job failed. While the job is pending, a hint when switching it to spot capacity would let it start sooner.
 	ErrorMessage *string `json:"error_message,omitempty"`
 
 	// Id Unique identifier of the training job.
@@ -9008,6 +9013,27 @@ type UpdatePromotionSettings struct {
 type UpdateRequestBackpressureSettings struct {
 	// Policy Backpressure policy to apply. Null indicates no policy (on update, clears an existing one).
 	Policy Optional[RequestBackpressurePolicy] `json:"policy,omitzero"`
+}
+
+// UpdateResolvedRouteTeamSettingsRequest defines model for UpdateResolvedRouteTeamSettingsRequest.
+type UpdateResolvedRouteTeamSettingsRequest struct {
+	// HarnessDefaults Harnesses to change; harnesses left out are unchanged. Pass null to clear every harness, so each role uses the team's default.
+	HarnessDefaults Optional[UpdateRouteHarnessDefaults] `json:"harness_defaults,omitzero"`
+
+	// SpendLimit Spend limit fields to change. Pass null to remove the team's limits; omit to leave them unchanged.
+	SpendLimit Optional[UpdateRouteTeamSpendLimitSetting] `json:"spend_limit,omitzero"`
+
+	// TeamId ID of the team. When omitted, the team you belong to; required when you belong to several.
+	TeamId *string `json:"team_id,omitempty"`
+}
+
+// UpdateResolvedRouteUserSettingsRequest defines model for UpdateResolvedRouteUserSettingsRequest.
+type UpdateResolvedRouteUserSettingsRequest struct {
+	// SpendLimit Spend limit fields to change. Pass null to remove the user's limit; omit to leave it unchanged.
+	SpendLimit Optional[UpdateRouteSpendLimitSetting] `json:"spend_limit,omitzero"`
+
+	// TeamId ID of the team. When omitted, the team you belong to; required when you belong to several.
+	TeamId *string `json:"team_id,omitempty"`
 }
 
 // UpdateRollingDeployConfig Rolling deploy config for promoting chains and oracles
@@ -9941,6 +9967,75 @@ type GetV1GatewayEventsParams struct {
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
 
+// GetV1GridConnectionsParams defines parameters for GetV1GridConnections.
+type GetV1GridConnectionsParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// TeamId Identifier of the team whose connections to list.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// GetV1GridRoutesParams defines parameters for GetV1GridRoutes.
+type GetV1GridRoutesParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// TeamId Identifier of the team whose routes to list.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Name Filter by exact route name. Preserved by the cursor; if repeated, must match the original filter.
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
+// GetV1GridRoutesUsageParams defines parameters for GetV1GridRoutesUsage.
+type GetV1GridRoutesUsageParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Number of daily buckets to return. Defaults to 7; maximum 31.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// TeamId Limit usage to a team you can access. Organization admins can view all usage in the team, team admins can view usage in teams they manage, and other members can view only their own usage. Without a team, organization admins see all organization usage, team admins see their managed teams, and other members see their own usage.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// StartDate Inclusive UTC calendar day at the start of the query range. Defaults to the previous UTC date, and is ignored when you pass a cursor.
+	StartDate *string `form:"start_date,omitempty" json:"start_date,omitempty"`
+
+	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included.
+	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
+
+	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, or ROUTER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. Defaults to MODEL.
+	GroupBy *[]RouteUsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
+
+	// UserIds Return only usage from Routes keys created by these user IDs, repeated once per ID.
+	UserIds *[]string `form:"user_ids,omitempty" json:"user_ids,omitempty"`
+
+	// Models Return only usage for these exact model names, repeated once per model.
+	Models *[]string `form:"models,omitempty" json:"models,omitempty"`
+
+	// Providers Return only usage for these providers, repeated once per provider.
+	Providers *[]RouteProvider `form:"providers,omitempty" json:"providers,omitempty"`
+}
+
+// GetV1GridTeamSettingsParams defines parameters for GetV1GridTeamSettings.
+type GetV1GridTeamSettingsParams struct {
+	// TeamId ID of the team. When omitted, the team you belong to; required when you belong to several.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// GetV1GridTeamSettingsUsersUserIdParams defines parameters for GetV1GridTeamSettingsUsersUserId.
+type GetV1GridTeamSettingsUsersUserIdParams struct {
+	// TeamId ID of the team. When omitted, the team you belong to; required when you belong to several.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
 // GetV1LoopsCapabilitiesParams defines parameters for GetV1LoopsCapabilities.
 type GetV1LoopsCapabilitiesParams struct {
 	// Model Restrict the response to one model, identified by its HuggingFace repo id. A supported model comes back with its 'enabled' flag and, when false, its 'enablement_details'. An empty list means Baseten does not support that model. Omit to list every supported model.
@@ -10317,63 +10412,6 @@ type GetV1ModelsModelIdEnvironmentsEnvNameStartupsSummaryParams struct {
 
 	// MinDurationMs Only include startups that lasted at least this many milliseconds.
 	MinDurationMs *int `form:"min_duration_ms,omitempty" json:"min_duration_ms,omitempty"`
-}
-
-// GetV1RoutesParams defines parameters for GetV1Routes.
-type GetV1RoutesParams struct {
-	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
-
-	// Limit Maximum number of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
-
-	// TeamId Identifier of the team whose routes to list.
-	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
-
-	// Name Filter by exact route name. Preserved by the cursor; if repeated, must match the original filter.
-	Name *string `form:"name,omitempty" json:"name,omitempty"`
-}
-
-// GetV1RoutesConnectionsParams defines parameters for GetV1RoutesConnections.
-type GetV1RoutesConnectionsParams struct {
-	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
-
-	// Limit Maximum number of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
-
-	// TeamId Identifier of the team whose connections to list.
-	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
-}
-
-// GetV1RoutesUsageParams defines parameters for GetV1RoutesUsage.
-type GetV1RoutesUsageParams struct {
-	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
-
-	// Limit Number of daily buckets to return. Defaults to 7; maximum 31.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
-
-	// TeamId Limit usage to a team you can access. Organization admins can view all usage in the team, team admins can view usage in teams they manage, and other members can view only their own usage. Without a team, organization admins see all organization usage, team admins see their managed teams, and other members see their own usage.
-	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
-
-	// StartDate Inclusive UTC calendar day at the start of the query range. Defaults to the previous UTC date, and is ignored when you pass a cursor.
-	StartDate *string `form:"start_date,omitempty" json:"start_date,omitempty"`
-
-	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included.
-	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
-
-	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, or ROUTER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. Defaults to MODEL.
-	GroupBy *[]RouteUsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
-
-	// UserIds Return only usage from Routes keys created by these user IDs, repeated once per ID.
-	UserIds *[]string `form:"user_ids,omitempty" json:"user_ids,omitempty"`
-
-	// Models Return only usage for these exact model names, repeated once per model.
-	Models *[]string `form:"models,omitempty" json:"models,omitempty"`
-
-	// Providers Return only usage for these providers, repeated once per provider.
-	Providers *[]RouteProvider `form:"providers,omitempty" json:"providers,omitempty"`
 }
 
 // CleanupImagesParams defines parameters for CleanupImages.
@@ -10763,6 +10801,30 @@ type PostV1GatewayGroupsGroupIdApiKeysJSONRequestBody = CreateApiKeyForGroupRequ
 // PostV1GatewayGroupsGroupIdApiKeysRegisterJSONRequestBody defines body for PostV1GatewayGroupsGroupIdApiKeysRegister for application/json ContentType.
 type PostV1GatewayGroupsGroupIdApiKeysRegisterJSONRequestBody = RegisterAPIKeyRequest
 
+// PostV1GridConnectionsJSONRequestBody defines body for PostV1GridConnections for application/json ContentType.
+type PostV1GridConnectionsJSONRequestBody = CreateRouteConnectionRequest
+
+// PatchV1GridConnectionsConnectionIdJSONRequestBody defines body for PatchV1GridConnectionsConnectionId for application/json ContentType.
+type PatchV1GridConnectionsConnectionIdJSONRequestBody = UpdateRouteConnectionRequest
+
+// PostV1GridRoutesJSONRequestBody defines body for PostV1GridRoutes for application/json ContentType.
+type PostV1GridRoutesJSONRequestBody = CreateRouteRequest
+
+// PatchV1GridRoutesRouteIdJSONRequestBody defines body for PatchV1GridRoutesRouteId for application/json ContentType.
+type PatchV1GridRoutesRouteIdJSONRequestBody = UpdateRouteRequest
+
+// PatchV1GridSettingsTeamsTeamIdJSONRequestBody defines body for PatchV1GridSettingsTeamsTeamId for application/json ContentType.
+type PatchV1GridSettingsTeamsTeamIdJSONRequestBody = UpdateRouteTeamSettingsRequest
+
+// PatchV1GridSettingsTeamsTeamIdUsersUserIdJSONRequestBody defines body for PatchV1GridSettingsTeamsTeamIdUsersUserId for application/json ContentType.
+type PatchV1GridSettingsTeamsTeamIdUsersUserIdJSONRequestBody = UpdateRouteUserSettingsRequest
+
+// PatchV1GridTeamSettingsJSONRequestBody defines body for PatchV1GridTeamSettings for application/json ContentType.
+type PatchV1GridTeamSettingsJSONRequestBody = UpdateResolvedRouteTeamSettingsRequest
+
+// PatchV1GridTeamSettingsUsersUserIdJSONRequestBody defines body for PatchV1GridTeamSettingsUsersUserId for application/json ContentType.
+type PatchV1GridTeamSettingsUsersUserIdJSONRequestBody = UpdateResolvedRouteUserSettingsRequest
+
 // PostV1LibraryListingsJSONRequestBody defines body for PostV1LibraryListings for application/json ContentType.
 type PostV1LibraryListingsJSONRequestBody = CreateLibraryListingRequest
 
@@ -10855,24 +10917,6 @@ type PostV1ModelsModelIdEnvironmentsEnvNamePromoteJSONRequestBody = PromoteToEnv
 
 // PostV1PrepareModelUploadJSONRequestBody defines body for PostV1PrepareModelUpload for application/json ContentType.
 type PostV1PrepareModelUploadJSONRequestBody = PrepareModelUploadRequest
-
-// PostV1RoutesJSONRequestBody defines body for PostV1Routes for application/json ContentType.
-type PostV1RoutesJSONRequestBody = CreateRouteRequest
-
-// PostV1RoutesConnectionsJSONRequestBody defines body for PostV1RoutesConnections for application/json ContentType.
-type PostV1RoutesConnectionsJSONRequestBody = CreateRouteConnectionRequest
-
-// PatchV1RoutesConnectionsConnectionIdJSONRequestBody defines body for PatchV1RoutesConnectionsConnectionId for application/json ContentType.
-type PatchV1RoutesConnectionsConnectionIdJSONRequestBody = UpdateRouteConnectionRequest
-
-// PatchV1RoutesSettingsTeamsTeamIdJSONRequestBody defines body for PatchV1RoutesSettingsTeamsTeamId for application/json ContentType.
-type PatchV1RoutesSettingsTeamsTeamIdJSONRequestBody = UpdateRouteTeamSettingsRequest
-
-// PatchV1RoutesSettingsTeamsTeamIdUsersUserIdJSONRequestBody defines body for PatchV1RoutesSettingsTeamsTeamIdUsersUserId for application/json ContentType.
-type PatchV1RoutesSettingsTeamsTeamIdUsersUserIdJSONRequestBody = UpdateRouteUserSettingsRequest
-
-// PatchV1RoutesRouteIdJSONRequestBody defines body for PatchV1RoutesRouteId for application/json ContentType.
-type PatchV1RoutesRouteIdJSONRequestBody = UpdateRouteRequest
 
 // PushImageJSONRequestBody defines body for PushImage for application/json ContentType.
 type PushImageJSONRequestBody = PushSandboxImageRequest
