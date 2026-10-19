@@ -126,6 +126,16 @@ func TestBuildModelArchiveOverrideWhenConfigMissingOnDisk(t *testing.T) {
 	require.Equal(t, "model/model.py", entries[1].name)
 }
 
+func TestBuildModelArchiveFromConfigYAML(t *testing.T) {
+	rc, err := modelarchive.BuildModelArchiveFromConfigYAML([]byte("model_name: config_only\n"))
+	require.NoError(t, err)
+	entries := readArchive(t, rc)
+
+	require.Equal(t, 1, len(entries))
+	require.Equal(t, "config.yaml", entries[0].name)
+	require.Equal(t, "model_name: config_only\n", entries[0].data)
+}
+
 func TestBuildModelArchiveNoConfigOnDiskIsFine(t *testing.T) {
 	dir := t.TempDir()
 	writeFile(t, filepath.Join(dir, "model", "model.py"), "x\n")

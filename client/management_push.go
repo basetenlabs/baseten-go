@@ -29,8 +29,9 @@ type PushModelOptions struct {
 	// it may keep comments and formatting the parsed Config has lost. Optional.
 	RawConfig string
 
-	// Archive describes the tar to upload. Archive.Dir is required, and at
-	// minimum holds the model's config.yaml.
+	// Archive describes the tar to upload. Archive.Dir is required unless
+	// ArchiveFromConfigYAML is set, and at minimum holds the model's
+	// config.yaml.
 	//
 	// This package does not parse or serialize YAML, so callers whose config
 	// has `external_package_dirs` must handle the coupling between the config
@@ -43,6 +44,17 @@ type PushModelOptions struct {
 	// them fails server-side validation on relative paths the extracted
 	// archive does not contain.
 	Archive modelarchive.BuildModelArchiveOptions
+
+	// ArchiveFromConfigYAML, if non-empty, is the contents of the model's
+	// config.yaml, and the uploaded archive holds that file alone. For models
+	// defined entirely by their config, with no model directory to upload.
+	// Mutually exclusive with Archive, which must be left unset.
+	//
+	// As with Archive, this package does not parse the YAML, so callers must
+	// reject a config with `external_package_dirs` themselves: there is no
+	// directory to resolve them against, and the server fails the build on
+	// paths the archive does not contain.
+	ArchiveFromConfigYAML []byte
 
 	// ModelUploader uploads the built archive to the S3 location the server
 	// issued credentials for. Required unless DryRun is set. Callers supply
@@ -131,6 +143,14 @@ func (o PushModelOptions) Validate() error {
 	if o.ModelUploader == nil && !o.DryRun {
 		return errors.New("ModelUploader is required unless DryRun is set")
 	}
+	if len(o.ArchiveFromConfigYAML) > 0 {
+		// Only the archive options that contribute content are checked, since
+		// those are the ones that would otherwise be silently dropped.
+		if o.Archive.Dir != "" || len(o.Archive.ConfigYAMLOverride) > 0 || len(o.Archive.ExternalPackageDirs) > 0 {
+			return errors.New("ArchiveFromConfigYAML is mutually exclusive with Archive")
+		}
+		return nil
+	}
 	return o.Archive.Validate()
 }
 
@@ -179,7 +199,8 @@ type PushModelResult struct {
 	ArchiveBytes int64
 }
 
-// PushModel deploys a model from a local directory: it validates the push and
+// PushModel deploys a model from a local directory, or from its config alone
+// when opts.ArchiveFromConfigYAML is set: it validates the push and
 // obtains upload credentials via `POST /v1/prepare_model_upload`, builds and
 // uploads the archive through opts.ModelUploader, then creates the model (`POST
 // /v1/models`) or adds a deployment to an existing one (`POST
@@ -198,7 +219,13 @@ func (c *ManagementClient) PushModel(ctx context.Context, opts PushModelOptions)
 	// the archive cannot carry fails before the server has created anything.
 	// Its contents are still read lazily, so building it up front costs a
 	// directory walk and no more.
-	archive, err := modelarchive.BuildModelArchive(ctx, opts.Archive)
+	var archive io.ReadCloser
+	var err error
+	if len(opts.ArchiveFromConfigYAML) > 0 {
+		archive, err = modelarchive.BuildModelArchiveFromConfigYAML(opts.ArchiveFromConfigYAML)
+	} else {
+		archive, err = modelarchive.BuildModelArchive(ctx, opts.Archive)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("build model archive: %w", err)
 	}
