@@ -160,6 +160,15 @@ func TestPushModelValidation(t *testing.T) {
 		"ArchiveDownloadWithModelID":  func(o *client.PushModelOptions) { o.ModelID, o.DisableArchiveDownload = "model-1", true },
 		"MissingDir":                  func(o *client.PushModelOptions) { o.Archive.Dir = filepath.Join(dir, "nope") },
 		"ExternalDirsNoBundledPkgDir": func(o *client.PushModelOptions) { o.Archive.ExternalPackageDirs = []string{"lib"} },
+		"ConfigYAMLWithDir":           func(o *client.PushModelOptions) { o.ArchiveFromConfigYAML = []byte("model_name: my-model\n") },
+		"ConfigYAMLWithOverride": func(o *client.PushModelOptions) {
+			o.Archive = modelarchive.BuildModelArchiveOptions{ConfigYAMLOverride: []byte("model_name: other\n")}
+			o.ArchiveFromConfigYAML = []byte("model_name: my-model\n")
+		},
+		"ConfigYAMLWithExternalDirs": func(o *client.PushModelOptions) {
+			o.Archive = modelarchive.BuildModelArchiveOptions{ExternalPackageDirs: []string{"lib"}}
+			o.ArchiveFromConfigYAML = []byte("model_name: my-model\n")
+		},
 	}
 	for name, mutate := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -228,6 +237,30 @@ func TestPushModelCreate(t *testing.T) {
 	require.Equal(t, "my-model", source["name"])
 	require.Equal(t, "models/abc123.tar", source["s3_key"])
 	require.Nil(t, source["disable_archive_download"])
+}
+
+func TestPushModelFromConfigYAML(t *testing.T) {
+	srv := &pushTestServer{responses: map[string]any{
+		"/v1/prepare_model_upload": pushPrepareResponse,
+		"/v1/models":               pushCommitResponse,
+	}}
+	cl := newPushTestServer(t, srv)
+
+	var uploadedNames []string
+	var uploadedSize int64
+	result, err := cl.PushModel(context.Background(), client.PushModelOptions{
+		Config:                map[string]any{"model_name": "my-model"},
+		ArchiveFromConfigYAML: []byte("model_name: my-model\n"),
+		ModelUploader: func(_ context.Context, upload client.ModelUpload) error {
+			uploadedNames, uploadedSize = collectUpload(t, upload)
+			return nil
+		},
+	})
+	require.NoError(t, err)
+	require.Equal(t, "model-1", result.Model.Id)
+	require.Len(t, uploadedNames, 1)
+	require.Equal(t, "config.yaml", uploadedNames[0])
+	require.Equal(t, uploadedSize, result.ArchiveBytes)
 }
 
 func TestPushModelCreateInTeam(t *testing.T) {

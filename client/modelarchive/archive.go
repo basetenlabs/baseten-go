@@ -156,6 +156,25 @@ func BuildModelArchive(ctx context.Context, opts BuildModelArchiveOptions) (io.R
 	return pr, nil
 }
 
+// BuildModelArchiveFromConfigYAML returns an uncompressed tar archive holding
+// only a config.yaml with the given contents, for models defined entirely by
+// their config. Unlike [BuildModelArchive], nothing is read from disk.
+func BuildModelArchiveFromConfigYAML(configYAML []byte) (io.ReadCloser, error) {
+	var buf bytes.Buffer
+	tw := tar.NewWriter(&buf)
+	if err := writeTarEntry(tw, File{
+		ArchivePath: configFileName,
+		Size:        int64(len(configYAML)),
+		Open:        func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewReader(configYAML)), nil },
+	}); err != nil {
+		return nil, err
+	}
+	if err := tw.Close(); err != nil {
+		return nil, fmt.Errorf("modelarchive: close archive: %w", err)
+	}
+	return io.NopCloser(&buf), nil
+}
+
 // File is a single entry in a model archive, as reported by
 // [WalkModelArchive].
 type File struct {
