@@ -141,6 +141,28 @@ func (c *Client) DeleteGatewayEndpoints(ctx context.Context, endpointId string) 
 	})
 }
 
+// DeleteGridConnections: Deletes a connection
+func (c *Client) DeleteGridConnections(ctx context.Context, connectionId string) (*GridConnectionTombstone, error) {
+	return doJSON[GridConnectionTombstone](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/grid/connections/%s",
+		pathArgs:     []any{connectionId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// DeleteGridRoutes: Deletes a route
+func (c *Client) DeleteGridRoutes(ctx context.Context, routeId string) (*GridRouteTombstone, error) {
+	return doJSON[GridRouteTombstone](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/grid/routes/%s",
+		pathArgs:     []any{routeId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // DeleteImage: Delete a sandbox image
 func (c *Client) DeleteImage(ctx context.Context, imageName string, params DeleteImageParams) (*SandboxImage, error) {
 	return doJSON[SandboxImage](c, ctx, apiRequest{
@@ -226,28 +248,6 @@ func (c *Client) DeleteModelsEnvironments(ctx context.Context, modelId string, e
 		method:       "DELETE",
 		pathFmt:      "/v1/models/%s/environments/%s",
 		pathArgs:     []any{modelId, envName},
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// DeleteRoutes: Deletes a route
-func (c *Client) DeleteRoutes(ctx context.Context, routeId string) (*RouteTombstone, error) {
-	return doJSON[RouteTombstone](c, ctx, apiRequest{
-		method:       "DELETE",
-		pathFmt:      "/v1/routes/%s",
-		pathArgs:     []any{routeId},
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// DeleteRoutesConnections: Deletes a connection
-func (c *Client) DeleteRoutesConnections(ctx context.Context, connectionId string) (*RouteConnectionTombstone, error) {
-	return doJSON[RouteConnectionTombstone](c, ctx, apiRequest{
-		method:       "DELETE",
-		pathFmt:      "/v1/routes/connections/%s",
-		pathArgs:     []any{connectionId},
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -648,6 +648,112 @@ func (c *Client) GetGatewayGroupsGroupId(ctx context.Context, groupId string) (*
 		method:       "GET",
 		pathFmt:      "/v1/gateway/groups/%s",
 		pathArgs:     []any{groupId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridClassifiers: Lists classifiers available for intelligent routes
+func (c *Client) GetGridClassifiers(ctx context.Context, params GetV1GridClassifiersParams) (*GridClassifiersResponse, error) {
+	return doJSON[GridClassifiersResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/classifiers",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridClassifiersClassifierId: Gets a classifier available for intelligent routes
+func (c *Client) GetGridClassifiersClassifierId(ctx context.Context, classifierId string) (*GridClassifier, error) {
+	return doJSON[GridClassifier](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/classifiers/%s",
+		pathArgs:     []any{classifierId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridConnections: Lists connections
+func (c *Client) GetGridConnections(ctx context.Context, params GetV1GridConnectionsParams) (*GridConnectionsResponse, error) {
+	return doJSON[GridConnectionsResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/connections",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridRoutes: Lists routes
+func (c *Client) GetGridRoutes(ctx context.Context, params GetV1GridRoutesParams) (*GridRoutesResponse, error) {
+	return doJSON[GridRoutesResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/routes",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridRoutesRouteId: Gets a route
+func (c *Client) GetGridRoutesRouteId(ctx context.Context, routeId string) (*GridRoute, error) {
+	return doJSON[GridRoute](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/routes/%s",
+		pathArgs:     []any{routeId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridRoutesUsage: Gets daily Grid usage and estimated costs
+func (c *Client) GetGridRoutesUsage(ctx context.Context, params GetV1GridRoutesUsageParams) (*GridRouteUsageResponse, error) {
+	return doJSON[GridRouteUsageResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/routes/usage",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridTeamSettings: Gets a team's Grid settings by team ID or your only team
+func (c *Client) GetGridTeamSettings(ctx context.Context, params GetV1GridTeamSettingsParams) (*GridTeamSettings, error) {
+	return doJSON[GridTeamSettings](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/team_settings",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridTeamSettingsUsers: Lists members' Grid settings
+func (c *Client) GetGridTeamSettingsUsers(ctx context.Context, params GetV1GridTeamSettingsUsersParams) (*GridTeamUserSettingsList, error) {
+	return doJSON[GridTeamUserSettingsList](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/team_settings/users",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridTeamSettingsUsersUserId: Gets a user's Grid settings by team ID or your only team
+func (c *Client) GetGridTeamSettingsUsersUserId(ctx context.Context, userId string, params GetV1GridTeamSettingsUsersUserIdParams) (*GridTeamUserSettings, error) {
+	return doJSON[GridTeamUserSettings](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/team_settings/users/%s",
+		pathArgs:     []any{userId},
+		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -1189,97 +1295,6 @@ func (c *Client) GetRegions(ctx context.Context) (*Regions, error) {
 		method:       "GET",
 		pathFmt:      "/v1/regions",
 		pathArgs:     nil,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// GetRoutes: Lists routes
-func (c *Client) GetRoutes(ctx context.Context, params GetV1RoutesParams) (*RoutesResponse, error) {
-	return doJSON[RoutesResponse](c, ctx, apiRequest{
-		method:       "GET",
-		pathFmt:      "/v1/routes",
-		pathArgs:     nil,
-		queryParams:  params,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// GetRoutesConnections: Lists connections
-func (c *Client) GetRoutesConnections(ctx context.Context, params GetV1RoutesConnectionsParams) (*RouteConnectionsResponse, error) {
-	return doJSON[RouteConnectionsResponse](c, ctx, apiRequest{
-		method:       "GET",
-		pathFmt:      "/v1/routes/connections",
-		pathArgs:     nil,
-		queryParams:  params,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// GetRoutesRouteId: Gets a route
-func (c *Client) GetRoutesRouteId(ctx context.Context, routeId string) (*Route, error) {
-	return doJSON[Route](c, ctx, apiRequest{
-		method:       "GET",
-		pathFmt:      "/v1/routes/%s",
-		pathArgs:     []any{routeId},
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// GetRoutesSettingsTeams: Gets a team's route settings
-func (c *Client) GetRoutesSettingsTeams(ctx context.Context, teamId string) (*RouteTeamSettings, error) {
-	return doJSON[RouteTeamSettings](c, ctx, apiRequest{
-		method:       "GET",
-		pathFmt:      "/v1/routes/settings/teams/%s",
-		pathArgs:     []any{teamId},
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// GetRoutesSettingsTeamsUsers: Lists users' route settings in a team
-func (c *Client) GetRoutesSettingsTeamsUsers(ctx context.Context, teamId string) (*RouteTeamUserSettingsList, error) {
-	return doJSON[RouteTeamUserSettingsList](c, ctx, apiRequest{
-		method:       "GET",
-		pathFmt:      "/v1/routes/settings/teams/%s/users",
-		pathArgs:     []any{teamId},
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// GetRoutesSettingsTeamsUsersUserId: Gets a user's route settings in a team
-func (c *Client) GetRoutesSettingsTeamsUsersUserId(ctx context.Context, teamId string, userId string) (*RouteTeamUserSettings, error) {
-	return doJSON[RouteTeamUserSettings](c, ctx, apiRequest{
-		method:       "GET",
-		pathFmt:      "/v1/routes/settings/teams/%s/users/%s",
-		pathArgs:     []any{teamId, userId},
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// GetRoutesSettingsUsersTeams: Lists a user's route settings in each of their teams
-func (c *Client) GetRoutesSettingsUsersTeams(ctx context.Context, userId string) (*RouteUserTeamSettingsList, error) {
-	return doJSON[RouteUserTeamSettingsList](c, ctx, apiRequest{
-		method:       "GET",
-		pathFmt:      "/v1/routes/settings/users/%s/teams",
-		pathArgs:     []any{userId},
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// GetRoutesUsage: Gets daily route usage and estimated costs
-func (c *Client) GetRoutesUsage(ctx context.Context, params GetV1RoutesUsageParams) (*RoutesUsageResponse, error) {
-	return doJSON[RoutesUsageResponse](c, ctx, apiRequest{
-		method:       "GET",
-		pathFmt:      "/v1/routes/usage",
-		pathArgs:     nil,
-		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -1850,6 +1865,54 @@ func (c *Client) PatchGatewayGroups(ctx context.Context, groupId string, body Up
 	})
 }
 
+// PatchGridConnections: Updates a connection
+func (c *Client) PatchGridConnections(ctx context.Context, connectionId string, body UpdateGridConnectionRequest) (*GridConnection, error) {
+	return doJSON[GridConnection](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/grid/connections/%s",
+		pathArgs:     []any{connectionId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PatchGridRoutes: Updates a route
+func (c *Client) PatchGridRoutes(ctx context.Context, routeId string, body UpdateGridRouteRequest) (*GridRoute, error) {
+	return doJSON[GridRoute](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/grid/routes/%s",
+		pathArgs:     []any{routeId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PatchGridTeamSettings: Updates a team's Grid settings by team ID or your only team
+func (c *Client) PatchGridTeamSettings(ctx context.Context, body UpdateGridTeamSettingsRequest) (*GridTeamSettings, error) {
+	return doJSON[GridTeamSettings](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/grid/team_settings",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PatchGridTeamSettingsUsers: Updates a user's Grid settings by team ID or your only team
+func (c *Client) PatchGridTeamSettingsUsers(ctx context.Context, userId string, body UpdateGridUserSettingsRequest) (*GridTeamUserSettings, error) {
+	return doJSON[GridTeamUserSettings](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/grid/team_settings/users/%s",
+		pathArgs:     []any{userId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // PatchLibraryListings: Updates a library listing
 func (c *Client) PatchLibraryListings(ctx context.Context, userDefinedListingId string, body UpdateLibraryListingRequest) (*LibraryListing, error) {
 	return doJSON[LibraryListing](c, ctx, apiRequest{
@@ -1964,54 +2027,6 @@ func (c *Client) PatchModelsEnvironments(ctx context.Context, modelId string, en
 		method:       "PATCH",
 		pathFmt:      "/v1/models/%s/environments/%s",
 		pathArgs:     []any{modelId, envName},
-		body:         body,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// PatchRoutes: Updates a route
-func (c *Client) PatchRoutes(ctx context.Context, routeId string, body UpdateRouteRequest) (*Route, error) {
-	return doJSON[Route](c, ctx, apiRequest{
-		method:       "PATCH",
-		pathFmt:      "/v1/routes/%s",
-		pathArgs:     []any{routeId},
-		body:         body,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// PatchRoutesConnections: Updates a connection
-func (c *Client) PatchRoutesConnections(ctx context.Context, connectionId string, body UpdateRouteConnectionRequest) (*RouteConnection, error) {
-	return doJSON[RouteConnection](c, ctx, apiRequest{
-		method:       "PATCH",
-		pathFmt:      "/v1/routes/connections/%s",
-		pathArgs:     []any{connectionId},
-		body:         body,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// PatchRoutesSettingsTeams: Updates a team's route settings
-func (c *Client) PatchRoutesSettingsTeams(ctx context.Context, teamId string, body UpdateRouteTeamSettingsRequest) (*RouteTeamSettings, error) {
-	return doJSON[RouteTeamSettings](c, ctx, apiRequest{
-		method:       "PATCH",
-		pathFmt:      "/v1/routes/settings/teams/%s",
-		pathArgs:     []any{teamId},
-		body:         body,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// PatchRoutesSettingsTeamsUsers: Updates a user's route settings in a team
-func (c *Client) PatchRoutesSettingsTeamsUsers(ctx context.Context, teamId string, userId string, body UpdateRouteUserSettingsRequest) (*RouteTeamUserSettings, error) {
-	return doJSON[RouteTeamUserSettings](c, ctx, apiRequest{
-		method:       "PATCH",
-		pathFmt:      "/v1/routes/settings/teams/%s/users/%s",
-		pathArgs:     []any{teamId, userId},
 		body:         body,
 		successCodes: []int{200},
 		errorCodes:   nil,
@@ -2179,6 +2194,30 @@ func (c *Client) PostGatewayGroupsApiKeysRegister(ctx context.Context, groupId s
 		method:       "POST",
 		pathFmt:      "/v1/gateway/groups/%s/api_keys/register",
 		pathArgs:     []any{groupId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PostGridConnections: Creates a connection
+func (c *Client) PostGridConnections(ctx context.Context, body CreateGridConnectionRequest) (*GridConnection, error) {
+	return doJSON[GridConnection](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/grid/connections",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PostGridRoutes: Creates a route
+func (c *Client) PostGridRoutes(ctx context.Context, body CreateGridRouteRequest) (*GridRoute, error) {
+	return doJSON[GridRoute](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/grid/routes",
+		pathArgs:     nil,
 		body:         body,
 		successCodes: []int{200},
 		errorCodes:   nil,
@@ -2650,30 +2689,6 @@ func (c *Client) PostPrepareModelUpload(ctx context.Context, body PrepareModelUp
 	return doJSON[PrepareModelUploadResponse](c, ctx, apiRequest{
 		method:       "POST",
 		pathFmt:      "/v1/prepare_model_upload",
-		pathArgs:     nil,
-		body:         body,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// PostRoutes: Creates a route
-func (c *Client) PostRoutes(ctx context.Context, body CreateRouteRequest) (*Route, error) {
-	return doJSON[Route](c, ctx, apiRequest{
-		method:       "POST",
-		pathFmt:      "/v1/routes",
-		pathArgs:     nil,
-		body:         body,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// PostRoutesConnections: Creates a connection
-func (c *Client) PostRoutesConnections(ctx context.Context, body CreateRouteConnectionRequest) (*RouteConnection, error) {
-	return doJSON[RouteConnection](c, ctx, apiRequest{
-		method:       "POST",
-		pathFmt:      "/v1/routes/connections",
 		pathArgs:     nil,
 		body:         body,
 		successCodes: []int{200},
