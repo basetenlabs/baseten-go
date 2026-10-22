@@ -10,11 +10,16 @@ import (
 
 const sdkModulePath = "github.com/basetenlabs/baseten-go"
 
-var clientName atomic.Pointer[string]
+var (
+	clientName    atomic.Pointer[string]
+	clientVersion atomic.Pointer[string]
+)
 
 func init() {
 	name := "baseten-go"
 	clientName.Store(&name)
+	version := ""
+	clientVersion.Store(&version)
 }
 
 // SetClientName overrides the product token used in the Baseten User-Agent
@@ -34,6 +39,21 @@ func ClientName() string {
 	return *clientName.Load()
 }
 
+// SetClientVersion overrides the version used in the Baseten User-Agent
+// header (e.g. "1.5.0"). Defaults to "", which uses the baseten-go module
+// version.
+//
+// Like SetClientName, must be called before constructing any client.
+func SetClientVersion(version string) {
+	clientVersion.Store(&version)
+}
+
+// ClientVersion returns the current client version used in the Baseten
+// User-Agent header, or "" if the baseten-go module version is used.
+func ClientVersion() string {
+	return *clientVersion.Load()
+}
+
 // ApplyUserAgentHeader builds and sets a Baseten User-Agent on h if one is not
 // already present. The value looks like "baseten-go/0.1.0 (Go/1.25.0; linux)".
 // This is a no-op if the client name has been disabled via SetClientName("").
@@ -45,7 +65,11 @@ func ApplyUserAgentHeader(h http.Header) {
 	if h.Get("User-Agent") != "" {
 		return
 	}
-	h.Set("User-Agent", name+"/"+sdkVersion()+" (Go/"+goVersion()+"; "+runtime.GOOS+")")
+	version := ClientVersion()
+	if version == "" {
+		version = sdkVersion()
+	}
+	h.Set("User-Agent", name+"/"+version+" (Go/"+goVersion()+"; "+runtime.GOOS+")")
 }
 
 // Not cached: ApplyUserAgentHeader is usually invoked once per client

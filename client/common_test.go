@@ -24,6 +24,21 @@ func TestApplyUserAgentHeaderFormat(t *testing.T) {
 	require.Regexp(t, `^baseten-go/\S+ \(Go/\S+; [^)]+\)$`, h.Get("User-Agent"))
 }
 
+func TestApplyUserAgentHeaderClientVersion(t *testing.T) {
+	origName, origVersion := client.ClientName(), client.ClientVersion()
+	t.Cleanup(func() {
+		client.SetClientName(origName)
+		client.SetClientVersion(origVersion)
+	})
+	require.Equal(t, "", client.ClientVersion())
+	client.SetClientName("baseten-cli")
+	client.SetClientVersion("1.5.0")
+	require.Equal(t, "1.5.0", client.ClientVersion())
+	h := http.Header{}
+	client.ApplyUserAgentHeader(h)
+	require.Regexp(t, `^baseten-cli/1\.5\.0 \(Go/\S+; [^)]+\)$`, h.Get("User-Agent"))
+}
+
 func TestApplyUserAgentHeaderNonClobber(t *testing.T) {
 	h := http.Header{"User-Agent": {"custom/1.0"}}
 	client.ApplyUserAgentHeader(h)
