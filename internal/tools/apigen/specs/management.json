@@ -9020,11 +9020,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"name\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"runtime\": null,\n  \"name\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'name': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'runtime': None, 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -9057,11 +9057,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"name\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"runtime\": null,\n  \"name\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'name': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'runtime': None, 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -9099,11 +9099,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models/{model_id}/deployments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models/{model_id}/deployments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"runtime\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models/{model_id}/deployments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models/{model_id}/deployments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'runtime': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -15996,6 +15996,72 @@
                         "description": "If true, push as a development deployment: the model's single mutable dev slot, created if absent and overwritten in place otherwise. The following fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `deployment_name`.",
                         "title": "Is Development",
                         "type": "boolean"
+                    },
+                    "autoscaling_settings": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateAutoscalingSettingsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Autoscaling settings for the new deployment. With `environment_name`, the new deployment starts from the environment's settings with these changes applied, and the environment keeps the result when the promotion completes. Without it, they apply to the new deployment only.",
+                        "examples": [
+                            {
+                                "max_replica": 4,
+                                "min_replica": 2
+                            }
+                        ]
+                    },
+                    "request_backpressure_settings": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateRequestBackpressureSettingsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Request backpressure settings for the new deployment, applied the same way as `autoscaling_settings`.",
+                        "examples": [
+                            {
+                                "policy": "REJECT_ON_FULL"
+                            }
+                        ]
+                    },
+                    "autoscaling_schedule_settings": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateAutoscalingScheduleSettingsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Autoscaling schedule changes for the environment named by `environment_name`, applied when the promotion completes. Requires `environment_name`."
+                    },
+                    "promotion_settings_override": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdatePromotionSettingsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Promotion settings for promoting the new deployment into the environment named by `environment_name`, for this promotion only. Omitted fields keep the environment's values, and the environment's promotion settings are unchanged. Requires `environment_name`.",
+                        "examples": [
+                            {
+                                "rolling_deploy_config": {
+                                    "max_surge_percent": 50
+                                }
+                            }
+                        ]
                     }
                 },
                 "required": [
@@ -16647,6 +16713,43 @@
                 "title": "AuditLogEventAutoscalingScheduleChangeV1",
                 "type": "object"
             },
+            "AuditLogEventAutoscalingScheduleOperationsV1": {
+                "description": "The autoscaling schedule changes a request asked for. Not itself a union payload.",
+                "properties": {
+                    "timezone": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Timezone"
+                    },
+                    "schedules": {
+                        "items": {
+                            "$ref": "#/components/schemas/AuditLogEventAutoscalingScheduleUpsertV1"
+                        },
+                        "title": "Schedules",
+                        "type": "array"
+                    },
+                    "delete_schedule_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Delete Schedule Ids",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "timezone",
+                    "schedules",
+                    "delete_schedule_ids"
+                ],
+                "title": "AuditLogEventAutoscalingScheduleOperationsV1",
+                "type": "object"
+            },
             "AuditLogEventAutoscalingScheduleSettingsV1": {
                 "description": "One autoscaling schedule's timing and autoscaling settings. Not itself a union payload.",
                 "properties": {
@@ -16843,6 +16946,328 @@
                     "end_minute"
                 ],
                 "title": "AuditLogEventAutoscalingScheduleSettingsV1",
+                "type": "object"
+            },
+            "AuditLogEventAutoscalingScheduleUpsertV1": {
+                "description": "One schedule a request creates (`schedule_id` null) or replaces. `timezone` is the\nrequest's, null when it keeps the environment's. Not itself a union payload.",
+                "properties": {
+                    "min_replica": {
+                        "title": "Min Replica",
+                        "type": "integer"
+                    },
+                    "max_replica": {
+                        "title": "Max Replica",
+                        "type": "integer"
+                    },
+                    "concurrency_target": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Concurrency Target"
+                    },
+                    "autoscaling_window": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Autoscaling Window"
+                    },
+                    "scale_down_delay": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scale Down Delay"
+                    },
+                    "target_utilization_percentage": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target Utilization Percentage"
+                    },
+                    "target_in_flight_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target In Flight Tokens"
+                    },
+                    "max_scale_down_rate": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Scale Down Rate"
+                    },
+                    "schedule_name": {
+                        "title": "Schedule Name",
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "title": "Enabled",
+                        "type": "boolean"
+                    },
+                    "cadence": {
+                        "title": "Cadence",
+                        "type": "string"
+                    },
+                    "timezone": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Timezone"
+                    },
+                    "weekdays": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Weekdays"
+                    },
+                    "start_hour": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Start Hour"
+                    },
+                    "start_minute": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Start Minute"
+                    },
+                    "end_hour": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "End Hour"
+                    },
+                    "end_minute": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "End Minute"
+                    },
+                    "start_at": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Start At"
+                    },
+                    "end_at": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "End At"
+                    },
+                    "schedule_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Schedule Id"
+                    }
+                },
+                "required": [
+                    "min_replica",
+                    "max_replica",
+                    "concurrency_target",
+                    "autoscaling_window",
+                    "scale_down_delay",
+                    "target_utilization_percentage",
+                    "target_in_flight_tokens",
+                    "max_scale_down_rate",
+                    "schedule_name",
+                    "enabled",
+                    "cadence",
+                    "timezone",
+                    "weekdays",
+                    "start_hour",
+                    "start_minute",
+                    "end_hour",
+                    "end_minute",
+                    "schedule_id"
+                ],
+                "title": "AuditLogEventAutoscalingScheduleUpsertV1",
+                "type": "object"
+            },
+            "AuditLogEventAutoscalingSettingsUpdateV1": {
+                "description": "Autoscaling settings a request set, null where it left a setting unchanged. Not itself a\npayload in the discriminated union.",
+                "properties": {
+                    "min_replica": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Min Replica"
+                    },
+                    "max_replica": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Replica"
+                    },
+                    "concurrency_target": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Concurrency Target"
+                    },
+                    "autoscaling_window": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Autoscaling Window"
+                    },
+                    "scale_down_delay": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scale Down Delay"
+                    },
+                    "target_utilization_percentage": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target Utilization Percentage"
+                    },
+                    "target_in_flight_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Target In Flight Tokens"
+                    },
+                    "max_scale_down_rate": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Scale Down Rate"
+                    }
+                },
+                "required": [
+                    "min_replica",
+                    "max_replica",
+                    "concurrency_target",
+                    "autoscaling_window",
+                    "scale_down_delay",
+                    "target_utilization_percentage",
+                    "target_in_flight_tokens",
+                    "max_scale_down_rate"
+                ],
+                "title": "AuditLogEventAutoscalingSettingsUpdateV1",
                 "type": "object"
             },
             "AuditLogEventAutoscalingSettingsV1": {
@@ -18921,10 +19346,51 @@
                         ],
                         "title": "Region Update"
                     },
+                    "instance_type_id_update": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Instance Type Id Update"
+                    },
                     "promotion_settings_override": {
                         "anyOf": [
                             {
                                 "$ref": "#/components/schemas/AuditLogEventPromotionSettingsOverrideV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "autoscaling_settings_update": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventAutoscalingSettingsUpdateV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "request_backpressure_settings_update": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventRequestBackpressureSettingsUpdateV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "autoscaling_schedule_settings_update": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventAutoscalingScheduleOperationsV1"
                             },
                             {
                                 "type": "null"
@@ -18941,7 +19407,11 @@
                     "environment_name",
                     "environment_id",
                     "region_update",
-                    "promotion_settings_override"
+                    "instance_type_id_update",
+                    "promotion_settings_override",
+                    "autoscaling_settings_update",
+                    "request_backpressure_settings_update",
+                    "autoscaling_schedule_settings_update"
                 ],
                 "title": "AuditLogEventModelDeploymentPromotedV1",
                 "type": "object"
@@ -19368,6 +19838,27 @@
                     "replica_id"
                 ],
                 "title": "AuditLogEventReplicaTerminatedV1",
+                "type": "object"
+            },
+            "AuditLogEventRequestBackpressureSettingsUpdateV1": {
+                "description": "A request backpressure policy a request set; a null policy clears it. Not itself a\npayload in the discriminated union.",
+                "properties": {
+                    "policy": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Policy"
+                    }
+                },
+                "required": [
+                    "policy"
+                ],
+                "title": "AuditLogEventRequestBackpressureSettingsUpdateV1",
                 "type": "object"
             },
             "AuditLogEventRequireGroupBasedAdminsEnabledV1": {
@@ -21372,7 +21863,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Instance type for the promoted deployment, from `GET /v1/instance_types`.",
+                        "description": "Instance type for the promoted deployment, from `GET /v1/instance_types`. A different instance type than the deployment's creates a new deployment on it. Cannot be set with `preserve_env_instance_type: true`.",
                         "title": "Instance Type Id"
                     },
                     "autoscaling_settings": {
@@ -21397,7 +21888,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Request backpressure settings for the promoted deployment."
+                        "description": "Request backpressure settings for the promoted deployment. A null policy clears it."
                     },
                     "autoscaling_schedule_settings": {
                         "anyOf": [
@@ -28692,6 +29183,19 @@
                         "title": "Enabled",
                         "type": "boolean"
                     },
+                    "serverless": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Early access only. Whether this workspace can use serverless Loops for this model.",
+                        "title": "Serverless"
+                    },
                     "enablement_details": {
                         "anyOf": [
                             {
@@ -32227,6 +32731,43 @@
                 "title": "EgressRestrictionsV1",
                 "type": "object"
             },
+            "LLMRuntimeV1": {
+                "properties": {
+                    "oidc": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/RuntimeOidcV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Runtime OIDC token mounting configuration"
+                    }
+                },
+                "title": "LLMRuntimeV1",
+                "type": "object"
+            },
+            "RuntimeOidcV1": {
+                "properties": {
+                    "enabled": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "If true, mounts an OIDC bearer token for the deployment to access at runtime. If unset, the platform default applies.",
+                        "title": "Enabled"
+                    }
+                },
+                "title": "RuntimeOidcV1",
+                "type": "object"
+            },
             "CreateLLMModelRequestV1": {
                 "description": "A request to create a BIS-LLM model",
                 "properties": {
@@ -32392,6 +32933,18 @@
                         ],
                         "default": null,
                         "description": "Restricts this deployment's egress to the specified FQDNs and IP addresses; an empty block allows none. Requires the organization to have egress restrictions enabled."
+                    },
+                    "runtime": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LLMRuntimeV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Runtime configuration for the deployment"
                     },
                     "name": {
                         "description": "Name of the model",
@@ -32611,6 +33164,18 @@
                         ],
                         "default": null,
                         "description": "Restricts this deployment's egress to the specified FQDNs and IP addresses; an empty block allows none. Requires the organization to have egress restrictions enabled."
+                    },
+                    "runtime": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LLMRuntimeV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Runtime configuration for the deployment"
                     }
                 },
                 "required": [

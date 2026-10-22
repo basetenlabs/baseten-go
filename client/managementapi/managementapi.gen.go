@@ -2160,6 +2160,13 @@ type AuditLogEventAutoscalingScheduleChange struct {
 	ScheduleId string                                    `json:"schedule_id"`
 }
 
+// AuditLogEventAutoscalingScheduleOperations The autoscaling schedule changes a request asked for. Not itself a union payload.
+type AuditLogEventAutoscalingScheduleOperations struct {
+	DeleteScheduleIds []string                                 `json:"delete_schedule_ids"`
+	Schedules         []AuditLogEventAutoscalingScheduleUpsert `json:"schedules"`
+	Timezone          *string                                  `json:"timezone"`
+}
+
 // AuditLogEventAutoscalingScheduleSettings One autoscaling schedule's timing and autoscaling settings. Not itself a union payload.
 type AuditLogEventAutoscalingScheduleSettings struct {
 	AutoscalingWindow           *int      `json:"autoscaling_window"`
@@ -2183,6 +2190,31 @@ type AuditLogEventAutoscalingScheduleSettings struct {
 	Weekdays                    *[]string `json:"weekdays"`
 }
 
+// AuditLogEventAutoscalingScheduleUpsert One schedule a request creates (`schedule_id` null) or replaces. `timezone` is the
+// request's, null when it keeps the environment's. Not itself a union payload.
+type AuditLogEventAutoscalingScheduleUpsert struct {
+	AutoscalingWindow           *int      `json:"autoscaling_window"`
+	Cadence                     string    `json:"cadence"`
+	ConcurrencyTarget           *int      `json:"concurrency_target"`
+	Enabled                     bool      `json:"enabled"`
+	EndAt                       *string   `json:"end_at,omitempty"`
+	EndHour                     *int      `json:"end_hour"`
+	EndMinute                   *int      `json:"end_minute"`
+	MaxReplica                  int       `json:"max_replica"`
+	MaxScaleDownRate            *float32  `json:"max_scale_down_rate"`
+	MinReplica                  int       `json:"min_replica"`
+	ScaleDownDelay              *int      `json:"scale_down_delay"`
+	ScheduleId                  *string   `json:"schedule_id"`
+	ScheduleName                string    `json:"schedule_name"`
+	StartAt                     *string   `json:"start_at,omitempty"`
+	StartHour                   *int      `json:"start_hour"`
+	StartMinute                 *int      `json:"start_minute"`
+	TargetInFlightTokens        *int      `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int      `json:"target_utilization_percentage"`
+	Timezone                    *string   `json:"timezone"`
+	Weekdays                    *[]string `json:"weekdays"`
+}
+
 // AuditLogEventAutoscalingSettings Autoscaling settings for a deployment or environment.
 type AuditLogEventAutoscalingSettings struct {
 	AutoscalingWindow           *int     `json:"autoscaling_window"`
@@ -2190,6 +2222,19 @@ type AuditLogEventAutoscalingSettings struct {
 	MaxReplica                  int      `json:"max_replica"`
 	MaxScaleDownRate            *float32 `json:"max_scale_down_rate"`
 	MinReplica                  int      `json:"min_replica"`
+	ScaleDownDelay              *int     `json:"scale_down_delay"`
+	TargetInFlightTokens        *int     `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int     `json:"target_utilization_percentage"`
+}
+
+// AuditLogEventAutoscalingSettingsUpdate Autoscaling settings a request set, null where it left a setting unchanged. Not itself a
+// payload in the discriminated union.
+type AuditLogEventAutoscalingSettingsUpdate struct {
+	AutoscalingWindow           *int     `json:"autoscaling_window"`
+	ConcurrencyTarget           *int     `json:"concurrency_target"`
+	MaxReplica                  *int     `json:"max_replica"`
+	MaxScaleDownRate            *float32 `json:"max_scale_down_rate"`
+	MinReplica                  *int     `json:"min_replica"`
 	ScaleDownDelay              *int     `json:"scale_down_delay"`
 	TargetInFlightTokens        *int     `json:"target_in_flight_tokens"`
 	TargetUtilizationPercentage *int     `json:"target_utilization_percentage"`
@@ -2511,15 +2556,19 @@ type AuditLogEventModelDeploymentInstanceTypeChanged struct {
 
 // AuditLogEventModelDeploymentPromoted A model deployment was promoted to an environment.
 type AuditLogEventModelDeploymentPromoted struct {
-	DeploymentId              string                                  `json:"deployment_id"`
-	DeploymentName            string                                  `json:"deployment_name"`
-	EnvironmentId             *string                                 `json:"environment_id"`
-	EnvironmentName           *string                                 `json:"environment_name"`
-	EventType                 string                                  `json:"event_type"`
-	ModelId                   string                                  `json:"model_id"`
-	ModelName                 string                                  `json:"model_name"`
-	PromotionSettingsOverride *AuditLogEventPromotionSettingsOverride `json:"promotion_settings_override"`
-	RegionUpdate              *string                                 `json:"region_update"`
+	AutoscalingScheduleSettingsUpdate *AuditLogEventAutoscalingScheduleOperations     `json:"autoscaling_schedule_settings_update"`
+	AutoscalingSettingsUpdate         *AuditLogEventAutoscalingSettingsUpdate         `json:"autoscaling_settings_update"`
+	DeploymentId                      string                                          `json:"deployment_id"`
+	DeploymentName                    string                                          `json:"deployment_name"`
+	EnvironmentId                     *string                                         `json:"environment_id"`
+	EnvironmentName                   *string                                         `json:"environment_name"`
+	EventType                         string                                          `json:"event_type"`
+	InstanceTypeIdUpdate              *string                                         `json:"instance_type_id_update"`
+	ModelId                           string                                          `json:"model_id"`
+	ModelName                         string                                          `json:"model_name"`
+	PromotionSettingsOverride         *AuditLogEventPromotionSettingsOverride         `json:"promotion_settings_override"`
+	RegionUpdate                      *string                                         `json:"region_update"`
+	RequestBackpressureSettingsUpdate *AuditLogEventRequestBackpressureSettingsUpdate `json:"request_backpressure_settings_update"`
 }
 
 // AuditLogEventModelDeploymentRequestBackpressureSettingsChanged A model deployment's request backpressure settings were changed.
@@ -2609,6 +2658,12 @@ type AuditLogEventReplicaTerminated struct {
 	ModelId        string `json:"model_id"`
 	ModelName      string `json:"model_name"`
 	ReplicaId      string `json:"replica_id"`
+}
+
+// AuditLogEventRequestBackpressureSettingsUpdate A request backpressure policy a request set; a null policy clears it. Not itself a
+// payload in the discriminated union.
+type AuditLogEventRequestBackpressureSettingsUpdate struct {
+	Policy *string `json:"policy"`
 }
 
 // AuditLogEventRequireGroupBasedAdminsEnabled Group-based admin enforcement was enabled for the organization.
@@ -3513,6 +3568,9 @@ type CreateLLMModelRequest struct {
 	// Resources Resources allocated to the model
 	Resources map[string]interface{} `json:"resources"`
 
+	// Runtime Runtime configuration for the deployment
+	Runtime *LLMRuntime `json:"runtime,omitempty"`
+
 	// Weights Weight configurations for BDN model weight distribution
 	Weights *[]map[string]interface{} `json:"weights,omitempty"`
 }
@@ -3548,6 +3606,9 @@ type CreateLLMModelVersionRequest struct {
 
 	// Resources Resources allocated to the model
 	Resources map[string]interface{} `json:"resources"`
+
+	// Runtime Runtime configuration for the deployment
+	Runtime *LLMRuntime `json:"runtime,omitempty"`
 
 	// Weights Weight configurations for BDN model weight distribution
 	Weights *[]map[string]interface{} `json:"weights,omitempty"`
@@ -4450,6 +4511,12 @@ type Deployment struct {
 // `POST /v1/prepare_model_upload`, the `model_archive` source on `POST
 // /v1/models`, and `POST /v1/models/{model_id}/deployments`.
 type DeploymentArchivePayload struct {
+	// AutoscalingScheduleSettings Autoscaling schedule changes for the environment named by `environment_name`, applied when the promotion completes. Requires `environment_name`.
+	AutoscalingScheduleSettings *UpdateAutoscalingScheduleSettings `json:"autoscaling_schedule_settings,omitempty"`
+
+	// AutoscalingSettings Autoscaling settings for the new deployment. With `environment_name`, the new deployment starts from the environment's settings with these changes applied, and the environment keeps the result when the promotion completes. Without it, they apply to the new deployment only.
+	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
+
 	// Config Parsed model config as a JSON object.
 	Config map[string]interface{} `json:"config"`
 
@@ -4474,11 +4541,17 @@ type DeploymentArchivePayload struct {
 	// PreserveEnvInstanceType Retain the target environment's current instance type rather than the one in `config`. Only meaningful when `environment_name` is set and that environment already exists.
 	PreserveEnvInstanceType *bool `json:"preserve_env_instance_type,omitempty"`
 
+	// PromotionSettingsOverride Promotion settings for promoting the new deployment into the environment named by `environment_name`, for this promotion only. Omitted fields keep the environment's values, and the environment's promotion settings are unchanged. Requires `environment_name`.
+	PromotionSettingsOverride *UpdatePromotionSettings `json:"promotion_settings_override,omitempty"`
+
 	// RawConfig Original config.yaml text, persisted as-is on the deployment. Best-effort: invalid raw configs are logged and dropped without failing the request.
 	RawConfig *string `json:"raw_config,omitempty"`
 
 	// Region Region in which to deploy the model
 	Region *string `json:"region,omitempty"`
+
+	// RequestBackpressureSettings Request backpressure settings for the new deployment, applied the same way as `autoscaling_settings`.
+	RequestBackpressureSettings *UpdateRequestBackpressureSettings `json:"request_backpressure_settings,omitempty"`
 
 	// UserEnv Client environment metadata (e.g. client version, Python version). Validated server-side.
 	UserEnv *map[string]interface{} `json:"user_env,omitempty"`
@@ -6043,6 +6116,12 @@ type LLMModelHandle struct {
 	VersionId string `json:"version_id"`
 }
 
+// LLMRuntime defines model for LLMRuntime.
+type LLMRuntime struct {
+	// Oidc Runtime OIDC token mounting configuration
+	Oidc *RuntimeOidc `json:"oidc,omitempty"`
+}
+
 // LibraryListing A library listing.
 type LibraryListing struct {
 	// ClosedSource Whether the listing is closed source (deployers cannot view or download the Truss, and forks copy mirrored weights instead of re-mirroring from upstream)
@@ -7366,7 +7445,7 @@ type PromotionEnvironmentSettingsUpdate struct {
 	// AutoscalingSettings Autoscaling settings for the promoted deployment.
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
-	// InstanceTypeId Instance type for the promoted deployment, from `GET /v1/instance_types`.
+	// InstanceTypeId Instance type for the promoted deployment, from `GET /v1/instance_types`. A different instance type than the deployment's creates a new deployment on it. Cannot be set with `preserve_env_instance_type: true`.
 	InstanceTypeId *string `json:"instance_type_id,omitempty"`
 
 	// PromotionSettings Promotion settings for the environment, also used for this promotion.
@@ -7375,7 +7454,7 @@ type PromotionEnvironmentSettingsUpdate struct {
 	// Region Region for the promoted deployment, from `GET /v1/teams/{team_id}/regions`. Use an empty string for Global. If omitted, the deployment keeps its region. Regional environments only accept Global deployments.
 	Region *string `json:"region,omitempty"`
 
-	// RequestBackpressureSettings Request backpressure settings for the promoted deployment.
+	// RequestBackpressureSettings Request backpressure settings for the promoted deployment. A null policy clears it.
 	RequestBackpressureSettings *UpdateRequestBackpressureSettings `json:"request_backpressure_settings,omitempty"`
 }
 
@@ -7595,6 +7674,12 @@ type RollingDeployConfig struct {
 
 // RollingDeployStrategy The rolling deploy strategy.
 type RollingDeployStrategy string
+
+// RuntimeOidc defines model for RuntimeOidc.
+type RuntimeOidc struct {
+	// Enabled If true, mounts an OIDC bearer token for the deployment to access at runtime. If unset, the platform default applies.
+	Enabled *bool `json:"enabled,omitempty"`
+}
 
 // Sandbox defines model for Sandbox.
 type Sandbox struct {
@@ -8458,6 +8543,9 @@ type SupportedModel struct {
 
 	// ModelName The name of the supported model.
 	ModelName string `json:"model_name"`
+
+	// Serverless Early access only. Whether this workspace can use serverless Loops for this model.
+	Serverless *bool `json:"serverless,omitempty"`
 
 	// SupportsVisionLanguage Whether the model accepts image inputs alongside text.
 	SupportsVisionLanguage bool `json:"supports_vision_language"`

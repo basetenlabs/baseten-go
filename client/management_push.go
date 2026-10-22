@@ -106,6 +106,26 @@ type PushModelOptions struct {
 	// with EnvironmentName set to an environment that already exists.
 	PreserveEnvInstanceType bool
 
+	// AutoscalingSettings sets autoscaling on the new deployment. With
+	// EnvironmentName, the new deployment starts from the environment's
+	// settings with these changes applied, and the environment keeps the
+	// result when the promotion completes. Nil leaves the settings unchanged.
+	AutoscalingSettings *managementapi.UpdateAutoscalingSettings
+
+	// RequestBackpressureSettings sets request backpressure the same way as
+	// AutoscalingSettings.
+	RequestBackpressureSettings *managementapi.UpdateRequestBackpressureSettings
+
+	// AutoscalingScheduleSettings changes the autoscaling schedules of the
+	// environment named by EnvironmentName when the promotion completes. The
+	// server rejects it without EnvironmentName.
+	AutoscalingScheduleSettings *managementapi.UpdateAutoscalingScheduleSettings
+
+	// PromotionSettingsOverride overrides the environment's promotion settings
+	// for promoting this deployment only. The server rejects it without
+	// EnvironmentName.
+	PromotionSettingsOverride *managementapi.UpdatePromotionSettings
+
 	// IsDevelopment pushes to the model's single mutable development slot,
 	// created if absent and overwritten in place otherwise. DeploymentName,
 	// EnvironmentName, and PreserveEnvInstanceType must be left unset.
@@ -327,6 +347,10 @@ func pushModelPayload(opts PushModelOptions) managementapi.DeploymentArchivePayl
 	if opts.IsDevelopment {
 		payload.IsDevelopment = &opts.IsDevelopment
 	}
+	payload.AutoscalingSettings = opts.AutoscalingSettings
+	payload.RequestBackpressureSettings = opts.RequestBackpressureSettings
+	payload.AutoscalingScheduleSettings = opts.AutoscalingScheduleSettings
+	payload.PromotionSettingsOverride = opts.PromotionSettingsOverride
 	if opts.UserEnv != nil {
 		payload.UserEnv = &opts.UserEnv
 	}
