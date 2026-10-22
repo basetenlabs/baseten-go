@@ -9,7 +9,7 @@ import (
 )
 
 const previewRecord = `{"name":"web","port":3000,"url":"https://p.example","status":"DEPLOYED","public":false,"region":"us-was-1",` +
-	`"ttl":"7d","expires_at":"2026-10-20T12:00:00Z","response_headers":{"A":"1"},"request_headers":{"Authorization":"****"},` +
+	`"expires_at":"2026-10-20T12:00:00Z","response_headers":{"A":"1"},"request_headers":{"Authorization":"****"},` +
 	`"created_at":"2026-10-13T12:00:00Z","created_by":"me"}`
 
 func previewService(t *testing.T, cp *controlPlane) *PreviewService {
@@ -37,7 +37,6 @@ func TestPreviewCreate(t *testing.T) {
 		require.Equal(t, PreviewStatusDeployed, info.Status)
 		require.False(t, info.Public, "private preview")
 		require.Equal(t, "us-was-1", info.Region)
-		require.Equal(t, 7*24*time.Hour, info.TTL)
 		require.True(t, info.ExpiresAt.Equal(time.Date(2026, 10, 20, 12, 0, 0, 0, time.UTC)), "ExpiresAt %v", info.ExpiresAt)
 		require.MapEqual(t, info.ResponseHeaders, "A", "1")
 		require.MapEqual(t, info.RequestHeaders, "Authorization", "****")
@@ -76,14 +75,6 @@ func TestPreviewCreate(t *testing.T) {
 		_, err := previewService(t, cp).Create(t.Context(), PreviewCreateOptions{Port: 3000})
 		apiErr := require.ErrorAs[*APIError](t, err)
 		require.Equal(t, "CONFLICT", apiErr.Code)
-	})
-
-	t.Run("InvalidTTL", func(t *testing.T) {
-		cp := newControlPlane(t)
-		cp.respond("POST", "/v1/sandboxes/instances/sb/previews", 201, `{"name":"web","port":3000,"public":false,"ttl":"soon"}`)
-		_, err := previewService(t, cp).Create(t.Context(), PreviewCreateOptions{Port: 3000})
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "preview TTL")
 	})
 }
 

@@ -57,6 +57,10 @@ func TestTypeParity(t *testing.T) {
 		{name: "Network", ours: Network{}, generated: managementapi.SandboxNetwork{}},
 		{name: "NetworkProxy", ours: NetworkProxy{}, generated: managementapi.SandboxProxyConfig{}},
 		{name: "NetworkProxyRoute", ours: NetworkProxyRoute{}, generated: managementapi.SandboxProxyTarget{}},
+		{
+			name: "FileSystem", ours: FileSystem{}, generated: managementapi.SandboxFilesystem{},
+			oursOnly: map[string]string{"MaxMemoryUsageMegabytes": "the integer form of MaxMemoryUsage"},
+		},
 		{name: "ProcessInfo", ours: ProcessInfo{}, generated: sandboxapi.ProcessResponse{}},
 		{name: "ProcessLogs", ours: ProcessLogs{}, generated: sandboxapi.ProcessLogs{}},
 		{name: "PreviewInfo", ours: PreviewInfo{}, generated: managementapi.SandboxPreview{}},

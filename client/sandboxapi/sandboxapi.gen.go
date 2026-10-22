@@ -248,6 +248,11 @@ type Directory struct {
 	Name  string `json:"name"`
 	Path  string `json:"path"`
 
+	// Recursive Recursive is true when files and subdirectories hold every level below
+	// path (tree read with recursive=true). Older APIs ignore that parameter
+	// and omit this field, so clients can tell a one-level listing apart.
+	Recursive *bool `json:"recursive,omitempty"`
+
 	// Subdirectories @name Subdirectories
 	Subdirectories []Subdirectory `json:"subdirectories"`
 }
@@ -401,13 +406,15 @@ type ExportResult struct {
 
 // File defines model for File.
 type File struct {
-	Group        string `json:"group"`
-	LastModified string `json:"lastModified"`
-	Name         string `json:"name"`
-	Owner        string `json:"owner"`
-	Path         string `json:"path"`
-	Permissions  string `json:"permissions"`
-	Size         int    `json:"size"`
+	// Content Content is set only by a tree read with content=true, for regular files.
+	Content      *string `json:"content,omitempty"`
+	Group        string  `json:"group"`
+	LastModified string  `json:"lastModified"`
+	Name         string  `json:"name"`
+	Owner        string  `json:"owner"`
+	Path         string  `json:"path"`
+	Permissions  string  `json:"permissions"`
+	Size         int     `json:"size"`
 }
 
 // FileRequest defines model for FileRequest.
@@ -857,6 +864,30 @@ type GetFilesystemSearchPathParams struct {
 type DeleteFilesystemTreePathParams struct {
 	// Recursive Delete directory recursively
 	Recursive *bool `form:"recursive,omitempty" json:"recursive,omitempty"`
+}
+
+// GetFilesystemTreePathParams defines parameters for GetFilesystemTreePath.
+type GetFilesystemTreePathParams struct {
+	// Recursive List every file and directory below the path, not only its direct children (default: false)
+	Recursive *bool `form:"recursive,omitempty" json:"recursive,omitempty"`
+
+	// Content Include the content of each regular file, as UTF-8 text (default: false)
+	Content *bool `form:"content,omitempty" json:"content,omitempty"`
+
+	// Patterns Comma-separated glob patterns matched against file names (e.g., *.json,*.md). Directories are not filtered.
+	Patterns *string `form:"patterns,omitempty" json:"patterns,omitempty"`
+
+	// ExcludeDirs Comma-separated directory names to skip with everything below them (default: none)
+	ExcludeDirs *string `form:"excludeDirs,omitempty" json:"excludeDirs,omitempty"`
+
+	// ExcludeHidden Skip files and directories whose name starts with a dot (default: false)
+	ExcludeHidden *bool `form:"excludeHidden,omitempty" json:"excludeHidden,omitempty"`
+
+	// MaxFiles Fail with 422 when more files match (default: 10000 with recursive or content, otherwise unlimited; at most 100000)
+	MaxFiles *int `form:"maxFiles,omitempty" json:"maxFiles,omitempty"`
+
+	// MaxBytes With content=true, fail with 422 when the matching files hold more bytes (default: 33554432, 32 MiB; at most 268435456, 256 MiB)
+	MaxBytes *int `form:"maxBytes,omitempty" json:"maxBytes,omitempty"`
 }
 
 // DeleteFilesystemPathParams defines parameters for DeleteFilesystemPath.

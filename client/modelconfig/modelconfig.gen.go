@@ -267,6 +267,10 @@ type DockerServer struct {
 	// traffic.
 	ReadinessEndpoint string `json:"readiness_endpoint" yaml:"readiness_endpoint"`
 
+	// Reject requirements, requirements_file, system_packages, and build_commands.
+	// The base image must already contain them.
+	RebuildFree *bool `json:"rebuild_free,omitempty,omitzero" yaml:"rebuild_free,omitempty"`
+
 	// The Linux UID to run the server process as inside the container. Use this when
 	// your base image expects a specific non-root user (for example, NVIDIA NIM
 	// containers).
@@ -483,9 +487,9 @@ type ModelConfig struct {
 	// Runtime corresponds to the JSON schema field "runtime".
 	Runtime *Runtime `json:"runtime,omitempty,omitzero" yaml:"runtime,omitempty"`
 
-	// Declare secrets your model needs at runtime, such as API keys or access tokens.
-	// Use null as a placeholder; store actual values in your organization settings.
-	Secrets Secrets `json:"secrets,omitempty,omitzero" yaml:"secrets,omitempty"`
+	// Declare names of secrets your model needs at runtime, such as API keys or
+	// access tokens. Store actual values in your organization settings.
+	Secrets interface{} `json:"secrets,omitempty,omitzero" yaml:"secrets,omitempty"`
 
 	// SpecVersion corresponds to the JSON schema field "spec_version".
 	SpecVersion string `json:"spec_version,omitempty,omitzero" yaml:"spec_version,omitempty"`
@@ -939,10 +943,6 @@ type Runtime struct {
 // Grants access to secrets during the build. Provide a mapping between a secret
 // and a path on the image.
 type SecretToPathMapping map[string]string
-
-// Declare secrets your model needs at runtime, such as API keys or access tokens.
-// Use null as a placeholder; store actual values in your organization settings.
-type Secrets map[string]interface{}
 
 type TRTLLMConfiguration interface{}
 

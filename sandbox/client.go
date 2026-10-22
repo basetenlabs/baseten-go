@@ -172,6 +172,10 @@ type CreateOptions struct {
 	// Network is the sandbox's network configuration. It cannot be updated
 	// later.
 	Network *Network
+
+	// FileSystem is the sandbox's filesystem configuration. It cannot be
+	// updated later.
+	FileSystem *FileSystem
 }
 
 // CreateResult is a created sandbox: a [Sandbox] to work in, plus its record
@@ -190,6 +194,10 @@ func (c *Client) Create(ctx context.Context, opts CreateOptions) (*CreateResult,
 	if err != nil {
 		return nil, err
 	}
+	fileSystem, err := fileSystemToAPI(opts.FileSystem)
+	if err != nil {
+		return nil, err
+	}
 	created, err := c.api.CreateSandbox(ctx, managementapi.CreateSandboxParams{TeamId: c.teamID()}, managementapi.CreateSandboxRequest{
 		Name:              optional(opts.Name),
 		CreateIfNotExists: optional(opts.CreateIfNotExists),
@@ -202,6 +210,7 @@ func (c *Client) Create(ctx context.Context, opts CreateOptions) (*CreateResult,
 		Lifecycle:         lifecycle,
 		Ports:             portsToAPI(opts.Ports),
 		Network:           networkToAPI(opts.Network),
+		Filesystem:        fileSystem,
 	})
 	if err != nil {
 		return nil, controlPlaneError(err)
