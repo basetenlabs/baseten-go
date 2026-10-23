@@ -45,8 +45,10 @@ secrets:
 	require.Equal(t, "A100", string(*cfg.Resources.Accelerator))
 	require.NotNil(t, cfg.Runtime)
 	require.Equal(t, 128, cfg.Runtime.PredictConcurrency)
-	require.Equal(t, 1, len(cfg.Secrets))
-	tok, ok := cfg.Secrets["hf_access_token"]
+	secrets, ok := cfg.Secrets.(map[string]any)
+	require.True(t, ok, "secrets should decode as a map, got %T", cfg.Secrets)
+	require.Equal(t, 1, len(secrets))
+	tok, ok := secrets["hf_access_token"]
 	require.True(t, ok, "expected hf_access_token key in secrets")
 	require.Nil(t, tok)
 }
@@ -64,19 +66,21 @@ func TestSecretsJSONRoundTrip(t *testing.T) {
 			"explicit": "actual-value"
 		}
 	}`), &cfg))
-	require.Equal(t, 2, len(cfg.Secrets))
+	secrets, ok := cfg.Secrets.(map[string]any)
+	require.True(t, ok, "secrets should decode as a map, got %T", cfg.Secrets)
+	require.Equal(t, 2, len(secrets))
 
-	placeholder, hasPlaceholder := cfg.Secrets["placeholder"]
+	placeholder, hasPlaceholder := secrets["placeholder"]
 	require.True(t, hasPlaceholder, "placeholder key missing")
 	require.Nil(t, placeholder)
 
-	explicit, hasExplicit := cfg.Secrets["explicit"]
+	explicit, hasExplicit := secrets["explicit"]
 	require.True(t, hasExplicit, "explicit key missing")
 	explicitStr, ok := explicit.(string)
 	require.True(t, ok, "explicit value should be a string")
 	require.Equal(t, "actual-value", explicitStr)
 
-	_, hasMissing := cfg.Secrets["missing"]
+	_, hasMissing := secrets["missing"]
 	require.False(t, hasMissing, "missing key should not be present")
 
 	encoded, err := json.Marshal(cfg.Secrets)
@@ -87,6 +91,19 @@ func TestSecretsJSONRoundTrip(t *testing.T) {
 	decodedExplicit, ok := decoded["explicit"].(string)
 	require.True(t, ok, "decoded explicit should be a string")
 	require.Equal(t, "actual-value", decodedExplicit)
+}
+
+func TestSecretsList(t *testing.T) {
+	cfg := unmarshalConfig(t, `
+secrets:
+  - hf_access_token
+  - api_key
+`)
+	secrets, ok := cfg.Secrets.([]any)
+	require.True(t, ok, "secrets should decode as a list, got %T", cfg.Secrets)
+	require.Len(t, secrets, 2)
+	require.Equal[any](t, "hf_access_token", secrets[0])
+	require.Equal[any](t, "api_key", secrets[1])
 }
 
 func TestWhisperConfig(t *testing.T) {
