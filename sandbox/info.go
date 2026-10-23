@@ -2,6 +2,7 @@ package sandbox
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -70,6 +71,10 @@ type Info struct {
 
 	// Network is the sandbox's network configuration, nil when it has none.
 	Network *Network
+
+	// FileSystem is the sandbox's filesystem configuration, nil when it has
+	// none.
+	FileSystem *FileSystem
 
 	// CreatedAt is when the sandbox was created.
 	CreatedAt time.Time
@@ -221,6 +226,21 @@ type NetworkProxyRoute struct {
 	Secrets map[string]string
 }
 
+// FileSystem is a sandbox's filesystem configuration. It is set at creation
+// and cannot be updated. The filesystem is held in memory, so files written
+// count against the sandbox's memory.
+type FileSystem struct {
+	// MaxMemoryUsage is the most memory the filesystem can use, as a
+	// percentage of the sandbox's memory such as "80%" or a size such as
+	// "2Gi". Cannot be combined with MaxMemoryUsageMegabytes. Both empty
+	// uses the server's default of 50%.
+	MaxMemoryUsage string
+
+	// MaxMemoryUsageMegabytes is the most memory the filesystem can use, in
+	// megabytes. Cannot be combined with MaxMemoryUsage.
+	MaxMemoryUsageMegabytes int
+}
+
 func infoFromAPI(sandbox *managementapi.Sandbox) (Info, error) {
 	info := Info{
 		Name:       deref(sandbox.Name),
@@ -253,6 +273,13 @@ func infoFromAPI(sandbox *managementapi.Sandbox) (Info, error) {
 	if sandbox.Network != nil {
 		network := networkFromAPI(sandbox.Network)
 		info.Network = &network
+	}
+	if sandbox.Filesystem != nil {
+		fileSystem, err := fileSystemFromAPI(sandbox.Filesystem)
+		if err != nil {
+			return Info{}, err
+		}
+		info.FileSystem = &fileSystem
 	}
 	return info, nil
 }
@@ -438,4 +465,40 @@ func networkFromAPI(network *managementapi.SandboxNetwork) Network {
 		}
 	}
 	return result
+}
+
+func fileSystemToAPI(fileSystem *FileSystem) (*managementapi.SandboxFilesystem, error) {
+	if fileSystem == nil {
+		return nil, nil
+	}
+	var usage managementapi.SandboxFilesystem_MaxMemoryUsage
+	var err error
+	switch {
+	case fileSystem.MaxMemoryUsage != "" && fileSystem.MaxMemoryUsageMegabytes != 0:
+		return nil, errors.New("FileSystem.MaxMemoryUsage and FileSystem.MaxMemoryUsageMegabytes cannot both be set")
+	case fileSystem.MaxMemoryUsage != "":
+		err = usage.FromSandboxFilesystemMaxMemoryUsage0(fileSystem.MaxMemoryUsage)
+	case fileSystem.MaxMemoryUsageMegabytes != 0:
+		err = usage.FromSandboxFilesystemMaxMemoryUsage1(fileSystem.MaxMemoryUsageMegabytes)
+	default:
+		return &managementapi.SandboxFilesystem{}, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("encoding filesystem max memory usage: %w", err)
+	}
+	return &managementapi.SandboxFilesystem{MaxMemoryUsage: &usage}, nil
+}
+
+func fileSystemFromAPI(fileSystem *managementapi.SandboxFilesystem) (FileSystem, error) {
+	if fileSystem.MaxMemoryUsage == nil {
+		return FileSystem{}, nil
+	}
+	if usage, err := fileSystem.MaxMemoryUsage.AsSandboxFilesystemMaxMemoryUsage0(); err == nil {
+		return FileSystem{MaxMemoryUsage: usage}, nil
+	}
+	megabytes, err := fileSystem.MaxMemoryUsage.AsSandboxFilesystemMaxMemoryUsage1()
+	if err != nil {
+		return FileSystem{}, fmt.Errorf("filesystem max memory usage is neither a string nor an integer: %w", err)
+	}
+	return FileSystem{MaxMemoryUsageMegabytes: megabytes}, nil
 }

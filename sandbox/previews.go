@@ -59,10 +59,6 @@ type PreviewInfo struct {
 	// [PreviewGetInfoOptions.ShowSecrets].
 	RequestHeaders map[string]string
 
-	// TTL is the lifetime set by the last create or update that had one,
-	// counted from that request. ExpiresAt is when the preview is deleted.
-	TTL time.Duration
-
 	// ExpiresAt is when the preview is deleted, zero when it does not expire.
 	ExpiresAt time.Time
 
@@ -425,7 +421,7 @@ func previewInfoResult(preview *managementapi.SandboxPreview) (*PreviewInfo, err
 }
 
 func previewInfoFromAPI(preview *managementapi.SandboxPreview) (PreviewInfo, error) {
-	info := PreviewInfo{
+	return PreviewInfo{
 		Name:            deref(preview.Name),
 		Port:            deref(preview.Port),
 		URL:             deref(preview.Url),
@@ -439,15 +435,7 @@ func previewInfoFromAPI(preview *managementapi.SandboxPreview) (PreviewInfo, err
 		UpdatedAt:       deref(preview.UpdatedAt),
 		CreatedBy:       deref(preview.CreatedBy),
 		UpdatedBy:       deref(preview.UpdatedBy),
-	}
-	if ttl := deref(preview.Ttl); ttl != "" {
-		d, err := parseDuration(ttl, "preview TTL")
-		if err != nil {
-			return PreviewInfo{}, err
-		}
-		info.TTL = d
-	}
-	return info, nil
+	}, nil
 }
 
 func previewTokenInfoFromAPI(token *managementapi.SandboxPreviewToken) PreviewTokenInfo {

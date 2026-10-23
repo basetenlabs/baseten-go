@@ -38,6 +38,7 @@ func TestInfoFromAPI(t *testing.T) {
 			},
 			"ports": [{"target": 8080, "name": "api", "protocol": "HTTP"}],
 			"network": {"subnet": "", "proxy": {"allowed_domains": ["example.com"], "routing": [{"destinations": ["api.example.com"], "headers": {"X": "y"}}]}},
+			"filesystem": {"max_memory_usage": "80%"},
 			"created_at": "2026-10-01T00:00:00Z", "expires_in": 90
 		}`))
 		require.NoError(t, err)
@@ -60,6 +61,7 @@ func TestInfoFromAPI(t *testing.T) {
 		require.Equal(t, Port{Target: 8080, Name: "api", Protocol: PortProtocolHTTP}, info.Ports[0])
 		require.Equal(t, "example.com", info.Network.Proxy.AllowedDomains[0])
 		require.MapEqual(t, info.Network.Proxy.Routing[0].Headers, "X", "y")
+		require.Equal(t, FileSystem{MaxMemoryUsage: "80%"}, *info.FileSystem)
 		require.Equal(t, 90*time.Second, info.ExpiresIn)
 		require.True(t, info.UpdatedAt.IsZero(), "unset UpdatedAt is zero")
 	})
@@ -70,6 +72,7 @@ func TestInfoFromAPI(t *testing.T) {
 		require.Equal(t, "", info.URL)
 		require.Nil(t, info.Lifecycle)
 		require.Nil(t, info.Network)
+		require.Nil(t, info.FileSystem)
 		// Collections are always set, so callers can range and index them.
 		require.True(t, info.Envs != nil && info.Labels != nil && info.Ports != nil, "collections must be set")
 	})
@@ -78,6 +81,18 @@ func TestInfoFromAPI(t *testing.T) {
 		_, err := infoFromAPI(apiSandbox(t, `{"name": "sb", "status": "DEPLOYED", "lifecycle": {"terminated_retention": "soon"}}`))
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "terminated retention")
+	})
+
+	t.Run("FileSystemMegabytes", func(t *testing.T) {
+		info, err := infoFromAPI(apiSandbox(t, `{"name": "sb", "status": "DEPLOYED", "filesystem": {"max_memory_usage": 2048}}`))
+		require.NoError(t, err)
+		require.Equal(t, FileSystem{MaxMemoryUsageMegabytes: 2048}, *info.FileSystem)
+	})
+
+	t.Run("BadFileSystemMaxMemoryUsage", func(t *testing.T) {
+		_, err := infoFromAPI(apiSandbox(t, `{"name": "sb", "status": "DEPLOYED", "filesystem": {"max_memory_usage": true}}`))
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "max memory usage")
 	})
 }
 
@@ -136,4 +151,25 @@ func TestNetworkToAPI(t *testing.T) {
 	require.NoError(t, err)
 	// Unset fields are omitted, set but empty ones sent.
 	require.Equal(t, `{"proxy":{"bypass":[],"routing":[{"destinations":["api.example.com"],"secrets":{"K":"v"}}]}}`, string(raw))
+}
+
+func TestFileSystemToAPI(t *testing.T) {
+	marshal := func(t *testing.T, fileSystem *FileSystem) string {
+		t.Helper()
+		apiFileSystem, err := fileSystemToAPI(fileSystem)
+		require.NoError(t, err)
+		raw, err := json.Marshal(apiFileSystem)
+		require.NoError(t, err)
+		return string(raw)
+	}
+	require.Equal(t, "null", marshal(t, nil))
+	require.Equal(t, `{}`, marshal(t, &FileSystem{}))
+	require.Equal(t, `{"max_memory_usage":"80%"}`, marshal(t, &FileSystem{MaxMemoryUsage: "80%"}))
+	require.Equal(t, `{"max_memory_usage":2048}`, marshal(t, &FileSystem{MaxMemoryUsageMegabytes: 2048}))
+
+	t.Run("BothSet", func(t *testing.T) {
+		_, err := fileSystemToAPI(&FileSystem{MaxMemoryUsage: "80%", MaxMemoryUsageMegabytes: 2048})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "cannot both be set")
+	})
 }

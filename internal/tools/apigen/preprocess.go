@@ -471,6 +471,11 @@ func preprocessNode(node any, schemaRenames map[string]string, discriminatorValu
 // preprocessSchema handles nullable patterns and $ref renames in a single
 // schema object, and harvests `discriminator.mapping` entries.
 func preprocessSchema(schema map[string]any, schemaRenames map[string]string, discriminatorValues map[string][]string) error {
+	// oapi-codegen uses an x-go-type name in place of generating the type.
+	// The vendored sandboxes spec carries Blaxel's own Go type names, which
+	// do not exist here.
+	delete(schema, "x-go-type")
+
 	// Convert type arrays: {"type": ["string", "null"]} -> {"type": "string", "nullable": true}
 	if t, ok := schema["type"]; ok {
 		if arr, ok := t.([]any); ok {
@@ -610,6 +615,9 @@ func rewriteExclusiveBound(schema map[string]any, exclusiveKey, boundKey string)
 //     zero required+nullable fields, so the null branch carries no information
 //     beyond what Go's pointer/omitempty already expresses for optional
 //     fields. We assert that invariant first.
+//  3. Collapses anyOf whose branches have different types to a type list.
+//     go-jsonschema merges anyOf branches into one schema, which keeps only one
+//     branch's type, but renders a type list as interface{}.
 func preprocessConfigSchema(data []byte) ([]byte, error) {
 	var doc map[string]any
 	if err := json.Unmarshal(data, &doc); err != nil {
@@ -630,6 +638,7 @@ func preprocessConfigSchema(data []byte) ([]byte, error) {
 		}
 	}
 	collapseNullables(doc)
+	collapseMixedTypeUnions(doc)
 
 	out, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {
@@ -803,6 +812,39 @@ func collapseNullablesImpl(node any, skipTop bool) {
 	case []any:
 		for _, child := range v {
 			collapseNullablesImpl(child, false)
+		}
+	}
+}
+
+// collapseMixedTypeUnions rewrites anyOf branches with distinct types, such as
+// [{type:array,...}, {type:object,...}], to type:[array, object]. Branches
+// without a plain type (e.g. $ref) are left to go-jsonschema's merge, and null
+// branches are left to collapseNullables' handling.
+func collapseMixedTypeUnions(node any) {
+	switch v := node.(type) {
+	case map[string]any:
+		if anyOf, ok := v["anyOf"].([]any); ok {
+			var types []any
+			for _, item := range anyOf {
+				branch, _ := item.(map[string]any)
+				t, ok := branch["type"].(string)
+				if !ok || t == "null" || slices.Contains(types, any(t)) {
+					types = nil
+					break
+				}
+				types = append(types, t)
+			}
+			if len(types) > 1 {
+				delete(v, "anyOf")
+				v["type"] = types
+			}
+		}
+		for _, child := range v {
+			collapseMixedTypeUnions(child)
+		}
+	case []any:
+		for _, child := range v {
+			collapseMixedTypeUnions(child)
 		}
 	}
 }

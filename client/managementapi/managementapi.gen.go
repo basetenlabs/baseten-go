@@ -2160,6 +2160,13 @@ type AuditLogEventAutoscalingScheduleChange struct {
 	ScheduleId string                                    `json:"schedule_id"`
 }
 
+// AuditLogEventAutoscalingScheduleOperations The autoscaling schedule changes a request asked for. Not itself a union payload.
+type AuditLogEventAutoscalingScheduleOperations struct {
+	DeleteScheduleIds []string                                 `json:"delete_schedule_ids"`
+	Schedules         []AuditLogEventAutoscalingScheduleUpsert `json:"schedules"`
+	Timezone          *string                                  `json:"timezone"`
+}
+
 // AuditLogEventAutoscalingScheduleSettings One autoscaling schedule's timing and autoscaling settings. Not itself a union payload.
 type AuditLogEventAutoscalingScheduleSettings struct {
 	AutoscalingWindow           *int      `json:"autoscaling_window"`
@@ -2183,6 +2190,31 @@ type AuditLogEventAutoscalingScheduleSettings struct {
 	Weekdays                    *[]string `json:"weekdays"`
 }
 
+// AuditLogEventAutoscalingScheduleUpsert One schedule a request creates (`schedule_id` null) or replaces. `timezone` is the
+// request's, null when it keeps the environment's. Not itself a union payload.
+type AuditLogEventAutoscalingScheduleUpsert struct {
+	AutoscalingWindow           *int      `json:"autoscaling_window"`
+	Cadence                     string    `json:"cadence"`
+	ConcurrencyTarget           *int      `json:"concurrency_target"`
+	Enabled                     bool      `json:"enabled"`
+	EndAt                       *string   `json:"end_at,omitempty"`
+	EndHour                     *int      `json:"end_hour"`
+	EndMinute                   *int      `json:"end_minute"`
+	MaxReplica                  int       `json:"max_replica"`
+	MaxScaleDownRate            *float32  `json:"max_scale_down_rate"`
+	MinReplica                  int       `json:"min_replica"`
+	ScaleDownDelay              *int      `json:"scale_down_delay"`
+	ScheduleId                  *string   `json:"schedule_id"`
+	ScheduleName                string    `json:"schedule_name"`
+	StartAt                     *string   `json:"start_at,omitempty"`
+	StartHour                   *int      `json:"start_hour"`
+	StartMinute                 *int      `json:"start_minute"`
+	TargetInFlightTokens        *int      `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int      `json:"target_utilization_percentage"`
+	Timezone                    *string   `json:"timezone"`
+	Weekdays                    *[]string `json:"weekdays"`
+}
+
 // AuditLogEventAutoscalingSettings Autoscaling settings for a deployment or environment.
 type AuditLogEventAutoscalingSettings struct {
 	AutoscalingWindow           *int     `json:"autoscaling_window"`
@@ -2190,6 +2222,19 @@ type AuditLogEventAutoscalingSettings struct {
 	MaxReplica                  int      `json:"max_replica"`
 	MaxScaleDownRate            *float32 `json:"max_scale_down_rate"`
 	MinReplica                  int      `json:"min_replica"`
+	ScaleDownDelay              *int     `json:"scale_down_delay"`
+	TargetInFlightTokens        *int     `json:"target_in_flight_tokens"`
+	TargetUtilizationPercentage *int     `json:"target_utilization_percentage"`
+}
+
+// AuditLogEventAutoscalingSettingsUpdate Autoscaling settings a request set, null where it left a setting unchanged. Not itself a
+// payload in the discriminated union.
+type AuditLogEventAutoscalingSettingsUpdate struct {
+	AutoscalingWindow           *int     `json:"autoscaling_window"`
+	ConcurrencyTarget           *int     `json:"concurrency_target"`
+	MaxReplica                  *int     `json:"max_replica"`
+	MaxScaleDownRate            *float32 `json:"max_scale_down_rate"`
+	MinReplica                  *int     `json:"min_replica"`
 	ScaleDownDelay              *int     `json:"scale_down_delay"`
 	TargetInFlightTokens        *int     `json:"target_in_flight_tokens"`
 	TargetUtilizationPercentage *int     `json:"target_utilization_percentage"`
@@ -2511,15 +2556,19 @@ type AuditLogEventModelDeploymentInstanceTypeChanged struct {
 
 // AuditLogEventModelDeploymentPromoted A model deployment was promoted to an environment.
 type AuditLogEventModelDeploymentPromoted struct {
-	DeploymentId              string                                  `json:"deployment_id"`
-	DeploymentName            string                                  `json:"deployment_name"`
-	EnvironmentId             *string                                 `json:"environment_id"`
-	EnvironmentName           *string                                 `json:"environment_name"`
-	EventType                 string                                  `json:"event_type"`
-	ModelId                   string                                  `json:"model_id"`
-	ModelName                 string                                  `json:"model_name"`
-	PromotionSettingsOverride *AuditLogEventPromotionSettingsOverride `json:"promotion_settings_override"`
-	RegionUpdate              *string                                 `json:"region_update"`
+	AutoscalingScheduleSettingsUpdate *AuditLogEventAutoscalingScheduleOperations     `json:"autoscaling_schedule_settings_update"`
+	AutoscalingSettingsUpdate         *AuditLogEventAutoscalingSettingsUpdate         `json:"autoscaling_settings_update"`
+	DeploymentId                      string                                          `json:"deployment_id"`
+	DeploymentName                    string                                          `json:"deployment_name"`
+	EnvironmentId                     *string                                         `json:"environment_id"`
+	EnvironmentName                   *string                                         `json:"environment_name"`
+	EventType                         string                                          `json:"event_type"`
+	InstanceTypeIdUpdate              *string                                         `json:"instance_type_id_update"`
+	ModelId                           string                                          `json:"model_id"`
+	ModelName                         string                                          `json:"model_name"`
+	PromotionSettingsOverride         *AuditLogEventPromotionSettingsOverride         `json:"promotion_settings_override"`
+	RegionUpdate                      *string                                         `json:"region_update"`
+	RequestBackpressureSettingsUpdate *AuditLogEventRequestBackpressureSettingsUpdate `json:"request_backpressure_settings_update"`
 }
 
 // AuditLogEventModelDeploymentRequestBackpressureSettingsChanged A model deployment's request backpressure settings were changed.
@@ -2609,6 +2658,12 @@ type AuditLogEventReplicaTerminated struct {
 	ModelId        string `json:"model_id"`
 	ModelName      string `json:"model_name"`
 	ReplicaId      string `json:"replica_id"`
+}
+
+// AuditLogEventRequestBackpressureSettingsUpdate A request backpressure policy a request set; a null policy clears it. Not itself a
+// payload in the discriminated union.
+type AuditLogEventRequestBackpressureSettingsUpdate struct {
+	Policy *string `json:"policy"`
 }
 
 // AuditLogEventRequireGroupBasedAdminsEnabled Group-based admin enforcement was enabled for the organization.
@@ -3513,6 +3568,9 @@ type CreateLLMModelRequest struct {
 	// Resources Resources allocated to the model
 	Resources map[string]interface{} `json:"resources"`
 
+	// Runtime Runtime configuration for the deployment
+	Runtime *LLMRuntime `json:"runtime,omitempty"`
+
 	// Weights Weight configurations for BDN model weight distribution
 	Weights *[]map[string]interface{} `json:"weights,omitempty"`
 }
@@ -3548,6 +3606,9 @@ type CreateLLMModelVersionRequest struct {
 
 	// Resources Resources allocated to the model
 	Resources map[string]interface{} `json:"resources"`
+
+	// Runtime Runtime configuration for the deployment
+	Runtime *LLMRuntime `json:"runtime,omitempty"`
 
 	// Weights Weight configurations for BDN model weight distribution
 	Weights *[]map[string]interface{} `json:"weights,omitempty"`
@@ -3770,7 +3831,7 @@ type CreateSandboxPreviewRequest struct {
 	// Port Sandbox port to expose.
 	Port int `json:"port"`
 
-	// Public Whether the URL is reachable without a preview token. Defaults to false.
+	// Public Whether the URL is reachable without a preview token. Defaults to false on creation; a PATCH without it keeps the current value.
 	Public *bool `json:"public,omitempty"`
 
 	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set.
@@ -3785,7 +3846,7 @@ type CreateSandboxPreviewRequest struct {
 
 // CreateSandboxPreviewTokenRequest defines model for CreateSandboxPreviewTokenRequest.
 type CreateSandboxPreviewTokenRequest struct {
-	// CreateIfNotExists When true, return an existing unexpired token of this preview that stays valid at least until expires_at instead of creating a new one. Defaults to false when omitted.
+	// CreateIfNotExists When true, may return an existing unexpired token of this preview that stays valid at least until expires_at instead of creating a new one. A token created a moment earlier may not be found yet, in which case a new token is created. Defaults to false when omitted.
 	CreateIfNotExists *bool `json:"create_if_not_exists,omitempty"`
 
 	// ExpiresAt Time at which the token stops working. Must be in the future.
@@ -3802,6 +3863,9 @@ type CreateSandboxRequest struct {
 
 	// ExternalId Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.
 	ExternalId *string `json:"external_id,omitempty"`
+
+	// Filesystem Filesystem configuration. Set at creation only.
+	Filesystem *SandboxFilesystem `json:"filesystem,omitempty"`
 
 	// Image Image reference including its tag. Defaults to baseten/base-image:latest, the built-in sandbox execution API. This image is available directly without building, pushing, or listing images through GET /v1/sandboxes/images.
 	Image *string `json:"image,omitempty"`
@@ -4450,6 +4514,12 @@ type Deployment struct {
 // `POST /v1/prepare_model_upload`, the `model_archive` source on `POST
 // /v1/models`, and `POST /v1/models/{model_id}/deployments`.
 type DeploymentArchivePayload struct {
+	// AutoscalingScheduleSettings Autoscaling schedule changes for the environment named by `environment_name`, applied when the promotion completes. Requires `environment_name`.
+	AutoscalingScheduleSettings *UpdateAutoscalingScheduleSettings `json:"autoscaling_schedule_settings,omitempty"`
+
+	// AutoscalingSettings Autoscaling settings for the new deployment. With `environment_name`, the new deployment starts from the environment's settings with these changes applied, and the environment keeps the result when the promotion completes. Without it, they apply to the new deployment only.
+	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
+
 	// Config Parsed model config as a JSON object.
 	Config map[string]interface{} `json:"config"`
 
@@ -4465,6 +4535,9 @@ type DeploymentArchivePayload struct {
 	// EnvironmentName Stable environment to push to (e.g. `production`). If unset, the deployment is created without environment selection. Caller must have push permission for the named environment.
 	EnvironmentName *string `json:"environment_name,omitempty"`
 
+	// InstanceTypeId Instance type for the new deployment, from `GET /v1/instance_types`, in place of the one in `config`. With `environment_name`, the environment takes it when the promotion completes. Without it, it applies to the new deployment only. Cannot be set with `preserve_env_instance_type: true`.
+	InstanceTypeId *string `json:"instance_type_id,omitempty"`
+
 	// IsDevelopment If true, push as a development deployment: the model's single mutable dev slot, created if absent and overwritten in place otherwise. The following fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `deployment_name`.
 	IsDevelopment *bool `json:"is_development,omitempty"`
 
@@ -4474,11 +4547,17 @@ type DeploymentArchivePayload struct {
 	// PreserveEnvInstanceType Retain the target environment's current instance type rather than the one in `config`. Only meaningful when `environment_name` is set and that environment already exists.
 	PreserveEnvInstanceType *bool `json:"preserve_env_instance_type,omitempty"`
 
+	// PromotionSettingsOverride Promotion settings for promoting the new deployment into the environment named by `environment_name`, for this promotion only. Omitted fields keep the environment's values, and the environment's promotion settings are unchanged. Requires `environment_name`.
+	PromotionSettingsOverride *UpdatePromotionSettings `json:"promotion_settings_override,omitempty"`
+
 	// RawConfig Original config.yaml text, persisted as-is on the deployment. Best-effort: invalid raw configs are logged and dropped without failing the request.
 	RawConfig *string `json:"raw_config,omitempty"`
 
 	// Region Region in which to deploy the model
 	Region *string `json:"region,omitempty"`
+
+	// RequestBackpressureSettings Request backpressure settings for the new deployment, applied the same way as `autoscaling_settings`.
+	RequestBackpressureSettings *UpdateRequestBackpressureSettings `json:"request_backpressure_settings,omitempty"`
 
 	// UserEnv Client environment metadata (e.g. client version, Python version). Validated server-side.
 	UserEnv *map[string]interface{} `json:"user_env,omitempty"`
@@ -6043,6 +6122,12 @@ type LLMModelHandle struct {
 	VersionId string `json:"version_id"`
 }
 
+// LLMRuntime defines model for LLMRuntime.
+type LLMRuntime struct {
+	// Oidc Runtime OIDC token mounting configuration
+	Oidc *RuntimeOidc `json:"oidc,omitempty"`
+}
+
 // LibraryListing A library listing.
 type LibraryListing struct {
 	// ClosedSource Whether the listing is closed source (deployers cannot view or download the Truss, and forks copy mirrored weights instead of re-mirroring from upstream)
@@ -7366,7 +7451,7 @@ type PromotionEnvironmentSettingsUpdate struct {
 	// AutoscalingSettings Autoscaling settings for the promoted deployment.
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
-	// InstanceTypeId Instance type for the promoted deployment, from `GET /v1/instance_types`.
+	// InstanceTypeId Instance type for the promoted deployment, from `GET /v1/instance_types`. A different instance type than the deployment's creates a new deployment on it. Cannot be set with `preserve_env_instance_type: true`.
 	InstanceTypeId *string `json:"instance_type_id,omitempty"`
 
 	// PromotionSettings Promotion settings for the environment, also used for this promotion.
@@ -7375,7 +7460,7 @@ type PromotionEnvironmentSettingsUpdate struct {
 	// Region Region for the promoted deployment, from `GET /v1/teams/{team_id}/regions`. Use an empty string for Global. If omitted, the deployment keeps its region. Regional environments only accept Global deployments.
 	Region *string `json:"region,omitempty"`
 
-	// RequestBackpressureSettings Request backpressure settings for the promoted deployment.
+	// RequestBackpressureSettings Request backpressure settings for the promoted deployment. A null policy clears it.
 	RequestBackpressureSettings *UpdateRequestBackpressureSettings `json:"request_backpressure_settings,omitempty"`
 }
 
@@ -7596,6 +7681,12 @@ type RollingDeployConfig struct {
 // RollingDeployStrategy The rolling deploy strategy.
 type RollingDeployStrategy string
 
+// RuntimeOidc defines model for RuntimeOidc.
+type RuntimeOidc struct {
+	// Enabled If true, mounts an OIDC bearer token for the deployment to access at runtime. If unset, the platform default applies.
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
 // Sandbox defines model for Sandbox.
 type Sandbox struct {
 	// CreatedAt Time the sandbox was created.
@@ -7612,6 +7703,9 @@ type Sandbox struct {
 
 	// ExternalId Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.
 	ExternalId *string `json:"external_id,omitempty"`
+
+	// Filesystem Filesystem configuration. Set at creation only.
+	Filesystem *SandboxFilesystem `json:"filesystem,omitempty"`
 
 	// Image Image reference including its tag. Built-in image references are returned in the canonical baseten/ namespace. Use baseten/base-image:latest to get started with the built-in sandbox execution API. This image is available directly without building, pushing, or listing images through GET /v1/sandboxes/images.
 	Image *string `json:"image,omitempty"`
@@ -7670,6 +7764,9 @@ type SandboxConfiguration struct {
 	// ExternalId Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.
 	ExternalId *string `json:"external_id,omitempty"`
 
+	// Filesystem Filesystem configuration. Set at creation only.
+	Filesystem *SandboxFilesystem `json:"filesystem,omitempty"`
+
 	// Image Image reference including its tag. Built-in image references are returned in the canonical baseten/ namespace. Use baseten/base-image:latest to get started with the built-in sandbox execution API. This image is available directly without building, pushing, or listing images through GET /v1/sandboxes/images.
 	Image *string `json:"image,omitempty"`
 
@@ -7722,6 +7819,23 @@ type SandboxEnv struct {
 
 // SandboxExpirationPolicy Expiration policy. The type determines whether value is a duration or an absolute timestamp.
 type SandboxExpirationPolicy struct {
+	union json.RawMessage
+}
+
+// SandboxFilesystem Filesystem configuration of a sandbox. The sandbox filesystem is held in memory, so files written count against the sandbox memory.
+type SandboxFilesystem struct {
+	// MaxMemoryUsage Maximum memory the filesystem can use, as a percentage of the sandbox memory (e.g. "80%"), a size (e.g. "2Gi") or a number of Mi (e.g. 2048). Defaults to 50%.
+	MaxMemoryUsage *SandboxFilesystem_MaxMemoryUsage `json:"max_memory_usage,omitempty"`
+}
+
+// SandboxFilesystemMaxMemoryUsage0 defines model for .
+type SandboxFilesystemMaxMemoryUsage0 = string
+
+// SandboxFilesystemMaxMemoryUsage1 defines model for .
+type SandboxFilesystemMaxMemoryUsage1 = int
+
+// SandboxFilesystem_MaxMemoryUsage Maximum memory the filesystem can use, as a percentage of the sandbox memory (e.g. "80%"), a size (e.g. "2Gi") or a number of Mi (e.g. 2048). Defaults to 50%.
+type SandboxFilesystem_MaxMemoryUsage struct {
 	union json.RawMessage
 }
 
@@ -7991,7 +8105,7 @@ type SandboxPreview struct {
 	// Port Exposed sandbox port.
 	Port *int `json:"port,omitempty"`
 
-	// Public Whether the URL is reachable without a preview token. Defaults to false.
+	// Public Whether the URL is reachable without a preview token. Defaults to false on creation; a PATCH without it keeps the current value.
 	Public bool `json:"public"`
 
 	// Region Region serving the preview, the sandbox's region.
@@ -8004,23 +8118,20 @@ type SandboxPreview struct {
 	ResponseHeaders *SandboxPreviewHeaders `json:"response_headers,omitempty"`
 
 	// Status Preview status, always uppercase.
-	Status *SandboxPreviewStatus `json:"status,omitempty"`
-
-	// Ttl Lifetime counted from the request, using seconds, minutes, hours or composite durations such as 1h30m. Whole days are also supported, for example 7d; days cannot be combined with other units. The preview is deleted when it elapses.
-	Ttl       *SandboxPreviewTtl `json:"ttl,omitempty"`
-	UpdatedAt *time.Time         `json:"updated_at,omitempty"`
-	UpdatedBy *string            `json:"updated_by,omitempty"`
+	Status    *SandboxPreviewStatus `json:"status,omitempty"`
+	UpdatedAt *time.Time            `json:"updated_at,omitempty"`
+	UpdatedBy *string               `json:"updated_by,omitempty"`
 
 	// Url HTTPS URL serving the port, including the region label. Use this exact URL. Requests to a private preview need a token.
 	Url *string `json:"url,omitempty"`
 }
 
-// SandboxPreviewConfiguration Mutable preview configuration. ttl and expires_at are mutually exclusive; supplying both returns 400.
+// SandboxPreviewConfiguration Mutable preview configuration.
 type SandboxPreviewConfiguration struct {
 	// ExpiresAt Time at which the preview is deleted. Must be in the future.
 	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 
-	// Public Whether the URL is reachable without a preview token. Defaults to false.
+	// Public Whether the URL is reachable without a preview token. Defaults to false on creation; a PATCH without it keeps the current value.
 	Public *bool `json:"public,omitempty"`
 
 	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set.
@@ -8028,9 +8139,6 @@ type SandboxPreviewConfiguration struct {
 
 	// ResponseHeaders Headers added to every response served by the preview, for example CORS headers.
 	ResponseHeaders *SandboxPreviewHeaders `json:"response_headers,omitempty"`
-
-	// Ttl Lifetime counted from the request, using seconds, minutes, hours or composite durations such as 1h30m. Whole days are also supported, for example 7d; days cannot be combined with other units. The preview is deleted when it elapses.
-	Ttl *SandboxPreviewTtl `json:"ttl,omitempty"`
 }
 
 // SandboxPreviewHeaders HTTP headers as name-value pairs.
@@ -8048,7 +8156,7 @@ type SandboxPreviewToken struct {
 	// Name Token name, used in token_name path parameters.
 	Name string `json:"name"`
 
-	// Token Value to send as the bl_preview_token query parameter.
+	// Token Value to send as the preview_token query parameter.
 	Token string `json:"token"`
 }
 
@@ -8458,6 +8566,9 @@ type SupportedModel struct {
 
 	// ModelName The name of the supported model.
 	ModelName string `json:"model_name"`
+
+	// Serverless Early access only. Whether this workspace can use serverless Loops for this model.
+	Serverless *bool `json:"serverless,omitempty"`
 
 	// SupportsVisionLanguage Whether the model accepts image inputs alongside text.
 	SupportsVisionLanguage bool `json:"supports_vision_language"`
@@ -9337,8 +9448,23 @@ type UpdateRollingDeployConfig struct {
 	StabilizationTimeSeconds *int `json:"stabilization_time_seconds,omitempty"`
 }
 
-// UpdateSandboxPreviewRequest Mutable preview configuration. ttl and expires_at are mutually exclusive; supplying both returns 400.
-type UpdateSandboxPreviewRequest = SandboxPreviewConfiguration
+// UpdateSandboxPreviewRequest defines model for UpdateSandboxPreviewRequest.
+type UpdateSandboxPreviewRequest struct {
+	// ExpiresAt Time at which the preview is deleted. Must be in the future.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	// Public Whether the URL is reachable without a preview token. Defaults to false on creation; a PATCH without it keeps the current value.
+	Public *bool `json:"public,omitempty"`
+
+	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set.
+	RequestHeaders *SandboxPreviewHeaders `json:"request_headers,omitempty"`
+
+	// ResponseHeaders Headers added to every response served by the preview, for example CORS headers.
+	ResponseHeaders *SandboxPreviewHeaders `json:"response_headers,omitempty"`
+
+	// Ttl Lifetime counted from the request, using seconds, minutes, hours or composite durations such as 1h30m. Whole days are also supported, for example 7d; days cannot be combined with other units. The preview is deleted when it elapses.
+	Ttl *SandboxPreviewTtl `json:"ttl,omitempty"`
+}
 
 // UpdateSandboxRequest Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, network, region, image, and ports are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.
 type UpdateSandboxRequest struct {
@@ -13874,6 +14000,44 @@ func (t SandboxExpirationPolicy) MarshalJSON() ([]byte, error) {
 }
 
 func (t *SandboxExpirationPolicy) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsSandboxFilesystemMaxMemoryUsage0 returns the union data inside the SandboxFilesystem_MaxMemoryUsage as a SandboxFilesystemMaxMemoryUsage0
+func (t SandboxFilesystem_MaxMemoryUsage) AsSandboxFilesystemMaxMemoryUsage0() (SandboxFilesystemMaxMemoryUsage0, error) {
+	var body SandboxFilesystemMaxMemoryUsage0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSandboxFilesystemMaxMemoryUsage0 overwrites any union data inside the SandboxFilesystem_MaxMemoryUsage as the provided SandboxFilesystemMaxMemoryUsage0
+func (t *SandboxFilesystem_MaxMemoryUsage) FromSandboxFilesystemMaxMemoryUsage0(v SandboxFilesystemMaxMemoryUsage0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsSandboxFilesystemMaxMemoryUsage1 returns the union data inside the SandboxFilesystem_MaxMemoryUsage as a SandboxFilesystemMaxMemoryUsage1
+func (t SandboxFilesystem_MaxMemoryUsage) AsSandboxFilesystemMaxMemoryUsage1() (SandboxFilesystemMaxMemoryUsage1, error) {
+	var body SandboxFilesystemMaxMemoryUsage1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSandboxFilesystemMaxMemoryUsage1 overwrites any union data inside the SandboxFilesystem_MaxMemoryUsage as the provided SandboxFilesystemMaxMemoryUsage1
+func (t *SandboxFilesystem_MaxMemoryUsage) FromSandboxFilesystemMaxMemoryUsage1(v SandboxFilesystemMaxMemoryUsage1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t SandboxFilesystem_MaxMemoryUsage) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *SandboxFilesystem_MaxMemoryUsage) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
