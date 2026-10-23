@@ -106,6 +106,32 @@ type PushModelOptions struct {
 	// with EnvironmentName set to an environment that already exists.
 	PreserveEnvInstanceType bool
 
+	// InstanceTypeID is the instance type for the new deployment (for example
+	// "A10Gx4x16"), applied instead of the one in Config. With EnvironmentName,
+	// the environment takes it when the promotion completes. When empty, the
+	// one in Config applies. Cannot be combined with PreserveEnvInstanceType.
+	InstanceTypeID string
+
+	// AutoscalingSettings are autoscaling settings for the new deployment.
+	// With EnvironmentName, the deployment starts from the environment's
+	// settings with these applied, and the environment keeps the result when
+	// the promotion completes. When nil, the settings are unchanged.
+	AutoscalingSettings *managementapi.UpdateAutoscalingSettings
+
+	// RequestBackpressureSettings are request backpressure settings for the
+	// new deployment, applied the same way as AutoscalingSettings.
+	RequestBackpressureSettings *managementapi.UpdateRequestBackpressureSettings
+
+	// AutoscalingScheduleSettings changes the environment's autoscaling
+	// schedules when the promotion completes. Only meaningful with
+	// EnvironmentName.
+	AutoscalingScheduleSettings *managementapi.UpdateAutoscalingScheduleSettings
+
+	// PromotionSettingsOverride overrides the environment's promotion settings
+	// for this promotion only; the environment's own settings are unchanged.
+	// Only meaningful with EnvironmentName.
+	PromotionSettingsOverride *managementapi.UpdatePromotionSettings
+
 	// IsDevelopment pushes to the model's single mutable development slot,
 	// created if absent and overwritten in place otherwise. DeploymentName,
 	// EnvironmentName, and PreserveEnvInstanceType must be left unset.
@@ -327,6 +353,13 @@ func pushModelPayload(opts PushModelOptions) managementapi.DeploymentArchivePayl
 	if opts.IsDevelopment {
 		payload.IsDevelopment = &opts.IsDevelopment
 	}
+	if opts.InstanceTypeID != "" {
+		payload.InstanceTypeId = &opts.InstanceTypeID
+	}
+	payload.AutoscalingSettings = opts.AutoscalingSettings
+	payload.RequestBackpressureSettings = opts.RequestBackpressureSettings
+	payload.AutoscalingScheduleSettings = opts.AutoscalingScheduleSettings
+	payload.PromotionSettingsOverride = opts.PromotionSettingsOverride
 	if opts.UserEnv != nil {
 		payload.UserEnv = &opts.UserEnv
 	}
