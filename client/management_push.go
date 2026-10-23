@@ -107,29 +107,29 @@ type PushModelOptions struct {
 	PreserveEnvInstanceType bool
 
 	// InstanceTypeID is the instance type for the new deployment (for example
-	// "A10Gx4x16"), in place of the one in Config. With EnvironmentName, the
-	// environment takes it when the promotion completes. The server rejects it
-	// with PreserveEnvInstanceType. Empty keeps the one in Config.
+	// "A10Gx4x16"), applied instead of the one in Config. With EnvironmentName,
+	// the environment takes it when the promotion completes. When empty, the
+	// one in Config applies. Cannot be combined with PreserveEnvInstanceType.
 	InstanceTypeID string
 
-	// AutoscalingSettings sets autoscaling on the new deployment. With
-	// EnvironmentName, the new deployment starts from the environment's
-	// settings with these changes applied, and the environment keeps the
-	// result when the promotion completes. Nil leaves the settings unchanged.
+	// AutoscalingSettings are autoscaling settings for the new deployment.
+	// With EnvironmentName, the deployment starts from the environment's
+	// settings with these applied, and the environment keeps the result when
+	// the promotion completes. When nil, the settings are unchanged.
 	AutoscalingSettings *managementapi.UpdateAutoscalingSettings
 
-	// RequestBackpressureSettings sets request backpressure the same way as
-	// AutoscalingSettings.
+	// RequestBackpressureSettings are request backpressure settings for the
+	// new deployment, applied the same way as AutoscalingSettings.
 	RequestBackpressureSettings *managementapi.UpdateRequestBackpressureSettings
 
-	// AutoscalingScheduleSettings changes the autoscaling schedules of the
-	// environment named by EnvironmentName when the promotion completes. The
-	// server rejects it without EnvironmentName.
+	// AutoscalingScheduleSettings changes the environment's autoscaling
+	// schedules when the promotion completes. Only meaningful with
+	// EnvironmentName.
 	AutoscalingScheduleSettings *managementapi.UpdateAutoscalingScheduleSettings
 
 	// PromotionSettingsOverride overrides the environment's promotion settings
-	// for promoting this deployment only. The server rejects it without
-	// EnvironmentName.
+	// for this promotion only; the environment's own settings are unchanged.
+	// Only meaningful with EnvironmentName.
 	PromotionSettingsOverride *managementapi.UpdatePromotionSettings
 
 	// IsDevelopment pushes to the model's single mutable development slot,
