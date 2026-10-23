@@ -2224,6 +2224,18 @@ func (c *Client) PostGridRoutes(ctx context.Context, body CreateGridRouteRequest
 	})
 }
 
+// PostGridToken: Creates a Grid access token
+func (c *Client) PostGridToken(ctx context.Context, body CreateGridTokenRequest) (*GridToken, error) {
+	return doJSON[GridToken](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/grid/token",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // PostLibraryListings: Creates a new library listing
 func (c *Client) PostLibraryListings(ctx context.Context, body CreateLibraryListingRequest) (*LibraryListing, error) {
 	return doJSON[LibraryListing](c, ctx, apiRequest{

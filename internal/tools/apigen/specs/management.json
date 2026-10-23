@@ -13227,6 +13227,45 @@
                 },
                 "x-stability": "unstable"
             }
+        },
+        "/v1/grid/token": {
+            "post": {
+                "summary": "Creates a Grid access token",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/grid/token \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"team_id\": \"abc1234\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/token\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'team_id': 'abc1234'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Exchanges your Baseten credentials for a short-lived token that authenticates against the Grid gateway as you, in the given team. Tokens expire after one hour and cannot be renewed; request a new one when needed. Routes keys cannot create tokens.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateGridTokenRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GridTokenV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
         }
     },
     "openapi": "3.1.0",
@@ -41687,6 +41726,68 @@
                     "items",
                     "pagination"
                 ]
+            },
+            "CreateGridTokenRequestV1": {
+                "properties": {
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of the team. When omitted, the team you belong to; required when you belong to several.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Team Id"
+                    }
+                },
+                "title": "CreateGridTokenRequestV1",
+                "type": "object"
+            },
+            "GridTokenV1": {
+                "properties": {
+                    "token": {
+                        "description": "Short-lived bearer token for the Grid gateway, scoped to you and the team. Send it as Authorization: Bearer <token>.",
+                        "title": "Token",
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "description": "Token expiry in ISO 8601 format. Tokens cannot be renewed; request a new one.",
+                        "format": "date-time",
+                        "title": "Expires At",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "description": "ID of the team the token invokes Grid routes in.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "description": "Name of that team.",
+                        "examples": [
+                            "Engineering"
+                        ],
+                        "title": "Team Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "token",
+                    "expires_at",
+                    "team_id",
+                    "team_name"
+                ],
+                "title": "GridTokenV1",
+                "type": "object"
             }
         },
         "parameters": {

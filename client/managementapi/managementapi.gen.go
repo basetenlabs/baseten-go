@@ -3492,6 +3492,12 @@ type CreateGridRouteRequest_Target struct {
 	union json.RawMessage
 }
 
+// CreateGridTokenRequest defines model for CreateGridTokenRequest.
+type CreateGridTokenRequest struct {
+	// TeamId ID of the team. When omitted, the team you belong to; required when you belong to several.
+	TeamId *string `json:"team_id,omitempty"`
+}
+
 // CreateGroupHierarchy defines model for CreateGroupHierarchy.
 type CreateGroupHierarchy struct {
 	// LimitEnforcement Limit behavior. Child groups inherit their parent's behavior when omitted; root groups default to Independent for backwards compatibility.
@@ -5928,6 +5934,21 @@ type GridTeamUserSettingsList struct {
 	// Items Items in this page.
 	Items      []GridTeamUserSettings `json:"items"`
 	Pagination PaginationResponse     `json:"pagination"`
+}
+
+// GridToken defines model for GridToken.
+type GridToken struct {
+	// ExpiresAt Token expiry in ISO 8601 format. Tokens cannot be renewed; request a new one.
+	ExpiresAt time.Time `json:"expires_at"`
+
+	// TeamId ID of the team the token invokes Grid routes in.
+	TeamId string `json:"team_id"`
+
+	// TeamName Name of that team.
+	TeamName string `json:"team_name"`
+
+	// Token Short-lived bearer token for the Grid gateway, scoped to you and the team. Send it as Authorization: Bearer <token>.
+	Token string `json:"token"`
 }
 
 // Group defines model for Group.
@@ -11184,6 +11205,9 @@ type PatchV1GridTeamSettingsJSONRequestBody = UpdateGridTeamSettingsRequest
 
 // PatchV1GridTeamSettingsUsersUserIdJSONRequestBody defines body for PatchV1GridTeamSettingsUsersUserId for application/json ContentType.
 type PatchV1GridTeamSettingsUsersUserIdJSONRequestBody = UpdateGridUserSettingsRequest
+
+// PostV1GridTokenJSONRequestBody defines body for PostV1GridToken for application/json ContentType.
+type PostV1GridTokenJSONRequestBody = CreateGridTokenRequest
 
 // PostV1LibraryListingsJSONRequestBody defines body for PostV1LibraryListings for application/json ContentType.
 type PostV1LibraryListingsJSONRequestBody = CreateLibraryListingRequest
