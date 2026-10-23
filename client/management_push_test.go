@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/basetenlabs/baseten-go/client"
+	"github.com/basetenlabs/baseten-go/client/managementapi"
 	"github.com/basetenlabs/baseten-go/client/modelarchive"
 	"github.com/basetenlabs/baseten-go/internal/require"
 )
@@ -374,12 +375,65 @@ func TestPushModelEnvironment(t *testing.T) {
 			require.True(t, ok, "expected a deployment payload, got %T", prepare["deployment"])
 			require.Equal(t, tc.wantPreserve, deployment["preserve_env_instance_type"])
 			require.Equal(t, tc.wantCreate, deployment["create_environment_if_missing"])
+			for _, field := range []string{
+				"instance_type_id", "autoscaling_settings", "request_backpressure_settings",
+				"autoscaling_schedule_settings", "promotion_settings_override",
+			} {
+				require.Nil(t, deployment[field])
+			}
 			if tc.environment == "" {
 				require.Nil(t, deployment["environment_name"])
 			} else {
 				require.Equal(t, any(tc.environment), deployment["environment_name"])
 			}
 		})
+	}
+}
+
+func TestPushModelSettings(t *testing.T) {
+	srv := &pushTestServer{responses: map[string]any{
+		"/v1/prepare_model_upload": pushPrepareResponse,
+		"/v1/models":               pushCommitResponse,
+	}}
+	cl := newPushTestServer(t, srv)
+	minReplica, maxSurge := 2, 10
+	policy := managementapi.RequestBackpressurePolicy_REJECT_ON_FULL
+
+	_, err := cl.PushModel(t.Context(), client.PushModelOptions{
+		Config:                      map[string]any{"model_name": "my-model"},
+		Archive:                     modelarchive.BuildModelArchiveOptions{Dir: newPushModelDir(t)},
+		EnvironmentName:             "staging",
+		InstanceTypeID:              "A10Gx4x16",
+		AutoscalingSettings:         &managementapi.UpdateAutoscalingSettings{MinReplica: &minReplica},
+		RequestBackpressureSettings: &managementapi.UpdateRequestBackpressureSettings{Policy: managementapi.NewOptional(&policy)},
+		AutoscalingScheduleSettings: &managementapi.UpdateAutoscalingScheduleSettings{DeleteSchedules: &[]string{"s-1"}},
+		PromotionSettingsOverride: &managementapi.UpdatePromotionSettings{
+			RollingDeployConfig: &managementapi.UpdateRollingDeployConfig{MaxSurgePercent: &maxSurge},
+		},
+		ModelUploader: func(_ context.Context, u client.ModelUpload) error { _, _ = collectUpload(t, u); return nil },
+	})
+	require.NoError(t, err)
+
+	// The prepare and commit requests carry the same settings, so a dry run
+	// validates them too.
+	prepare := pushRequestBody(t, requestByPath(t, srv, "/v1/prepare_model_upload"))
+	commit := pushRequestBody(t, requestByPath(t, srv, "/v1/models"))
+	source, ok := commit["source"].(map[string]any)
+	require.True(t, ok, "expected a source, got %T", commit["source"])
+	for _, deployment := range []any{prepare["deployment"], source["deployment"]} {
+		payload, ok := deployment.(map[string]any)
+		require.True(t, ok, "expected a deployment payload, got %T", deployment)
+		for field, want := range map[string]string{
+			"instance_type_id":              `"A10Gx4x16"`,
+			"autoscaling_settings":          `{"min_replica":2}`,
+			"request_backpressure_settings": `{"policy":"REJECT_ON_FULL"}`,
+			"autoscaling_schedule_settings": `{"delete_schedules":["s-1"]}`,
+			"promotion_settings_override":   `{"rolling_deploy_config":{"max_surge_percent":10}}`,
+		} {
+			got, err := json.Marshal(payload[field])
+			require.NoError(t, err)
+			require.Equal(t, want, string(got))
+		}
 	}
 }
 
