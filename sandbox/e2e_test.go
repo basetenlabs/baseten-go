@@ -9,9 +9,11 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -32,6 +34,10 @@ var (
 // Allowed clock difference between this machine and the server when checking
 // that a timestamp falls within the run.
 const e2eClockSkew = time.Minute
+
+// e2eRegion is where the suite creates every sandbox and volume.
+// TODO: Temporary, while other regions' exec planes reject our tokens.
+const e2eRegion = "us-was-1"
 
 // e2eLabels are on every sandbox the suite creates.
 var e2eLabels = map[string]string{"created_by": "e2e"}
@@ -122,10 +128,8 @@ func sharedSandbox(t *testing.T) (string, *sandbox.Info) {
 		// removed by TestMain.
 		shared.name = uniqueName()
 		_, shared.err = client.Create(context.Background(), sandbox.CreateOptions{
-			Name: shared.name,
-			// TODO: Temporary, while other regions' exec planes reject our
-			// tokens.
-			Region: "us-was-1",
+			Name:   shared.name,
+			Region: e2eRegion,
 			Labels: e2eLabels,
 			// Left unset, E2E_DEFAULT keeps the server's default, which is
 			// secret.
@@ -307,6 +311,217 @@ func TestE2EClient(t *testing.T) {
 		require.NotEqual(t, "", apiErr.Code)
 	})
 
+}
+
+// Bounds on each volume state change TestE2EVolume waits for: deploying,
+// resizing, detaching. Each has taken about 3s.
+const (
+	e2eVolumeWait = 30 * time.Second
+	e2eVolumePoll = 200 * time.Millisecond
+)
+
+// TestE2EVolume walks one volume through its life: CRUD, mounted in a
+// sandbox and grown there, then mounted read-only in a second sandbox to show
+// the data persisted. Each step depends on the previous one, so a failed step
+// ends the test. Steps take ctx and register cleanups through the outer test,
+// since a step's own context and cleanups end with the step.
+func TestE2EVolume(t *testing.T) {
+	client := e2eClient(t)
+	volumes := client.Volumes()
+	ctx := t.Context()
+	started := time.Now()
+	volumeName := uniqueName()
+	t.Logf("volume %s", volumeName)
+	step := func(name string, run func(t *testing.T)) {
+		t.Helper()
+		require.True(t, t.Run(name, run), "step %s failed", name)
+	}
+
+	// Cleanups run last-registered first, so sandboxes are deleted before the
+	// volume, which cannot be deleted while mounted.
+	t.Cleanup(func() {
+		require.Eventually(t, e2eVolumeWait, e2eVolumePoll, func(attempt require.T) {
+			_, err := volumes.Delete(context.Background(), sandbox.VolumeDeleteOptions{Name: volumeName})
+			if err == nil || apiErrorStatus(err) == http.StatusNotFound {
+				return
+			}
+			require.Equal(t, http.StatusConflict, apiErrorStatus(err))
+			require.NoError(attempt, err)
+		})
+	})
+	deleteSandboxOnCleanup := func(name string) {
+		t.Cleanup(func() {
+			_, err := client.Delete(context.Background(), sandbox.DeleteOptions{Name: name})
+			if apiErrorStatus(err) != http.StatusNotFound {
+				require.NoError(t, err)
+			}
+		})
+	}
+	var writerName, readerName string
+	var writer *sandbox.Sandbox
+	var initialMegabytes int
+
+	step("CRUD", func(t *testing.T) {
+		labels := maps.Clone(e2eLabels)
+		labels["step"] = "create"
+		created, err := volumes.Create(ctx, sandbox.VolumeCreateOptions{
+			Name:          volumeName,
+			SizeMegabytes: 512,
+			Region:        e2eRegion,
+			Labels:        labels,
+		})
+		require.NoError(t, err)
+		require.Equal(t, volumeName, created.Name)
+		// The server normalizes either input form to a size string.
+		require.Equal(t, "512Mi", created.Size)
+		require.Equal(t, e2eRegion, created.Region)
+		require.Equal(t, "", created.AttachedTo)
+		require.NotEqual(t, "", created.CreatedBy)
+		requireWithinRun(t, "volume createdAt", started, created.CreatedAt)
+		elapsed := require.Eventually(t, e2eVolumeWait, e2eVolumePoll, func(attempt require.T) {
+			info, err := volumes.GetInfo(ctx, sandbox.VolumeGetInfoOptions{Name: volumeName})
+			require.NoError(t, err)
+			require.NotEqual(t, sandbox.VolumeStatusFailed, info.Status)
+			require.Equal(attempt, sandbox.VolumeStatusDeployed, info.Status)
+		})
+		t.Logf("volume deployed %v after create returned", elapsed)
+
+		info, err := volumes.GetInfo(ctx, sandbox.VolumeGetInfoOptions{Name: volumeName})
+		require.NoError(t, err)
+		require.MapEqual(t, info.Labels, "step", "create")
+
+		found := false
+		for listed, err := range volumes.List(ctx, sandbox.VolumeListOptions{Query: volumeName}) {
+			require.NoError(t, err)
+			if listed.Name == volumeName {
+				found = true
+				require.True(t, listed.Labels == nil, "list returned labels %v", listed.Labels)
+			}
+		}
+		require.True(t, found, "volume %s not listed", volumeName)
+
+		labels = maps.Clone(e2eLabels)
+		labels["step"] = "update"
+		updated, err := volumes.Update(ctx, sandbox.VolumeUpdateOptions{Name: volumeName, Labels: labels})
+		require.NoError(t, err)
+		require.Equal(t, "512Mi", updated.Size)
+		require.MapEqual(t, updated.Labels, "step", "update")
+
+		_, err = volumes.Update(ctx, sandbox.VolumeUpdateOptions{Name: volumeName, SizeMegabytes: 256})
+		apiErr := require.ErrorAs[*sandbox.APIError](t, err)
+		require.Equal(t, http.StatusBadRequest, apiErr.Status)
+	})
+
+	step("Mount", func(t *testing.T) {
+		writerName = uniqueName()
+		t.Logf("writer sandbox %s", writerName)
+		deleteSandboxOnCleanup(writerName)
+		writerCreated, err := client.Create(ctx, sandbox.CreateOptions{
+			Name:    writerName,
+			Region:  e2eRegion,
+			Labels:  e2eLabels,
+			Volumes: []sandbox.VolumeMount{{Name: volumeName, MountPath: "/data"}},
+		})
+		require.NoError(t, err)
+		require.Len(t, writerCreated.Info.Volumes, 1)
+		require.Equal(t, sandbox.VolumeMount{Name: volumeName, MountPath: "/data"}, writerCreated.Info.Volumes[0])
+		deployStarted := time.Now()
+		_, err = waitDeployed(ctx, client, writerName)
+		require.NoError(t, err)
+		t.Logf("sandbox with volume deployed in %v", time.Since(deployStarted))
+
+		info, err := volumes.GetInfo(ctx, sandbox.VolumeGetInfoOptions{Name: volumeName})
+		require.NoError(t, err)
+		require.Equal(t, writerName, info.AttachedTo)
+
+		writer = writerCreated.Sandbox
+		require.NoError(t, writer.FS().Write(ctx, sandbox.FileSystemWriteOptions{Path: "/data/persisted.txt", Content: "persisted"}))
+		initialMegabytes = volumeDiskMegabytes(t, writer)
+		t.Logf("df reports %d MB for a 512 MB volume", initialMegabytes)
+
+		_, err = volumes.Delete(ctx, sandbox.VolumeDeleteOptions{Name: volumeName})
+		require.Equal(t, http.StatusConflict, apiErrorStatus(err))
+
+		grown, err := volumes.Update(ctx, sandbox.VolumeUpdateOptions{Name: volumeName, Size: "1Gi"})
+		require.NoError(t, err)
+		require.Equal(t, "1Gi", grown.Size)
+		elapsed := require.Eventually(t, e2eVolumeWait, e2eVolumePoll, func(attempt require.T) {
+			megabytes := volumeDiskMegabytes(t, writer)
+			require.True(attempt, megabytes > initialMegabytes, "df still reports %d MB", megabytes)
+		})
+		t.Logf("sandbox saw the grown volume %v after update returned", elapsed)
+	})
+
+	step("Persist", func(t *testing.T) {
+		_, err := client.Delete(ctx, sandbox.DeleteOptions{Name: writerName})
+		require.NoError(t, err)
+		elapsed := require.Eventually(t, e2eVolumeWait, e2eVolumePoll, func(attempt require.T) {
+			info, err := volumes.GetInfo(ctx, sandbox.VolumeGetInfoOptions{Name: volumeName})
+			require.NoError(t, err)
+			require.Equal(attempt, "", info.AttachedTo)
+		})
+		t.Logf("volume detached %v after sandbox delete returned", elapsed)
+
+		readerName = uniqueName()
+		t.Logf("reader sandbox %s", readerName)
+		deleteSandboxOnCleanup(readerName)
+		readerCreated, err := client.Create(ctx, sandbox.CreateOptions{
+			Name:    readerName,
+			Region:  e2eRegion,
+			Labels:  e2eLabels,
+			Volumes: []sandbox.VolumeMount{{Name: volumeName, MountPath: "/data", ReadOnly: true}},
+		})
+		require.NoError(t, err)
+		_, err = waitDeployed(ctx, client, readerName)
+		require.NoError(t, err)
+		reader := readerCreated.Sandbox
+		content, err := reader.FS().Read(ctx, sandbox.FileSystemReadOptions{Path: "/data/persisted.txt"})
+		require.NoError(t, err)
+		require.Equal(t, "persisted", content)
+		// TODO: The server currently mounts read-only volumes read-write, so
+		// writes succeed. Restore once fixed.
+		// require.Error(t, reader.FS().Write(ctx, sandbox.FileSystemWriteOptions{Path: "/data/denied.txt", Content: "x"}))
+	})
+
+	step("Delete", func(t *testing.T) {
+		_, err := client.Delete(ctx, sandbox.DeleteOptions{Name: readerName})
+		require.NoError(t, err)
+		var deleted *sandbox.VolumeInfo
+		elapsed := require.Eventually(t, e2eVolumeWait, e2eVolumePoll, func(attempt require.T) {
+			deleted, err = volumes.Delete(ctx, sandbox.VolumeDeleteOptions{Name: volumeName})
+			if err != nil {
+				require.Equal(t, http.StatusConflict, apiErrorStatus(err))
+			}
+			require.NoError(attempt, err)
+		})
+		t.Logf("volume deletable %v after sandbox delete returned", elapsed)
+		require.Equal(t, sandbox.VolumeStatusDeleting, deleted.Status)
+	})
+}
+
+// apiErrorStatus is err's HTTP status, or 0 when it is not an API error.
+func apiErrorStatus(err error) int {
+	var apiErr *sandbox.APIError
+	if errors.As(err, &apiErr) {
+		return apiErr.Status
+	}
+	return 0
+}
+
+// volumeDiskMegabytes is the size df reports for the volume mounted at /data.
+func volumeDiskMegabytes(t *testing.T, sb *sandbox.Sandbox) int {
+	t.Helper()
+	process, err := sb.Process().Exec(t.Context(), sandbox.ProcessExecOptions{
+		Command:           "sh -c 'df -m /data | tail -n 1'",
+		WaitForCompletion: true,
+	})
+	require.NoError(t, err)
+	require.Equal(t, 0, process.ExitCode)
+	fields := strings.Fields(process.Stdout)
+	require.True(t, len(fields) >= 2, "unexpected df output %q", process.Stdout)
+	megabytes, err := strconv.Atoi(fields[1])
+	require.NoError(t, err)
+	return megabytes
 }
 
 func TestE2EImageListLibrary(t *testing.T) {
@@ -991,10 +1206,9 @@ func TestE2EImagePushAndCreate(t *testing.T) {
 
 	sandboxCreated = true
 	_, err = client.Create(ctx, sandbox.CreateOptions{
-		Name:  sandboxName,
-		Image: imageName + ":latest",
-		// TODO: Same temporary region pin as the shared sandbox.
-		Region: "us-was-1",
+		Name:   sandboxName,
+		Image:  imageName + ":latest",
+		Region: e2eRegion,
 		Labels: e2eLabels,
 	})
 	require.NoError(t, err)

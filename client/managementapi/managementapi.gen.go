@@ -65,6 +65,21 @@ func (e AuditLogActorType) Valid() bool {
 	}
 }
 
+// Defines values for AuditLogApiKeyRevocationReason.
+const (
+	AuditLogApiKeyRevocationReason_INACTIVITY AuditLogApiKeyRevocationReason = "INACTIVITY"
+)
+
+// Valid indicates whether the value is a known member of the AuditLogApiKeyRevocationReason enum.
+func (e AuditLogApiKeyRevocationReason) Valid() bool {
+	switch e {
+	case AuditLogApiKeyRevocationReason_INACTIVITY:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for AuditLogApiKeyType.
 const (
 	AuditLogApiKeyType_CREATOR_SERVICE_ACCOUNT                         AuditLogApiKeyType = "CREATOR_SERVICE_ACCOUNT"
@@ -175,6 +190,9 @@ const (
 	AuditLogEventType_SECRET_DELETED                                         AuditLogEventType = "SECRET_DELETED"
 	AuditLogEventType_SECRET_UPDATED                                         AuditLogEventType = "SECRET_UPDATED"
 	AuditLogEventType_SSH_CERTIFICATE_SIGNED                                 AuditLogEventType = "SSH_CERTIFICATE_SIGNED"
+	AuditLogEventType_TELEMETRY_EXPORT_CREATED                               AuditLogEventType = "TELEMETRY_EXPORT_CREATED"
+	AuditLogEventType_TELEMETRY_EXPORT_DELETED                               AuditLogEventType = "TELEMETRY_EXPORT_DELETED"
+	AuditLogEventType_TELEMETRY_EXPORT_UPDATED                               AuditLogEventType = "TELEMETRY_EXPORT_UPDATED"
 	AuditLogEventType_USER_INVITED                                           AuditLogEventType = "USER_INVITED"
 	AuditLogEventType_USER_JOINED_ORGANIZATION                               AuditLogEventType = "USER_JOINED_ORGANIZATION"
 	AuditLogEventType_USER_REMOVED                                           AuditLogEventType = "USER_REMOVED"
@@ -272,6 +290,12 @@ func (e AuditLogEventType) Valid() bool {
 		return true
 	case AuditLogEventType_SSH_CERTIFICATE_SIGNED:
 		return true
+	case AuditLogEventType_TELEMETRY_EXPORT_CREATED:
+		return true
+	case AuditLogEventType_TELEMETRY_EXPORT_DELETED:
+		return true
+	case AuditLogEventType_TELEMETRY_EXPORT_UPDATED:
+		return true
 	case AuditLogEventType_USER_INVITED:
 		return true
 	case AuditLogEventType_USER_JOINED_ORGANIZATION:
@@ -323,6 +347,7 @@ const (
 	AuditLogEventTypeGroup_REQUEST_BACKPRESSURE_SETTINGS AuditLogEventTypeGroup = "REQUEST_BACKPRESSURE_SETTINGS"
 	AuditLogEventTypeGroup_SECRETS                       AuditLogEventTypeGroup = "SECRETS"
 	AuditLogEventTypeGroup_SSH                           AuditLogEventTypeGroup = "SSH"
+	AuditLogEventTypeGroup_TELEMETRY_EXPORT              AuditLogEventTypeGroup = "TELEMETRY_EXPORT"
 	AuditLogEventTypeGroup_USER_MANAGEMENT               AuditLogEventTypeGroup = "USER_MANAGEMENT"
 	AuditLogEventTypeGroup_WEBHOOK_SIGNING_SECRETS       AuditLogEventTypeGroup = "WEBHOOK_SIGNING_SECRETS"
 )
@@ -361,6 +386,8 @@ func (e AuditLogEventTypeGroup) Valid() bool {
 	case AuditLogEventTypeGroup_SECRETS:
 		return true
 	case AuditLogEventTypeGroup_SSH:
+		return true
+	case AuditLogEventTypeGroup_TELEMETRY_EXPORT:
 		return true
 	case AuditLogEventTypeGroup_USER_MANAGEMENT:
 		return true
@@ -1595,6 +1622,30 @@ func (e SandboxTTLMaxAgeExpirationPolicyType) Valid() bool {
 	}
 }
 
+// Defines values for SandboxVolumeStatus.
+const (
+	SandboxVolumeStatus_DELETING  SandboxVolumeStatus = "DELETING"
+	SandboxVolumeStatus_DEPLOYED  SandboxVolumeStatus = "DEPLOYED"
+	SandboxVolumeStatus_DEPLOYING SandboxVolumeStatus = "DEPLOYING"
+	SandboxVolumeStatus_FAILED    SandboxVolumeStatus = "FAILED"
+)
+
+// Valid indicates whether the value is a known member of the SandboxVolumeStatus enum.
+func (e SandboxVolumeStatus) Valid() bool {
+	switch e {
+	case SandboxVolumeStatus_DELETING:
+		return true
+	case SandboxVolumeStatus_DEPLOYED:
+		return true
+	case SandboxVolumeStatus_DEPLOYING:
+		return true
+	case SandboxVolumeStatus_FAILED:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SharedEndpointRegion.
 const (
 	SharedEndpointRegion_EU           SharedEndpointRegion = "EU"
@@ -2088,6 +2139,9 @@ type AuditLogActor struct {
 // AuditLogActorType Kind of actor that performed an audited action.
 type AuditLogActorType string
 
+// AuditLogApiKeyRevocationReason Reason an API key was revoked.
+type AuditLogApiKeyRevocationReason string
+
 // AuditLogApiKeyType Type of API key recorded on an API-key event.
 type AuditLogApiKeyType string
 
@@ -2141,9 +2195,10 @@ type AuditLogEventApiKeyDeleted struct {
 	ApiKeyId string `json:"api_key_id"`
 
 	// ApiKeyType Type of API key recorded on an API-key event.
-	ApiKeyType AuditLogApiKeyType `json:"api_key_type"`
-	EventType  string             `json:"event_type"`
-	Prefix     string             `json:"prefix"`
+	ApiKeyType       AuditLogApiKeyType              `json:"api_key_type"`
+	EventType        string                          `json:"event_type"`
+	Prefix           string                          `json:"prefix"`
+	RevocationReason *AuditLogApiKeyRevocationReason `json:"revocation_reason,omitempty"`
 }
 
 // AuditLogEventAutoscalingScheduleAction What an autoscaling change did to one schedule.
@@ -2695,6 +2750,28 @@ type AuditLogEventSshCertificateSigned struct {
 	ReplicaId    string `json:"replica_id"`
 	WorkloadId   string `json:"workload_id"`
 	WorkloadType string `json:"workload_type"`
+}
+
+// AuditLogEventTelemetryExportCreated A telemetry export configuration was created.
+type AuditLogEventTelemetryExportCreated struct {
+	EventType                      string `json:"event_type"`
+	TelemetryExportConfigurationId string `json:"telemetry_export_configuration_id"`
+}
+
+// AuditLogEventTelemetryExportDeleted A telemetry export configuration was deleted.
+type AuditLogEventTelemetryExportDeleted struct {
+	EventType                      string `json:"event_type"`
+	TelemetryExportConfigurationId string `json:"telemetry_export_configuration_id"`
+}
+
+// AuditLogEventTelemetryExportUpdated A telemetry export configuration was updated. `enabled` is the new value when this update
+// paused or resumed exporting and null when only the endpoint, protocol, headers, or credential
+// changed; a pause whose actor is the Baseten system was Baseten's own.
+type AuditLogEventTelemetryExportUpdated struct {
+	CredentialRotated              bool   `json:"credential_rotated"`
+	Enabled                        *bool  `json:"enabled"`
+	EventType                      string `json:"event_type"`
+	TelemetryExportConfigurationId string `json:"telemetry_export_configuration_id"`
 }
 
 // AuditLogEventType Type of action recorded by an audit-log entry.
@@ -3347,8 +3424,14 @@ type CleanupSandboxImagesResponse struct {
 	// Deleted Number of image versions removed.
 	Deleted int `json:"deleted"`
 
+	// HasMore True when the cleanup stopped on its time limit before every unused version was removed. Call it again to continue.
+	HasMore *bool `json:"has_more,omitempty"`
+
 	// Message Human-readable cleanup result.
 	Message string `json:"message"`
+
+	// Remaining Number of unused image versions left for a next call.
+	Remaining *int `json:"remaining,omitempty"`
 }
 
 // CreateAPIKeyRequest Request to create an API key.
@@ -3670,6 +3753,9 @@ type CreateLoopsRunRequest struct {
 	// future milestone.
 	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
 
+	// BaseCheckpoint Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in the team secret hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
+	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
+
 	// BaseModel Base model ID (e.g. 'Qwen/Qwen3-8B').
 	BaseModel string `json:"base_model"`
 
@@ -3759,6 +3845,9 @@ type CreateLoopsTrainerRequest struct {
 	// checkpoint/resume on its own is intentionally not defined yet; it is planned for a
 	// future milestone.
 	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+
+	// BaseCheckpoint Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in the team secret hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
+	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
 
 	// BaseModel Base model ID (e.g. 'Qwen/Qwen3-8B').
 	BaseModel string `json:"base_model"`
@@ -3888,8 +3977,37 @@ type CreateSandboxRequest struct {
 	// Ports Set of ports for a resource
 	Ports *SandboxPorts `json:"ports,omitempty"`
 
-	// Region Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.
+	// Region Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the default sandbox region is used.
 	Region *string `json:"region,omitempty"`
+
+	// Volumes Volumes mounted in the sandbox. Set at creation only.
+	Volumes *[]SandboxVolumeAttachment `json:"volumes,omitempty"`
+}
+
+// CreateSandboxVolumeRequest Volume to create. Only size is required.
+type CreateSandboxVolumeRequest struct {
+	// Labels Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.
+	Labels *SandboxMetadataLabels `json:"labels,omitempty"`
+
+	// Name Volume name, unique in the team. Generated when omitted.
+	Name *string `json:"name,omitempty"`
+
+	// Region Region of the volume. Defaults to the default sandbox region. Sandboxes mounting it must be in the same region.
+	Region *string `json:"region,omitempty"`
+
+	// Size Capacity, as a size (e.g. "10Gi", "512Mi") or a number of Mi (e.g. 1024). Can grow later, never shrink.
+	Size CreateSandboxVolumeRequest_Size `json:"size"`
+}
+
+// CreateSandboxVolumeRequestSize0 defines model for .
+type CreateSandboxVolumeRequestSize0 = string
+
+// CreateSandboxVolumeRequestSize1 defines model for .
+type CreateSandboxVolumeRequestSize1 = int
+
+// CreateSandboxVolumeRequest_Size Capacity, as a size (e.g. "10Gi", "512Mi") or a number of Mi (e.g. 1024). Can grow later, never shrink.
+type CreateSandboxVolumeRequest_Size struct {
+	union json.RawMessage
 }
 
 // CreateTokenRequest defines model for CreateTokenRequest.
@@ -6327,6 +6445,15 @@ type ListSandboxPreviewsResponse struct {
 	Pagination SandboxApiPagination `json:"pagination"`
 }
 
+// ListSandboxVolumesResponse One page of volumes.
+type ListSandboxVolumesResponse struct {
+	// Items Resources on this page.
+	Items []SandboxVolume `json:"items"`
+
+	// Pagination Cursor pagination information. The cursor is present only when another page is available.
+	Pagination SandboxApiPagination `json:"pagination"`
+}
+
 // ListSandboxesResponse One page of sandboxes.
 type ListSandboxesResponse struct {
 	// Items Resources on this page.
@@ -6534,6 +6661,9 @@ type LoopsDeployment struct {
 	// future milestone.
 	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
 
+	// BaseCheckpoint The custom base checkpoint the deployment's trainer loaded, pinned to a commit (hf://<org>/<repo>@<sha>). Null when it uses the base model's own weights.
+	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
+
 	// BaseModel The HuggingFace base model the deployment is fine-tuning.
 	BaseModel string `json:"base_model"`
 
@@ -6645,6 +6775,9 @@ type LoopsLoRAConfigExpertLayout string
 
 // LoopsRun defines model for LoopsRun.
 type LoopsRun struct {
+	// BaseCheckpoint The custom base checkpoint the run started from, pinned to a commit (hf://<org>/<repo>@<sha>). Null when it uses the base model's own weights.
+	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
+
 	// BaseModel The HuggingFace base model the run is fine-tuning.
 	BaseModel string `json:"base_model"`
 
@@ -6690,6 +6823,9 @@ type LoopsRunStatusName string
 
 // LoopsSampler defines model for LoopsSampler.
 type LoopsSampler struct {
+	// BaseCheckpoint The custom base checkpoint the sampler serves, pinned to a commit (hf://<org>/<repo>@<sha>). Null when it uses the base model's own weights.
+	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
+
 	// BaseModel The HuggingFace base model the sampler is serving.
 	BaseModel string `json:"base_model"`
 	BaseUrl   string `json:"base_url"`
@@ -7731,7 +7867,7 @@ type Sandbox struct {
 	// Ports Set of ports for a resource
 	Ports *SandboxPorts `json:"ports,omitempty"`
 
-	// Region Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.
+	// Region Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the default sandbox region is used.
 	Region *string `json:"region,omitempty"`
 
 	// Status Sandbox deployment status.
@@ -7745,6 +7881,9 @@ type Sandbox struct {
 
 	// Url Base URL of this sandbox's execution API, always present on successful creation. The URL is assigned before deployment completes; inspect status for readiness. Use this exact returned URL; do not reconstruct its hostname. Authenticate requests with your authentication token using Authorization: Bearer <token>. Do not send the Baseten API key directly. No additional routing headers are required. Fetch GET {url}/swagger/doc.json with that header for the API reference served by this sandbox. For example, POST {url}/process with Content-Type: application/json and {"command":"echo hello","waitForCompletion":true} executes a command and waits for its result. Execution API fields use camelCase, independently of this API's snake_case fields.
 	Url *string `json:"url,omitempty"`
+
+	// Volumes Volumes mounted in the sandbox. Set at creation only.
+	Volumes *[]SandboxVolumeAttachment `json:"volumes,omitempty"`
 }
 
 // SandboxApiPagination Cursor pagination information. The cursor is present only when another page is available.
@@ -7785,8 +7924,11 @@ type SandboxConfiguration struct {
 	// Ports Set of ports for a resource
 	Ports *SandboxPorts `json:"ports,omitempty"`
 
-	// Region Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.
+	// Region Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the default sandbox region is used.
 	Region *string `json:"region,omitempty"`
+
+	// Volumes Volumes mounted in the sandbox. Set at creation only.
+	Volumes *[]SandboxVolumeAttachment `json:"volumes,omitempty"`
 }
 
 // SandboxDateExpirationPolicy Delete at the specified absolute timestamp.
@@ -7972,8 +8114,8 @@ type SandboxLibraryImageVolume struct {
 	// ReadOnly Whether the volume is mounted read-only.
 	ReadOnly *bool `json:"read_only,omitempty"`
 
-	// SizeMb Storage capacity in megabytes for ephemeral volumes.
-	SizeMb *int `json:"size_mb,omitempty"`
+	// Size Storage capacity in megabytes for ephemeral volumes.
+	Size *int `json:"size,omitempty"`
 
 	// Type Volume type, persistent when empty.
 	Type *string `json:"type,omitempty"`
@@ -8246,6 +8388,61 @@ type SandboxTTLMaxAgeExpirationPolicyAction string
 
 // SandboxTTLMaxAgeExpirationPolicyType defines model for SandboxTTLMaxAgeExpirationPolicy.Type.
 type SandboxTTLMaxAgeExpirationPolicyType string
+
+// SandboxVolume Persistent volume.
+type SandboxVolume struct {
+	// AttachedTo Name of the sandbox the volume is mounted in. Absent when not mounted.
+	AttachedTo *string    `json:"attached_to,omitempty"`
+	CreatedAt  *time.Time `json:"created_at,omitempty"`
+
+	// CreatedBy User or service account that created the volume.
+	CreatedBy *string `json:"created_by,omitempty"`
+
+	// Labels Labels. Omitted from list responses.
+	Labels *SandboxMetadataLabels `json:"labels,omitempty"`
+
+	// Name Volume name, used in volume_name path parameters and sandbox volumes.
+	Name *string `json:"name,omitempty"`
+
+	// Region Region of the volume.
+	Region string `json:"region"`
+
+	// Size Capacity, as a size (e.g. "10Gi", "512Mi") or a number of Mi (e.g. 1024).
+	Size SandboxVolume_Size `json:"size"`
+
+	// Status Volume status, always uppercase.
+	Status    SandboxVolumeStatus `json:"status"`
+	UpdatedAt *time.Time          `json:"updated_at,omitempty"`
+
+	// UpdatedBy User or service account that last updated the volume.
+	UpdatedBy *string `json:"updated_by,omitempty"`
+}
+
+// SandboxVolumeSize0 defines model for .
+type SandboxVolumeSize0 = string
+
+// SandboxVolumeSize1 defines model for .
+type SandboxVolumeSize1 = int
+
+// SandboxVolume_Size Capacity, as a size (e.g. "10Gi", "512Mi") or a number of Mi (e.g. 1024).
+type SandboxVolume_Size struct {
+	union json.RawMessage
+}
+
+// SandboxVolumeAttachment A persistent volume mounted in the sandbox. The volume must exist, be in the sandbox's region and not be mounted elsewhere. A sandbox mounts at most one persistent volume.
+type SandboxVolumeAttachment struct {
+	// MountPath Absolute path where the volume is mounted in the sandbox.
+	MountPath string `json:"mount_path"`
+
+	// Name Name of the volume to mount.
+	Name string `json:"name"`
+
+	// ReadOnly Mount the volume read-only. Defaults to false.
+	ReadOnly *bool `json:"read_only,omitempty"`
+}
+
+// SandboxVolumeStatus Volume status, always uppercase.
+type SandboxVolumeStatus string
 
 // SearchTrainingJobsRequest A request to search training jobs.
 type SearchTrainingJobsRequest struct {
@@ -9466,7 +9663,7 @@ type UpdateSandboxPreviewRequest struct {
 	Ttl *SandboxPreviewTtl `json:"ttl,omitempty"`
 }
 
-// UpdateSandboxRequest Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, network, region, image, and ports are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.
+// UpdateSandboxRequest Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, network, region, image, ports, filesystem, and volumes are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.
 type UpdateSandboxRequest struct {
 	// Envs Environment variables injected into the sandbox.
 	Envs *[]SandboxEnv `json:"envs,omitempty"`
@@ -9479,6 +9676,26 @@ type UpdateSandboxRequest struct {
 
 	// Lifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
 	Lifecycle *SandboxLifecycle `json:"lifecycle,omitempty"`
+}
+
+// UpdateSandboxVolumeRequest Volume fields to change. name and region cannot be changed.
+type UpdateSandboxVolumeRequest struct {
+	// Labels Labels replacing all current labels, not merged with them. Omit to keep them.
+	Labels *SandboxMetadataLabels `json:"labels,omitempty"`
+
+	// Size New capacity, as a size (e.g. "20Gi") or a number of Mi, greater than or equal to the current size.
+	Size *UpdateSandboxVolumeRequest_Size `json:"size,omitempty"`
+}
+
+// UpdateSandboxVolumeRequestSize0 defines model for .
+type UpdateSandboxVolumeRequestSize0 = string
+
+// UpdateSandboxVolumeRequestSize1 defines model for .
+type UpdateSandboxVolumeRequestSize1 = int
+
+// UpdateSandboxVolumeRequest_Size New capacity, as a size (e.g. "20Gi") or a number of Mi, greater than or equal to the current size.
+type UpdateSandboxVolumeRequest_Size struct {
+	union json.RawMessage
 }
 
 // UpdateTrafficRoutingSettings Partial update of an environment's traffic routing rules.
@@ -11008,6 +11225,48 @@ type DeleteSandboxPreviewTokenParams struct {
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
+// ListSandboxVolumesParams defines parameters for ListSandboxVolumes.
+type ListSandboxVolumesParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Cursor Opaque cursor from the previous page; omit for the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Q Search volume names. Search is applied before pagination.
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
+
+	// Status Volume statuses. Repeat the query parameter for each status, for example status=DEPLOYED&status=FAILED. Unknown values are rejected.
+	Status *[]SandboxVolumeStatus `form:"status,omitempty" json:"status,omitempty"`
+}
+
+// CreateSandboxVolumeParams defines parameters for CreateSandboxVolume.
+type CreateSandboxVolumeParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// DeleteSandboxVolumeParams defines parameters for DeleteSandboxVolume.
+type DeleteSandboxVolumeParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// GetSandboxVolumeParams defines parameters for GetSandboxVolume.
+type GetSandboxVolumeParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// UpdateSandboxVolumeParams defines parameters for UpdateSandboxVolume.
+type UpdateSandboxVolumeParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
 // GetV1TeamsParams defines parameters for GetV1Teams.
 type GetV1TeamsParams struct {
 	// Name When set, returns only the team with this exact name, if any.
@@ -11295,6 +11554,12 @@ type UpdateSandboxPreviewJSONRequestBody = UpdateSandboxPreviewRequest
 
 // CreateSandboxPreviewTokenJSONRequestBody defines body for CreateSandboxPreviewToken for application/json ContentType.
 type CreateSandboxPreviewTokenJSONRequestBody = CreateSandboxPreviewTokenRequest
+
+// CreateSandboxVolumeJSONRequestBody defines body for CreateSandboxVolume for application/json ContentType.
+type CreateSandboxVolumeJSONRequestBody = CreateSandboxVolumeRequest
+
+// UpdateSandboxVolumeJSONRequestBody defines body for UpdateSandboxVolume for application/json ContentType.
+type UpdateSandboxVolumeJSONRequestBody = UpdateSandboxVolumeRequest
 
 // PostV1SecretsJSONRequestBody defines body for PostV1Secrets for application/json ContentType.
 type PostV1SecretsJSONRequestBody = UpsertSecretRequest
@@ -12178,6 +12443,51 @@ func (t *AuditLogEntry_EventData) FromAuditLogEventVolumeUpdated(v AuditLogEvent
 	return err
 }
 
+// AsAuditLogEventTelemetryExportCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventTelemetryExportCreated
+func (t AuditLogEntry_EventData) AsAuditLogEventTelemetryExportCreated() (AuditLogEventTelemetryExportCreated, error) {
+	var body AuditLogEventTelemetryExportCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventTelemetryExportCreated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventTelemetryExportCreated
+func (t *AuditLogEntry_EventData) FromAuditLogEventTelemetryExportCreated(v AuditLogEventTelemetryExportCreated) error {
+	v.EventType = "TELEMETRY_EXPORT_CREATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventTelemetryExportUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventTelemetryExportUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventTelemetryExportUpdated() (AuditLogEventTelemetryExportUpdated, error) {
+	var body AuditLogEventTelemetryExportUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventTelemetryExportUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventTelemetryExportUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventTelemetryExportUpdated(v AuditLogEventTelemetryExportUpdated) error {
+	v.EventType = "TELEMETRY_EXPORT_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventTelemetryExportDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventTelemetryExportDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventTelemetryExportDeleted() (AuditLogEventTelemetryExportDeleted, error) {
+	var body AuditLogEventTelemetryExportDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventTelemetryExportDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventTelemetryExportDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventTelemetryExportDeleted(v AuditLogEventTelemetryExportDeleted) error {
+	v.EventType = "TELEMETRY_EXPORT_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t AuditLogEntry_EventData) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"event_type"`
@@ -12270,6 +12580,12 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventSecretUpdated()
 	case "SSH_CERTIFICATE_SIGNED":
 		return t.AsAuditLogEventSshCertificateSigned()
+	case "TELEMETRY_EXPORT_CREATED":
+		return t.AsAuditLogEventTelemetryExportCreated()
+	case "TELEMETRY_EXPORT_DELETED":
+		return t.AsAuditLogEventTelemetryExportDeleted()
+	case "TELEMETRY_EXPORT_UPDATED":
+		return t.AsAuditLogEventTelemetryExportUpdated()
 	case "USER_INVITED":
 		return t.AsAuditLogEventUserInvited()
 	case "USER_JOINED_ORGANIZATION":
@@ -12718,6 +13034,44 @@ func (t CreateModelRequest_Source) MarshalJSON() ([]byte, error) {
 }
 
 func (t *CreateModelRequest_Source) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsCreateSandboxVolumeRequestSize0 returns the union data inside the CreateSandboxVolumeRequest_Size as a CreateSandboxVolumeRequestSize0
+func (t CreateSandboxVolumeRequest_Size) AsCreateSandboxVolumeRequestSize0() (CreateSandboxVolumeRequestSize0, error) {
+	var body CreateSandboxVolumeRequestSize0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromCreateSandboxVolumeRequestSize0 overwrites any union data inside the CreateSandboxVolumeRequest_Size as the provided CreateSandboxVolumeRequestSize0
+func (t *CreateSandboxVolumeRequest_Size) FromCreateSandboxVolumeRequestSize0(v CreateSandboxVolumeRequestSize0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsCreateSandboxVolumeRequestSize1 returns the union data inside the CreateSandboxVolumeRequest_Size as a CreateSandboxVolumeRequestSize1
+func (t CreateSandboxVolumeRequest_Size) AsCreateSandboxVolumeRequestSize1() (CreateSandboxVolumeRequestSize1, error) {
+	var body CreateSandboxVolumeRequestSize1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromCreateSandboxVolumeRequestSize1 overwrites any union data inside the CreateSandboxVolumeRequest_Size as the provided CreateSandboxVolumeRequestSize1
+func (t *CreateSandboxVolumeRequest_Size) FromCreateSandboxVolumeRequestSize1(v CreateSandboxVolumeRequestSize1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t CreateSandboxVolumeRequest_Size) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CreateSandboxVolumeRequest_Size) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -14042,6 +14396,44 @@ func (t *SandboxFilesystem_MaxMemoryUsage) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// AsSandboxVolumeSize0 returns the union data inside the SandboxVolume_Size as a SandboxVolumeSize0
+func (t SandboxVolume_Size) AsSandboxVolumeSize0() (SandboxVolumeSize0, error) {
+	var body SandboxVolumeSize0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSandboxVolumeSize0 overwrites any union data inside the SandboxVolume_Size as the provided SandboxVolumeSize0
+func (t *SandboxVolume_Size) FromSandboxVolumeSize0(v SandboxVolumeSize0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsSandboxVolumeSize1 returns the union data inside the SandboxVolume_Size as a SandboxVolumeSize1
+func (t SandboxVolume_Size) AsSandboxVolumeSize1() (SandboxVolumeSize1, error) {
+	var body SandboxVolumeSize1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSandboxVolumeSize1 overwrites any union data inside the SandboxVolume_Size as the provided SandboxVolumeSize1
+func (t *SandboxVolume_Size) FromSandboxVolumeSize1(v SandboxVolumeSize1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t SandboxVolume_Size) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *SandboxVolume_Size) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // AsTrainingItemSubtotal0 returns the union data inside the TrainingItem_Subtotal as a TrainingItemSubtotal0
 func (t TrainingItem_Subtotal) AsTrainingItemSubtotal0() (TrainingItemSubtotal0, error) {
 	var body TrainingItemSubtotal0
@@ -14412,6 +14804,44 @@ func (t UpdateGridRouteRequest_Target) MarshalJSON() ([]byte, error) {
 }
 
 func (t *UpdateGridRouteRequest_Target) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsUpdateSandboxVolumeRequestSize0 returns the union data inside the UpdateSandboxVolumeRequest_Size as a UpdateSandboxVolumeRequestSize0
+func (t UpdateSandboxVolumeRequest_Size) AsUpdateSandboxVolumeRequestSize0() (UpdateSandboxVolumeRequestSize0, error) {
+	var body UpdateSandboxVolumeRequestSize0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromUpdateSandboxVolumeRequestSize0 overwrites any union data inside the UpdateSandboxVolumeRequest_Size as the provided UpdateSandboxVolumeRequestSize0
+func (t *UpdateSandboxVolumeRequest_Size) FromUpdateSandboxVolumeRequestSize0(v UpdateSandboxVolumeRequestSize0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsUpdateSandboxVolumeRequestSize1 returns the union data inside the UpdateSandboxVolumeRequest_Size as a UpdateSandboxVolumeRequestSize1
+func (t UpdateSandboxVolumeRequest_Size) AsUpdateSandboxVolumeRequestSize1() (UpdateSandboxVolumeRequestSize1, error) {
+	var body UpdateSandboxVolumeRequestSize1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromUpdateSandboxVolumeRequestSize1 overwrites any union data inside the UpdateSandboxVolumeRequest_Size as the provided UpdateSandboxVolumeRequestSize1
+func (t *UpdateSandboxVolumeRequest_Size) FromUpdateSandboxVolumeRequestSize1(v UpdateSandboxVolumeRequestSize1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t UpdateSandboxVolumeRequest_Size) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *UpdateSandboxVolumeRequest_Size) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

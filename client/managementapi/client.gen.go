@@ -97,6 +97,19 @@ func (c *Client) CreateSandboxPreviewToken(ctx context.Context, sandboxName stri
 	})
 }
 
+// CreateSandboxVolume: Create a volume
+func (c *Client) CreateSandboxVolume(ctx context.Context, params CreateSandboxVolumeParams, body CreateSandboxVolumeRequest) (*SandboxVolume, error) {
+	return doJSON[SandboxVolume](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/sandboxes/volumes",
+		pathArgs:     nil,
+		queryParams:  params,
+		body:         body,
+		successCodes: []int{201},
+		errorCodes:   nil,
+	})
+}
+
 // DeleteApiKeys: Deletes an API key by prefix
 func (c *Client) DeleteApiKeys(ctx context.Context, apiKeyPrefix string) (*APIKeyTombstone, error) {
 	return doJSON[APIKeyTombstone](c, ctx, apiRequest{
@@ -285,6 +298,18 @@ func (c *Client) DeleteSandboxPreviewToken(ctx context.Context, sandboxName stri
 		pathArgs:     []any{sandboxName, previewName, tokenName},
 		queryParams:  params,
 		successCodes: []int{204},
+		errorCodes:   nil,
+	})
+}
+
+// DeleteSandboxVolume: Delete a volume
+func (c *Client) DeleteSandboxVolume(ctx context.Context, volumeName string, params DeleteSandboxVolumeParams) (*SandboxVolume, error) {
+	return doJSON[SandboxVolume](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/sandboxes/volumes/%s",
+		pathArgs:     []any{volumeName},
+		queryParams:  params,
+		successCodes: []int{202},
 		errorCodes:   nil,
 	})
 }
@@ -1359,6 +1384,18 @@ func (c *Client) GetSandboxPreview(ctx context.Context, sandboxName string, prev
 	})
 }
 
+// GetSandboxVolume: Get a volume
+func (c *Client) GetSandboxVolume(ctx context.Context, volumeName string, params GetSandboxVolumeParams) (*SandboxVolume, error) {
+	return doJSON[SandboxVolume](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/sandboxes/volumes/%s",
+		pathArgs:     []any{volumeName},
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // GetSecrets: Gets all secrets (metadata only, no plain text keys)
 func (c *Client) GetSecrets(ctx context.Context) (*Secrets, error) {
 	return doJSON[Secrets](c, ctx, apiRequest{
@@ -1787,6 +1824,18 @@ func (c *Client) ListSandboxPreviews(ctx context.Context, sandboxName string, pa
 		method:       "GET",
 		pathFmt:      "/v1/sandboxes/instances/%s/previews",
 		pathArgs:     []any{sandboxName},
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// ListSandboxVolumes: List volumes
+func (c *Client) ListSandboxVolumes(ctx context.Context, params ListSandboxVolumesParams) (*ListSandboxVolumesResponse, error) {
+	return doJSON[ListSandboxVolumesResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/sandboxes/volumes",
+		pathArgs:     nil,
 		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
@@ -3013,6 +3062,19 @@ func (c *Client) UpdateSandboxPreview(ctx context.Context, sandboxName string, p
 		method:       "PATCH",
 		pathFmt:      "/v1/sandboxes/instances/%s/previews/%s",
 		pathArgs:     []any{sandboxName, previewName},
+		queryParams:  params,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// UpdateSandboxVolume: Update a volume
+func (c *Client) UpdateSandboxVolume(ctx context.Context, volumeName string, params UpdateSandboxVolumeParams, body UpdateSandboxVolumeRequest) (*SandboxVolume, error) {
+	return doJSON[SandboxVolume](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/sandboxes/volumes/%s",
+		pathArgs:     []any{volumeName},
 		queryParams:  params,
 		body:         body,
 		successCodes: []int{200},

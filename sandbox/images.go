@@ -418,24 +418,60 @@ func (c *ImageClient) DeleteTag(ctx context.Context, opts ImageDeleteTagOptions)
 }
 
 // ImageCleanupOptions are the options for [ImageClient.Cleanup].
-type ImageCleanupOptions struct{}
+type ImageCleanupOptions struct {
+	// Progress, if set, is called between the server calls a cleanup takes:
+	// after each call that stopped on its time limit, before the next one. It
+	// is not called after the last call, whose outcome is the result.
+	Progress func(ImageCleanupProgress)
+}
 
-// ImageCleanupResult is the outcome of [ImageClient.Cleanup].
-type ImageCleanupResult struct {
-	// Deleted is how many image versions were removed.
+// ImageCleanupProgress is a cleanup's state between two server calls.
+type ImageCleanupProgress struct {
+	// Deleted is how many image versions have been removed so far, across
+	// calls.
 	Deleted int
 
-	// Message describes the outcome.
+	// Remaining is how many unused image versions are left for the next
+	// call.
+	Remaining int
+
+	// Message is the server's description of the call that just finished,
+	// covering only that call's removals.
 	Message string
 }
 
-// Cleanup removes image versions that no sandbox uses.
+// ImageCleanupResult is the outcome of [ImageClient.Cleanup].
+type ImageCleanupResult struct {
+	// Deleted is how many image versions were removed, across calls.
+	Deleted int
+
+	// Message is the server's description of the last call, covering only
+	// that call's removals.
+	Message string
+}
+
+// Cleanup removes image versions that no sandbox uses. A server call runs for
+// a limited time, so Cleanup calls again until none remain, reporting each
+// stop to [ImageCleanupOptions.Progress]. Cancel ctx to stop early.
 func (c *ImageClient) Cleanup(ctx context.Context, opts ImageCleanupOptions) (*ImageCleanupResult, error) {
-	result, err := c.client.api.CleanupImages(ctx, managementapi.CleanupImagesParams{TeamId: c.client.teamID()})
-	if err != nil {
-		return nil, controlPlaneError(err)
+	var deleted int
+	for {
+		result, err := c.client.api.CleanupImages(ctx, managementapi.CleanupImagesParams{TeamId: c.client.teamID()})
+		if err != nil {
+			return nil, controlPlaneError(err)
+		}
+		deleted += result.Deleted
+		if !deref(result.HasMore) {
+			return &ImageCleanupResult{Deleted: deleted, Message: result.Message}, nil
+		}
+		if opts.Progress != nil {
+			opts.Progress(ImageCleanupProgress{
+				Deleted:   deleted,
+				Remaining: deref(result.Remaining),
+				Message:   result.Message,
+			})
+		}
 	}
-	return &ImageCleanupResult{Deleted: result.Deleted, Message: result.Message}, nil
 }
 
 // ImageLogsOptions are the options for [ImageClient.Logs].
@@ -575,8 +611,9 @@ type ImageLibraryVolume struct {
 	// Type is the volume's type, empty for a persistent volume.
 	Type string
 
-	// SizeMB is the storage capacity in megabytes of an ephemeral volume.
-	SizeMB int
+	// SizeMegabytes is the storage capacity in megabytes of an ephemeral
+	// volume.
+	SizeMegabytes int
 
 	// ReadOnly is whether the volume is mounted read-only.
 	ReadOnly bool
@@ -610,11 +647,11 @@ func (c *ImageClient) ListLibrary(ctx context.Context, opts ImageListLibraryOpti
 			info.CreationExtraArgs = deref(options.ExtraArgs)
 			for _, volume := range deref(options.Volumes) {
 				info.CreationVolumes = append(info.CreationVolumes, ImageLibraryVolume{
-					Name:      volume.Name,
-					MountPath: volume.MountPath,
-					Type:      deref(volume.Type),
-					SizeMB:    deref(volume.SizeMb),
-					ReadOnly:  deref(volume.ReadOnly),
+					Name:          volume.Name,
+					MountPath:     volume.MountPath,
+					Type:          deref(volume.Type),
+					SizeMegabytes: deref(volume.Size),
+					ReadOnly:      deref(volume.ReadOnly),
 				})
 			}
 		}

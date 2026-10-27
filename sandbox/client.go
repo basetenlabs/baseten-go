@@ -63,6 +63,7 @@ type Client struct {
 	retries    RetryOptions
 	api        *managementapi.Client
 	images     *ImageClient
+	volumes    *VolumeClient
 }
 
 // NewClient creates a Client without making a network request.
@@ -122,6 +123,7 @@ func NewClient(opts ClientOptions) (*Client, error) {
 		},
 	}
 	c.images = &ImageClient{client: c}
+	c.volumes = &VolumeClient{client: c}
 	return c, nil
 }
 
@@ -151,7 +153,7 @@ type CreateOptions struct {
 	// allocation. Defaults to 4096.
 	Memory int
 
-	// Region is where the sandbox runs. Empty uses the closest region.
+	// Region is where the sandbox runs. Empty uses the default sandbox region.
 	Region string
 
 	// Envs are the environment variables injected into the sandbox, by name.
@@ -176,6 +178,11 @@ type CreateOptions struct {
 	// FileSystem is the sandbox's filesystem configuration. It cannot be
 	// updated later.
 	FileSystem *FileSystem
+
+	// Volumes are the persistent volumes to mount, each in the sandbox's
+	// region and not mounted elsewhere. At most one is currently supported.
+	// They cannot be updated later.
+	Volumes []VolumeMount
 }
 
 // CreateResult is a created sandbox: a [Sandbox] to work in, plus its record
@@ -211,6 +218,7 @@ func (c *Client) Create(ctx context.Context, opts CreateOptions) (*CreateResult,
 		Ports:             portsToAPI(opts.Ports),
 		Network:           networkToAPI(opts.Network),
 		Filesystem:        fileSystem,
+		Volumes:           volumeMountsToAPI(opts.Volumes),
 	})
 	if err != nil {
 		return nil, controlPlaneError(err)

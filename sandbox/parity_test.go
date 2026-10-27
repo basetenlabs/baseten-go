@@ -77,7 +77,13 @@ func TestTypeParity(t *testing.T) {
 			name: "ImageLogLine", ours: ImageLogLine{}, generated: managementapi.SandboxImageBuildLog{},
 			renamed: map[string]string{"Text": "Message"},
 		},
-		{name: "ImageCleanupResult", ours: ImageCleanupResult{}, generated: managementapi.CleanupSandboxImagesResponse{}},
+		{
+			name: "ImageCleanupResult", ours: ImageCleanupResult{}, generated: managementapi.CleanupSandboxImagesResponse{},
+			generatedOnly: map[string]string{
+				"HasMore":   "Cleanup calls until none remain",
+				"Remaining": "reported between calls in ImageCleanupProgress",
+			},
+		},
 		{
 			name: "ImageLibraryInfo", ours: ImageLibraryInfo{}, generated: managementapi.SandboxLibraryImage{},
 			oursOnly: map[string]string{
@@ -90,7 +96,15 @@ func TestTypeParity(t *testing.T) {
 				"ComingSoon":      "always false in listings",
 			},
 		},
-		{name: "ImageLibraryVolume", ours: ImageLibraryVolume{}, generated: managementapi.SandboxLibraryImageVolume{}},
+		{
+			name: "ImageLibraryVolume", ours: ImageLibraryVolume{}, generated: managementapi.SandboxLibraryImageVolume{},
+			renamed: map[string]string{"SizeMegabytes": "Size"},
+		},
+		{
+			name: "VolumeInfo", ours: VolumeInfo{}, generated: managementapi.SandboxVolume{},
+			oursOnly: map[string]string{"SizeMegabytes": "the integer form of Size"},
+		},
+		{name: "VolumeMount", ours: VolumeMount{}, generated: managementapi.SandboxVolumeAttachment{}},
 	} {
 		t.Run(pair.name, func(t *testing.T) {
 			generated := map[string]bool{}
