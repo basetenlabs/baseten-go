@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/basetenlabs/baseten-go/client/managementapi"
 	"github.com/basetenlabs/baseten-go/client/modelarchive"
@@ -112,25 +113,11 @@ type PushModelOptions struct {
 	// one in Config applies. Cannot be combined with PreserveEnvInstanceType.
 	InstanceTypeID string
 
-	// AutoscalingSettings are autoscaling settings for the new deployment.
-	// With EnvironmentName, the deployment starts from the environment's
-	// settings with these applied, and the environment keeps the result when
-	// the promotion completes. When nil, the settings are unchanged.
-	AutoscalingSettings *managementapi.UpdateAutoscalingSettings
-
-	// RequestBackpressureSettings are request backpressure settings for the
-	// new deployment, applied the same way as AutoscalingSettings.
-	RequestBackpressureSettings *managementapi.UpdateRequestBackpressureSettings
-
-	// AutoscalingScheduleSettings changes the environment's autoscaling
-	// schedules when the promotion completes. Only meaningful with
-	// EnvironmentName.
-	AutoscalingScheduleSettings *managementapi.UpdateAutoscalingScheduleSettings
-
-	// PromotionSettingsOverride overrides the environment's promotion settings
-	// for this promotion only; the environment's own settings are unchanged.
-	// Only meaningful with EnvironmentName.
-	PromotionSettingsOverride *managementapi.UpdatePromotionSettings
+	// BasePayload is the starting point for the deployment payload, for
+	// settings PushModelOptions has no field for (for example
+	// AutoscalingSettings). Unstable and for advanced use only. Fields that
+	// PushModelOptions also sets must be left zero; Validate rejects them.
+	BasePayload managementapi.DeploymentArchivePayload
 
 	// IsDevelopment pushes to the model's single mutable development slot,
 	// created if absent and overwritten in place otherwise. DeploymentName,
@@ -168,6 +155,10 @@ func (o PushModelOptions) Validate() error {
 	}
 	if o.ModelUploader == nil && !o.DryRun {
 		return errors.New("ModelUploader is required unless DryRun is set")
+	}
+	if set := o.basePayloadOptionFields(); len(set) > 0 {
+		return fmt.Errorf("BasePayload must leave fields that PushModelOptions sets zero: %s",
+			strings.Join(set, ", "))
 	}
 	if len(o.ArchiveFromConfigYAML) > 0 {
 		// Only the archive options that contribute content are checked, since
@@ -323,10 +314,40 @@ func (c *ManagementClient) prepareModelUpload(
 	return prepare, nil
 }
 
+// basePayloadOptionFields names the PushModelOptions fields whose payload field
+// is also set on BasePayload, so a value there is not silently overwritten.
+func (o PushModelOptions) basePayloadOptionFields() []string {
+	b := o.BasePayload
+	var set []string
+	for _, f := range []struct {
+		name  string
+		isSet bool
+	}{
+		{"Config", b.Config != nil},
+		{"RawConfig", b.RawConfig != nil},
+		{"DeploymentName", b.DeploymentName != nil},
+		{"EnvironmentName", b.EnvironmentName != nil},
+		{"PreserveEnvInstanceType", b.PreserveEnvInstanceType != nil},
+		{"CreateEnvironmentIfMissing", b.CreateEnvironmentIfMissing != nil},
+		{"Region", b.Region != nil},
+		{"Labels", b.Labels != nil},
+		{"DeployTimeoutMinutes", b.DeployTimeoutMinutes != nil},
+		{"IsDevelopment", b.IsDevelopment != nil},
+		{"UserEnv", b.UserEnv != nil},
+		{"InstanceTypeID", b.InstanceTypeId != nil},
+	} {
+		if f.isSet {
+			set = append(set, f.name)
+		}
+	}
+	return set
+}
+
 // pushModelPayload builds the deployment payload shared by the prepare and
 // commit requests.
 func pushModelPayload(opts PushModelOptions) managementapi.DeploymentArchivePayload {
-	payload := managementapi.DeploymentArchivePayload{Config: opts.Config}
+	payload := opts.BasePayload
+	payload.Config = opts.Config
 	if opts.RawConfig != "" {
 		payload.RawConfig = &opts.RawConfig
 	}
@@ -356,10 +377,6 @@ func pushModelPayload(opts PushModelOptions) managementapi.DeploymentArchivePayl
 	if opts.InstanceTypeID != "" {
 		payload.InstanceTypeId = &opts.InstanceTypeID
 	}
-	payload.AutoscalingSettings = opts.AutoscalingSettings
-	payload.RequestBackpressureSettings = opts.RequestBackpressureSettings
-	payload.AutoscalingScheduleSettings = opts.AutoscalingScheduleSettings
-	payload.PromotionSettingsOverride = opts.PromotionSettingsOverride
 	if opts.UserEnv != nil {
 		payload.UserEnv = &opts.UserEnv
 	}

@@ -166,6 +166,14 @@ func TestPushModelValidation(t *testing.T) {
 			o.Archive = modelarchive.BuildModelArchiveOptions{ConfigYAMLOverride: []byte("model_name: other\n")}
 			o.ArchiveFromConfigYAML = []byte("model_name: my-model\n")
 		},
+		"BasePayloadDeploymentName": func(o *client.PushModelOptions) {
+			name := "v2"
+			o.BasePayload.DeploymentName = &name
+		},
+		"BasePayloadInstanceTypeID": func(o *client.PushModelOptions) {
+			instanceType := "A10Gx4x16"
+			o.BasePayload.InstanceTypeId = &instanceType
+		},
 		"ConfigYAMLWithExternalDirs": func(o *client.PushModelOptions) {
 			o.Archive = modelarchive.BuildModelArchiveOptions{ExternalPackageDirs: []string{"lib"}}
 			o.ArchiveFromConfigYAML = []byte("model_name: my-model\n")
@@ -400,15 +408,17 @@ func TestPushModelSettings(t *testing.T) {
 	policy := managementapi.RequestBackpressurePolicy_REJECT_ON_FULL
 
 	_, err := cl.PushModel(t.Context(), client.PushModelOptions{
-		Config:                      map[string]any{"model_name": "my-model"},
-		Archive:                     modelarchive.BuildModelArchiveOptions{Dir: newPushModelDir(t)},
-		EnvironmentName:             "staging",
-		InstanceTypeID:              "A10Gx4x16",
-		AutoscalingSettings:         &managementapi.UpdateAutoscalingSettings{MinReplica: &minReplica},
-		RequestBackpressureSettings: &managementapi.UpdateRequestBackpressureSettings{Policy: managementapi.NewOptional(&policy)},
-		AutoscalingScheduleSettings: &managementapi.UpdateAutoscalingScheduleSettings{DeleteSchedules: &[]string{"s-1"}},
-		PromotionSettingsOverride: &managementapi.UpdatePromotionSettings{
-			RollingDeployConfig: &managementapi.UpdateRollingDeployConfig{MaxSurgePercent: &maxSurge},
+		Config:          map[string]any{"model_name": "my-model"},
+		Archive:         modelarchive.BuildModelArchiveOptions{Dir: newPushModelDir(t)},
+		EnvironmentName: "staging",
+		InstanceTypeID:  "A10Gx4x16",
+		BasePayload: managementapi.DeploymentArchivePayload{
+			AutoscalingSettings:         &managementapi.UpdateAutoscalingSettings{MinReplica: &minReplica},
+			RequestBackpressureSettings: &managementapi.UpdateRequestBackpressureSettings{Policy: managementapi.NewOptional(&policy)},
+			AutoscalingScheduleSettings: &managementapi.UpdateAutoscalingScheduleSettings{DeleteSchedules: &[]string{"s-1"}},
+			PromotionSettingsOverride: &managementapi.UpdatePromotionSettings{
+				RollingDeployConfig: &managementapi.UpdateRollingDeployConfig{MaxSurgePercent: &maxSurge},
+			},
 		},
 		ModelUploader: func(_ context.Context, u client.ModelUpload) error { _, _ = collectUpload(t, u); return nil },
 	})
@@ -435,6 +445,18 @@ func TestPushModelSettings(t *testing.T) {
 			require.Equal(t, want, string(got))
 		}
 	}
+}
+
+func TestPushModelBasePayloadNamesConflictingFields(t *testing.T) {
+	name, region := "v2", "us"
+	err := client.PushModelOptions{
+		Config:        map[string]any{"model_name": "my-model"},
+		Archive:       modelarchive.BuildModelArchiveOptions{Dir: newPushModelDir(t)},
+		ModelUploader: func(context.Context, client.ModelUpload) error { return nil },
+		BasePayload:   managementapi.DeploymentArchivePayload{DeploymentName: &name, Region: &region},
+	}.Validate()
+	require.Error(t, err)
+	require.Equal(t, "BasePayload must leave fields that PushModelOptions sets zero: DeploymentName, Region", err.Error())
 }
 
 func TestPushModelDryRun(t *testing.T) {
