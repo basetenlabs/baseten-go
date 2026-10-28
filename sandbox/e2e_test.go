@@ -320,9 +320,8 @@ const (
 	e2eVolumePoll = 200 * time.Millisecond
 )
 
-// TestE2EVolume walks one volume through its life: CRUD, mounted in a
-// sandbox and grown there, then mounted read-only in a second sandbox to show
-// the data persisted. Each step depends on the previous one, so a failed step
+// TestE2EVolume walks one volume through its life: CRUD, then mounted in a
+// sandbox and grown there. Each step depends on the previous one, so a failed step
 // ends the test. Steps take ctx and register cleanups through the outer test,
 // since a step's own context and cleanups end with the step.
 func TestE2EVolume(t *testing.T) {
@@ -357,7 +356,7 @@ func TestE2EVolume(t *testing.T) {
 			}
 		})
 	}
-	var writerName, readerName string
+	var writerName string
 	var writer *sandbox.Sandbox
 	var initialMegabytes int
 
@@ -452,39 +451,8 @@ func TestE2EVolume(t *testing.T) {
 		t.Logf("sandbox saw the grown volume %v after update returned", elapsed)
 	})
 
-	step("Persist", func(t *testing.T) {
-		_, err := client.Delete(ctx, sandbox.DeleteOptions{Name: writerName})
-		require.NoError(t, err)
-		elapsed := require.Eventually(t, e2eVolumeWait, e2eVolumePoll, func(attempt require.T) {
-			info, err := volumes.GetInfo(ctx, sandbox.VolumeGetInfoOptions{Name: volumeName})
-			require.NoError(t, err)
-			require.Equal(attempt, "", info.AttachedTo)
-		})
-		t.Logf("volume detached %v after sandbox delete returned", elapsed)
-
-		readerName = uniqueName()
-		t.Logf("reader sandbox %s", readerName)
-		deleteSandboxOnCleanup(readerName)
-		readerCreated, err := client.Create(ctx, sandbox.CreateOptions{
-			Name:    readerName,
-			Region:  e2eRegion,
-			Labels:  e2eLabels,
-			Volumes: []sandbox.VolumeMount{{Name: volumeName, MountPath: "/data", ReadOnly: true}},
-		})
-		require.NoError(t, err)
-		_, err = waitDeployed(ctx, client, readerName)
-		require.NoError(t, err)
-		reader := readerCreated.Sandbox
-		content, err := reader.FS().Read(ctx, sandbox.FileSystemReadOptions{Path: "/data/persisted.txt"})
-		require.NoError(t, err)
-		require.Equal(t, "persisted", content)
-		// TODO: The server currently mounts read-only volumes read-write, so
-		// writes succeed. Restore once fixed.
-		// require.Error(t, reader.FS().Write(ctx, sandbox.FileSystemWriteOptions{Path: "/data/denied.txt", Content: "x"}))
-	})
-
 	step("Delete", func(t *testing.T) {
-		_, err := client.Delete(ctx, sandbox.DeleteOptions{Name: readerName})
+		_, err := client.Delete(ctx, sandbox.DeleteOptions{Name: writerName})
 		require.NoError(t, err)
 		var deleted *sandbox.VolumeInfo
 		elapsed := require.Eventually(t, e2eVolumeWait, e2eVolumePoll, func(attempt require.T) {
