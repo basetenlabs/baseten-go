@@ -1314,7 +1314,8 @@ func TestE2EPreview(t *testing.T) {
 		}
 		fetchPreview(t, created.URL, "rejected without a token", rejected)
 
-		token, err := previews.CreateToken(t.Context(), sandbox.PreviewCreateTokenOptions{PreviewName: name, ExpiresAt: time.Now().Add(time.Hour)})
+		// A token cannot outlive its preview, which expires an hour after creation.
+		token, err := previews.CreateToken(t.Context(), sandbox.PreviewCreateTokenOptions{PreviewName: name, ExpiresAt: time.Now().Add(45 * time.Minute)})
 		require.NoError(t, err)
 		require.False(t, token.Expired, "new token not expired")
 		// The server may not find the token just created yet, so the result may
