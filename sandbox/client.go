@@ -378,13 +378,15 @@ type UpdateOptions struct {
 	Lifecycle *Lifecycle
 
 	// Envs replace the sandbox's environment variables. Values returned
-	// masked in [Info.Envs] overwrite the real values if sent back.
+	// masked in [Info.Envs] overwrite the real values if sent back. Nil
+	// leaves them unchanged; a non-nil empty map removes them all.
 	Envs map[string]EnvValue
 
 	// ExternalID is a caller-owned identifier for external lookups.
 	ExternalID string
 
-	// Labels replace the sandbox's labels.
+	// Labels replace the sandbox's labels. Nil leaves them unchanged; a
+	// non-nil empty map removes them all.
 	Labels map[string]string
 }
 

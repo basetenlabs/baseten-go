@@ -211,7 +211,8 @@ type VolumeUpdateOptions struct {
 	// the capacity unchanged.
 	SizeMegabytes int
 
-	// Labels replace the volume's labels, including when set but empty.
+	// Labels replace the volume's labels. Nil leaves them unchanged; a
+	// non-nil empty map removes them all.
 	Labels map[string]string
 }
 
