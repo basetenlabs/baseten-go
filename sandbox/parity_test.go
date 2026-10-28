@@ -96,10 +96,7 @@ func TestTypeParity(t *testing.T) {
 				"ComingSoon":      "always false in listings",
 			},
 		},
-		{
-			name: "ImageLibraryVolume", ours: ImageLibraryVolume{}, generated: managementapi.SandboxLibraryImageVolume{},
-			renamed: map[string]string{"SizeMegabytes": "Size"},
-		},
+		{name: "ImageLibraryVolume", ours: ImageLibraryVolume{}, generated: managementapi.SandboxLibraryImageVolume{}},
 		{
 			name: "VolumeInfo", ours: VolumeInfo{}, generated: managementapi.SandboxVolume{},
 			oursOnly: map[string]string{"SizeMegabytes": "the integer form of Size"},

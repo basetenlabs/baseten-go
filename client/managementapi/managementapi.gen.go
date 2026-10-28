@@ -908,6 +908,7 @@ func (e InProgressPromotionStatus) Valid() bool {
 // Defines values for LibraryListingModality.
 const (
 	LibraryListingModality_audio     LibraryListingModality = "audio"
+	LibraryListingModality_decision  LibraryListingModality = "decision"
 	LibraryListingModality_embedding LibraryListingModality = "embedding"
 	LibraryListingModality_image     LibraryListingModality = "image"
 	LibraryListingModality_rerank    LibraryListingModality = "rerank"
@@ -919,6 +920,8 @@ const (
 func (e LibraryListingModality) Valid() bool {
 	switch e {
 	case LibraryListingModality_audio:
+		return true
+	case LibraryListingModality_decision:
 		return true
 	case LibraryListingModality_embedding:
 		return true
@@ -3923,7 +3926,7 @@ type CreateSandboxPreviewRequest struct {
 	// Public Whether the URL is reachable without a preview token. Defaults to false on creation; a PATCH without it keeps the current value.
 	Public *bool `json:"public,omitempty"`
 
-	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set.
+	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set. Some header names are reserved by the platform.
 	RequestHeaders *SandboxPreviewHeaders `json:"request_headers,omitempty"`
 
 	// ResponseHeaders Headers added to every response served by the preview, for example CORS headers.
@@ -8108,17 +8111,11 @@ type SandboxLibraryImageVolume struct {
 	// MountPath Absolute filesystem path where the volume is mounted.
 	MountPath string `json:"mount_path"`
 
-	// Name Volume name, or an internal identifier for ephemeral volumes.
+	// Name Volume name, used in volume_name path parameters and sandbox volumes.
 	Name string `json:"name"`
 
 	// ReadOnly Whether the volume is mounted read-only.
 	ReadOnly *bool `json:"read_only,omitempty"`
-
-	// Size Storage capacity in megabytes for ephemeral volumes.
-	Size *int `json:"size,omitempty"`
-
-	// Type Volume type, persistent when empty.
-	Type *string `json:"type,omitempty"`
 }
 
 // SandboxLifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
@@ -8253,7 +8250,7 @@ type SandboxPreview struct {
 	// Region Region serving the preview, the sandbox's region.
 	Region *string `json:"region,omitempty"`
 
-	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set.
+	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set. Some header names are reserved by the platform.
 	RequestHeaders *SandboxPreviewHeaders `json:"request_headers,omitempty"`
 
 	// ResponseHeaders Headers added to every response served by the preview, for example CORS headers.
@@ -8276,14 +8273,14 @@ type SandboxPreviewConfiguration struct {
 	// Public Whether the URL is reachable without a preview token. Defaults to false on creation; a PATCH without it keeps the current value.
 	Public *bool `json:"public,omitempty"`
 
-	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set.
+	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set. Some header names are reserved by the platform.
 	RequestHeaders *SandboxPreviewHeaders `json:"request_headers,omitempty"`
 
 	// ResponseHeaders Headers added to every response served by the preview, for example CORS headers.
 	ResponseHeaders *SandboxPreviewHeaders `json:"response_headers,omitempty"`
 }
 
-// SandboxPreviewHeaders HTTP headers as name-value pairs.
+// SandboxPreviewHeaders HTTP headers as name-value pairs. At most 20 headers and 8 KiB of names and values in total unless your quota allows more.
 type SandboxPreviewHeaders map[string]string
 
 // SandboxPreviewStatus Preview status, always uppercase.
@@ -9653,7 +9650,7 @@ type UpdateSandboxPreviewRequest struct {
 	// Public Whether the URL is reachable without a preview token. Defaults to false on creation; a PATCH without it keeps the current value.
 	Public *bool `json:"public,omitempty"`
 
-	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set.
+	// RequestHeaders Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value "****", except a GET with show_secrets=true by a workspace administrator. Sending "****" back as a value returns 400. A PATCH replaces the whole set. Some header names are reserved by the platform.
 	RequestHeaders *SandboxPreviewHeaders `json:"request_headers,omitempty"`
 
 	// ResponseHeaders Headers added to every response served by the preview, for example CORS headers.

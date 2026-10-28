@@ -601,19 +601,11 @@ type ImageLibraryInfo struct {
 
 // ImageLibraryVolume is a volume attachment a built-in image suggests.
 type ImageLibraryVolume struct {
-	// Name is the volume's name, or an internal identifier for an ephemeral
-	// volume.
+	// Name is the volume's name.
 	Name string
 
 	// MountPath is the absolute path the volume is mounted at.
 	MountPath string
-
-	// Type is the volume's type, empty for a persistent volume.
-	Type string
-
-	// SizeMegabytes is the storage capacity in megabytes of an ephemeral
-	// volume.
-	SizeMegabytes int
 
 	// ReadOnly is whether the volume is mounted read-only.
 	ReadOnly bool
@@ -647,11 +639,9 @@ func (c *ImageClient) ListLibrary(ctx context.Context, opts ImageListLibraryOpti
 			info.CreationExtraArgs = deref(options.ExtraArgs)
 			for _, volume := range deref(options.Volumes) {
 				info.CreationVolumes = append(info.CreationVolumes, ImageLibraryVolume{
-					Name:          volume.Name,
-					MountPath:     volume.MountPath,
-					Type:          deref(volume.Type),
-					SizeMegabytes: deref(volume.Size),
-					ReadOnly:      deref(volume.ReadOnly),
+					Name:      volume.Name,
+					MountPath: volume.MountPath,
+					ReadOnly:  deref(volume.ReadOnly),
 				})
 			}
 		}

@@ -304,7 +304,7 @@ func TestImageListLibrary(t *testing.T) {
 	cp.respond("GET", "/v1/sandboxes/library_images", 200, `{"items":[
 		{"name":"base-image","image":"baseten/base-image:latest","memory":4096,
 		 "ports":[{"name":"sandbox-api","protocol":"HTTP","target":8080}],
-		 "creation_options":{"extra_args":{"kernel":"x"},"volumes":[{"name":"scratch","mount_path":"/mnt/data","type":"ephemeral","size":10240}]}},
+		 "creation_options":{"extra_args":{"kernel":"x"},"volumes":[{"name":"datasets","mount_path":"/mnt/data","read_only":true}]}},
 		{"name":"plain","image":"baseten/plain:latest"}
 	]}`)
 	images, err := cp.client(t, ClientOptions{}).Images().ListLibrary(t.Context(), ImageListLibraryOptions{})
@@ -314,7 +314,7 @@ func TestImageListLibrary(t *testing.T) {
 	require.Equal(t, "baseten/base-image:latest", base.Image)
 	require.Equal(t, Port{Target: 8080, Name: "sandbox-api", Protocol: PortProtocolHTTP}, base.Ports[0])
 	require.MapEqual(t, base.CreationExtraArgs, "kernel", "x")
-	require.Equal(t, ImageLibraryVolume{Name: "scratch", MountPath: "/mnt/data", Type: "ephemeral", SizeMegabytes: 10240}, base.CreationVolumes[0])
+	require.Equal(t, ImageLibraryVolume{Name: "datasets", MountPath: "/mnt/data", ReadOnly: true}, base.CreationVolumes[0])
 	require.Len(t, images[1].CreationVolumes, 0)
 }
 

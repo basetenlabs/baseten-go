@@ -33840,7 +33840,8 @@
                     "audio",
                     "video",
                     "embedding",
-                    "rerank"
+                    "rerank",
+                    "decision"
                 ],
                 "title": "LibraryListingModality",
                 "type": "string"
@@ -41746,23 +41747,13 @@
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": "Volume name, or an internal identifier for ephemeral volumes.",
-                        "example": "scratch"
+                        "description": "Volume name, used in volume_name path parameters and sandbox volumes.",
+                        "example": "datasets"
                     },
                     "mount_path": {
                         "type": "string",
                         "description": "Absolute filesystem path where the volume is mounted.",
                         "example": "/mnt/data"
-                    },
-                    "type": {
-                        "type": "string",
-                        "description": "Volume type, persistent when empty.",
-                        "example": "ephemeral"
-                    },
-                    "size": {
-                        "type": "integer",
-                        "description": "Storage capacity in megabytes for ephemeral volumes.",
-                        "example": 10240
                     },
                     "read_only": {
                         "type": "boolean",
@@ -41958,7 +41949,7 @@
             },
             "SandboxPreviewHeadersV1": {
                 "type": "object",
-                "description": "HTTP headers as name-value pairs.",
+                "description": "HTTP headers as name-value pairs. At most 20 headers and 8 KiB of names and values in total unless your quota allows more.",
                 "additionalProperties": {
                     "type": "string"
                 },
@@ -41984,7 +41975,7 @@
                         ]
                     },
                     "request_headers": {
-                        "description": "Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value \"****\", except a GET with show_secrets=true by a workspace administrator. Sending \"****\" back as a value returns 400. A PATCH replaces the whole set.",
+                        "description": "Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value \"****\", except a GET with show_secrets=true by a workspace administrator. Sending \"****\" back as a value returns 400. A PATCH replaces the whole set. Some header names are reserved by the platform.",
                         "allOf": [
                             {
                                 "$ref": "#/components/schemas/SandboxPreviewHeadersV1"

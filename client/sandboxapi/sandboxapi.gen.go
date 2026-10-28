@@ -916,7 +916,7 @@ type PutFilesystemPathMultipartBody struct {
 
 // GetWatchFilesystemPathParams defines parameters for GetWatchFilesystemPath.
 type GetWatchFilesystemPathParams struct {
-	// Ignore Comma-separated substrings; events whose full path contains one are skipped
+	// Ignore Comma-separated substrings; events whose full path contains one are skipped, and matching directories are not watched at all
 	Ignore *string `form:"ignore,omitempty" json:"ignore,omitempty"`
 }
 
