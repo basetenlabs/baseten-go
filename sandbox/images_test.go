@@ -304,7 +304,7 @@ func TestImageListLibrary(t *testing.T) {
 	cp.respond("GET", "/v1/sandboxes/library_images", 200, `{"items":[
 		{"name":"base-image","image":"baseten/base-image:latest","memory":4096,
 		 "ports":[{"name":"sandbox-api","protocol":"HTTP","target":8080}],
-		 "creation_options":{"extra_args":{"kernel":"x"},"volumes":[{"name":"scratch","mount_path":"/mnt/data","type":"ephemeral","size_mb":10240}]}},
+		 "creation_options":{"extra_args":{"kernel":"x"},"volumes":[{"name":"datasets","mount_path":"/mnt/data","read_only":true}]}},
 		{"name":"plain","image":"baseten/plain:latest"}
 	]}`)
 	images, err := cp.client(t, ClientOptions{}).Images().ListLibrary(t.Context(), ImageListLibraryOptions{})
@@ -314,8 +314,47 @@ func TestImageListLibrary(t *testing.T) {
 	require.Equal(t, "baseten/base-image:latest", base.Image)
 	require.Equal(t, Port{Target: 8080, Name: "sandbox-api", Protocol: PortProtocolHTTP}, base.Ports[0])
 	require.MapEqual(t, base.CreationExtraArgs, "kernel", "x")
-	require.Equal(t, ImageLibraryVolume{Name: "scratch", MountPath: "/mnt/data", Type: "ephemeral", SizeMB: 10240}, base.CreationVolumes[0])
+	require.Equal(t, ImageLibraryVolume{Name: "datasets", MountPath: "/mnt/data", ReadOnly: true}, base.CreationVolumes[0])
 	require.Len(t, images[1].CreationVolumes, 0)
+}
+
+func TestImageCleanup(t *testing.T) {
+	t.Run("CallsUntilNoneRemain", func(t *testing.T) {
+		cp := newControlPlane(t)
+		cp.respond("POST", "/v1/sandboxes/cleanup_images", 200, `{"deleted":3,"message":"first","remaining":4,"has_more":true}`)
+		cp.respond("POST", "/v1/sandboxes/cleanup_images", 200, `{"deleted":2,"message":"second","remaining":2,"has_more":true}`)
+		cp.respond("POST", "/v1/sandboxes/cleanup_images", 200, `{"deleted":2,"message":"last","remaining":0,"has_more":false}`)
+		var progress []ImageCleanupProgress
+		result, err := cp.client(t, ClientOptions{}).Images().Cleanup(t.Context(), ImageCleanupOptions{
+			Progress: func(p ImageCleanupProgress) { progress = append(progress, p) },
+		})
+		require.NoError(t, err)
+		require.Equal(t, ImageCleanupResult{Deleted: 7, Message: "last"}, *result)
+		// Progress is reported between calls only, not after the last.
+		require.Len(t, progress, 2)
+		require.Equal(t, ImageCleanupProgress{Deleted: 3, Remaining: 4, Message: "first"}, progress[0])
+		require.Equal(t, ImageCleanupProgress{Deleted: 5, Remaining: 2, Message: "second"}, progress[1])
+	})
+
+	t.Run("SingleCallWithoutHasMore", func(t *testing.T) {
+		cp := newControlPlane(t)
+		cp.respond("POST", "/v1/sandboxes/cleanup_images", 200, `{"deleted":1,"message":"done"}`)
+		result, err := cp.client(t, ClientOptions{}).Images().Cleanup(t.Context(), ImageCleanupOptions{
+			Progress: func(ImageCleanupProgress) { t.Error("progress called without a stop") },
+		})
+		require.NoError(t, err)
+		require.Equal(t, ImageCleanupResult{Deleted: 1, Message: "done"}, *result)
+		require.Len(t, cp.requests, 1)
+	})
+
+	t.Run("ErrorMidwayFails", func(t *testing.T) {
+		cp := newControlPlane(t)
+		cp.respond("POST", "/v1/sandboxes/cleanup_images", 200, `{"deleted":3,"message":"first","remaining":4,"has_more":true}`)
+		cp.respond("POST", "/v1/sandboxes/cleanup_images", 500, `{"code":"INTERNAL_ERROR","message":"boom"}`)
+		_, err := cp.client(t, ClientOptions{}).Images().Cleanup(t.Context(), ImageCleanupOptions{})
+		apiErr := require.ErrorAs[*APIError](t, err)
+		require.Equal(t, 500, apiErr.Status)
+	})
 }
 
 func TestImageLogs(t *testing.T) {

@@ -76,6 +76,9 @@ type Info struct {
 	// none.
 	FileSystem *FileSystem
 
+	// Volumes are the persistent volumes mounted in the sandbox.
+	Volumes []VolumeMount
+
 	// CreatedAt is when the sandbox was created.
 	CreatedAt time.Time
 
@@ -241,6 +244,19 @@ type FileSystem struct {
 	MaxMemoryUsageMegabytes int
 }
 
+// VolumeMount mounts a persistent volume, from [Client.Volumes], in a
+// sandbox. It is set at creation and cannot be updated.
+type VolumeMount struct {
+	// Name is the volume's name. Required.
+	Name string
+
+	// MountPath is the absolute path the volume is mounted at. Required.
+	MountPath string
+
+	// ReadOnly mounts the volume read-only.
+	ReadOnly bool
+}
+
 func infoFromAPI(sandbox *managementapi.Sandbox) (Info, error) {
 	info := Info{
 		Name:       deref(sandbox.Name),
@@ -253,6 +269,7 @@ func infoFromAPI(sandbox *managementapi.Sandbox) (Info, error) {
 		Labels:     map[string]string{},
 		ExternalID: deref(sandbox.ExternalId),
 		Ports:      portsFromAPI(deref(sandbox.Ports)),
+		Volumes:    volumeMountsFromAPI(deref(sandbox.Volumes)),
 		CreatedAt:  deref(sandbox.CreatedAt),
 		UpdatedAt:  deref(sandbox.UpdatedAt),
 		CreatedBy:  deref(sandbox.CreatedBy),
@@ -501,4 +518,31 @@ func fileSystemFromAPI(fileSystem *managementapi.SandboxFilesystem) (FileSystem,
 		return FileSystem{}, fmt.Errorf("filesystem max memory usage is neither a string nor an integer: %w", err)
 	}
 	return FileSystem{MaxMemoryUsageMegabytes: megabytes}, nil
+}
+
+func volumeMountsToAPI(mounts []VolumeMount) *[]managementapi.SandboxVolumeAttachment {
+	if mounts == nil {
+		return nil
+	}
+	result := make([]managementapi.SandboxVolumeAttachment, 0, len(mounts))
+	for _, mount := range mounts {
+		result = append(result, managementapi.SandboxVolumeAttachment{
+			Name:      mount.Name,
+			MountPath: mount.MountPath,
+			ReadOnly:  optional(mount.ReadOnly),
+		})
+	}
+	return &result
+}
+
+func volumeMountsFromAPI(mounts []managementapi.SandboxVolumeAttachment) []VolumeMount {
+	result := make([]VolumeMount, 0, len(mounts))
+	for _, mount := range mounts {
+		result = append(result, VolumeMount{
+			Name:      mount.Name,
+			MountPath: mount.MountPath,
+			ReadOnly:  deref(mount.ReadOnly),
+		})
+	}
+	return result
 }

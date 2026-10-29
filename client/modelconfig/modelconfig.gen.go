@@ -267,8 +267,9 @@ type DockerServer struct {
 	// traffic.
 	ReadinessEndpoint string `json:"readiness_endpoint" yaml:"readiness_endpoint"`
 
-	// Reject requirements, requirements_file, system_packages, and build_commands.
-	// The base image must already contain them.
+	// Do not install packages or rewrite the image entrypoint. Rejects requirements,
+	// requirements_file, system_packages, and build_commands. The base image must
+	// already contain them.
 	RebuildFree *bool `json:"rebuild_free,omitempty,omitzero" yaml:"rebuild_free,omitempty"`
 
 	// The Linux UID to run the server process as inside the container. Use this when

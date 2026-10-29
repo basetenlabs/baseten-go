@@ -7205,11 +7205,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"sampler_num_replicas\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null,\n  \"sampler_num_replicas\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'sampler_num_replicas': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None, 'sampler_num_replicas': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a Loops run with an associated sampler in the given session.",
@@ -7309,11 +7309,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a trainer-only Loops run in the given session, without a sampler. To sample from it, create a sampler with POST /v1/loops/samplers and pass this run's ID as run_id to pair the two. List and read the trainer through the /v1/loops/runs endpoints.",
@@ -8241,11 +8241,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"sampler_num_replicas\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null,\n  \"sampler_num_replicas\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'sampler_num_replicas': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None, 'sampler_num_replicas': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a Loops run with an associated sampler in the given session; the run's infrastructure belongs to the given team.",
@@ -8279,11 +8279,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a trainer-only Loops run in the given session, without a sampler. To sample from it, create a sampler with POST /v1/loops/samplers and pass this run's ID as run_id to pair the two. List and read the trainer through the /v1/loops/runs endpoints.",
@@ -11996,7 +11996,7 @@
                 ],
                 "operationId": "UpdateSandbox",
                 "summary": "Update a sandbox",
-                "description": "Partially update configuration. Omitted fields remain unchanged; supplied arrays and maps replace their previous values. Structured objects update only supplied fields. The name, memory, network, region, image, and ports are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.",
+                "description": "Partially update configuration. Omitted fields remain unchanged; supplied arrays and maps replace their previous values. Structured objects update only supplied fields. The name, memory, network, region, image, ports, filesystem, and volumes are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.",
                 "tags": [
                     "Sandboxes"
                 ],
@@ -12631,6 +12631,330 @@
                 "x-stability": "unstable"
             }
         },
+        "/v1/sandboxes/volumes": {
+            "get": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Cursor"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Limit"
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search volume names. Search is applied before pagination.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "datasets"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Volume statuses. Repeat the query parameter for each status, for example status=DEPLOYED&status=FAILED. Unknown values are rejected.",
+                        "required": false,
+                        "style": "form",
+                        "explode": true,
+                        "schema": {
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {
+                                "$ref": "#/components/schemas/SandboxVolumeStatusV1"
+                            }
+                        }
+                    }
+                ],
+                "operationId": "ListSandboxVolumes",
+                "summary": "List volumes",
+                "description": "Return a cursor-paginated page of persistent volumes, newest first. Keep q and status unchanged when following a cursor.",
+                "tags": [
+                    "Volumes"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListSandboxVolumesResponseV1"
+                                },
+                                "examples": {
+                                    "page": {
+                                        "$ref": "#/components/examples/SandboxVolumesPage"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "post": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "operationId": "CreateSandboxVolume",
+                "summary": "Create a volume",
+                "description": "Create a persistent volume that outlives the sandboxes it is mounted in. Mount it at sandbox creation with the volumes field; a volume is mounted in at most one sandbox at a time and must be in the same region. The name is generated when omitted. Volume size and count are limited by the team's plan.",
+                "tags": [
+                    "Volumes"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateSandboxVolumeRequestV1"
+                            },
+                            "examples": {
+                                "complete": {
+                                    "$ref": "#/components/examples/CreateSandboxVolume"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Volume created. Provisioning may continue; inspect status for readiness.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxVolumeV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxVolumeReady"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "409": {
+                        "$ref": "#/components/responses/SandboxError409"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/sandboxes/volumes/{volume_name}": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/VolumeName"
+                }
+            ],
+            "get": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "operationId": "GetSandboxVolume",
+                "summary": "Get a volume",
+                "description": "Return the volume, its status and the sandbox it is mounted in, if any.",
+                "tags": [
+                    "Volumes"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxVolumeV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxVolumeReady"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "patch": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "operationId": "UpdateSandboxVolume",
+                "summary": "Update a volume",
+                "description": "Grow the volume or replace its labels. size can only increase. The name and region are immutable; supplying either returns 400.",
+                "tags": [
+                    "Volumes"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateSandboxVolumeRequestV1"
+                            },
+                            "examples": {
+                                "complete": {
+                                    "$ref": "#/components/examples/UpdateSandboxVolume"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxVolumeV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxVolumeReady"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "delete": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "operationId": "DeleteSandboxVolume",
+                "summary": "Delete a volume",
+                "description": "Permanently delete the volume and its data asynchronously. The returned resource has status DELETING. A volume mounted in a sandbox cannot be deleted (409); delete the sandbox first. Repeating the call while it is deleting returns the same resource.",
+                "tags": [
+                    "Volumes"
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Request accepted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxVolumeV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxVolumeDeleting"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "409": {
+                        "$ref": "#/components/responses/SandboxError409"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
         "/v1/sandboxes/library_images": {
             "get": {
                 "operationId": "ListSandboxLibraryImages",
@@ -12827,7 +13151,7 @@
                 ],
                 "operationId": "CleanupImages",
                 "summary": "Clean up unused images",
-                "description": "Remove unused sandbox image versions. Versions referenced by active deployments are preserved.",
+                "description": "Remove unused sandbox image versions. Versions referenced by active deployments are preserved. One call runs for a limited time; when has_more is true, only part of the unused versions were removed and the call should be repeated.",
                 "tags": [
                     "Images"
                 ],
@@ -16990,6 +17314,14 @@
                 "title": "AuditLogActorV1",
                 "type": "object"
             },
+            "AuditLogApiKeyRevocationReasonV1": {
+                "description": "Reason an API key was revoked.",
+                "enum": [
+                    "INACTIVITY"
+                ],
+                "title": "AuditLogApiKeyRevocationReasonV1",
+                "type": "string"
+            },
             "AuditLogApiKeyTypeV1": {
                 "description": "Type of API key recorded on an API-key event.",
                 "enum": [
@@ -17069,6 +17401,9 @@
                                 "SECRET_DELETED": "#/components/schemas/AuditLogEventSecretDeletedV1",
                                 "SECRET_UPDATED": "#/components/schemas/AuditLogEventSecretUpdatedV1",
                                 "SSH_CERTIFICATE_SIGNED": "#/components/schemas/AuditLogEventSshCertificateSignedV1",
+                                "TELEMETRY_EXPORT_CREATED": "#/components/schemas/AuditLogEventTelemetryExportCreatedV1",
+                                "TELEMETRY_EXPORT_DELETED": "#/components/schemas/AuditLogEventTelemetryExportDeletedV1",
+                                "TELEMETRY_EXPORT_UPDATED": "#/components/schemas/AuditLogEventTelemetryExportUpdatedV1",
                                 "USER_INVITED": "#/components/schemas/AuditLogEventUserInvitedV1",
                                 "USER_JOINED_ORGANIZATION": "#/components/schemas/AuditLogEventUserJoinedOrganizationV1",
                                 "USER_REMOVED": "#/components/schemas/AuditLogEventUserRemovedV1",
@@ -17245,6 +17580,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventVolumeUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventTelemetryExportCreatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventTelemetryExportUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventTelemetryExportDeletedV1"
                             }
                         ],
                         "title": "Event Data"
@@ -17362,6 +17706,17 @@
                     "prefix": {
                         "title": "Prefix",
                         "type": "string"
+                    },
+                    "revocation_reason": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogApiKeyRevocationReasonV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null
                     }
                 },
                 "required": [
@@ -20687,6 +21042,83 @@
                 "title": "AuditLogEventSshCertificateSignedV1",
                 "type": "object"
             },
+            "AuditLogEventTelemetryExportCreatedV1": {
+                "description": "A telemetry export configuration was created.",
+                "properties": {
+                    "telemetry_export_configuration_id": {
+                        "title": "Telemetry Export Configuration Id",
+                        "type": "string"
+                    },
+                    "event_type": {
+                        "const": "TELEMETRY_EXPORT_CREATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "telemetry_export_configuration_id",
+                    "event_type"
+                ],
+                "title": "AuditLogEventTelemetryExportCreatedV1",
+                "type": "object"
+            },
+            "AuditLogEventTelemetryExportDeletedV1": {
+                "description": "A telemetry export configuration was deleted.",
+                "properties": {
+                    "telemetry_export_configuration_id": {
+                        "title": "Telemetry Export Configuration Id",
+                        "type": "string"
+                    },
+                    "event_type": {
+                        "const": "TELEMETRY_EXPORT_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "telemetry_export_configuration_id",
+                    "event_type"
+                ],
+                "title": "AuditLogEventTelemetryExportDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventTelemetryExportUpdatedV1": {
+                "description": "A telemetry export configuration was updated. `enabled` is the new value when this update\npaused or resumed exporting and null when only the endpoint, protocol, headers, or credential\nchanged; a pause whose actor is the Baseten system was Baseten's own.",
+                "properties": {
+                    "telemetry_export_configuration_id": {
+                        "title": "Telemetry Export Configuration Id",
+                        "type": "string"
+                    },
+                    "event_type": {
+                        "const": "TELEMETRY_EXPORT_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "credential_rotated": {
+                        "title": "Credential Rotated",
+                        "type": "boolean"
+                    },
+                    "enabled": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Enabled"
+                    }
+                },
+                "required": [
+                    "telemetry_export_configuration_id",
+                    "event_type",
+                    "credential_rotated",
+                    "enabled"
+                ],
+                "title": "AuditLogEventTelemetryExportUpdatedV1",
+                "type": "object"
+            },
             "AuditLogEventTypeV1": {
                 "description": "Type of action recorded by an audit-log entry.",
                 "enum": [
@@ -20742,7 +21174,10 @@
                     "VOLUME_VERSION_RESTORED",
                     "VOLUME_TAG_SET",
                     "VOLUME_TAG_DELETED",
-                    "VOLUME_UPDATED"
+                    "VOLUME_UPDATED",
+                    "TELEMETRY_EXPORT_CREATED",
+                    "TELEMETRY_EXPORT_UPDATED",
+                    "TELEMETRY_EXPORT_DELETED"
                 ],
                 "title": "AuditLogEventTypeV1",
                 "type": "string"
@@ -21235,7 +21670,8 @@
                     "WEBHOOK_SIGNING_SECRETS",
                     "USER_MANAGEMENT",
                     "DIRECTORY_GROUP_MANAGEMENT",
-                    "SSH"
+                    "SSH",
+                    "TELEMETRY_EXPORT"
                 ],
                 "title": "AuditLogEventTypeGroupV1",
                 "type": "string"
@@ -29416,6 +29852,19 @@
                         "description": "The run's immutable LoRA config version.",
                         "title": "Lora Config Version"
                     },
+                    "base_checkpoint": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The custom base checkpoint the run started from, pinned to a commit (hf://<org>/<repo>@<sha>). Null when it uses the base model's own weights.",
+                        "title": "Base Checkpoint"
+                    },
                     "base_url": {
                         "description": "The run's base URL.",
                         "title": "Base Url",
@@ -29547,6 +29996,19 @@
                         "description": "Number of nodes serving the sampler.",
                         "title": "Node Count",
                         "type": "integer"
+                    },
+                    "base_checkpoint": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The custom base checkpoint the sampler serves, pinned to a commit (hf://<org>/<repo>@<sha>). Null when it uses the base model's own weights.",
+                        "title": "Base Checkpoint"
                     }
                 },
                 "required": [
@@ -29759,6 +30221,19 @@
                         "description": "Optional ID of a prior Loops session whose trainer and/or sampler should be reused for this run. Deprecated in favor of reuse_from_run_id.",
                         "title": "Reuse From Session Id"
                     },
+                    "base_checkpoint": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in the team secret hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.",
+                        "title": "Base Checkpoint"
+                    },
                     "sampler_num_replicas": {
                         "anyOf": [
                             {
@@ -29957,6 +30432,19 @@
                         "default": null,
                         "description": "Optional ID of a prior Loops session whose trainer and/or sampler should be reused for this run. Deprecated in favor of reuse_from_run_id.",
                         "title": "Reuse From Session Id"
+                    },
+                    "base_checkpoint": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in the team secret hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.",
+                        "title": "Base Checkpoint"
                     }
                 },
                 "required": [
@@ -30671,6 +31159,19 @@
                         "description": "The HuggingFace base model the deployment is fine-tuning.",
                         "title": "Base Model",
                         "type": "string"
+                    },
+                    "base_checkpoint": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The custom base checkpoint the deployment's trainer loaded, pinned to a commit (hf://<org>/<repo>@<sha>). Null when it uses the base model's own weights.",
+                        "title": "Base Checkpoint"
                     },
                     "base_url": {
                         "description": "The run's base URL.",
@@ -33339,7 +33840,8 @@
                     "audio",
                     "video",
                     "embedding",
-                    "rerank"
+                    "rerank",
+                    "decision"
                 ],
                 "title": "LibraryListingModality",
                 "type": "string"
@@ -39983,7 +40485,7 @@
                     },
                     "region": {
                         "type": "string",
-                        "description": "Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.",
+                        "description": "Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the default sandbox region is used.",
                         "example": "us-pdx-1"
                     },
                     "envs": {
@@ -40026,6 +40528,14 @@
                         ],
                         "example": {
                             "max_memory_usage": "80%"
+                        }
+                    },
+                    "volumes": {
+                        "type": "array",
+                        "description": "Volumes mounted in the sandbox. Set at creation only.",
+                        "maxItems": 1,
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxVolumeAttachmentV1"
                         }
                     },
                     "ports": {
@@ -40235,7 +40745,7 @@
                     },
                     "region": {
                         "type": "string",
-                        "description": "Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the closest region is selected.",
+                        "description": "Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the default sandbox region is used.",
                         "example": "us-pdx-1"
                     },
                     "envs": {
@@ -40280,6 +40790,14 @@
                         ],
                         "example": {
                             "max_memory_usage": "80%"
+                        }
+                    },
+                    "volumes": {
+                        "type": "array",
+                        "description": "Volumes mounted in the sandbox. Set at creation only.",
+                        "maxItems": 1,
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxVolumeAttachmentV1"
                         }
                     },
                     "ports": {
@@ -40406,7 +40924,7 @@
             },
             "UpdateSandboxRequestV1": {
                 "type": "object",
-                "description": "Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, network, region, image, and ports are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.",
+                "description": "Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, network, region, image, ports, filesystem, and volumes are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.",
                 "properties": {
                     "lifecycle": {
                         "description": "Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates",
@@ -41229,23 +41747,13 @@
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": "Volume name, or an internal identifier for ephemeral volumes.",
-                        "example": "scratch"
+                        "description": "Volume name, used in volume_name path parameters and sandbox volumes.",
+                        "example": "datasets"
                     },
                     "mount_path": {
                         "type": "string",
                         "description": "Absolute filesystem path where the volume is mounted.",
                         "example": "/mnt/data"
-                    },
-                    "type": {
-                        "type": "string",
-                        "description": "Volume type, persistent when empty.",
-                        "example": "ephemeral"
-                    },
-                    "size_mb": {
-                        "type": "integer",
-                        "description": "Storage capacity in megabytes for ephemeral volumes.",
-                        "example": 10240
                     },
                     "read_only": {
                         "type": "boolean",
@@ -41398,6 +41906,17 @@
                         "type": "string",
                         "description": "Human-readable cleanup result.",
                         "example": "Removed 3 unused image versions. Image versions used by active sandboxes were retained."
+                    },
+                    "remaining": {
+                        "type": "integer",
+                        "description": "Number of unused image versions left for a next call.",
+                        "minimum": 0,
+                        "example": 0
+                    },
+                    "has_more": {
+                        "type": "boolean",
+                        "description": "True when the cleanup stopped on its time limit before every unused version was removed. Call it again to continue.",
+                        "example": false
                     }
                 },
                 "required": [
@@ -41430,7 +41949,7 @@
             },
             "SandboxPreviewHeadersV1": {
                 "type": "object",
-                "description": "HTTP headers as name-value pairs.",
+                "description": "HTTP headers as name-value pairs. At most 20 headers and 8 KiB of names and values in total unless your quota allows more.",
                 "additionalProperties": {
                     "type": "string"
                 },
@@ -41456,7 +41975,7 @@
                         ]
                     },
                     "request_headers": {
-                        "description": "Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value \"****\", except a GET with show_secrets=true by a workspace administrator. Sending \"****\" back as a value returns 400. A PATCH replaces the whole set.",
+                        "description": "Headers added to every request forwarded to the sandbox, for example an Authorization header expected by the application. Responses return each name with the value \"****\", except a GET with show_secrets=true by a workspace administrator. Sending \"****\" back as a value returns 400. A PATCH replaces the whole set. Some header names are reserved by the platform.",
                         "allOf": [
                             {
                                 "$ref": "#/components/schemas/SandboxPreviewHeadersV1"
@@ -41677,6 +42196,213 @@
                         "description": "Resources on this page.",
                         "items": {
                             "$ref": "#/components/schemas/SandboxPreviewTokenV1"
+                        }
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/SandboxApiPaginationV1"
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ]
+            },
+            "SandboxVolumeStatusV1": {
+                "type": "string",
+                "description": "Volume status, always uppercase.",
+                "enum": [
+                    "DEPLOYING",
+                    "DEPLOYED",
+                    "FAILED",
+                    "DELETING"
+                ],
+                "example": "DEPLOYED"
+            },
+            "SandboxVolumeAttachmentV1": {
+                "type": "object",
+                "description": "A persistent volume mounted in the sandbox. The volume must exist, be in the sandbox's region and not be mounted elsewhere. A sandbox mounts at most one persistent volume.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the volume to mount.",
+                        "minLength": 1,
+                        "example": "datasets"
+                    },
+                    "mount_path": {
+                        "type": "string",
+                        "description": "Absolute path where the volume is mounted in the sandbox.",
+                        "pattern": "^/",
+                        "example": "/data"
+                    },
+                    "read_only": {
+                        "type": "boolean",
+                        "description": "Mount the volume read-only. Defaults to false.",
+                        "default": false,
+                        "example": false
+                    }
+                },
+                "required": [
+                    "name",
+                    "mount_path"
+                ],
+                "example": {
+                    "name": "datasets",
+                    "mount_path": "/data",
+                    "read_only": false
+                }
+            },
+            "CreateSandboxVolumeRequestV1": {
+                "type": "object",
+                "description": "Volume to create. Only size is required.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Volume name, unique in the team. Generated when omitted.",
+                        "minLength": 1,
+                        "maxLength": 49,
+                        "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+                        "example": "datasets"
+                    },
+                    "size": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "integer"
+                            }
+                        ],
+                        "x-go-type": "VolumeSize",
+                        "description": "Capacity, as a size (e.g. \"10Gi\", \"512Mi\") or a number of Mi (e.g. 1024). Can grow later, never shrink.",
+                        "example": "10Gi"
+                    },
+                    "region": {
+                        "type": "string",
+                        "description": "Region of the volume. Defaults to the default sandbox region. Sandboxes mounting it must be in the same region.",
+                        "example": "us-pdx-1"
+                    },
+                    "labels": {
+                        "$ref": "#/components/schemas/SandboxMetadataLabelsV1"
+                    }
+                },
+                "required": [
+                    "size"
+                ]
+            },
+            "UpdateSandboxVolumeRequestV1": {
+                "type": "object",
+                "description": "Volume fields to change. name and region cannot be changed.",
+                "properties": {
+                    "size": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "integer"
+                            }
+                        ],
+                        "x-go-type": "VolumeSize",
+                        "description": "New capacity, as a size (e.g. \"20Gi\") or a number of Mi, greater than or equal to the current size.",
+                        "example": "20Gi"
+                    },
+                    "labels": {
+                        "description": "Labels replacing all current labels, not merged with them. Omit to keep them.",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxMetadataLabelsV1"
+                            }
+                        ]
+                    }
+                },
+                "minProperties": 1
+            },
+            "SandboxVolumeV1": {
+                "type": "object",
+                "description": "Persistent volume.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Volume name, used in volume_name path parameters and sandbox volumes.",
+                        "readOnly": true,
+                        "example": "datasets"
+                    },
+                    "size": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "integer"
+                            }
+                        ],
+                        "x-go-type": "VolumeSize",
+                        "description": "Capacity, as a size (e.g. \"10Gi\", \"512Mi\") or a number of Mi (e.g. 1024).",
+                        "example": "10Gi"
+                    },
+                    "region": {
+                        "type": "string",
+                        "description": "Region of the volume.",
+                        "example": "us-pdx-1"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/SandboxVolumeStatusV1"
+                    },
+                    "attached_to": {
+                        "type": "string",
+                        "description": "Name of the sandbox the volume is mounted in. Absent when not mounted.",
+                        "readOnly": true,
+                        "example": "baseten-api-review-0916"
+                    },
+                    "labels": {
+                        "description": "Labels. Omitted from list responses.",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxMetadataLabelsV1"
+                            }
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "example": "2026-10-12T12:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "example": "2026-10-12T12:00:00Z"
+                    },
+                    "created_by": {
+                        "type": "string",
+                        "description": "User or service account that created the volume.",
+                        "readOnly": true,
+                        "example": "sandbox-automation"
+                    },
+                    "updated_by": {
+                        "type": "string",
+                        "description": "User or service account that last updated the volume.",
+                        "readOnly": true,
+                        "example": "sandbox-automation"
+                    }
+                },
+                "required": [
+                    "name",
+                    "size",
+                    "region",
+                    "status"
+                ]
+            },
+            "ListSandboxVolumesResponseV1": {
+                "type": "object",
+                "description": "One page of volumes.",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "description": "Resources on this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxVolumeV1"
                         }
                     },
                     "pagination": {
@@ -42025,6 +42751,17 @@
                     "type": "string",
                     "minLength": 1,
                     "example": "7f3k2m9q1x8c4v6b0n5z"
+                }
+            },
+            "VolumeName": {
+                "name": "volume_name",
+                "in": "path",
+                "required": true,
+                "description": "Volume name returned by creation.",
+                "schema": {
+                    "type": "string",
+                    "minLength": 1,
+                    "example": "datasets"
                 }
             },
             "SandboxImageName": {
@@ -43035,6 +43772,74 @@
                             "token": "7f3k2m9q1x8c4v6b0n5z",
                             "expires_at": "2026-10-13T12:00:00Z",
                             "expired": false
+                        }
+                    ],
+                    "pagination": {
+                        "has_more": false
+                    }
+                }
+            },
+            "CreateSandboxVolume": {
+                "summary": "One gigabyte volume",
+                "value": {
+                    "name": "datasets",
+                    "size": "10Gi",
+                    "region": "us-pdx-1",
+                    "labels": {
+                        "project": "api-review"
+                    }
+                }
+            },
+            "UpdateSandboxVolume": {
+                "summary": "Grow a volume",
+                "value": {
+                    "size": "20Gi"
+                }
+            },
+            "SandboxVolumeReady": {
+                "summary": "Volume mounted in a sandbox",
+                "value": {
+                    "name": "datasets",
+                    "size": "10Gi",
+                    "region": "us-pdx-1",
+                    "status": "DEPLOYED",
+                    "attached_to": "baseten-api-review-0916",
+                    "labels": {
+                        "project": "api-review"
+                    },
+                    "created_at": "2026-10-12T12:00:00Z",
+                    "updated_at": "2026-10-12T12:00:00Z",
+                    "created_by": "sandbox-automation",
+                    "updated_by": "sandbox-automation"
+                }
+            },
+            "SandboxVolumeDeleting": {
+                "summary": "Volume being deleted",
+                "value": {
+                    "name": "datasets",
+                    "size": "10Gi",
+                    "region": "us-pdx-1",
+                    "status": "DELETING",
+                    "created_at": "2026-10-12T12:00:00Z",
+                    "updated_at": "2026-10-12T12:30:00Z",
+                    "created_by": "sandbox-automation",
+                    "updated_by": "sandbox-automation"
+                }
+            },
+            "SandboxVolumesPage": {
+                "summary": "Last page of volumes",
+                "value": {
+                    "items": [
+                        {
+                            "name": "datasets",
+                            "size": "10Gi",
+                            "region": "us-pdx-1",
+                            "status": "DEPLOYED",
+                            "attached_to": "baseten-api-review-0916",
+                            "created_at": "2026-10-12T12:00:00Z",
+                            "updated_at": "2026-10-12T12:00:00Z",
+                            "created_by": "sandbox-automation",
+                            "updated_by": "sandbox-automation"
                         }
                     ],
                     "pagination": {
