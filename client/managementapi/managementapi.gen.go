@@ -10,6 +10,7 @@ import (
 
 // Defines values for APIKeyCategory.
 const (
+	APIKeyCategory_GRID                      APIKeyCategory = "GRID"
 	APIKeyCategory_PERSONAL                  APIKeyCategory = "PERSONAL"
 	APIKeyCategory_ROUTES                    APIKeyCategory = "ROUTES"
 	APIKeyCategory_WORKSPACE_EXPORT_METRICS  APIKeyCategory = "WORKSPACE_EXPORT_METRICS"
@@ -21,6 +22,8 @@ const (
 // Valid indicates whether the value is a known member of the APIKeyCategory enum.
 func (e APIKeyCategory) Valid() bool {
 	switch e {
+	case APIKeyCategory_GRID:
+		return true
 	case APIKeyCategory_PERSONAL:
 		return true
 	case APIKeyCategory_ROUTES:
@@ -3578,6 +3581,12 @@ type CreateGridRouteRequest_Target struct {
 	union json.RawMessage
 }
 
+// CreateGridTokenRequest defines model for CreateGridTokenRequest.
+type CreateGridTokenRequest struct {
+	// TeamId ID of the team. When omitted, the team you belong to; required when you belong to several.
+	TeamId *string `json:"team_id,omitempty"`
+}
+
 // CreateGroupHierarchy defines model for CreateGroupHierarchy.
 type CreateGroupHierarchy struct {
 	// LimitEnforcement Limit behavior. Child groups inherit their parent's behavior when omitted; root groups default to Independent for backwards compatibility.
@@ -6051,6 +6060,21 @@ type GridTeamUserSettingsList struct {
 	Pagination PaginationResponse     `json:"pagination"`
 }
 
+// GridToken defines model for GridToken.
+type GridToken struct {
+	// ExpiresAt Token expiry in ISO 8601 format. Tokens cannot be renewed; request a new one.
+	ExpiresAt time.Time `json:"expires_at"`
+
+	// TeamId ID of the team the token invokes Grid routes in.
+	TeamId string `json:"team_id"`
+
+	// TeamName Name of that team.
+	TeamName string `json:"team_name"`
+
+	// Token Short-lived bearer token for the Grid gateway, scoped to you and the team. Send it as Authorization: Bearer <token>.
+	Token string `json:"token"`
+}
+
 // Group defines model for Group.
 type Group struct {
 	// CreatedAt When this group was created.
@@ -7822,6 +7846,9 @@ type RollingDeployStrategy string
 
 // RuntimeOidc defines model for RuntimeOidc.
 type RuntimeOidc struct {
+	// Byok BYOK configuration for envelope-encrypted BDN weights in BIS-LLM deployments. Requires runtime.oidc.enabled to be true.
+	Byok *map[string]interface{} `json:"byok,omitempty"`
+
 	// Enabled If true, mounts an OIDC bearer token for the deployment to access at runtime. If unset, the platform default applies.
 	Enabled *bool `json:"enabled,omitempty"`
 }
@@ -11440,6 +11467,9 @@ type PatchV1GridTeamSettingsJSONRequestBody = UpdateGridTeamSettingsRequest
 
 // PatchV1GridTeamSettingsUsersUserIdJSONRequestBody defines body for PatchV1GridTeamSettingsUsersUserId for application/json ContentType.
 type PatchV1GridTeamSettingsUsersUserIdJSONRequestBody = UpdateGridUserSettingsRequest
+
+// PostV1GridTokenJSONRequestBody defines body for PostV1GridToken for application/json ContentType.
+type PostV1GridTokenJSONRequestBody = CreateGridTokenRequest
 
 // PostV1LibraryListingsJSONRequestBody defines body for PostV1LibraryListings for application/json ContentType.
 type PostV1LibraryListingsJSONRequestBody = CreateLibraryListingRequest
