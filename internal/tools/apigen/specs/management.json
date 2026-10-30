@@ -7118,10 +7118,10 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'run_id': 'k4q95w5', 'base_model': 'Qwen/Qwen3-8B', 'scope': 'org'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'run_id': 'k4q95w5', 'base_model': 'Qwen/Qwen3-8B', 'session_id': 'k4q95w5', 'scope': 'org'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists Loops runs visible to the requesting user, optionally filtered by run id and/or base model. Defaults to the caller's own runs; pass ?scope=org to list every run in the caller's organization.",
+                "description": "Lists Loops runs visible to the requesting user, optionally filtered by run id, base model, and/or session. Defaults to the caller's own runs; pass ?scope=org to list every run in the caller's organization.",
                 "parameters": [
                     {
                         "name": "run_id",
@@ -7163,6 +7163,27 @@
                                 "Qwen/Qwen3-8B"
                             ],
                             "title": "Base Model"
+                        }
+                    },
+                    {
+                        "name": "session_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Filter runs by the session that created them. An unknown or inaccessible session returns an empty list.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "k4q95w5"
+                            ],
+                            "title": "Session Id"
                         }
                     },
                     {
@@ -7351,11 +7372,32 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'scope': 'org'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'session_id': 'k4q95w5', 'scope': 'org'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists Loops samplers (paired and standalone). Defaults to the caller's own; pass ?scope=org to list every sampler in the caller's organization.",
+                "description": "Lists Loops samplers (paired and standalone), optionally filtered by session. Defaults to the caller's own; pass ?scope=org to list every sampler in the caller's organization.",
                 "parameters": [
+                    {
+                        "name": "session_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Filter samplers by the session that created them. An unknown or inaccessible session returns an empty list.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "k4q95w5"
+                            ],
+                            "title": "Session Id"
+                        }
+                    },
                     {
                         "name": "scope",
                         "in": "query",
@@ -8149,10 +8191,10 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'run_id': 'k4q95w5', 'base_model': 'Qwen/Qwen3-8B', 'scope': 'org'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'run_id': 'k4q95w5', 'base_model': 'Qwen/Qwen3-8B', 'session_id': 'k4q95w5', 'scope': 'org'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists Loops runs in the given team, visible to the requesting user, optionally filtered by run id and/or base model.",
+                "description": "Lists Loops runs in the given team, visible to the requesting user, optionally filtered by run id, base model, and/or session.",
                 "parameters": [
                     {
                         "name": "run_id",
@@ -8194,6 +8236,27 @@
                                 "Qwen/Qwen3-8B"
                             ],
                             "title": "Base Model"
+                        }
+                    },
+                    {
+                        "name": "session_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Filter runs by the session that created them. An unknown or inaccessible session returns an empty list.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "k4q95w5"
+                            ],
+                            "title": "Session Id"
                         }
                     },
                     {
@@ -8326,11 +8389,32 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'scope': 'org'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'session_id': 'k4q95w5', 'scope': 'org'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists Loops samplers (paired and standalone) in the given team, visible to the requesting user. Defaults to the caller's own; pass ?scope=org to list every sampler in the team.",
+                "description": "Lists Loops samplers (paired and standalone) in the given team, visible to the requesting user, optionally filtered by session. Defaults to the caller's own; pass ?scope=org to list every sampler in the team.",
                 "parameters": [
+                    {
+                        "name": "session_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Filter samplers by the session that created them. An unknown or inaccessible session returns an empty list.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "k4q95w5"
+                            ],
+                            "title": "Session Id"
+                        }
+                    },
                     {
                         "name": "scope",
                         "in": "query",
@@ -10429,7 +10513,7 @@
                         "name": "group_by",
                         "in": "query",
                         "required": false,
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, or ROUTER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, ROUTER, or HARNESS. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. Defaults to MODEL.",
                         "schema": {
                             "items": {
                                 "$ref": "#/components/schemas/GridRouteUsageDimensionV1"
@@ -10474,6 +10558,19 @@
                                 "$ref": "#/components/schemas/GridProviderV1"
                             },
                             "title": "Providers",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "harnesses",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage for these harnesses, repeated once per harness. Omit to include all usage, including usage with no recorded harness.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/GridRouteUsageHarnessV1"
+                            },
+                            "title": "Harnesses",
                             "type": "array"
                         }
                     }
@@ -29969,6 +30066,11 @@
                         "title": "Id",
                         "type": "string"
                     },
+                    "session_id": {
+                        "description": "The session ID this sampler belongs to.",
+                        "title": "Session Id",
+                        "type": "string"
+                    },
                     "base_url": {
                         "title": "Base Url",
                         "type": "string"
@@ -30052,6 +30154,7 @@
                 },
                 "required": [
                     "id",
+                    "session_id",
                     "base_url",
                     "base_model",
                     "created_at",
@@ -30113,6 +30216,22 @@
                             "Qwen/Qwen3-8B"
                         ],
                         "title": "Base Model"
+                    },
+                    "session_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Filter runs by the session that created them. An unknown or inaccessible session returns an empty list.",
+                        "examples": [
+                            "k4q95w5"
+                        ],
+                        "title": "Session Id"
                     },
                     "scope": {
                         "anyOf": [
@@ -30514,6 +30633,22 @@
             "ListLoopsSamplersRequestV1": {
                 "description": "Query-string filters for the Loops sampler listing routes.",
                 "properties": {
+                    "session_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Filter samplers by the session that created them. An unknown or inaccessible session returns an empty list.",
+                        "examples": [
+                            "k4q95w5"
+                        ],
+                        "title": "Session Id"
+                    },
                     "scope": {
                         "anyOf": [
                             {
@@ -37028,6 +37163,16 @@
                 "title": "GridRouteUsageBucketV1",
                 "type": "object"
             },
+            "GridRouteUsageHarnessV1": {
+                "enum": [
+                    "CLAUDE_CODE",
+                    "OPENCODE",
+                    "CODEX",
+                    "PI"
+                ],
+                "title": "GridRouteUsageHarnessV1",
+                "type": "string"
+            },
             "GridRouteUsageResultV1": {
                 "properties": {
                     "user_id": {
@@ -37107,6 +37252,18 @@
                         "description": "Slug of the intelligent router, matching its name in `GET /v1/grid/routes`. Null when not grouping by ROUTER.",
                         "title": "Router Id"
                     },
+                    "harness": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/GridRouteUsageHarnessV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Coding harness. Null when not grouping by HARNESS, when no harness was recorded (including usage from before harness tracking), or when the recorded harness is not recognized by this API version."
+                    },
                     "cost_usd": {
                         "description": "Estimated cost in USD, returned as an exact decimal string. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.",
                         "examples": [
@@ -37180,7 +37337,8 @@
                     "TEAM",
                     "MODEL",
                     "PROVIDER",
-                    "ROUTER"
+                    "ROUTER",
+                    "HARNESS"
                 ],
                 "title": "GridRouteUsageDimensionV1",
                 "type": "string"
@@ -37250,7 +37408,7 @@
                         "title": "End Date"
                     },
                     "group_by": {
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, or ROUTER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, ROUTER, or HARNESS. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. Defaults to MODEL.",
                         "items": {
                             "$ref": "#/components/schemas/GridRouteUsageDimensionV1"
                         },
@@ -37279,6 +37437,14 @@
                             "$ref": "#/components/schemas/GridProviderV1"
                         },
                         "title": "Providers",
+                        "type": "array"
+                    },
+                    "harnesses": {
+                        "description": "Return only usage for these harnesses, repeated once per harness. Omit to include all usage, including usage with no recorded harness.",
+                        "items": {
+                            "$ref": "#/components/schemas/GridRouteUsageHarnessV1"
+                        },
+                        "title": "Harnesses",
                         "type": "array"
                     }
                 },

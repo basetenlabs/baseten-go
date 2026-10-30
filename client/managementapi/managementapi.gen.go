@@ -814,6 +814,7 @@ func (e GridProvider) Valid() bool {
 
 // Defines values for GridRouteUsageDimension.
 const (
+	GridRouteUsageDimension_HARNESS  GridRouteUsageDimension = "HARNESS"
 	GridRouteUsageDimension_MODEL    GridRouteUsageDimension = "MODEL"
 	GridRouteUsageDimension_PROVIDER GridRouteUsageDimension = "PROVIDER"
 	GridRouteUsageDimension_ROUTER   GridRouteUsageDimension = "ROUTER"
@@ -824,6 +825,8 @@ const (
 // Valid indicates whether the value is a known member of the GridRouteUsageDimension enum.
 func (e GridRouteUsageDimension) Valid() bool {
 	switch e {
+	case GridRouteUsageDimension_HARNESS:
+		return true
 	case GridRouteUsageDimension_MODEL:
 		return true
 	case GridRouteUsageDimension_PROVIDER:
@@ -833,6 +836,30 @@ func (e GridRouteUsageDimension) Valid() bool {
 	case GridRouteUsageDimension_TEAM:
 		return true
 	case GridRouteUsageDimension_USER:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GridRouteUsageHarness.
+const (
+	GridRouteUsageHarness_CLAUDE_CODE GridRouteUsageHarness = "CLAUDE_CODE"
+	GridRouteUsageHarness_CODEX       GridRouteUsageHarness = "CODEX"
+	GridRouteUsageHarness_OPENCODE    GridRouteUsageHarness = "OPENCODE"
+	GridRouteUsageHarness_PI          GridRouteUsageHarness = "PI"
+)
+
+// Valid indicates whether the value is a known member of the GridRouteUsageHarness enum.
+func (e GridRouteUsageHarness) Valid() bool {
+	switch e {
+	case GridRouteUsageHarness_CLAUDE_CODE:
+		return true
+	case GridRouteUsageHarness_CODEX:
+		return true
+	case GridRouteUsageHarness_OPENCODE:
+		return true
+	case GridRouteUsageHarness_PI:
 		return true
 	default:
 		return false
@@ -5919,6 +5946,9 @@ type GridRouteUsageBucket struct {
 // GridRouteUsageDimension defines model for GridRouteUsageDimension.
 type GridRouteUsageDimension string
 
+// GridRouteUsageHarness defines model for GridRouteUsageHarness.
+type GridRouteUsageHarness string
+
 // GridRouteUsageResponse defines model for GridRouteUsageResponse.
 type GridRouteUsageResponse struct {
 	// Items Items in this page.
@@ -5933,6 +5963,9 @@ type GridRouteUsageResult struct {
 
 	// CostUsd Estimated cost in USD, returned as an exact decimal string. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.
 	CostUsd string `json:"cost_usd"`
+
+	// Harness Coding harness. Null when not grouping by HARNESS, when no harness was recorded (including usage from before harness tracking), or when the recorded harness is not recognized by this API version.
+	Harness *GridRouteUsageHarness `json:"harness,omitempty"`
 
 	// InputTokens Input tokens, including cached input tokens.
 	InputTokens int `json:"input_tokens"`
@@ -6872,6 +6905,9 @@ type LoopsSampler struct {
 
 	// NodeCount Number of nodes serving the sampler.
 	NodeCount *int `json:"node_count,omitempty"`
+
+	// SessionId The session ID this sampler belongs to.
+	SessionId string `json:"session_id"`
 
 	// Status The current status of a Loops sampler.
 	Status LoopsSamplerStatus `json:"status"`
@@ -10606,7 +10642,7 @@ type GetV1GridRoutesUsageParams struct {
 	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included.
 	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
 
-	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, or ROUTER. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. Defaults to MODEL.
+	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, ROUTER, or HARNESS. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. Defaults to MODEL.
 	GroupBy *[]GridRouteUsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
 
 	// UserIds Return only usage from Routes keys created by these user IDs, repeated once per ID.
@@ -10617,6 +10653,9 @@ type GetV1GridRoutesUsageParams struct {
 
 	// Providers Return only usage for these providers, repeated once per provider.
 	Providers *[]GridProvider `form:"providers,omitempty" json:"providers,omitempty"`
+
+	// Harnesses Return only usage for these harnesses, repeated once per harness. Omit to include all usage, including usage with no recorded harness.
+	Harnesses *[]GridRouteUsageHarness `form:"harnesses,omitempty" json:"harnesses,omitempty"`
 }
 
 // GetV1GridTeamSettingsParams defines parameters for GetV1GridTeamSettings.
@@ -10717,12 +10756,18 @@ type GetV1LoopsRunsParams struct {
 	// BaseModel Filter runs by base model name.
 	BaseModel *string `form:"base_model,omitempty" json:"base_model,omitempty"`
 
+	// SessionId Filter runs by the session that created them. An unknown or inaccessible session returns an empty list.
+	SessionId *string `form:"session_id,omitempty" json:"session_id,omitempty"`
+
 	// Scope Defaults to the caller's own runs; pass 'org' to list every run in the caller's organization.
 	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
 }
 
 // GetV1LoopsSamplersParams defines parameters for GetV1LoopsSamplers.
 type GetV1LoopsSamplersParams struct {
+	// SessionId Filter samplers by the session that created them. An unknown or inaccessible session returns an empty list.
+	SessionId *string `form:"session_id,omitempty" json:"session_id,omitempty"`
+
 	// Scope Defaults to the caller's own samplers; pass 'org' to include samplers owned by other users in the caller's organization.
 	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
 }
@@ -11305,12 +11350,18 @@ type GetV1TeamsTeamIdLoopsRunsParams struct {
 	// BaseModel Filter runs by base model name.
 	BaseModel *string `form:"base_model,omitempty" json:"base_model,omitempty"`
 
+	// SessionId Filter runs by the session that created them. An unknown or inaccessible session returns an empty list.
+	SessionId *string `form:"session_id,omitempty" json:"session_id,omitempty"`
+
 	// Scope Defaults to the caller's own runs; pass 'org' to list every run in the caller's organization.
 	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
 }
 
 // GetV1TeamsTeamIdLoopsSamplersParams defines parameters for GetV1TeamsTeamIdLoopsSamplers.
 type GetV1TeamsTeamIdLoopsSamplersParams struct {
+	// SessionId Filter samplers by the session that created them. An unknown or inaccessible session returns an empty list.
+	SessionId *string `form:"session_id,omitempty" json:"session_id,omitempty"`
+
 	// Scope Defaults to the caller's own samplers; pass 'org' to include samplers owned by other users in the caller's organization.
 	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
 }
