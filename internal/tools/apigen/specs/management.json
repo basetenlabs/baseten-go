@@ -6974,7 +6974,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/capabilities\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'model': 'Qwen/Qwen3-8B', 'use_case': 'rl', 'max_seq_len': 32768}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the list of models supported by the Loops server, including each model's maximum context length and whether it supports vision-language inputs. Each entry carries an 'enabled' flag saying whether this workspace can run it now, and 'enablement_details' explaining why when it cannot; filter on 'enabled' for the usable set. Capacity is resolved when the run is created, not here. Pass ?model= to ask about one model — an empty list means Baseten does not support it. Pass ?use_case=sft for a run that needs no sampler, and ?max_seq_len= to check a specific sequence length.",
+                "description": "Returns the list of models supported by the Loops server, including each model's maximum context length and whether it supports vision-language inputs. Each entry carries an 'enabled' flag saying whether this workspace can run it now, and 'enablement_details' explaining why when it cannot; filter on 'enabled' for the usable set. Capacity is resolved when the run is created, not here. Pass ?model= to ask about one model \u2014 an empty list means Baseten does not support it. Pass ?use_case=sft for a run that needs no sampler, and ?max_seq_len= to check a specific sequence length.",
                 "parameters": [
                     {
                         "name": "model",
@@ -7014,7 +7014,7 @@
                         "name": "max_seq_len",
                         "in": "query",
                         "required": false,
-                        "description": "The sequence length the caller intends to train at — the same value they would pass as 'max_seq_len' when creating the run. Models that cannot serve it are reported as not enabled rather than returned with a ceiling the caller cannot use. Omit for the model's highest enabled sequence length.",
+                        "description": "The sequence length the caller intends to train at \u2014 the same value they would pass as 'max_seq_len' when creating the run. Models that cannot serve it are reported as not enabled rather than returned with a ceiling the caller cannot use. Omit for the model's highest enabled sequence length.",
                         "schema": {
                             "anyOf": [
                                 {
@@ -7118,10 +7118,10 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'run_id': 'k4q95w5', 'base_model': 'Qwen/Qwen3-8B', 'scope': 'org'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'run_id': 'k4q95w5', 'base_model': 'Qwen/Qwen3-8B', 'session_id': 'k4q95w5', 'scope': 'org'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists Loops runs visible to the requesting user, optionally filtered by run id and/or base model. Defaults to the caller's own runs; pass ?scope=org to list every run in the caller's organization.",
+                "description": "Lists Loops runs visible to the requesting user, optionally filtered by run id, base model, and/or session. Defaults to the caller's own runs; pass ?scope=org to list every run in the caller's organization.",
                 "parameters": [
                     {
                         "name": "run_id",
@@ -7163,6 +7163,27 @@
                                 "Qwen/Qwen3-8B"
                             ],
                             "title": "Base Model"
+                        }
+                    },
+                    {
+                        "name": "session_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Filter runs by the session that created them. An unknown or inaccessible session returns an empty list.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "k4q95w5"
+                            ],
+                            "title": "Session Id"
                         }
                     },
                     {
@@ -7351,11 +7372,32 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'scope': 'org'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'session_id': 'k4q95w5', 'scope': 'org'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists Loops samplers (paired and standalone). Defaults to the caller's own; pass ?scope=org to list every sampler in the caller's organization.",
+                "description": "Lists Loops samplers (paired and standalone), optionally filtered by session. Defaults to the caller's own; pass ?scope=org to list every sampler in the caller's organization.",
                 "parameters": [
+                    {
+                        "name": "session_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Filter samplers by the session that created them. An unknown or inaccessible session returns an empty list.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "k4q95w5"
+                            ],
+                            "title": "Session Id"
+                        }
+                    },
                     {
                         "name": "scope",
                         "in": "query",
@@ -8149,10 +8191,10 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'run_id': 'k4q95w5', 'base_model': 'Qwen/Qwen3-8B', 'scope': 'org'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'run_id': 'k4q95w5', 'base_model': 'Qwen/Qwen3-8B', 'session_id': 'k4q95w5', 'scope': 'org'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists Loops runs in the given team, visible to the requesting user, optionally filtered by run id and/or base model.",
+                "description": "Lists Loops runs in the given team, visible to the requesting user, optionally filtered by run id, base model, and/or session.",
                 "parameters": [
                     {
                         "name": "run_id",
@@ -8194,6 +8236,27 @@
                                 "Qwen/Qwen3-8B"
                             ],
                             "title": "Base Model"
+                        }
+                    },
+                    {
+                        "name": "session_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Filter runs by the session that created them. An unknown or inaccessible session returns an empty list.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "k4q95w5"
+                            ],
+                            "title": "Session Id"
                         }
                     },
                     {
@@ -8326,11 +8389,32 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'scope': 'org'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'session_id': 'k4q95w5', 'scope': 'org'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists Loops samplers (paired and standalone) in the given team, visible to the requesting user. Defaults to the caller's own; pass ?scope=org to list every sampler in the team.",
+                "description": "Lists Loops samplers (paired and standalone) in the given team, visible to the requesting user, optionally filtered by session. Defaults to the caller's own; pass ?scope=org to list every sampler in the team.",
                 "parameters": [
+                    {
+                        "name": "session_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Filter samplers by the session that created them. An unknown or inaccessible session returns an empty list.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                "k4q95w5"
+                            ],
+                            "title": "Session Id"
+                        }
+                    },
                     {
                         "name": "scope",
                         "in": "query",
@@ -16939,7 +17023,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Maximum percentage of replicas that can be removed per autoscaling window (1–50). E.g. 20 means at most 20% of replicas are removed per window.",
+                        "description": "Maximum percentage of replicas that can be removed per autoscaling window (1\u201350). E.g. 20 means at most 20% of replicas are removed per window.",
                         "examples": [
                             20
                         ],
@@ -22157,7 +22241,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Maximum percentage of replicas that can be removed per autoscaling window (1–50). E.g. 20 means at most 20% of replicas are removed per window.",
+                        "description": "Maximum percentage of replicas that can be removed per autoscaling window (1\u201350). E.g. 20 means at most 20% of replicas are removed per window.",
                         "title": "Max Scale Down Rate"
                     }
                 },
@@ -22841,7 +22925,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "The original config.yaml text — preserves comments, ordering, formatting.",
+                        "description": "The original config.yaml text \u2014 preserves comments, ordering, formatting.",
                         "title": "Raw Config"
                     }
                 },
@@ -23579,7 +23663,7 @@
                         "description": "Semantic hint for how the metric behaves (GAUGE, COUNTER, HISTOGRAM)."
                     },
                     "label_sets": {
-                        "description": "The metric's series, in order. Each entry is the set of labels identifying one series; the value at the same index in each value set's ``values`` is that series' value. A plain metric has a single entry with no labels (`{}`). A histogram has one entry per quantile plus an average, e.g. {'quantile': '0.5'} … {'quantile': '0.99'}, {'stat': 'avg'}. A by-status metric has one entry per status, e.g. {'status': '2xx'}.",
+                        "description": "The metric's series, in order. Each entry is the set of labels identifying one series; the value at the same index in each value set's ``values`` is that series' value. A plain metric has a single entry with no labels (`{}`). A histogram has one entry per quantile plus an average, e.g. {'quantile': '0.5'} \u2026 {'quantile': '0.99'}, {'stat': 'avg'}. A by-status metric has one entry per status, e.g. {'status': '2xx'}.",
                         "items": {
                             "additionalProperties": {
                                 "type": "string"
@@ -29663,7 +29747,7 @@
                     },
                     "max_enabled_seq_len": {
                         "default": 0,
-                        "description": "The longest sequence length this workspace can train at. Lower than 'max_seq_len' when the longer configurations need hardware the workspace is not approved for — a model's longer sequence lengths often need a bigger SKU of the same GPU. Zero when the workspace cannot run the model at all, so a client can compare against a required length without a null case.",
+                        "description": "The longest sequence length this workspace can train at. Lower than 'max_seq_len' when the longer configurations need hardware the workspace is not approved for \u2014 a model's longer sequence lengths often need a bigger SKU of the same GPU. Zero when the workspace cannot run the model at all, so a client can compare against a required length without a null case.",
                         "title": "Max Enabled Seq Len",
                         "type": "integer"
                     },
@@ -29707,7 +29791,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Why the model is not enabled, and what would change it. Present only when 'enabled' is false — an enabled model has nothing to explain. Read 'enabled' for the state; this is the detail behind it."
+                        "description": "Why the model is not enabled, and what would change it. Present only when 'enabled' is false \u2014 an enabled model has nothing to explain. Read 'enabled' for the state; this is the detail behind it."
                     }
                 },
                 "required": [
@@ -29784,7 +29868,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "The sequence length the caller intends to train at — the same value they would pass as 'max_seq_len' when creating the run. Models that cannot serve it are reported as not enabled rather than returned with a ceiling the caller cannot use. Omit for the model's highest enabled sequence length.",
+                        "description": "The sequence length the caller intends to train at \u2014 the same value they would pass as 'max_seq_len' when creating the run. Models that cannot serve it are reported as not enabled rather than returned with a ceiling the caller cannot use. Omit for the model's highest enabled sequence length.",
                         "examples": [
                             32768
                         ],
@@ -29982,6 +30066,11 @@
                         "title": "Id",
                         "type": "string"
                     },
+                    "session_id": {
+                        "description": "The session ID this sampler belongs to.",
+                        "title": "Session Id",
+                        "type": "string"
+                    },
                     "base_url": {
                         "title": "Base Url",
                         "type": "string"
@@ -30065,6 +30154,7 @@
                 },
                 "required": [
                     "id",
+                    "session_id",
                     "base_url",
                     "base_model",
                     "created_at",
@@ -30126,6 +30216,22 @@
                             "Qwen/Qwen3-8B"
                         ],
                         "title": "Base Model"
+                    },
+                    "session_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Filter runs by the session that created them. An unknown or inaccessible session returns an empty list.",
+                        "examples": [
+                            "k4q95w5"
+                        ],
+                        "title": "Session Id"
                     },
                     "scope": {
                         "anyOf": [
@@ -30226,7 +30332,7 @@
                     },
                     "replicas": {
                         "default": 1,
-                        "description": "Number of data-parallel trainer replicas. Each replica is one full copy of the model's preset node group, so the trainer deployment runs (preset node_count * replicas) nodes (e.g. replicas=4 on a 4-node preset → 16 nodes, 4 DP workers). Must be a positive integer. Defaults to 1.",
+                        "description": "Number of data-parallel trainer replicas. Each replica is one full copy of the model's preset node group, so the trainer deployment runs (preset node_count * replicas) nodes (e.g. replicas=4 on a 4-node preset \u2192 16 nodes, 4 DP workers). Must be a positive integer. Defaults to 1.",
                         "minimum": 1,
                         "title": "Replicas",
                         "type": "integer"
@@ -30438,7 +30544,7 @@
                     },
                     "replicas": {
                         "default": 1,
-                        "description": "Number of data-parallel trainer replicas. Each replica is one full copy of the model's preset node group, so the trainer deployment runs (preset node_count * replicas) nodes (e.g. replicas=4 on a 4-node preset → 16 nodes, 4 DP workers). Must be a positive integer. Defaults to 1.",
+                        "description": "Number of data-parallel trainer replicas. Each replica is one full copy of the model's preset node group, so the trainer deployment runs (preset node_count * replicas) nodes (e.g. replicas=4 on a 4-node preset \u2192 16 nodes, 4 DP workers). Must be a positive integer. Defaults to 1.",
                         "minimum": 1,
                         "title": "Replicas",
                         "type": "integer"
@@ -30527,6 +30633,22 @@
             "ListLoopsSamplersRequestV1": {
                 "description": "Query-string filters for the Loops sampler listing routes.",
                 "properties": {
+                    "session_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Filter samplers by the session that created them. An unknown or inaccessible session returns an empty list.",
+                        "examples": [
+                            "k4q95w5"
+                        ],
+                        "title": "Session Id"
+                    },
                     "scope": {
                         "anyOf": [
                             {
@@ -31174,7 +31296,7 @@
                 "type": "object"
             },
             "LoopsDeploymentV1": {
-                "description": "A Loops deployment — the long-lived run + sampler pair owned by a user.\n\nThe deployment's current sampler is included inline. The full list of\nsamplers visible to the caller (across all deployments) lives at\n``GET /v1/loops/samplers``.",
+                "description": "A Loops deployment \u2014 the long-lived run + sampler pair owned by a user.\n\nThe deployment's current sampler is included inline. The full list of\nsamplers visible to the caller (across all deployments) lives at\n``GET /v1/loops/samplers``.",
                 "properties": {
                     "id": {
                         "description": "The Loops deployment ID.",
@@ -32072,7 +32194,7 @@
                 "type": "object"
             },
             "CapacityAtSubmitV1": {
-                "description": "A GPU capacity row as it stands now, with ``last_modified`` so callers\ncan judge whether the value matches what the dequeue gate saw at submit\ntime. Capacity rows are not historicized: edits overwrite in place. Compare\n``last_modified`` against the response's ``submitted_at`` — if it's later,\nthe value may have changed.",
+                "description": "A GPU capacity row as it stands now, with ``last_modified`` so callers\ncan judge whether the value matches what the dequeue gate saw at submit\ntime. Capacity rows are not historicized: edits overwrite in place. Compare\n``last_modified`` against the response's ``submitted_at`` \u2014 if it's later,\nthe value may have changed.",
                 "properties": {
                     "gpu_type": {
                         "description": "GPU type identifier (e.g. H100, A100-40GB)",
@@ -32113,7 +32235,7 @@
                 "type": "object"
             },
             "PendingJobAheadAtSubmitV1": {
-                "description": "A PENDING job in the same (org, gpu_type) pool that was ahead of the\ntarget in dequeue FIFO order at submitted_at — higher priority, or same\npriority and earlier submission.",
+                "description": "A PENDING job in the same (org, gpu_type) pool that was ahead of the\ntarget in dequeue FIFO order at submitted_at \u2014 higher priority, or same\npriority and earlier submission.",
                 "properties": {
                     "training_job_id": {
                         "description": "Hashid of the other training job",
@@ -37041,6 +37163,16 @@
                 "title": "GridRouteUsageBucketV1",
                 "type": "object"
             },
+            "GridRouteUsageHarnessV1": {
+                "enum": [
+                    "CLAUDE_CODE",
+                    "OPENCODE",
+                    "CODEX",
+                    "PI"
+                ],
+                "title": "GridRouteUsageHarnessV1",
+                "type": "string"
+            },
             "GridRouteUsageResultV1": {
                 "properties": {
                     "user_id": {
@@ -40124,8 +40256,8 @@
             },
             "SandboxDurationV1": {
                 "type": "string",
-                "description": "Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w, where d is 24h and w is 7 × 24h. Days and weeks cannot be combined with other units, so 1d12h is rejected; use 36h instead. Values are returned exactly as sent, without normalization.",
-                "pattern": "^[+-]?(0|[0-9]+[dw]|([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(ns|us|µs|μs|ms|s|m|h)(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(ns|us|µs|μs|ms|s|m|h))*)$",
+                "description": "Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w, where d is 24h and w is 7 \u00d7 24h. Days and weeks cannot be combined with other units, so 1d12h is rejected; use 36h instead. Values are returned exactly as sent, without normalization.",
+                "pattern": "^[+-]?(0|[0-9]+[dw]|([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(ns|us|\u00b5s|\u03bcs|ms|s|m|h)(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(ns|us|\u00b5s|\u03bcs|ms|s|m|h))*)$",
                 "example": "24h"
             },
             "SandboxTTLIdleExpirationPolicyV1": {
@@ -42095,7 +42227,7 @@
             "SandboxPreviewTtlV1": {
                 "type": "string",
                 "description": "Lifetime counted from the request, using seconds, minutes, hours or composite durations such as 1h30m. Whole days are also supported, for example 7d; days cannot be combined with other units. The preview is deleted when it elapses.",
-                "pattern": "^([0-9]+d|(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(ns|us|µs|μs|ms|s|m|h))+)$",
+                "pattern": "^([0-9]+d|(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(ns|us|\u00b5s|\u03bcs|ms|s|m|h))+)$",
                 "example": "24h"
             },
             "SandboxPreviewHeadersV1": {
@@ -42564,16 +42696,6 @@
                     "items",
                     "pagination"
                 ]
-            },
-            "GridRouteUsageHarnessV1": {
-                "enum": [
-                    "CLAUDE_CODE",
-                    "OPENCODE",
-                    "CODEX",
-                    "PI"
-                ],
-                "title": "GridRouteUsageHarnessV1",
-                "type": "string"
             }
         },
         "parameters": {

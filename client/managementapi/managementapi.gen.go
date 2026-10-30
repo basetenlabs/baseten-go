@@ -6906,6 +6906,9 @@ type LoopsSampler struct {
 	// NodeCount Number of nodes serving the sampler.
 	NodeCount *int `json:"node_count,omitempty"`
 
+	// SessionId The session ID this sampler belongs to.
+	SessionId string `json:"session_id"`
+
 	// Status The current status of a Loops sampler.
 	Status LoopsSamplerStatus `json:"status"`
 
@@ -10753,12 +10756,18 @@ type GetV1LoopsRunsParams struct {
 	// BaseModel Filter runs by base model name.
 	BaseModel *string `form:"base_model,omitempty" json:"base_model,omitempty"`
 
+	// SessionId Filter runs by the session that created them. An unknown or inaccessible session returns an empty list.
+	SessionId *string `form:"session_id,omitempty" json:"session_id,omitempty"`
+
 	// Scope Defaults to the caller's own runs; pass 'org' to list every run in the caller's organization.
 	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
 }
 
 // GetV1LoopsSamplersParams defines parameters for GetV1LoopsSamplers.
 type GetV1LoopsSamplersParams struct {
+	// SessionId Filter samplers by the session that created them. An unknown or inaccessible session returns an empty list.
+	SessionId *string `form:"session_id,omitempty" json:"session_id,omitempty"`
+
 	// Scope Defaults to the caller's own samplers; pass 'org' to include samplers owned by other users in the caller's organization.
 	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
 }
@@ -11341,12 +11350,18 @@ type GetV1TeamsTeamIdLoopsRunsParams struct {
 	// BaseModel Filter runs by base model name.
 	BaseModel *string `form:"base_model,omitempty" json:"base_model,omitempty"`
 
+	// SessionId Filter runs by the session that created them. An unknown or inaccessible session returns an empty list.
+	SessionId *string `form:"session_id,omitempty" json:"session_id,omitempty"`
+
 	// Scope Defaults to the caller's own runs; pass 'org' to list every run in the caller's organization.
 	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
 }
 
 // GetV1TeamsTeamIdLoopsSamplersParams defines parameters for GetV1TeamsTeamIdLoopsSamplers.
 type GetV1TeamsTeamIdLoopsSamplersParams struct {
+	// SessionId Filter samplers by the session that created them. An unknown or inaccessible session returns an empty list.
+	SessionId *string `form:"session_id,omitempty" json:"session_id,omitempty"`
+
 	// Scope Defaults to the caller's own samplers; pass 'org' to include samplers owned by other users in the caller's organization.
 	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
 }
