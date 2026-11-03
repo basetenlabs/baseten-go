@@ -12,7 +12,6 @@ import (
 const (
 	APIKeyCategory_GRID                      APIKeyCategory = "GRID"
 	APIKeyCategory_PERSONAL                  APIKeyCategory = "PERSONAL"
-	APIKeyCategory_ROUTES                    APIKeyCategory = "ROUTES"
 	APIKeyCategory_WORKSPACE_EXPORT_METRICS  APIKeyCategory = "WORKSPACE_EXPORT_METRICS"
 	APIKeyCategory_WORKSPACE_INVOKE          APIKeyCategory = "WORKSPACE_INVOKE"
 	APIKeyCategory_WORKSPACE_MANAGE_ALL      APIKeyCategory = "WORKSPACE_MANAGE_ALL"
@@ -25,8 +24,6 @@ func (e APIKeyCategory) Valid() bool {
 	case APIKeyCategory_GRID:
 		return true
 	case APIKeyCategory_PERSONAL:
-		return true
-	case APIKeyCategory_ROUTES:
 		return true
 	case APIKeyCategory_WORKSPACE_EXPORT_METRICS:
 		return true
@@ -749,33 +746,33 @@ func (e DockerAuthType) Valid() bool {
 	}
 }
 
-// Defines values for GatewayProvider.
+// Defines values for GatewayEndpointProvider.
 const (
-	GatewayProvider_ANTHROPIC         GatewayProvider = "ANTHROPIC"
-	GatewayProvider_BASETEN           GatewayProvider = "BASETEN"
-	GatewayProvider_BASETEN_MODEL_API GatewayProvider = "BASETEN_MODEL_API"
-	GatewayProvider_OPENAI            GatewayProvider = "OPENAI"
-	GatewayProvider_OPENAI_COMPATIBLE GatewayProvider = "OPENAI_COMPATIBLE"
-	GatewayProvider_VERTEX            GatewayProvider = "VERTEX"
-	GatewayProvider_XAI               GatewayProvider = "XAI"
+	GatewayEndpointProvider_ANTHROPIC         GatewayEndpointProvider = "ANTHROPIC"
+	GatewayEndpointProvider_BASETEN           GatewayEndpointProvider = "BASETEN"
+	GatewayEndpointProvider_BASETEN_MODEL_API GatewayEndpointProvider = "BASETEN_MODEL_API"
+	GatewayEndpointProvider_OPENAI            GatewayEndpointProvider = "OPENAI"
+	GatewayEndpointProvider_OPENAI_COMPATIBLE GatewayEndpointProvider = "OPENAI_COMPATIBLE"
+	GatewayEndpointProvider_VERTEX            GatewayEndpointProvider = "VERTEX"
+	GatewayEndpointProvider_XAI               GatewayEndpointProvider = "XAI"
 )
 
-// Valid indicates whether the value is a known member of the GatewayProvider enum.
-func (e GatewayProvider) Valid() bool {
+// Valid indicates whether the value is a known member of the GatewayEndpointProvider enum.
+func (e GatewayEndpointProvider) Valid() bool {
 	switch e {
-	case GatewayProvider_ANTHROPIC:
+	case GatewayEndpointProvider_ANTHROPIC:
 		return true
-	case GatewayProvider_BASETEN:
+	case GatewayEndpointProvider_BASETEN:
 		return true
-	case GatewayProvider_BASETEN_MODEL_API:
+	case GatewayEndpointProvider_BASETEN_MODEL_API:
 		return true
-	case GatewayProvider_OPENAI:
+	case GatewayEndpointProvider_OPENAI:
 		return true
-	case GatewayProvider_OPENAI_COMPATIBLE:
+	case GatewayEndpointProvider_OPENAI_COMPATIBLE:
 		return true
-	case GatewayProvider_VERTEX:
+	case GatewayEndpointProvider_VERTEX:
 		return true
-	case GatewayProvider_XAI:
+	case GatewayEndpointProvider_XAI:
 		return true
 	default:
 		return false
@@ -786,6 +783,7 @@ func (e GatewayProvider) Valid() bool {
 const (
 	GridProvider_ANTHROPIC         GridProvider = "ANTHROPIC"
 	GridProvider_BASETEN_MODEL_API GridProvider = "BASETEN_MODEL_API"
+	GridProvider_BEDROCK           GridProvider = "BEDROCK"
 	GridProvider_OPENAI            GridProvider = "OPENAI"
 	GridProvider_OPENAI_COMPATIBLE GridProvider = "OPENAI_COMPATIBLE"
 	GridProvider_VERTEX            GridProvider = "VERTEX"
@@ -798,6 +796,8 @@ func (e GridProvider) Valid() bool {
 	case GridProvider_ANTHROPIC:
 		return true
 	case GridProvider_BASETEN_MODEL_API:
+		return true
+	case GridProvider_BEDROCK:
 		return true
 	case GridProvider_OPENAI:
 		return true
@@ -1307,6 +1307,7 @@ func (e RequestBackpressurePolicy) Valid() bool {
 // Defines values for ResourceKind.
 const (
 	ResourceKind_CHAINLET         ResourceKind = "CHAINLET"
+	ResourceKind_LOOPS_RUN        ResourceKind = "LOOPS_RUN"
 	ResourceKind_LOOPS_SAMPLER    ResourceKind = "LOOPS_SAMPLER"
 	ResourceKind_LOOPS_TRAINER    ResourceKind = "LOOPS_TRAINER"
 	ResourceKind_MODEL_DEPLOYMENT ResourceKind = "MODEL_DEPLOYMENT"
@@ -1317,6 +1318,8 @@ const (
 func (e ResourceKind) Valid() bool {
 	switch e {
 	case ResourceKind_CHAINLET:
+		return true
+	case ResourceKind_LOOPS_RUN:
 		return true
 	case ResourceKind_LOOPS_SAMPLER:
 		return true
@@ -2062,6 +2065,9 @@ type APIKeyInfo struct {
 	// CreatedAt Creation time in ISO 8601 format
 	CreatedAt time.Time `json:"created_at"`
 
+	// ExpiresAt Expiry time in ISO 8601 format, or null if the key never expires.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
 	// LastUsedAt Last recorded use in ISO 8601 format, or null if unavailable. Updates may be delayed.
 	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
 
@@ -2574,15 +2580,21 @@ type AuditLogEventModelDeleted struct {
 
 // AuditLogEventModelDeployed A model deployment was created.
 type AuditLogEventModelDeployed struct {
-	DeploymentId        string  `json:"deployment_id"`
-	DeploymentName      string  `json:"deployment_name"`
-	EnvironmentName     *string `json:"environment_name"`
-	EventType           string  `json:"event_type"`
-	ModelId             string  `json:"model_id"`
-	ModelName           string  `json:"model_name"`
-	Publish             bool    `json:"publish"`
-	ScalePreviousToZero bool    `json:"scale_previous_to_zero"`
-	Trusted             bool    `json:"trusted"`
+	AutoscalingScheduleSettingsUpdate *AuditLogEventAutoscalingScheduleOperations     `json:"autoscaling_schedule_settings_update"`
+	AutoscalingSettingsUpdate         *AuditLogEventAutoscalingSettingsUpdate         `json:"autoscaling_settings_update"`
+	DeploymentId                      string                                          `json:"deployment_id"`
+	DeploymentName                    string                                          `json:"deployment_name"`
+	EnvironmentName                   *string                                         `json:"environment_name"`
+	EventType                         string                                          `json:"event_type"`
+	InstanceTypeIdUpdate              *string                                         `json:"instance_type_id_update"`
+	ModelId                           string                                          `json:"model_id"`
+	ModelName                         string                                          `json:"model_name"`
+	PromotionSettingsOverride         *AuditLogEventPromotionSettingsOverride         `json:"promotion_settings_override"`
+	Publish                           bool                                            `json:"publish"`
+	RegionUpdate                      *string                                         `json:"region_update"`
+	RequestBackpressureSettingsUpdate *AuditLogEventRequestBackpressureSettingsUpdate `json:"request_backpressure_settings_update"`
+	ScalePreviousToZero               bool                                            `json:"scale_previous_to_zero"`
+	Trusted                           bool                                            `json:"trusted"`
 }
 
 // AuditLogEventModelDeploymentActivated A model deployment was activated.
@@ -3198,7 +3210,7 @@ type BenchmarkSnapshot struct {
 
 // BillableResource defines model for BillableResource.
 type BillableResource struct {
-	// BaseModel Base model used by this Loops trainer or sampler
+	// BaseModel Base model used by this Loops run, trainer, or sampler
 	BaseModel *string `json:"base_model,omitempty"`
 
 	// ChainMetadata Chain metadata if this is a chainlet deployment
@@ -3469,6 +3481,9 @@ type CleanupSandboxImagesResponse struct {
 
 // CreateAPIKeyRequest Request to create an API key.
 type CreateAPIKeyRequest struct {
+	// ExpiresAt Expiration time in UTC. Must be in the future. Personal keys require an expiration no more than 90 days away; other keys may omit it or use null.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
 	// ModelIds List of model IDs to scope the API key to, only present if type is 'WORKSPACE_EXPORT_METRICS' or 'WORKSPACE_INVOKE'
 	ModelIds *[]string `json:"model_ids,omitempty"`
 
@@ -3588,6 +3603,24 @@ type CreateGridConnectionRequest_Config struct {
 	union json.RawMessage
 }
 
+// CreateGridMachineUserAPIKeyRequest defines model for CreateGridMachineUserAPIKeyRequest.
+type CreateGridMachineUserAPIKeyRequest struct {
+	// Name Name of the API key: lowercase letters, numbers, and hyphens, at most 255 characters, and unique among the machine user's active keys. Defaults to a name derived from the machine user's.
+	Name *string `json:"name,omitempty"`
+}
+
+// CreateGridMachineUserRequest defines model for CreateGridMachineUserRequest.
+type CreateGridMachineUserRequest struct {
+	// ApiKey When set, also creates the machine user's first API key.
+	ApiKey *CreateGridMachineUserAPIKeyRequest `json:"api_key,omitempty"`
+
+	// Name Name of the machine user, unique within the team. At most 255 characters.
+	Name string `json:"name"`
+
+	// TeamId Identifier of the team that owns the machine user. Defaults to your only team, if you belong to exactly one.
+	TeamId *string `json:"team_id,omitempty"`
+}
+
 // CreateGridRouteRequest defines model for CreateGridRouteRequest.
 type CreateGridRouteRequest struct {
 	// Description Short description of the route. Omit for no description; null is not accepted.
@@ -3663,6 +3696,9 @@ type CreateLLMModelRequest struct {
 	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
+	// DeploymentName Name of the deployment, unique within the model. Use only A-Z, a-z, 0-9, '-', '_', and '.'. The name 'development' is reserved. If omitted or empty, a name is generated automatically.
+	DeploymentName *string `json:"deployment_name,omitempty"`
+
 	// EgressRestrictions Restricts this deployment's egress to the specified FQDNs and IP addresses; an empty block allows none. Requires the organization to have egress restrictions enabled.
 	EgressRestrictions *EgressRestrictions `json:"egress_restrictions,omitempty"`
 
@@ -3704,6 +3740,9 @@ type CreateLLMModelVersionRequest struct {
 
 	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
+
+	// DeploymentName Name of the deployment, unique within the model. Use only A-Z, a-z, 0-9, '-', '_', and '.'. The name 'development' is reserved. If omitted or empty, a name is generated automatically.
+	DeploymentName *string `json:"deployment_name,omitempty"`
 
 	// EgressRestrictions Restricts this deployment's egress to the specified FQDNs and IP addresses; an empty block allows none. Requires the organization to have egress restrictions enabled.
 	EgressRestrictions *EgressRestrictions `json:"egress_restrictions,omitempty"`
@@ -4254,6 +4293,30 @@ type CreateVolumeTokenResponse struct {
 	Volumes []string `json:"volumes"`
 }
 
+// CreatedGridMachineUser defines model for CreatedGridMachineUser.
+type CreatedGridMachineUser struct {
+	// ApiKey The first API key, returned only once. Null unless the request set `api_key`.
+	ApiKey *string `json:"api_key,omitempty"`
+
+	// CreatedAt Creation time, ISO 8601.
+	CreatedAt time.Time `json:"created_at"`
+
+	// CreatedBy ID of the user who created the machine user. Null when unknown.
+	CreatedBy *string `json:"created_by,omitempty"`
+
+	// Id Stable machine user identifier. Grid usage and settings identify the machine user by this ID as its `user_id`.
+	Id string `json:"id"`
+
+	// Name Name of the machine user, unique within its team.
+	Name string `json:"name"`
+
+	// TeamId Identifier of the team that owns the machine user.
+	TeamId string `json:"team_id"`
+
+	// TeamName Name of the team that owns the machine user.
+	TeamName string `json:"team_name"`
+}
+
 // CreatedModelDeployment A newly created deployment and its model.
 type CreatedModelDeployment struct {
 	// Deployment A deployment of a model.
@@ -4314,6 +4377,31 @@ type DailyDedicatedUsageSurchargeCost1 = string
 
 // DailyDedicatedUsage_SurchargeCost Model distribution surcharge incurred on this date in dollars
 type DailyDedicatedUsage_SurchargeCost struct {
+	union json.RawMessage
+}
+
+// DailyLoopsUsage defines model for DailyLoopsUsage.
+type DailyLoopsUsage struct {
+	CachedPrefill LoopsMeterUsage `json:"cached_prefill"`
+
+	// Date Date of the usage
+	Date   string          `json:"date"`
+	Sample LoopsMeterUsage `json:"sample"`
+
+	// Subtotal Cost in dollars across all four meters
+	Subtotal        DailyLoopsUsage_Subtotal `json:"subtotal"`
+	Train           LoopsMeterUsage          `json:"train"`
+	UncachedPrefill LoopsMeterUsage          `json:"uncached_prefill"`
+}
+
+// DailyLoopsUsageSubtotal0 defines model for .
+type DailyLoopsUsageSubtotal0 = float32
+
+// DailyLoopsUsageSubtotal1 defines model for .
+type DailyLoopsUsageSubtotal1 = string
+
+// DailyLoopsUsage_Subtotal Cost in dollars across all four meters
+type DailyLoopsUsage_Subtotal struct {
 	union json.RawMessage
 }
 
@@ -4674,7 +4762,7 @@ type DeploymentArchivePayload struct {
 	// AutoscalingScheduleSettings Autoscaling schedule changes for the environment named by `environment_name`, applied when the promotion completes. Requires `environment_name`.
 	AutoscalingScheduleSettings *UpdateAutoscalingScheduleSettings `json:"autoscaling_schedule_settings,omitempty"`
 
-	// AutoscalingSettings Autoscaling settings for the new deployment. With `environment_name`, the new deployment starts from the environment's settings with these changes applied, and the environment keeps the result when the promotion completes. Without it, they apply to the new deployment only.
+	// AutoscalingSettings Autoscaling settings for the new deployment. The new deployment starts from the settings of the environment named by `environment_name` with these changes applied, and the environment keeps the result when the promotion completes. Requires `environment_name`.
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
 	// Config Parsed model config as a JSON object.
@@ -4692,7 +4780,7 @@ type DeploymentArchivePayload struct {
 	// EnvironmentName Stable environment to push to (e.g. `production`). If unset, the deployment is created without environment selection. Caller must have push permission for the named environment.
 	EnvironmentName *string `json:"environment_name,omitempty"`
 
-	// InstanceTypeId Instance type for the new deployment, from `GET /v1/instance_types`, in place of the one in `config`. With `environment_name`, the environment takes it when the promotion completes. Without it, it applies to the new deployment only. Cannot be set with `preserve_env_instance_type: true`.
+	// InstanceTypeId Instance type for the new deployment, from `GET /v1/instance_types`, in place of the one in `config`. The environment named by `environment_name` takes it when the promotion completes. Requires `environment_name`. Cannot be set with `preserve_env_instance_type: true`.
 	InstanceTypeId *string `json:"instance_type_id,omitempty"`
 
 	// IsDevelopment If true, push as a development deployment: the model's single mutable dev slot, created if absent and overwritten in place otherwise. The following fields must be left at their defaults: `environment_name`, `preserve_env_instance_type`, `deployment_name`.
@@ -5023,8 +5111,8 @@ type EndpointTarget struct {
 	EnvironmentName *string `json:"environment_name,omitempty"`
 
 	// ModelId Baseten model, if any.
-	ModelId  *string         `json:"model_id,omitempty"`
-	Provider GatewayProvider `json:"provider"`
+	ModelId  *string                 `json:"model_id,omitempty"`
+	Provider GatewayEndpointProvider `json:"provider"`
 
 	// SecretId Referenced secret, if any.
 	SecretId *string `json:"secret_id,omitempty"`
@@ -5046,8 +5134,8 @@ type EndpointTargetRequest struct {
 	EnvironmentName *string `json:"environment_name,omitempty"`
 
 	// ModelId Baseten model to route to. Required for and only valid with BASETEN.
-	ModelId  *string         `json:"model_id,omitempty"`
-	Provider GatewayProvider `json:"provider"`
+	ModelId  *string                 `json:"model_id,omitempty"`
+	Provider GatewayEndpointProvider `json:"provider"`
 
 	// SecretId Secret holding the provider credential. Required for external providers.
 	SecretId *string `json:"secret_id,omitempty"`
@@ -5309,6 +5397,9 @@ type FileSummary struct {
 	SizeBytes int `json:"size_bytes"`
 }
 
+// GatewayEndpointProvider defines model for GatewayEndpointProvider.
+type GatewayEndpointProvider string
+
 // GatewayEvent defines model for GatewayEvent.
 type GatewayEvent struct {
 	// ApiKeyPrefix API key prefix.
@@ -5361,9 +5452,6 @@ type GatewayKeyInfo struct {
 	// Prefix The prefix of the Model API key.
 	Prefix string `json:"prefix"`
 }
-
-// GatewayProvider defines model for GatewayProvider.
-type GatewayProvider string
 
 // GcpOidcDockerAuth GCP OIDC details for the registry.
 type GcpOidcDockerAuth struct {
@@ -5763,6 +5851,18 @@ type GridConnection_Config struct {
 	union json.RawMessage
 }
 
+// GridConnectionBedrockAccessKeysAuth defines model for GridConnectionBedrockAccessKeysAuth.
+type GridConnectionBedrockAccessKeysAuth struct {
+	// Method The secret holds the access keys of an IAM user, as the base64-encoded JSON object `{"AccessKeyId": "...", "SecretAccessKey": "..."}`
+	Method string `json:"method"`
+}
+
+// GridConnectionBedrockApiKeyAuth defines model for GridConnectionBedrockApiKeyAuth.
+type GridConnectionBedrockApiKeyAuth struct {
+	// Method The secret holds a long-term Amazon Bedrock API key.
+	Method string `json:"method"`
+}
+
 // GridConnectionConfigAnthropic defines model for GridConnectionConfigAnthropic.
 type GridConnectionConfigAnthropic struct {
 	// Provider Provider kind for Anthropic.
@@ -5775,9 +5875,50 @@ type GridConnectionConfigAnthropic struct {
 	SecretName string `json:"secret_name"`
 }
 
+// GridConnectionConfigBedrock defines model for GridConnectionConfigBedrock.
+type GridConnectionConfigBedrock struct {
+	// Auth How the connection's secret authenticates with Amazon Bedrock.
+	Auth GridConnectionConfigBedrock_Auth `json:"auth"`
+
+	// Provider Provider kind for Amazon Bedrock.
+	Provider string `json:"provider"`
+
+	// Region AWS Region of the Amazon Bedrock endpoint.
+	Region string `json:"region"`
+
+	// SecretId Identifier of the team secret holding the provider API key.
+	SecretId string `json:"secret_id"`
+
+	// SecretName Name of the team secret holding the provider API key.
+	SecretName string `json:"secret_name"`
+}
+
+// GridConnectionConfigBedrock_Auth How the connection's secret authenticates with Amazon Bedrock.
+type GridConnectionConfigBedrock_Auth struct {
+	union json.RawMessage
+}
+
 // GridConnectionConfigOpenAI defines model for GridConnectionConfigOpenAI.
 type GridConnectionConfigOpenAI struct {
 	// Provider Provider kind for OpenAI.
+	Provider string `json:"provider"`
+
+	// SecretId Identifier of the team secret holding the provider API key.
+	SecretId string `json:"secret_id"`
+
+	// SecretName Name of the team secret holding the provider API key.
+	SecretName string `json:"secret_name"`
+}
+
+// GridConnectionConfigVertex defines model for GridConnectionConfigVertex.
+type GridConnectionConfigVertex struct {
+	// Location Google Cloud region that serves the Vertex AI models, for example `us-central1`.
+	Location string `json:"location"`
+
+	// ProjectId Google Cloud project ID or number of a project with Vertex AI enabled.
+	ProjectId string `json:"project_id"`
+
+	// Provider Provider kind for Google Vertex.
 	Provider string `json:"provider"`
 
 	// SecretId Identifier of the team secret holding the provider API key.
@@ -5833,6 +5974,40 @@ type GridHarnessDefaults struct {
 type GridHarnessModel struct {
 	Route  GridRoute         `json:"route"`
 	Source GridSettingSource `json:"source"`
+}
+
+// GridMachineUser defines model for GridMachineUser.
+type GridMachineUser struct {
+	// CreatedAt Creation time, ISO 8601.
+	CreatedAt time.Time `json:"created_at"`
+
+	// CreatedBy ID of the user who created the machine user. Null when unknown.
+	CreatedBy *string `json:"created_by,omitempty"`
+
+	// Id Stable machine user identifier. Grid usage and settings identify the machine user by this ID as its `user_id`.
+	Id string `json:"id"`
+
+	// Name Name of the machine user, unique within its team.
+	Name string `json:"name"`
+
+	// TeamId Identifier of the team that owns the machine user.
+	TeamId string `json:"team_id"`
+
+	// TeamName Name of the team that owns the machine user.
+	TeamName string `json:"team_name"`
+}
+
+// GridMachineUserTombstone defines model for GridMachineUserTombstone.
+type GridMachineUserTombstone struct {
+	// Id Stable identifier of the deleted machine user.
+	Id string `json:"id"`
+}
+
+// GridMachineUsersResponse defines model for GridMachineUsersResponse.
+type GridMachineUsersResponse struct {
+	// Items Items in this page.
+	Items      []GridMachineUser  `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 // GridPrimaryHarnessDefaults defines model for GridPrimaryHarnessDefaults.
@@ -6532,6 +6707,8 @@ type ListTrainingJobsResponse struct {
 
 // ListTrainingProjectsResponse A response to list training projects.
 type ListTrainingProjectsResponse struct {
+	Pagination PaginationResponse `json:"pagination"`
+
 	// TrainingProjects List of training projects.
 	TrainingProjects []TrainingProject `json:"training_projects"`
 }
@@ -6600,6 +6777,36 @@ type Log struct {
 
 // LogLevel A log severity level.
 type LogLevel string
+
+// LoopsBaseModelItem defines model for LoopsBaseModelItem.
+type LoopsBaseModelItem struct {
+	// BaseModel Base model the usage is priced by
+	BaseModel string `json:"base_model"`
+
+	// Breakdown Usage per run and standalone sampler on this base model
+	Breakdown     *[]LoopsResourceItem `json:"breakdown,omitempty"`
+	CachedPrefill LoopsMeterUsage      `json:"cached_prefill"`
+
+	// Daily Daily usage breakdown
+	Daily  *[]DailyLoopsUsage `json:"daily,omitempty"`
+	Sample LoopsMeterUsage    `json:"sample"`
+
+	// Subtotal Cost in dollars across all four meters
+	Subtotal        LoopsBaseModelItem_Subtotal `json:"subtotal"`
+	Train           LoopsMeterUsage             `json:"train"`
+	UncachedPrefill LoopsMeterUsage             `json:"uncached_prefill"`
+}
+
+// LoopsBaseModelItemSubtotal0 defines model for .
+type LoopsBaseModelItemSubtotal0 = float32
+
+// LoopsBaseModelItemSubtotal1 defines model for .
+type LoopsBaseModelItemSubtotal1 = string
+
+// LoopsBaseModelItem_Subtotal Cost in dollars across all four meters
+type LoopsBaseModelItem_Subtotal struct {
+	union json.RawMessage
+}
 
 // LoopsCheckpoint A checkpoint saved by a Loops run.
 type LoopsCheckpoint struct {
@@ -6833,6 +7040,52 @@ type LoopsLoRAConfig struct {
 // LoopsLoRAConfigExpertLayout How routed-expert LoRA weights are laid out. Null when no experts are targeted.
 type LoopsLoRAConfigExpertLayout string
 
+// LoopsMeterUsage defines model for LoopsMeterUsage.
+type LoopsMeterUsage struct {
+	// Subtotal Cost of those tokens in dollars
+	Subtotal LoopsMeterUsage_Subtotal `json:"subtotal"`
+
+	// Tokens Tokens billed on this meter
+	Tokens int `json:"tokens"`
+}
+
+// LoopsMeterUsageSubtotal0 defines model for .
+type LoopsMeterUsageSubtotal0 = float32
+
+// LoopsMeterUsageSubtotal1 defines model for .
+type LoopsMeterUsageSubtotal1 = string
+
+// LoopsMeterUsage_Subtotal Cost of those tokens in dollars
+type LoopsMeterUsage_Subtotal struct {
+	union json.RawMessage
+}
+
+// LoopsResourceItem defines model for LoopsResourceItem.
+type LoopsResourceItem struct {
+	BillableResource BillableResource `json:"billable_resource"`
+	CachedPrefill    LoopsMeterUsage  `json:"cached_prefill"`
+
+	// Daily Daily usage breakdown
+	Daily  *[]DailyLoopsUsage `json:"daily,omitempty"`
+	Sample LoopsMeterUsage    `json:"sample"`
+
+	// Subtotal Cost in dollars across all four meters
+	Subtotal        LoopsResourceItem_Subtotal `json:"subtotal"`
+	Train           LoopsMeterUsage            `json:"train"`
+	UncachedPrefill LoopsMeterUsage            `json:"uncached_prefill"`
+}
+
+// LoopsResourceItemSubtotal0 defines model for .
+type LoopsResourceItemSubtotal0 = float32
+
+// LoopsResourceItemSubtotal1 defines model for .
+type LoopsResourceItemSubtotal1 = string
+
+// LoopsResourceItem_Subtotal Cost in dollars across all four meters
+type LoopsResourceItem_Subtotal struct {
+	union json.RawMessage
+}
+
 // LoopsRun defines model for LoopsRun.
 type LoopsRun struct {
 	// BaseCheckpoint The custom base checkpoint the run started from, pinned to a commit (hf://<org>/<repo>@<sha>). Null when it uses the base model's own weights.
@@ -6925,6 +7178,54 @@ type LoopsSamplerStatus struct {
 // LoopsSession defines model for LoopsSession.
 type LoopsSession struct {
 	Id string `json:"id"`
+}
+
+// LoopsUsage defines model for LoopsUsage.
+type LoopsUsage struct {
+	// Breakdown Per-base-model usage breakdown
+	Breakdown *[]LoopsBaseModelItem `json:"breakdown,omitempty"`
+
+	// CreditsUsed Credits applied in dollars
+	CreditsUsed LoopsUsage_CreditsUsed `json:"credits_used"`
+
+	// Subtotal Cost in dollars before credits
+	Subtotal LoopsUsage_Subtotal `json:"subtotal"`
+
+	// Total Total cost in dollars
+	Total LoopsUsage_Total `json:"total"`
+}
+
+// LoopsUsageCreditsUsed0 defines model for .
+type LoopsUsageCreditsUsed0 = float32
+
+// LoopsUsageCreditsUsed1 defines model for .
+type LoopsUsageCreditsUsed1 = string
+
+// LoopsUsage_CreditsUsed Credits applied in dollars
+type LoopsUsage_CreditsUsed struct {
+	union json.RawMessage
+}
+
+// LoopsUsageSubtotal0 defines model for .
+type LoopsUsageSubtotal0 = float32
+
+// LoopsUsageSubtotal1 defines model for .
+type LoopsUsageSubtotal1 = string
+
+// LoopsUsage_Subtotal Cost in dollars before credits
+type LoopsUsage_Subtotal struct {
+	union json.RawMessage
+}
+
+// LoopsUsageTotal0 defines model for .
+type LoopsUsageTotal0 = float32
+
+// LoopsUsageTotal1 defines model for .
+type LoopsUsageTotal1 = string
+
+// LoopsUsage_Total Total cost in dollars
+type LoopsUsage_Total struct {
+	union json.RawMessage
 }
 
 // LoopsUseCase What the caller intends to run.
@@ -8506,8 +8807,14 @@ type SandboxVolumeStatus string
 
 // SearchTrainingJobsRequest A request to search training jobs.
 type SearchTrainingJobsRequest struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `json:"cursor,omitempty"`
+
 	// JobId Filter the training jobs by job ID.
 	JobId *string `json:"job_id,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `json:"limit,omitempty"`
 
 	// OrderBy Order the training jobs by a field. Currently supports created_at
 	OrderBy *[]OrderBy `json:"order_by,omitempty"`
@@ -8521,6 +8828,8 @@ type SearchTrainingJobsRequest struct {
 
 // SearchTrainingJobsResponse A response to search training jobs.
 type SearchTrainingJobsResponse struct {
+	Pagination PaginationResponse `json:"pagination"`
+
 	// TrainingJobs List of training jobs.
 	TrainingJobs []TrainingJob `json:"training_jobs"`
 }
@@ -9524,6 +9833,12 @@ type UpdateGridHarnessDefaults struct {
 	Pi Optional[UpdateGridPrimaryHarnessModels] `json:"pi,omitzero"`
 }
 
+// UpdateGridMachineUserRequest defines model for UpdateGridMachineUserRequest.
+type UpdateGridMachineUserRequest struct {
+	// Name Name of the machine user, unique within its team. At most 255 characters. Omit to keep it.
+	Name *string `json:"name,omitempty"`
+}
+
 // UpdateGridPrimaryHarnessModels defines model for UpdateGridPrimaryHarnessModels.
 type UpdateGridPrimaryHarnessModels struct {
 	// Primary Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.
@@ -9784,6 +10099,18 @@ type UpdateTrainingJobResponse struct {
 	TrainingJob TrainingJob `json:"training_job"`
 }
 
+// UpsertGridConnectionBedrockAccessKeysAuth defines model for UpsertGridConnectionBedrockAccessKeysAuth.
+type UpsertGridConnectionBedrockAccessKeysAuth struct {
+	// Method The secret holds the access keys of an IAM user, as the base64-encoded JSON object `{"AccessKeyId": "...", "SecretAccessKey": "..."}`
+	Method string `json:"method"`
+}
+
+// UpsertGridConnectionBedrockApiKeyAuth defines model for UpsertGridConnectionBedrockApiKeyAuth.
+type UpsertGridConnectionBedrockApiKeyAuth struct {
+	// Method The secret holds a long-term Amazon Bedrock API key.
+	Method string `json:"method"`
+}
+
 // UpsertGridConnectionConfigAnthropic defines model for UpsertGridConnectionConfigAnthropic.
 type UpsertGridConnectionConfigAnthropic struct {
 	// Provider Provider kind for Anthropic.
@@ -9793,9 +10120,44 @@ type UpsertGridConnectionConfigAnthropic struct {
 	SecretName string `json:"secret_name"`
 }
 
+// UpsertGridConnectionConfigBedrock defines model for UpsertGridConnectionConfigBedrock.
+type UpsertGridConnectionConfigBedrock struct {
+	// Auth How the connection's secret authenticates with Amazon Bedrock.
+	Auth UpsertGridConnectionConfigBedrock_Auth `json:"auth"`
+
+	// Provider Provider kind for Amazon Bedrock. Claude models (`anthropic.*`) use the Anthropic Messages API, and other models use the OpenAI-compatible APIs.
+	Provider string `json:"provider"`
+
+	// Region AWS Region of the Amazon Bedrock endpoint, for example `us-east-1`.
+	Region string `json:"region"`
+
+	// SecretName Name of an existing secret, owned by the same team, that holds the provider API key.
+	SecretName string `json:"secret_name"`
+}
+
+// UpsertGridConnectionConfigBedrock_Auth How the connection's secret authenticates with Amazon Bedrock.
+type UpsertGridConnectionConfigBedrock_Auth struct {
+	union json.RawMessage
+}
+
 // UpsertGridConnectionConfigOpenAI defines model for UpsertGridConnectionConfigOpenAI.
 type UpsertGridConnectionConfigOpenAI struct {
 	// Provider Provider kind for OpenAI.
+	Provider string `json:"provider"`
+
+	// SecretName Name of an existing secret, owned by the same team, that holds the provider API key.
+	SecretName string `json:"secret_name"`
+}
+
+// UpsertGridConnectionConfigVertex defines model for UpsertGridConnectionConfigVertex.
+type UpsertGridConnectionConfigVertex struct {
+	// Location Google Cloud region that serves the Vertex AI models, for example `us-central1`.
+	Location string `json:"location"`
+
+	// ProjectId Google Cloud project ID or number of a project with Vertex AI enabled.
+	ProjectId string `json:"project_id"`
+
+	// Provider Provider kind for Google Vertex.
 	Provider string `json:"provider"`
 
 	// SecretName Name of an existing secret, owned by the same team, that holds the provider API key.
@@ -9891,6 +10253,9 @@ type UsageLimitUnit string
 type UsageSummary struct {
 	// DedicatedUsage Dedicated model serving usage
 	DedicatedUsage *DedicatedUsage `json:"dedicated_usage,omitempty"`
+
+	// LoopsUsage Serverless Loops usage, billed per token. Loops usage on dedicated trainers and samplers is billed by the minute and is part of training usage.
+	LoopsUsage *LoopsUsage `json:"loops_usage,omitempty"`
 
 	// ModelApisUsage Model APIs usage
 	ModelApisUsage *ModelApisUsage `json:"model_apis_usage,omitempty"`
@@ -10604,6 +10969,18 @@ type GetV1GridConnectionsParams struct {
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// TeamId Limit connections to this team. Without it, connections from every team where you can invoke routes.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// GetV1GridMachineUsersParams defines parameters for GetV1GridMachineUsers.
+type GetV1GridMachineUsersParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// TeamId Limit machine users to this team. Without it, every team you administer.
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
@@ -11372,6 +11749,18 @@ type GetV1TeamsTeamIdModelsParams struct {
 	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
+// GetV1TrainingProjectsParams defines parameters for GetV1TrainingProjects.
+type GetV1TrainingProjectsParams struct {
+	// Name Return only the project with this exact name.
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+
+	// Cursor Opaque cursor from the pagination.cursor field of a previous response. Omit both cursor and limit to get every project in one response.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of projects to return, up to 1000.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams defines parameters for GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFiles.
 type GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams struct {
 	// PageSize Max files per page (default 1000).
@@ -11506,6 +11895,15 @@ type PostV1GridConnectionsJSONRequestBody = CreateGridConnectionRequest
 
 // PatchV1GridConnectionsConnectionIdJSONRequestBody defines body for PatchV1GridConnectionsConnectionId for application/json ContentType.
 type PatchV1GridConnectionsConnectionIdJSONRequestBody = UpdateGridConnectionRequest
+
+// PostV1GridMachineUsersJSONRequestBody defines body for PostV1GridMachineUsers for application/json ContentType.
+type PostV1GridMachineUsersJSONRequestBody = CreateGridMachineUserRequest
+
+// PatchV1GridMachineUsersMachineUserIdJSONRequestBody defines body for PatchV1GridMachineUsersMachineUserId for application/json ContentType.
+type PatchV1GridMachineUsersMachineUserIdJSONRequestBody = UpdateGridMachineUserRequest
+
+// PostV1GridMachineUsersMachineUserIdApiKeysJSONRequestBody defines body for PostV1GridMachineUsersMachineUserIdApiKeys for application/json ContentType.
+type PostV1GridMachineUsersMachineUserIdApiKeysJSONRequestBody = CreateGridMachineUserAPIKeyRequest
 
 // PostV1GridRoutesJSONRequestBody defines body for PostV1GridRoutes for application/json ContentType.
 type PostV1GridRoutesJSONRequestBody = CreateGridRouteRequest
@@ -12889,6 +13287,36 @@ func (t *CreateGridConnectionRequest_Config) FromUpsertGridConnectionConfigXAI(v
 	return err
 }
 
+// AsUpsertGridConnectionConfigVertex returns the union data inside the CreateGridConnectionRequest_Config as a UpsertGridConnectionConfigVertex
+func (t CreateGridConnectionRequest_Config) AsUpsertGridConnectionConfigVertex() (UpsertGridConnectionConfigVertex, error) {
+	var body UpsertGridConnectionConfigVertex
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromUpsertGridConnectionConfigVertex overwrites any union data inside the CreateGridConnectionRequest_Config as the provided UpsertGridConnectionConfigVertex
+func (t *CreateGridConnectionRequest_Config) FromUpsertGridConnectionConfigVertex(v UpsertGridConnectionConfigVertex) error {
+	v.Provider = "VERTEX"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsUpsertGridConnectionConfigBedrock returns the union data inside the CreateGridConnectionRequest_Config as a UpsertGridConnectionConfigBedrock
+func (t CreateGridConnectionRequest_Config) AsUpsertGridConnectionConfigBedrock() (UpsertGridConnectionConfigBedrock, error) {
+	var body UpsertGridConnectionConfigBedrock
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromUpsertGridConnectionConfigBedrock overwrites any union data inside the CreateGridConnectionRequest_Config as the provided UpsertGridConnectionConfigBedrock
+func (t *CreateGridConnectionRequest_Config) FromUpsertGridConnectionConfigBedrock(v UpsertGridConnectionConfigBedrock) error {
+	v.Provider = "BEDROCK"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t CreateGridConnectionRequest_Config) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"provider"`
@@ -12905,8 +13333,12 @@ func (t CreateGridConnectionRequest_Config) ValueByDiscriminator() (interface{},
 	switch discriminator {
 	case "ANTHROPIC":
 		return t.AsUpsertGridConnectionConfigAnthropic()
+	case "BEDROCK":
+		return t.AsUpsertGridConnectionConfigBedrock()
 	case "OPENAI":
 		return t.AsUpsertGridConnectionConfigOpenAI()
+	case "VERTEX":
+		return t.AsUpsertGridConnectionConfigVertex()
 	case "XAI":
 		return t.AsUpsertGridConnectionConfigXAI()
 	default:
@@ -13454,6 +13886,44 @@ func (t *DailyDedicatedUsage_SurchargeCost) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// AsDailyLoopsUsageSubtotal0 returns the union data inside the DailyLoopsUsage_Subtotal as a DailyLoopsUsageSubtotal0
+func (t DailyLoopsUsage_Subtotal) AsDailyLoopsUsageSubtotal0() (DailyLoopsUsageSubtotal0, error) {
+	var body DailyLoopsUsageSubtotal0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDailyLoopsUsageSubtotal0 overwrites any union data inside the DailyLoopsUsage_Subtotal as the provided DailyLoopsUsageSubtotal0
+func (t *DailyLoopsUsage_Subtotal) FromDailyLoopsUsageSubtotal0(v DailyLoopsUsageSubtotal0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsDailyLoopsUsageSubtotal1 returns the union data inside the DailyLoopsUsage_Subtotal as a DailyLoopsUsageSubtotal1
+func (t DailyLoopsUsage_Subtotal) AsDailyLoopsUsageSubtotal1() (DailyLoopsUsageSubtotal1, error) {
+	var body DailyLoopsUsageSubtotal1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDailyLoopsUsageSubtotal1 overwrites any union data inside the DailyLoopsUsage_Subtotal as the provided DailyLoopsUsageSubtotal1
+func (t *DailyLoopsUsage_Subtotal) FromDailyLoopsUsageSubtotal1(v DailyLoopsUsageSubtotal1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t DailyLoopsUsage_Subtotal) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *DailyLoopsUsage_Subtotal) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // AsDailyModelApiUsageSubtotal0 returns the union data inside the DailyModelApiUsage_Subtotal as a DailyModelApiUsageSubtotal0
 func (t DailyModelApiUsage_Subtotal) AsDailyModelApiUsageSubtotal0() (DailyModelApiUsageSubtotal0, error) {
 	var body DailyModelApiUsageSubtotal0
@@ -13865,6 +14335,36 @@ func (t *GridConnection_Config) FromGridConnectionConfigXAI(v GridConnectionConf
 	return err
 }
 
+// AsGridConnectionConfigVertex returns the union data inside the GridConnection_Config as a GridConnectionConfigVertex
+func (t GridConnection_Config) AsGridConnectionConfigVertex() (GridConnectionConfigVertex, error) {
+	var body GridConnectionConfigVertex
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGridConnectionConfigVertex overwrites any union data inside the GridConnection_Config as the provided GridConnectionConfigVertex
+func (t *GridConnection_Config) FromGridConnectionConfigVertex(v GridConnectionConfigVertex) error {
+	v.Provider = "VERTEX"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsGridConnectionConfigBedrock returns the union data inside the GridConnection_Config as a GridConnectionConfigBedrock
+func (t GridConnection_Config) AsGridConnectionConfigBedrock() (GridConnectionConfigBedrock, error) {
+	var body GridConnectionConfigBedrock
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGridConnectionConfigBedrock overwrites any union data inside the GridConnection_Config as the provided GridConnectionConfigBedrock
+func (t *GridConnection_Config) FromGridConnectionConfigBedrock(v GridConnectionConfigBedrock) error {
+	v.Provider = "BEDROCK"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t GridConnection_Config) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"provider"`
@@ -13881,8 +14381,12 @@ func (t GridConnection_Config) ValueByDiscriminator() (interface{}, error) {
 	switch discriminator {
 	case "ANTHROPIC":
 		return t.AsGridConnectionConfigAnthropic()
+	case "BEDROCK":
+		return t.AsGridConnectionConfigBedrock()
 	case "OPENAI":
 		return t.AsGridConnectionConfigOpenAI()
+	case "VERTEX":
+		return t.AsGridConnectionConfigVertex()
 	case "XAI":
 		return t.AsGridConnectionConfigXAI()
 	default:
@@ -13896,6 +14400,69 @@ func (t GridConnection_Config) MarshalJSON() ([]byte, error) {
 }
 
 func (t *GridConnection_Config) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsGridConnectionBedrockApiKeyAuth returns the union data inside the GridConnectionConfigBedrock_Auth as a GridConnectionBedrockApiKeyAuth
+func (t GridConnectionConfigBedrock_Auth) AsGridConnectionBedrockApiKeyAuth() (GridConnectionBedrockApiKeyAuth, error) {
+	var body GridConnectionBedrockApiKeyAuth
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGridConnectionBedrockApiKeyAuth overwrites any union data inside the GridConnectionConfigBedrock_Auth as the provided GridConnectionBedrockApiKeyAuth
+func (t *GridConnectionConfigBedrock_Auth) FromGridConnectionBedrockApiKeyAuth(v GridConnectionBedrockApiKeyAuth) error {
+	v.Method = "api_key"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsGridConnectionBedrockAccessKeysAuth returns the union data inside the GridConnectionConfigBedrock_Auth as a GridConnectionBedrockAccessKeysAuth
+func (t GridConnectionConfigBedrock_Auth) AsGridConnectionBedrockAccessKeysAuth() (GridConnectionBedrockAccessKeysAuth, error) {
+	var body GridConnectionBedrockAccessKeysAuth
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGridConnectionBedrockAccessKeysAuth overwrites any union data inside the GridConnectionConfigBedrock_Auth as the provided GridConnectionBedrockAccessKeysAuth
+func (t *GridConnectionConfigBedrock_Auth) FromGridConnectionBedrockAccessKeysAuth(v GridConnectionBedrockAccessKeysAuth) error {
+	v.Method = "access_keys"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t GridConnectionConfigBedrock_Auth) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"method"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t GridConnectionConfigBedrock_Auth) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "access_keys":
+		return t.AsGridConnectionBedrockAccessKeysAuth()
+	case "api_key":
+		return t.AsGridConnectionBedrockApiKeyAuth()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t GridConnectionConfigBedrock_Auth) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *GridConnectionConfigBedrock_Auth) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -14063,6 +14630,44 @@ func (t *LoadCheckpointConfig_Checkpoints_Item) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// AsLoopsBaseModelItemSubtotal0 returns the union data inside the LoopsBaseModelItem_Subtotal as a LoopsBaseModelItemSubtotal0
+func (t LoopsBaseModelItem_Subtotal) AsLoopsBaseModelItemSubtotal0() (LoopsBaseModelItemSubtotal0, error) {
+	var body LoopsBaseModelItemSubtotal0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsBaseModelItemSubtotal0 overwrites any union data inside the LoopsBaseModelItem_Subtotal as the provided LoopsBaseModelItemSubtotal0
+func (t *LoopsBaseModelItem_Subtotal) FromLoopsBaseModelItemSubtotal0(v LoopsBaseModelItemSubtotal0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsLoopsBaseModelItemSubtotal1 returns the union data inside the LoopsBaseModelItem_Subtotal as a LoopsBaseModelItemSubtotal1
+func (t LoopsBaseModelItem_Subtotal) AsLoopsBaseModelItemSubtotal1() (LoopsBaseModelItemSubtotal1, error) {
+	var body LoopsBaseModelItemSubtotal1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsBaseModelItemSubtotal1 overwrites any union data inside the LoopsBaseModelItem_Subtotal as the provided LoopsBaseModelItemSubtotal1
+func (t *LoopsBaseModelItem_Subtotal) FromLoopsBaseModelItemSubtotal1(v LoopsBaseModelItemSubtotal1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t LoopsBaseModelItem_Subtotal) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *LoopsBaseModelItem_Subtotal) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // AsLoopsCheckpointS3Source returns the union data inside the LoopsCheckpointSourceResponse_Source as a LoopsCheckpointS3Source
 func (t LoopsCheckpointSourceResponse_Source) AsLoopsCheckpointS3Source() (LoopsCheckpointS3Source, error) {
 	var body LoopsCheckpointS3Source
@@ -14124,6 +14729,196 @@ func (t LoopsCheckpointSourceResponse_Source) MarshalJSON() ([]byte, error) {
 }
 
 func (t *LoopsCheckpointSourceResponse_Source) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsLoopsMeterUsageSubtotal0 returns the union data inside the LoopsMeterUsage_Subtotal as a LoopsMeterUsageSubtotal0
+func (t LoopsMeterUsage_Subtotal) AsLoopsMeterUsageSubtotal0() (LoopsMeterUsageSubtotal0, error) {
+	var body LoopsMeterUsageSubtotal0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsMeterUsageSubtotal0 overwrites any union data inside the LoopsMeterUsage_Subtotal as the provided LoopsMeterUsageSubtotal0
+func (t *LoopsMeterUsage_Subtotal) FromLoopsMeterUsageSubtotal0(v LoopsMeterUsageSubtotal0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsLoopsMeterUsageSubtotal1 returns the union data inside the LoopsMeterUsage_Subtotal as a LoopsMeterUsageSubtotal1
+func (t LoopsMeterUsage_Subtotal) AsLoopsMeterUsageSubtotal1() (LoopsMeterUsageSubtotal1, error) {
+	var body LoopsMeterUsageSubtotal1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsMeterUsageSubtotal1 overwrites any union data inside the LoopsMeterUsage_Subtotal as the provided LoopsMeterUsageSubtotal1
+func (t *LoopsMeterUsage_Subtotal) FromLoopsMeterUsageSubtotal1(v LoopsMeterUsageSubtotal1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t LoopsMeterUsage_Subtotal) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *LoopsMeterUsage_Subtotal) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsLoopsResourceItemSubtotal0 returns the union data inside the LoopsResourceItem_Subtotal as a LoopsResourceItemSubtotal0
+func (t LoopsResourceItem_Subtotal) AsLoopsResourceItemSubtotal0() (LoopsResourceItemSubtotal0, error) {
+	var body LoopsResourceItemSubtotal0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsResourceItemSubtotal0 overwrites any union data inside the LoopsResourceItem_Subtotal as the provided LoopsResourceItemSubtotal0
+func (t *LoopsResourceItem_Subtotal) FromLoopsResourceItemSubtotal0(v LoopsResourceItemSubtotal0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsLoopsResourceItemSubtotal1 returns the union data inside the LoopsResourceItem_Subtotal as a LoopsResourceItemSubtotal1
+func (t LoopsResourceItem_Subtotal) AsLoopsResourceItemSubtotal1() (LoopsResourceItemSubtotal1, error) {
+	var body LoopsResourceItemSubtotal1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsResourceItemSubtotal1 overwrites any union data inside the LoopsResourceItem_Subtotal as the provided LoopsResourceItemSubtotal1
+func (t *LoopsResourceItem_Subtotal) FromLoopsResourceItemSubtotal1(v LoopsResourceItemSubtotal1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t LoopsResourceItem_Subtotal) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *LoopsResourceItem_Subtotal) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsLoopsUsageCreditsUsed0 returns the union data inside the LoopsUsage_CreditsUsed as a LoopsUsageCreditsUsed0
+func (t LoopsUsage_CreditsUsed) AsLoopsUsageCreditsUsed0() (LoopsUsageCreditsUsed0, error) {
+	var body LoopsUsageCreditsUsed0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsUsageCreditsUsed0 overwrites any union data inside the LoopsUsage_CreditsUsed as the provided LoopsUsageCreditsUsed0
+func (t *LoopsUsage_CreditsUsed) FromLoopsUsageCreditsUsed0(v LoopsUsageCreditsUsed0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsLoopsUsageCreditsUsed1 returns the union data inside the LoopsUsage_CreditsUsed as a LoopsUsageCreditsUsed1
+func (t LoopsUsage_CreditsUsed) AsLoopsUsageCreditsUsed1() (LoopsUsageCreditsUsed1, error) {
+	var body LoopsUsageCreditsUsed1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsUsageCreditsUsed1 overwrites any union data inside the LoopsUsage_CreditsUsed as the provided LoopsUsageCreditsUsed1
+func (t *LoopsUsage_CreditsUsed) FromLoopsUsageCreditsUsed1(v LoopsUsageCreditsUsed1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t LoopsUsage_CreditsUsed) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *LoopsUsage_CreditsUsed) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsLoopsUsageSubtotal0 returns the union data inside the LoopsUsage_Subtotal as a LoopsUsageSubtotal0
+func (t LoopsUsage_Subtotal) AsLoopsUsageSubtotal0() (LoopsUsageSubtotal0, error) {
+	var body LoopsUsageSubtotal0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsUsageSubtotal0 overwrites any union data inside the LoopsUsage_Subtotal as the provided LoopsUsageSubtotal0
+func (t *LoopsUsage_Subtotal) FromLoopsUsageSubtotal0(v LoopsUsageSubtotal0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsLoopsUsageSubtotal1 returns the union data inside the LoopsUsage_Subtotal as a LoopsUsageSubtotal1
+func (t LoopsUsage_Subtotal) AsLoopsUsageSubtotal1() (LoopsUsageSubtotal1, error) {
+	var body LoopsUsageSubtotal1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsUsageSubtotal1 overwrites any union data inside the LoopsUsage_Subtotal as the provided LoopsUsageSubtotal1
+func (t *LoopsUsage_Subtotal) FromLoopsUsageSubtotal1(v LoopsUsageSubtotal1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t LoopsUsage_Subtotal) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *LoopsUsage_Subtotal) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsLoopsUsageTotal0 returns the union data inside the LoopsUsage_Total as a LoopsUsageTotal0
+func (t LoopsUsage_Total) AsLoopsUsageTotal0() (LoopsUsageTotal0, error) {
+	var body LoopsUsageTotal0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsUsageTotal0 overwrites any union data inside the LoopsUsage_Total as the provided LoopsUsageTotal0
+func (t *LoopsUsage_Total) FromLoopsUsageTotal0(v LoopsUsageTotal0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsLoopsUsageTotal1 returns the union data inside the LoopsUsage_Total as a LoopsUsageTotal1
+func (t LoopsUsage_Total) AsLoopsUsageTotal1() (LoopsUsageTotal1, error) {
+	var body LoopsUsageTotal1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsUsageTotal1 overwrites any union data inside the LoopsUsage_Total as the provided LoopsUsageTotal1
+func (t *LoopsUsage_Total) FromLoopsUsageTotal1(v LoopsUsageTotal1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t LoopsUsage_Total) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *LoopsUsage_Total) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -14771,6 +15566,36 @@ func (t *UpdateGridConnectionRequest_Config) FromUpsertGridConnectionConfigXAI(v
 	return err
 }
 
+// AsUpsertGridConnectionConfigVertex returns the union data inside the UpdateGridConnectionRequest_Config as a UpsertGridConnectionConfigVertex
+func (t UpdateGridConnectionRequest_Config) AsUpsertGridConnectionConfigVertex() (UpsertGridConnectionConfigVertex, error) {
+	var body UpsertGridConnectionConfigVertex
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromUpsertGridConnectionConfigVertex overwrites any union data inside the UpdateGridConnectionRequest_Config as the provided UpsertGridConnectionConfigVertex
+func (t *UpdateGridConnectionRequest_Config) FromUpsertGridConnectionConfigVertex(v UpsertGridConnectionConfigVertex) error {
+	v.Provider = "VERTEX"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsUpsertGridConnectionConfigBedrock returns the union data inside the UpdateGridConnectionRequest_Config as a UpsertGridConnectionConfigBedrock
+func (t UpdateGridConnectionRequest_Config) AsUpsertGridConnectionConfigBedrock() (UpsertGridConnectionConfigBedrock, error) {
+	var body UpsertGridConnectionConfigBedrock
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromUpsertGridConnectionConfigBedrock overwrites any union data inside the UpdateGridConnectionRequest_Config as the provided UpsertGridConnectionConfigBedrock
+func (t *UpdateGridConnectionRequest_Config) FromUpsertGridConnectionConfigBedrock(v UpsertGridConnectionConfigBedrock) error {
+	v.Provider = "BEDROCK"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t UpdateGridConnectionRequest_Config) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"provider"`
@@ -14787,8 +15612,12 @@ func (t UpdateGridConnectionRequest_Config) ValueByDiscriminator() (interface{},
 	switch discriminator {
 	case "ANTHROPIC":
 		return t.AsUpsertGridConnectionConfigAnthropic()
+	case "BEDROCK":
+		return t.AsUpsertGridConnectionConfigBedrock()
 	case "OPENAI":
 		return t.AsUpsertGridConnectionConfigOpenAI()
+	case "VERTEX":
+		return t.AsUpsertGridConnectionConfigVertex()
 	case "XAI":
 		return t.AsUpsertGridConnectionConfigXAI()
 	default:
@@ -14920,6 +15749,69 @@ func (t UpdateSandboxVolumeRequest_Size) MarshalJSON() ([]byte, error) {
 }
 
 func (t *UpdateSandboxVolumeRequest_Size) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsUpsertGridConnectionBedrockApiKeyAuth returns the union data inside the UpsertGridConnectionConfigBedrock_Auth as a UpsertGridConnectionBedrockApiKeyAuth
+func (t UpsertGridConnectionConfigBedrock_Auth) AsUpsertGridConnectionBedrockApiKeyAuth() (UpsertGridConnectionBedrockApiKeyAuth, error) {
+	var body UpsertGridConnectionBedrockApiKeyAuth
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromUpsertGridConnectionBedrockApiKeyAuth overwrites any union data inside the UpsertGridConnectionConfigBedrock_Auth as the provided UpsertGridConnectionBedrockApiKeyAuth
+func (t *UpsertGridConnectionConfigBedrock_Auth) FromUpsertGridConnectionBedrockApiKeyAuth(v UpsertGridConnectionBedrockApiKeyAuth) error {
+	v.Method = "api_key"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsUpsertGridConnectionBedrockAccessKeysAuth returns the union data inside the UpsertGridConnectionConfigBedrock_Auth as a UpsertGridConnectionBedrockAccessKeysAuth
+func (t UpsertGridConnectionConfigBedrock_Auth) AsUpsertGridConnectionBedrockAccessKeysAuth() (UpsertGridConnectionBedrockAccessKeysAuth, error) {
+	var body UpsertGridConnectionBedrockAccessKeysAuth
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromUpsertGridConnectionBedrockAccessKeysAuth overwrites any union data inside the UpsertGridConnectionConfigBedrock_Auth as the provided UpsertGridConnectionBedrockAccessKeysAuth
+func (t *UpsertGridConnectionConfigBedrock_Auth) FromUpsertGridConnectionBedrockAccessKeysAuth(v UpsertGridConnectionBedrockAccessKeysAuth) error {
+	v.Method = "access_keys"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t UpsertGridConnectionConfigBedrock_Auth) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"method"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t UpsertGridConnectionConfigBedrock_Auth) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "access_keys":
+		return t.AsUpsertGridConnectionBedrockAccessKeysAuth()
+	case "api_key":
+		return t.AsUpsertGridConnectionBedrockApiKeyAuth()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t UpsertGridConnectionConfigBedrock_Auth) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *UpsertGridConnectionConfigBedrock_Auth) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

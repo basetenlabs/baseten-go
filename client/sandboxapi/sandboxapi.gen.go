@@ -239,6 +239,20 @@ type ContentSearchResponse struct {
 	Total   int                  `json:"total"`
 }
 
+// CopyRequest defines model for CopyRequest.
+type CopyRequest struct {
+	Destination string `json:"destination"`
+	NoOverwrite *bool  `json:"noOverwrite,omitempty"`
+	Source      string `json:"source"`
+}
+
+// CopyResponse defines model for CopyResponse.
+type CopyResponse struct {
+	Destination string `json:"destination"`
+	Message     string `json:"message"`
+	Source      string `json:"source"`
+}
+
 // DeleteNetworkProcessMonitorResponse defines model for DeleteNetworkProcessMonitorResponse.
 type DeleteNetworkProcessMonitorResponse map[string]interface{}
 
@@ -319,7 +333,8 @@ type DriveUnmountResponse struct {
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
-	Error string `json:"error"`
+	Code  *string `json:"code,omitempty"`
+	Error string  `json:"error"`
 }
 
 // ExportOptions defines model for ExportOptions.
@@ -928,6 +943,9 @@ type PutCodegenFastapplyPathJSONRequestBody = ApplyEditRequest
 
 // PostDrivesMountJSONRequestBody defines body for PostDrivesMount for application/json ContentType.
 type PostDrivesMountJSONRequestBody = DriveMountRequest
+
+// PostFilesystemCopyJSONRequestBody defines body for PostFilesystemCopy for application/json ContentType.
+type PostFilesystemCopyJSONRequestBody = CopyRequest
 
 // PostFilesystemMultipartInitiatePathJSONRequestBody defines body for PostFilesystemMultipartInitiatePath for application/json ContentType.
 type PostFilesystemMultipartInitiatePathJSONRequestBody = MultipartInitiateRequest
