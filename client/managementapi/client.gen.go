@@ -165,6 +165,28 @@ func (c *Client) DeleteGridConnections(ctx context.Context, connectionId string)
 	})
 }
 
+// DeleteGridMachineUsers: Deletes a machine user
+func (c *Client) DeleteGridMachineUsers(ctx context.Context, machineUserId string) (*GridMachineUserTombstone, error) {
+	return doJSON[GridMachineUserTombstone](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/grid/machine_users/%s",
+		pathArgs:     []any{machineUserId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// DeleteGridMachineUsersApiKeys: Revokes a machine user's API key
+func (c *Client) DeleteGridMachineUsersApiKeys(ctx context.Context, machineUserId string, apiKeyPrefix string) (*APIKeyTombstone, error) {
+	return doJSON[APIKeyTombstone](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/grid/machine_users/%s/api_keys/%s",
+		pathArgs:     []any{machineUserId, apiKeyPrefix},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // DeleteGridRoutes: Deletes a route
 func (c *Client) DeleteGridRoutes(ctx context.Context, routeId string) (*GridRouteTombstone, error) {
 	return doJSON[GridRouteTombstone](c, ctx, apiRequest{
@@ -708,6 +730,51 @@ func (c *Client) GetGridConnections(ctx context.Context, params GetV1GridConnect
 		pathFmt:      "/v1/grid/connections",
 		pathArgs:     nil,
 		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridConnectionsConnectionId: Gets a connection
+func (c *Client) GetGridConnectionsConnectionId(ctx context.Context, connectionId string) (*GridConnection, error) {
+	return doJSON[GridConnection](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/connections/%s",
+		pathArgs:     []any{connectionId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridMachineUsers: Lists machine users
+func (c *Client) GetGridMachineUsers(ctx context.Context, params GetV1GridMachineUsersParams) (*GridMachineUsersResponse, error) {
+	return doJSON[GridMachineUsersResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/machine_users",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridMachineUsersApiKeys: Lists a machine user's API keys
+func (c *Client) GetGridMachineUsersApiKeys(ctx context.Context, machineUserId string) (*APIKeys, error) {
+	return doJSON[APIKeys](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/machine_users/%s/api_keys",
+		pathArgs:     []any{machineUserId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridMachineUsersMachineUserId: Gets a machine user
+func (c *Client) GetGridMachineUsersMachineUserId(ctx context.Context, machineUserId string) (*GridMachineUser, error) {
+	return doJSON[GridMachineUser](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/machine_users/%s",
+		pathArgs:     []any{machineUserId},
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -1533,11 +1600,12 @@ func (c *Client) GetTrainingJobsQueueContext(ctx context.Context, trainingJobId 
 }
 
 // GetTrainingProjects: Lists training projects
-func (c *Client) GetTrainingProjects(ctx context.Context) (*ListTrainingProjectsResponse, error) {
+func (c *Client) GetTrainingProjects(ctx context.Context, params GetV1TrainingProjectsParams) (*ListTrainingProjectsResponse, error) {
 	return doJSON[ListTrainingProjectsResponse](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/training_projects",
 		pathArgs:     nil,
+		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -1926,6 +1994,18 @@ func (c *Client) PatchGridConnections(ctx context.Context, connectionId string, 
 	})
 }
 
+// PatchGridMachineUsers: Updates a machine user
+func (c *Client) PatchGridMachineUsers(ctx context.Context, machineUserId string, body UpdateGridMachineUserRequest) (*GridMachineUser, error) {
+	return doJSON[GridMachineUser](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/grid/machine_users/%s",
+		pathArgs:     []any{machineUserId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // PatchGridRoutes: Updates a route
 func (c *Client) PatchGridRoutes(ctx context.Context, routeId string, body UpdateGridRouteRequest) (*GridRoute, error) {
 	return doJSON[GridRoute](c, ctx, apiRequest{
@@ -2255,6 +2335,30 @@ func (c *Client) PostGridConnections(ctx context.Context, body CreateGridConnect
 		method:       "POST",
 		pathFmt:      "/v1/grid/connections",
 		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PostGridMachineUsers: Creates a machine user
+func (c *Client) PostGridMachineUsers(ctx context.Context, body CreateGridMachineUserRequest) (*CreatedGridMachineUser, error) {
+	return doJSON[CreatedGridMachineUser](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/grid/machine_users",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PostGridMachineUsersApiKeys: Creates an API key for a machine user
+func (c *Client) PostGridMachineUsersApiKeys(ctx context.Context, machineUserId string, body CreateGridMachineUserAPIKeyRequest) (*APIKey, error) {
+	return doJSON[APIKey](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/grid/machine_users/%s/api_keys",
+		pathArgs:     []any{machineUserId},
 		body:         body,
 		successCodes: []int{200},
 		errorCodes:   nil,

@@ -5967,10 +5967,68 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'name': None, 'cursor': None, 'limit': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists all training projects for the organization.",
+                "description": "Lists the organization's training projects, newest first.",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only the project with this exact name.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Name"
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor from the pagination.cursor field of a previous response. Omit both cursor and limit to get every project in one response.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of projects to return, up to 1000.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maximum": 1000,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Limit"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -6929,14 +6987,14 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_jobs/search \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"project_id\": \"n4q95w5\",\n  \"job_id\": \"p7qr9qv\",\n  \"statuses\": [\n    \"TRAINING_JOB_RUNNING\",\n    \"TRAINING_JOB_COMPLETED\"\n  ]\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_jobs/search \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"cursor\": null,\n  \"project_id\": \"n4q95w5\",\n  \"job_id\": \"p7qr9qv\",\n  \"statuses\": [\n    \"TRAINING_JOB_RUNNING\",\n    \"TRAINING_JOB_COMPLETED\"\n  ]\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_jobs/search\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'project_id': 'n4q95w5', 'job_id': 'p7qr9qv', 'statuses': ['TRAINING_JOB_RUNNING', 'TRAINING_JOB_COMPLETED']}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_jobs/search\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'cursor': None, 'project_id': 'n4q95w5', 'job_id': 'p7qr9qv', 'statuses': ['TRAINING_JOB_RUNNING', 'TRAINING_JOB_COMPLETED']}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Searches training jobs for the organization.",
+                "description": "Searches training jobs for the organization. Send the same filters with every page.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -9104,11 +9162,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"runtime\": null,\n  \"name\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"deployment_name\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"runtime\": null,\n  \"name\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'runtime': None, 'name': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'deployment_name': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'runtime': None, 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -9141,11 +9199,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"runtime\": null,\n  \"name\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"deployment_name\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"runtime\": null,\n  \"name\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'runtime': None, 'name': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'deployment_name': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'runtime': None, 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -9183,11 +9241,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models/{model_id}/deployments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"runtime\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models/{model_id}/deployments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"deployment_name\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"runtime\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models/{model_id}/deployments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'runtime': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models/{model_id}/deployments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'deployment_name': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'runtime': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -10789,7 +10847,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/team_settings/users\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': 'abc1234'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns each member's settings in each team, including organization admins and Grid service accounts, one row per team membership. With `team_id`, one team, which requires team admin for it or organization admin; without it, every team you administer.",
+                "description": "Returns each member's settings in each team, including organization admins and Grid service accounts, one row per team membership. With `team_id`, one team, which requires team admin for it or organization admin; without it, every team you administer, which is none for members.",
                 "parameters": [
                     {
                         "name": "cursor",
@@ -11105,6 +11163,32 @@
                     "$ref": "#/components/parameters/connection_id"
                 }
             ],
+            "get": {
+                "summary": "Gets a connection",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/connections/{connection_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/connections/{connection_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GridConnectionV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
             "patch": {
                 "summary": "Updates a connection",
                 "x-codeSamples": [
@@ -11235,6 +11319,329 @@
             "parameters": [
                 {
                     "$ref": "#/components/parameters/classifier_id"
+                }
+            ]
+        },
+        "/v1/grid/machine_users": {
+            "get": {
+                "summary": "Lists machine users",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/machine_users \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/machine_users\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists machine users, newest first: the team's with `team_id`, which requires team admin for it, else those of every team you administer.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "team_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Limit machine users to this team. Without it, every team you administer.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Team Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GridMachineUsersResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "post": {
+                "summary": "Creates a machine user",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/grid/machine_users \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"team_id\": \"abc1234\",\n  \"name\": \"night-shift\",\n  \"api_key\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/machine_users\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'team_id': 'abc1234', 'name': 'night-shift', 'api_key': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Creates a team-owned identity for an application, with its own Grid budget. Set `api_key` to also create its first API key, which the response returns only once. Set the machine user's spend limit with the user settings endpoint, using its `id` as the user ID. Requires team admin.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateGridMachineUserRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreatedGridMachineUserV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/grid/machine_users/{machine_user_id}": {
+            "delete": {
+                "summary": "Deletes a machine user",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/grid/machine_users/{machine_user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/machine_users/{machine_user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Revokes the machine user's API keys and deletes it. Its usage history remains. Requires team admin for the machine user's team.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GridMachineUserTombstoneV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/machine_user_id"
+                }
+            ],
+            "get": {
+                "summary": "Gets a machine user",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/machine_users/{machine_user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/machine_users/{machine_user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Requires team admin for the machine user's team.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GridMachineUserV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "patch": {
+                "summary": "Updates a machine user",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/grid/machine_users/{machine_user_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/machine_users/{machine_user_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'name': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Changes only the fields in the request. Requires team admin for the machine user's team.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateGridMachineUserRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GridMachineUserV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/grid/machine_users/{machine_user_id}/api_keys": {
+            "get": {
+                "summary": "Lists a machine user's API keys",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/machine_users/{machine_user_id}/api_keys \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/machine_users/{machine_user_id}/api_keys\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists the machine user's active API keys, newest first. Requires team admin for the machine user's team.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIKeysV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/machine_user_id"
+                }
+            ],
+            "post": {
+                "summary": "Creates an API key for a machine user",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/grid/machine_users/{machine_user_id}/api_keys \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"production\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/machine_users/{machine_user_id}/api_keys\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'production'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "The machine user's other API keys stay active. Requires team admin for the machine user's team.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateGridMachineUserAPIKeyRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIKeyV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/grid/machine_users/{machine_user_id}/api_keys/{api_key_prefix}": {
+            "delete": {
+                "summary": "Revokes a machine user's API key",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/grid/machine_users/{machine_user_id}/api_keys/{api_key_prefix} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/machine_users/{machine_user_id}/api_keys/{api_key_prefix}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "The machine user's other API keys stay active. Requires team admin for the machine user's team.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIKeyTombstoneV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/machine_user_id"
+                },
+                {
+                    "$ref": "#/components/parameters/api_key_prefix"
                 }
             ]
         },
@@ -16679,7 +17086,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Autoscaling settings for the new deployment. With `environment_name`, the new deployment starts from the environment's settings with these changes applied, and the environment keeps the result when the promotion completes. Without it, they apply to the new deployment only.",
+                        "description": "Autoscaling settings for the new deployment. The new deployment starts from the settings of the environment named by `environment_name` with these changes applied, and the environment keeps the result when the promotion completes. Requires `environment_name`.",
                         "examples": [
                             {
                                 "max_replica": 4,
@@ -16745,7 +17152,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Instance type for the new deployment, from `GET /v1/instance_types`, in place of the one in `config`. With `environment_name`, the environment takes it when the promotion completes. Without it, it applies to the new deployment only. Cannot be set with `preserve_env_instance_type: true`.",
+                        "description": "Instance type for the new deployment, from `GET /v1/instance_types`, in place of the one in `config`. The environment named by `environment_name` takes it when the promotion completes. Requires `environment_name`. Cannot be set with `preserve_env_instance_type: true`.",
                         "title": "Instance Type Id"
                     }
                 },
@@ -20182,6 +20589,68 @@
                             }
                         ],
                         "title": "Environment Name"
+                    },
+                    "region_update": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Region Update"
+                    },
+                    "instance_type_id_update": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Instance Type Id Update"
+                    },
+                    "promotion_settings_override": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventPromotionSettingsOverrideV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "autoscaling_settings_update": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventAutoscalingSettingsUpdateV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "request_backpressure_settings_update": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventRequestBackpressureSettingsUpdateV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "autoscaling_schedule_settings_update": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventAutoscalingScheduleOperationsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     }
                 },
                 "required": [
@@ -20193,7 +20662,13 @@
                     "scale_previous_to_zero",
                     "trusted",
                     "publish",
-                    "environment_name"
+                    "environment_name",
+                    "region_update",
+                    "instance_type_id_update",
+                    "promotion_settings_override",
+                    "autoscaling_settings_update",
+                    "request_backpressure_settings_update",
+                    "autoscaling_schedule_settings_update"
                 ],
                 "title": "AuditLogEventModelDeployedV1",
                 "type": "object"
@@ -27142,12 +27617,65 @@
                         },
                         "title": "Training Projects",
                         "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
                     }
                 },
                 "required": [
-                    "training_projects"
+                    "training_projects",
+                    "pagination"
                 ],
                 "title": "ListTrainingProjectsResponseV1",
+                "type": "object"
+            },
+            "ListTrainingProjectsRequestV1": {
+                "description": "A request to list training projects.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Return only the project with this exact name.",
+                        "title": "Name"
+                    },
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor from the pagination.cursor field of a previous response. Omit both cursor and limit to get every project in one response.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "anyOf": [
+                            {
+                                "maximum": 1000,
+                                "minimum": 1,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Maximum number of projects to return, up to 1000.",
+                        "title": "Limit"
+                    }
+                },
+                "title": "ListTrainingProjectsRequestV1",
                 "type": "object"
             },
             "ListTrainingJobsResponseV1": {
@@ -29612,6 +30140,27 @@
             "SearchTrainingJobsRequestV1": {
                 "description": "A request to search training jobs.",
                 "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 1000,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
                     "project_id": {
                         "anyOf": [
                             {
@@ -29694,10 +30243,15 @@
                         },
                         "title": "Training Jobs",
                         "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
                     }
                 },
                 "required": [
-                    "training_jobs"
+                    "training_jobs",
+                    "pagination"
                 ],
                 "title": "SearchTrainingJobsResponseV1",
                 "type": "object"
@@ -32516,7 +33070,6 @@
                 "description": "Enum representing the category of an API key.",
                 "enum": [
                     "PERSONAL",
-                    "ROUTES",
                     "GRID",
                     "WORKSPACE_MANAGE_ALL",
                     "WORKSPACE_EXPORT_METRICS",
@@ -32550,7 +33103,6 @@
                         "description": "Type of the API key.",
                         "examples": [
                             "PERSONAL",
-                            "ROUTES",
                             "GRID",
                             "WORKSPACE_MANAGE_API_KEYS",
                             "WORKSPACE_EXPORT_METRICS",
@@ -32578,6 +33130,23 @@
                             ]
                         ],
                         "title": "Model Ids"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Expiration time in UTC. Must be in the future. Personal keys require an expiration no more than 90 days away; other keys may omit it or use null.",
+                        "examples": [
+                            "2027-01-01T00:00:00Z"
+                        ],
+                        "title": "Expires At"
                     },
                     "team_id": {
                         "anyOf": [
@@ -32644,7 +33213,7 @@
                         "description": "Type of the API key.",
                         "examples": [
                             "PERSONAL",
-                            "ROUTES",
+                            "GRID",
                             "WORKSPACE_MANAGE_API_KEYS",
                             "WORKSPACE_EXPORT_METRICS",
                             "WORKSPACE_INVOKE",
@@ -32690,6 +33259,20 @@
                         "format": "date-time",
                         "title": "Created At",
                         "type": "string"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Expiry time in ISO 8601 format, or null if the key never expires.",
+                        "title": "Expires At"
                     },
                     "last_used_at": {
                         "anyOf": [
@@ -33481,6 +34064,19 @@
                         "title": "Resources",
                         "type": "object"
                     },
+                    "deployment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name of the deployment, unique within the model. Use only A-Z, a-z, 0-9, '-', '_', and '.'. The name 'development' is reserved. If omitted or empty, a name is generated automatically.",
+                        "title": "Deployment Name"
+                    },
                     "region": {
                         "anyOf": [
                             {
@@ -33711,6 +34307,19 @@
                         "description": "Resources allocated to the model",
                         "title": "Resources",
                         "type": "object"
+                    },
+                    "deployment_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name of the deployment, unique within the model. Use only A-Z, a-z, 0-9, '-', '_', and '.'. The name 'development' is reserved. If omitted or empty, a name is generated automatically.",
+                        "title": "Deployment Name"
                     },
                     "region": {
                         "anyOf": [
@@ -34951,7 +35560,7 @@
                     },
                     "kind": {
                         "$ref": "#/components/schemas/ResourceKind",
-                        "description": "Resource kind (MODEL_DEPLOYMENT, CHAINLET, TRAINING_JOB, LOOPS_TRAINER, or LOOPS_SAMPLER)"
+                        "description": "Resource kind (MODEL_DEPLOYMENT, CHAINLET, TRAINING_JOB, LOOPS_TRAINER, LOOPS_SAMPLER, or LOOPS_RUN)"
                     },
                     "name": {
                         "anyOf": [
@@ -35020,7 +35629,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Base model used by this Loops trainer or sampler",
+                        "description": "Base model used by this Loops run, trainer, or sampler",
                         "title": "Base Model"
                     },
                     "environment_name": {
@@ -35183,6 +35792,55 @@
                     "inference_requests"
                 ],
                 "title": "DailyDedicatedUsageV1",
+                "type": "object"
+            },
+            "DailyLoopsUsageV1": {
+                "properties": {
+                    "subtotal": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            }
+                        ],
+                        "description": "Cost in dollars across all four meters",
+                        "title": "Subtotal"
+                    },
+                    "uncached_prefill": {
+                        "$ref": "#/components/schemas/LoopsMeterUsageV1",
+                        "description": "Prompt tokens that missed the prefix cache"
+                    },
+                    "cached_prefill": {
+                        "$ref": "#/components/schemas/LoopsMeterUsageV1",
+                        "description": "Prompt tokens served from the prefix cache"
+                    },
+                    "sample": {
+                        "$ref": "#/components/schemas/LoopsMeterUsageV1",
+                        "description": "Tokens generated by sampling"
+                    },
+                    "train": {
+                        "$ref": "#/components/schemas/LoopsMeterUsageV1",
+                        "description": "Tokens processed by forward and forward-backward training calls"
+                    },
+                    "date": {
+                        "description": "Date of the usage",
+                        "format": "date",
+                        "title": "Date",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "subtotal",
+                    "uncached_prefill",
+                    "cached_prefill",
+                    "sample",
+                    "train",
+                    "date"
+                ],
+                "title": "DailyLoopsUsageV1",
                 "type": "object"
             },
             "DailyModelApiUsageV1": {
@@ -35406,6 +36064,211 @@
                 "title": "DedicatedUsageV1",
                 "type": "object"
             },
+            "LoopsBaseModelItemV1": {
+                "properties": {
+                    "subtotal": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            }
+                        ],
+                        "description": "Cost in dollars across all four meters",
+                        "title": "Subtotal"
+                    },
+                    "uncached_prefill": {
+                        "$ref": "#/components/schemas/LoopsMeterUsageV1",
+                        "description": "Prompt tokens that missed the prefix cache"
+                    },
+                    "cached_prefill": {
+                        "$ref": "#/components/schemas/LoopsMeterUsageV1",
+                        "description": "Prompt tokens served from the prefix cache"
+                    },
+                    "sample": {
+                        "$ref": "#/components/schemas/LoopsMeterUsageV1",
+                        "description": "Tokens generated by sampling"
+                    },
+                    "train": {
+                        "$ref": "#/components/schemas/LoopsMeterUsageV1",
+                        "description": "Tokens processed by forward and forward-backward training calls"
+                    },
+                    "base_model": {
+                        "description": "Base model the usage is priced by",
+                        "title": "Base Model",
+                        "type": "string"
+                    },
+                    "daily": {
+                        "description": "Daily usage breakdown",
+                        "items": {
+                            "$ref": "#/components/schemas/DailyLoopsUsageV1"
+                        },
+                        "title": "Daily",
+                        "type": "array"
+                    },
+                    "breakdown": {
+                        "description": "Usage per run and standalone sampler on this base model",
+                        "items": {
+                            "$ref": "#/components/schemas/LoopsResourceItemV1"
+                        },
+                        "title": "Breakdown",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "subtotal",
+                    "uncached_prefill",
+                    "cached_prefill",
+                    "sample",
+                    "train",
+                    "base_model"
+                ],
+                "title": "LoopsBaseModelItemV1",
+                "type": "object"
+            },
+            "LoopsMeterUsageV1": {
+                "properties": {
+                    "tokens": {
+                        "description": "Tokens billed on this meter",
+                        "title": "Tokens",
+                        "type": "integer"
+                    },
+                    "subtotal": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            }
+                        ],
+                        "description": "Cost of those tokens in dollars",
+                        "title": "Subtotal"
+                    }
+                },
+                "required": [
+                    "tokens",
+                    "subtotal"
+                ],
+                "title": "LoopsMeterUsageV1",
+                "type": "object"
+            },
+            "LoopsResourceItemV1": {
+                "properties": {
+                    "subtotal": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            }
+                        ],
+                        "description": "Cost in dollars across all four meters",
+                        "title": "Subtotal"
+                    },
+                    "uncached_prefill": {
+                        "$ref": "#/components/schemas/LoopsMeterUsageV1",
+                        "description": "Prompt tokens that missed the prefix cache"
+                    },
+                    "cached_prefill": {
+                        "$ref": "#/components/schemas/LoopsMeterUsageV1",
+                        "description": "Prompt tokens served from the prefix cache"
+                    },
+                    "sample": {
+                        "$ref": "#/components/schemas/LoopsMeterUsageV1",
+                        "description": "Tokens generated by sampling"
+                    },
+                    "train": {
+                        "$ref": "#/components/schemas/LoopsMeterUsageV1",
+                        "description": "Tokens processed by forward and forward-backward training calls"
+                    },
+                    "billable_resource": {
+                        "$ref": "#/components/schemas/BillableResourceV1",
+                        "description": "The Loops run (LOOPS_RUN) or standalone sampler (LOOPS_SAMPLER). A resource that no longer exists has only its ID and kind set."
+                    },
+                    "daily": {
+                        "description": "Daily usage breakdown",
+                        "items": {
+                            "$ref": "#/components/schemas/DailyLoopsUsageV1"
+                        },
+                        "title": "Daily",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "subtotal",
+                    "uncached_prefill",
+                    "cached_prefill",
+                    "sample",
+                    "train",
+                    "billable_resource"
+                ],
+                "title": "LoopsResourceItemV1",
+                "type": "object"
+            },
+            "LoopsUsageV1": {
+                "properties": {
+                    "subtotal": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            }
+                        ],
+                        "description": "Cost in dollars before credits",
+                        "title": "Subtotal"
+                    },
+                    "credits_used": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            }
+                        ],
+                        "description": "Credits applied in dollars",
+                        "title": "Credits Used"
+                    },
+                    "total": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            }
+                        ],
+                        "description": "Total cost in dollars",
+                        "title": "Total"
+                    },
+                    "breakdown": {
+                        "description": "Per-base-model usage breakdown",
+                        "items": {
+                            "$ref": "#/components/schemas/LoopsBaseModelItemV1"
+                        },
+                        "title": "Breakdown",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "subtotal",
+                    "credits_used",
+                    "total"
+                ],
+                "title": "LoopsUsageV1",
+                "type": "object"
+            },
             "ModelApiItemV1": {
                 "properties": {
                     "model_name": {
@@ -35533,6 +36396,7 @@
             },
             "ResourceKind": {
                 "enum": [
+                    "LOOPS_RUN",
                     "LOOPS_SAMPLER",
                     "LOOPS_TRAINER",
                     "MODEL_DEPLOYMENT",
@@ -35685,6 +36549,18 @@
                         ],
                         "default": null,
                         "description": "Model APIs usage"
+                    },
+                    "loops_usage": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LoopsUsageV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Serverless Loops usage, billed per token. Loops usage on dedicated trainers and samplers is billed by the minute and is part of training usage."
                     }
                 },
                 "title": "UsageSummaryV1",
@@ -37134,7 +38010,8 @@
                     "ANTHROPIC",
                     "XAI",
                     "VERTEX",
-                    "OPENAI_COMPATIBLE"
+                    "OPENAI_COMPATIBLE",
+                    "BEDROCK"
                 ],
                 "title": "GridProviderV1",
                 "type": "string"
@@ -38352,6 +39229,36 @@
                 "title": "UpdateGridUserSettingsRequestV1",
                 "type": "object"
             },
+            "GridConnectionBedrockAccessKeysAuthV1": {
+                "properties": {
+                    "method": {
+                        "const": "access_keys",
+                        "description": "The secret holds the access keys of an IAM user, as the base64-encoded JSON object `{\"AccessKeyId\": \"...\", \"SecretAccessKey\": \"...\"}`",
+                        "title": "Method",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "method"
+                ],
+                "title": "GridConnectionBedrockAccessKeysAuthV1",
+                "type": "object"
+            },
+            "GridConnectionBedrockApiKeyAuthV1": {
+                "properties": {
+                    "method": {
+                        "const": "api_key",
+                        "description": "The secret holds a long-term Amazon Bedrock API key.",
+                        "title": "Method",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "method"
+                ],
+                "title": "GridConnectionBedrockApiKeyAuthV1",
+                "type": "object"
+            },
             "GridConnectionConfigAnthropicV1": {
                 "properties": {
                     "provider": {
@@ -38379,6 +39286,59 @@
                 "title": "GridConnectionConfigAnthropicV1",
                 "type": "object"
             },
+            "GridConnectionConfigBedrockV1": {
+                "properties": {
+                    "provider": {
+                        "const": "BEDROCK",
+                        "description": "Provider kind for Amazon Bedrock.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_id": {
+                        "description": "Identifier of the team secret holding the provider API key.",
+                        "title": "Secret Id",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "description": "Name of the team secret holding the provider API key.",
+                        "title": "Secret Name",
+                        "type": "string"
+                    },
+                    "region": {
+                        "description": "AWS Region of the Amazon Bedrock endpoint.",
+                        "title": "Region",
+                        "type": "string"
+                    },
+                    "auth": {
+                        "description": "How the connection's secret authenticates with Amazon Bedrock.",
+                        "discriminator": {
+                            "mapping": {
+                                "access_keys": "#/components/schemas/GridConnectionBedrockAccessKeysAuthV1",
+                                "api_key": "#/components/schemas/GridConnectionBedrockApiKeyAuthV1"
+                            },
+                            "propertyName": "method"
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/GridConnectionBedrockApiKeyAuthV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/GridConnectionBedrockAccessKeysAuthV1"
+                            }
+                        ],
+                        "title": "Auth"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "secret_id",
+                    "secret_name",
+                    "region",
+                    "auth"
+                ],
+                "title": "GridConnectionConfigBedrockV1",
+                "type": "object"
+            },
             "GridConnectionConfigOpenAIV1": {
                 "properties": {
                     "provider": {
@@ -38404,6 +39364,45 @@
                     "secret_name"
                 ],
                 "title": "GridConnectionConfigOpenAIV1",
+                "type": "object"
+            },
+            "GridConnectionConfigVertexV1": {
+                "properties": {
+                    "provider": {
+                        "const": "VERTEX",
+                        "description": "Provider kind for Google Vertex.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_id": {
+                        "description": "Identifier of the team secret holding the provider API key.",
+                        "title": "Secret Id",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "description": "Name of the team secret holding the provider API key.",
+                        "title": "Secret Name",
+                        "type": "string"
+                    },
+                    "project_id": {
+                        "description": "Google Cloud project ID or number of a project with Vertex AI enabled.",
+                        "title": "Project Id",
+                        "type": "string"
+                    },
+                    "location": {
+                        "description": "Google Cloud region that serves the Vertex AI models, for example `us-central1`.",
+                        "title": "Location",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "secret_id",
+                    "secret_name",
+                    "project_id",
+                    "location"
+                ],
+                "title": "GridConnectionConfigVertexV1",
                 "type": "object"
             },
             "GridConnectionConfigXAIV1": {
@@ -38455,7 +39454,9 @@
                         "discriminator": {
                             "mapping": {
                                 "ANTHROPIC": "#/components/schemas/GridConnectionConfigAnthropicV1",
+                                "BEDROCK": "#/components/schemas/GridConnectionConfigBedrockV1",
                                 "OPENAI": "#/components/schemas/GridConnectionConfigOpenAIV1",
+                                "VERTEX": "#/components/schemas/GridConnectionConfigVertexV1",
                                 "XAI": "#/components/schemas/GridConnectionConfigXAIV1"
                             },
                             "propertyName": "provider"
@@ -38469,6 +39470,12 @@
                             },
                             {
                                 "$ref": "#/components/schemas/GridConnectionConfigXAIV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/GridConnectionConfigVertexV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/GridConnectionConfigBedrockV1"
                             }
                         ],
                         "title": "Config"
@@ -38559,6 +39566,38 @@
                 "title": "GridConnectionsRequestV1",
                 "type": "object"
             },
+            "UpsertGridConnectionBedrockAccessKeysAuthV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "method": {
+                        "const": "access_keys",
+                        "description": "The secret holds the access keys of an IAM user, as the base64-encoded JSON object `{\"AccessKeyId\": \"...\", \"SecretAccessKey\": \"...\"}`",
+                        "title": "Method",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "method"
+                ],
+                "title": "UpsertGridConnectionBedrockAccessKeysAuthV1",
+                "type": "object"
+            },
+            "UpsertGridConnectionBedrockApiKeyAuthV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "method": {
+                        "const": "api_key",
+                        "description": "The secret holds a long-term Amazon Bedrock API key.",
+                        "title": "Method",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "method"
+                ],
+                "title": "UpsertGridConnectionBedrockApiKeyAuthV1",
+                "type": "object"
+            },
             "UpsertGridConnectionConfigAnthropicV1": {
                 "additionalProperties": false,
                 "properties": {
@@ -38585,6 +39624,62 @@
                 "title": "UpsertGridConnectionConfigAnthropicV1",
                 "type": "object"
             },
+            "UpsertGridConnectionConfigBedrockV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "provider": {
+                        "const": "BEDROCK",
+                        "description": "Provider kind for Amazon Bedrock. Claude models (`anthropic.*`) use the Anthropic Messages API, and other models use the OpenAI-compatible APIs.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "description": "Name of an existing secret, owned by the same team, that holds the provider API key.",
+                        "examples": [
+                            "anthropic-key"
+                        ],
+                        "minLength": 1,
+                        "title": "Secret Name",
+                        "type": "string"
+                    },
+                    "region": {
+                        "description": "AWS Region of the Amazon Bedrock endpoint, for example `us-east-1`.",
+                        "examples": [
+                            "us-east-1"
+                        ],
+                        "minLength": 1,
+                        "title": "Region",
+                        "type": "string"
+                    },
+                    "auth": {
+                        "description": "How the connection's secret authenticates with Amazon Bedrock.",
+                        "discriminator": {
+                            "mapping": {
+                                "access_keys": "#/components/schemas/UpsertGridConnectionBedrockAccessKeysAuthV1",
+                                "api_key": "#/components/schemas/UpsertGridConnectionBedrockApiKeyAuthV1"
+                            },
+                            "propertyName": "method"
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/UpsertGridConnectionBedrockApiKeyAuthV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UpsertGridConnectionBedrockAccessKeysAuthV1"
+                            }
+                        ],
+                        "title": "Auth"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "secret_name",
+                    "region",
+                    "auth"
+                ],
+                "title": "UpsertGridConnectionConfigBedrockV1",
+                "type": "object"
+            },
             "UpsertGridConnectionConfigOpenAIV1": {
                 "additionalProperties": false,
                 "properties": {
@@ -38609,6 +39704,52 @@
                     "secret_name"
                 ],
                 "title": "UpsertGridConnectionConfigOpenAIV1",
+                "type": "object"
+            },
+            "UpsertGridConnectionConfigVertexV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "provider": {
+                        "const": "VERTEX",
+                        "description": "Provider kind for Google Vertex.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "description": "Name of an existing secret, owned by the same team, that holds the provider API key.",
+                        "examples": [
+                            "anthropic-key"
+                        ],
+                        "minLength": 1,
+                        "title": "Secret Name",
+                        "type": "string"
+                    },
+                    "project_id": {
+                        "description": "Google Cloud project ID or number of a project with Vertex AI enabled.",
+                        "examples": [
+                            "my-gcp-project"
+                        ],
+                        "minLength": 1,
+                        "title": "Project Id",
+                        "type": "string"
+                    },
+                    "location": {
+                        "description": "Google Cloud region that serves the Vertex AI models, for example `us-central1`.",
+                        "examples": [
+                            "us-central1"
+                        ],
+                        "minLength": 1,
+                        "title": "Location",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "secret_name",
+                    "project_id",
+                    "location"
+                ],
+                "title": "UpsertGridConnectionConfigVertexV1",
                 "type": "object"
             },
             "UpsertGridConnectionConfigXAIV1": {
@@ -38662,7 +39803,9 @@
                         "discriminator": {
                             "mapping": {
                                 "ANTHROPIC": "#/components/schemas/UpsertGridConnectionConfigAnthropicV1",
+                                "BEDROCK": "#/components/schemas/UpsertGridConnectionConfigBedrockV1",
                                 "OPENAI": "#/components/schemas/UpsertGridConnectionConfigOpenAIV1",
+                                "VERTEX": "#/components/schemas/UpsertGridConnectionConfigVertexV1",
                                 "XAI": "#/components/schemas/UpsertGridConnectionConfigXAIV1"
                             },
                             "propertyName": "provider"
@@ -38682,6 +39825,12 @@
                             },
                             {
                                 "$ref": "#/components/schemas/UpsertGridConnectionConfigXAIV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UpsertGridConnectionConfigVertexV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UpsertGridConnectionConfigBedrockV1"
                             }
                         ],
                         "title": "Config"
@@ -38715,7 +39864,9 @@
                         "discriminator": {
                             "mapping": {
                                 "ANTHROPIC": "#/components/schemas/UpsertGridConnectionConfigAnthropicV1",
+                                "BEDROCK": "#/components/schemas/UpsertGridConnectionConfigBedrockV1",
                                 "OPENAI": "#/components/schemas/UpsertGridConnectionConfigOpenAIV1",
+                                "VERTEX": "#/components/schemas/UpsertGridConnectionConfigVertexV1",
                                 "XAI": "#/components/schemas/UpsertGridConnectionConfigXAIV1"
                             },
                             "propertyName": "provider"
@@ -38735,6 +39886,12 @@
                             },
                             {
                                 "$ref": "#/components/schemas/UpsertGridConnectionConfigXAIV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UpsertGridConnectionConfigVertexV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UpsertGridConnectionConfigBedrockV1"
                             }
                         ],
                         "title": "Config"
@@ -38795,12 +39952,305 @@
                 "title": "GridClassifiersRequestV1",
                 "type": "object"
             },
+            "GridMachineUserV1": {
+                "properties": {
+                    "id": {
+                        "description": "Stable machine user identifier. Grid usage and settings identify the machine user by this ID as its `user_id`.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name of the machine user, unique within its team.",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "description": "Identifier of the team that owns the machine user.",
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "description": "Name of the team that owns the machine user.",
+                        "title": "Team Name",
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of the user who created the machine user. Null when unknown.",
+                        "title": "Created By"
+                    },
+                    "created_at": {
+                        "description": "Creation time, ISO 8601.",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "team_id",
+                    "team_name",
+                    "created_at"
+                ],
+                "title": "GridMachineUserV1",
+                "type": "object"
+            },
+            "GridMachineUsersResponseV1": {
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/GridMachineUserV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "GridMachineUsersResponseV1",
+                "type": "object"
+            },
+            "GridMachineUsersRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Limit machine users to this team. Without it, every team you administer.",
+                        "title": "Team Id"
+                    }
+                },
+                "title": "GridMachineUsersRequestV1",
+                "type": "object"
+            },
+            "CreateGridMachineUserAPIKeyRequestV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "maxLength": 255,
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name of the API key: lowercase letters, numbers, and hyphens, at most 255 characters, and unique among the machine user's active keys. Defaults to a name derived from the machine user's.",
+                        "examples": [
+                            "production"
+                        ],
+                        "title": "Name"
+                    }
+                },
+                "title": "CreateGridMachineUserAPIKeyRequestV1",
+                "type": "object"
+            },
+            "CreateGridMachineUserRequestV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Identifier of the team that owns the machine user. Defaults to your only team, if you belong to exactly one.",
+                        "examples": [
+                            "abc1234"
+                        ],
+                        "title": "Team Id"
+                    },
+                    "name": {
+                        "description": "Name of the machine user, unique within the team. At most 255 characters.",
+                        "examples": [
+                            "night-shift"
+                        ],
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "api_key": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/CreateGridMachineUserAPIKeyRequestV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "When set, also creates the machine user's first API key."
+                    }
+                },
+                "required": [
+                    "name"
+                ],
+                "title": "CreateGridMachineUserRequestV1",
+                "type": "object"
+            },
+            "CreatedGridMachineUserV1": {
+                "properties": {
+                    "id": {
+                        "description": "Stable machine user identifier. Grid usage and settings identify the machine user by this ID as its `user_id`.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name of the machine user, unique within its team.",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "description": "Identifier of the team that owns the machine user.",
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "description": "Name of the team that owns the machine user.",
+                        "title": "Team Name",
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of the user who created the machine user. Null when unknown.",
+                        "title": "Created By"
+                    },
+                    "created_at": {
+                        "description": "Creation time, ISO 8601.",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    },
+                    "api_key": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The first API key, returned only once. Null unless the request set `api_key`.",
+                        "title": "Api Key"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "team_id",
+                    "team_name",
+                    "created_at"
+                ],
+                "title": "CreatedGridMachineUserV1",
+                "type": "object"
+            },
+            "GridMachineUserTombstoneV1": {
+                "properties": {
+                    "id": {
+                        "description": "Stable identifier of the deleted machine user.",
+                        "title": "Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id"
+                ],
+                "title": "GridMachineUserTombstoneV1",
+                "type": "object"
+            },
+            "UpdateGridMachineUserRequestV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "maxLength": 255,
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name of the machine user, unique within its team. At most 255 characters. Omit to keep it.",
+                        "title": "Name"
+                    }
+                },
+                "title": "UpdateGridMachineUserRequestV1",
+                "type": "object"
+            },
             "EndpointTargetV1": {
                 "description": "One configured upstream target of an endpoint.",
                 "properties": {
                     "provider": {
-                        "$ref": "#/components/schemas/GatewayProvider",
-                        "description": "Upstream provider."
+                        "$ref": "#/components/schemas/GatewayEndpointProviderV1",
+                        "description": "Upstream provider.",
+                        "examples": [
+                            "ANTHROPIC",
+                            "OPENAI_COMPATIBLE"
+                        ]
                     },
                     "secret_id": {
                         "anyOf": [
@@ -38938,7 +40388,7 @@
                 "title": "EndpointV1",
                 "type": "object"
             },
-            "GatewayProvider": {
+            "GatewayEndpointProviderV1": {
                 "enum": [
                     "ANTHROPIC",
                     "OPENAI",
@@ -38948,7 +40398,7 @@
                     "VERTEX",
                     "OPENAI_COMPATIBLE"
                 ],
-                "title": "GatewayProvider",
+                "title": "GatewayEndpointProviderV1",
                 "type": "string"
             },
             "SharedEndpointRegionV1": {
@@ -39012,7 +40462,7 @@
                 "description": "One desired upstream target. The customer picks a provider; Baseten owns the\nupstream host and protocol adapter.",
                 "properties": {
                     "provider": {
-                        "$ref": "#/components/schemas/GatewayProvider",
+                        "$ref": "#/components/schemas/GatewayEndpointProviderV1",
                         "description": "Upstream provider for this target.",
                         "examples": [
                             "ANTHROPIC",
@@ -42920,6 +44370,14 @@
                     "type": "string"
                 },
                 "name": "classifier_id",
+                "in": "path",
+                "required": true
+            },
+            "machine_user_id": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "machine_user_id",
                 "in": "path",
                 "required": true
             },
