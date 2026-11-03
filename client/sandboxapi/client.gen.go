@@ -542,6 +542,20 @@ func (c *Client) PostEnvironmentReload(ctx context.Context) (*HandlerReloadRespo
 	})
 }
 
+// PostFilesystemCopy: Copy a file or directory
+//
+// Returns [*ResponseErrorResponse] on HTTP 400, 409, 422.
+func (c *Client) PostFilesystemCopy(ctx context.Context, body CopyRequest) (*CopyResponse, error) {
+	return doJSON[CopyResponse](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/filesystem-copy",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 409: errorTypeErrorResponse, 422: errorTypeErrorResponse},
+	})
+}
+
 // PostFilesystemMultipartComplete: Complete multipart upload
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 404, 500.
