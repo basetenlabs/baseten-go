@@ -108,7 +108,19 @@ func TestTypeParity(t *testing.T) {
 			for _, name := range exportedFields(pair.generated) {
 				generated[strings.ToLower(name)] = true
 			}
-			for _, name := range exportedFields(pair.ours) {
+			ours := exportedFields(pair.ours)
+			// Entries naming a field that no longer exists are stale.
+			for name := range pair.oursOnly {
+				if !slices.Contains(ours, name) {
+					t.Errorf("ours-only field %s of %s is not in our type", name, pair.name)
+				}
+			}
+			for name := range pair.renamed {
+				if !slices.Contains(ours, name) {
+					t.Errorf("renamed field %s of %s is not in our type", name, pair.name)
+				}
+			}
+			for _, name := range ours {
 				if _, ok := pair.oursOnly[name]; ok {
 					continue
 				}
@@ -122,6 +134,10 @@ func TestTypeParity(t *testing.T) {
 				delete(generated, strings.ToLower(counterpart))
 			}
 			for name := range pair.generatedOnly {
+				// Also fails when one of our fields already carries it.
+				if !generated[strings.ToLower(name)] {
+					t.Errorf("generated-only field %s of %s is not in the generated type, or is carried by ours", name, pair.name)
+				}
 				delete(generated, strings.ToLower(name))
 			}
 			for name := range generated {

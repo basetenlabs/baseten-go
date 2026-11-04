@@ -1115,6 +1115,18 @@ func (c *Client) GetModelApis(ctx context.Context, params GetV1ModelApisParams) 
 	})
 }
 
+// GetModelApisMetrics: Gets the metrics for a Model API
+func (c *Client) GetModelApisMetrics(ctx context.Context, modelApiName string, params GetV1ModelApisModelApiNameMetricsParams) (*GetMetricsResponse, error) {
+	return doJSON[GetMetricsResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/model_apis/%s/metrics",
+		pathArgs:     []any{modelApiName},
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // GetModelApisModelApiName: Gets a Model API
 func (c *Client) GetModelApisModelApiName(ctx context.Context, modelApiName string) (*ModelAPI, error) {
 	return doJSON[ModelAPI](c, ctx, apiRequest{
@@ -1232,8 +1244,8 @@ func (c *Client) GetModelsDeploymentsLogs(ctx context.Context, modelId string, d
 }
 
 // GetModelsDeploymentsMetrics: Gets the metrics for a model deployment
-func (c *Client) GetModelsDeploymentsMetrics(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams) (*GetModelMetricsResponse, error) {
-	return doJSON[GetModelMetricsResponse](c, ctx, apiRequest{
+func (c *Client) GetModelsDeploymentsMetrics(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams) (*GetMetricsResponse, error) {
+	return doJSON[GetMetricsResponse](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/models/%s/deployments/%s/metrics",
 		pathArgs:     []any{modelId, deploymentId},
@@ -1324,8 +1336,8 @@ func (c *Client) GetModelsEnvironmentsLogs(ctx context.Context, modelId string, 
 }
 
 // GetModelsEnvironmentsMetrics: Gets the metrics for a model environment.
-func (c *Client) GetModelsEnvironmentsMetrics(ctx context.Context, modelId string, envName string, params GetV1ModelsModelIdEnvironmentsEnvNameMetricsParams) (*GetModelMetricsResponse, error) {
-	return doJSON[GetModelMetricsResponse](c, ctx, apiRequest{
+func (c *Client) GetModelsEnvironmentsMetrics(ctx context.Context, modelId string, envName string, params GetV1ModelsModelIdEnvironmentsEnvNameMetricsParams) (*GetMetricsResponse, error) {
+	return doJSON[GetMetricsResponse](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/models/%s/environments/%s/metrics",
 		pathArgs:     []any{modelId, envName},

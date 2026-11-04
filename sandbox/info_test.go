@@ -21,7 +21,7 @@ func TestInfoFromAPI(t *testing.T) {
 	t.Run("FullRecord", func(t *testing.T) {
 		info, err := infoFromAPI(apiSandbox(t, `{
 			"name": "sb", "url": "https://sb.example", "status": "DEPLOYED",
-			"image": "baseten/base-image:latest", "memory": 4096, "region": "us-was-1", "enabled": true,
+			"image": "baseten/base-image:latest", "memory": 4096, "cpu": 2, "region": "us-was-1", "enabled": true,
 			"envs": [
 				{"name": "PLAIN", "value": "v", "secret": false},
 				{"name": "SECRET", "value": "****", "secret": true},
@@ -45,6 +45,7 @@ func TestInfoFromAPI(t *testing.T) {
 		require.Equal(t, "sb", info.Name)
 		require.Equal(t, StatusDeployed, info.Status)
 		require.Equal(t, 4096, info.Memory)
+		require.Equal(t, 2, info.CPU)
 		require.True(t, info.Envs["PLAIN"].NonSecret, "secret false is non-secret")
 		require.False(t, info.Envs["SECRET"].NonSecret, "secret true is secret")
 		require.False(t, info.Envs["DEFAULT"].NonSecret, "unset secret is secret")

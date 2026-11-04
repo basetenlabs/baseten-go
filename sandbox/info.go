@@ -44,9 +44,11 @@ type Info struct {
 	// Image is the image reference, including its tag.
 	Image string
 
-	// Memory is the memory allocation in megabytes, which also sets the CPU
-	// allocation.
+	// Memory is the memory allocation in megabytes.
 	Memory int
+
+	// CPU is the number of vCPUs the sandbox runs with.
+	CPU int
 
 	// Region is where the sandbox runs.
 	Region string
@@ -264,6 +266,7 @@ func infoFromAPI(sandbox *managementapi.Sandbox) (Info, error) {
 		Status:     Status(sandbox.Status),
 		Image:      deref(sandbox.Image),
 		Memory:     deref(sandbox.Memory),
+		CPU:        deref(sandbox.Cpu),
 		Region:     deref(sandbox.Region),
 		Envs:       envsFromAPI(deref(sandbox.Envs)),
 		Labels:     map[string]string{},

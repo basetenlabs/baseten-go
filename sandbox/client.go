@@ -149,9 +149,14 @@ type CreateOptions struct {
 	// "baseten/base-image:latest".
 	Image string
 
-	// Memory is the memory allocation in megabytes, which also sets the CPU
-	// allocation. Defaults to 4096.
+	// Memory is the memory allocation in megabytes. Defaults to 4096, or to
+	// 8192 per vCPU when only CPU is set. When CPU is zero, it also determines
+	// the CPU allocation.
 	Memory int
+
+	// CPU is the number of vCPUs, from 1 to 32. Zero derives the CPU
+	// allocation from Memory.
+	CPU int
 
 	// Region is where the sandbox runs. Empty uses the default sandbox region.
 	Region string
@@ -210,6 +215,7 @@ func (c *Client) Create(ctx context.Context, opts CreateOptions) (*CreateResult,
 		CreateIfNotExists: optional(opts.CreateIfNotExists),
 		Image:             optional(opts.Image),
 		Memory:            optional(opts.Memory),
+		Cpu:               optional(opts.CPU),
 		Region:            optional(opts.Region),
 		Envs:              envsToAPI(opts.Envs),
 		Labels:            labelsToAPI(opts.Labels),
