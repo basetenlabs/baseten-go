@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/basetenlabs/baseten-go/client"
 	"github.com/basetenlabs/baseten-go/client/managementapi"
@@ -113,6 +114,7 @@ func TestE2EAPIKeyCRUD(t *testing.T) {
 	_, err := rand.Read(randBytes[:])
 	require.NoError(t, err)
 	keyName := fmt.Sprintf("e2e-test-%x", randBytes)
+	expiresAt := time.Now().UTC().Add(24 * time.Hour)
 	var createdPrefix string
 
 	defer func() {
@@ -122,8 +124,9 @@ func TestE2EAPIKeyCRUD(t *testing.T) {
 	}()
 
 	created, err := c.API().PostApiKeys(t.Context(), managementapi.CreateAPIKeyRequest{
-		Name: &keyName,
-		Type: managementapi.APIKeyCategory_PERSONAL,
+		Name:      &keyName,
+		Type:      managementapi.APIKeyCategory_PERSONAL,
+		ExpiresAt: &expiresAt,
 	})
 	require.NoError(t, err)
 	createdPrefix = strings.SplitN(created.ApiKey, ".", 2)[0]
