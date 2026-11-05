@@ -153,6 +153,7 @@ func (e AuditLogEventAutoscalingScheduleAction) Valid() bool {
 const (
 	AuditLogEventType_API_KEY_CREATED                                        AuditLogEventType = "API_KEY_CREATED"
 	AuditLogEventType_API_KEY_DELETED                                        AuditLogEventType = "API_KEY_DELETED"
+	AuditLogEventType_API_KEY_LIFETIME_LIMITS_UPDATED                        AuditLogEventType = "API_KEY_LIFETIME_LIMITS_UPDATED"
 	AuditLogEventType_CHAIN_DELETED                                          AuditLogEventType = "CHAIN_DELETED"
 	AuditLogEventType_CHAIN_DEPLOYED                                         AuditLogEventType = "CHAIN_DEPLOYED"
 	AuditLogEventType_CHAIN_DEPLOYMENT_ACTIVATED                             AuditLogEventType = "CHAIN_DEPLOYMENT_ACTIVATED"
@@ -170,6 +171,9 @@ const (
 	AuditLogEventType_GATEWAY_ENDPOINT_CREATED                               AuditLogEventType = "GATEWAY_ENDPOINT_CREATED"
 	AuditLogEventType_GATEWAY_ENDPOINT_DELETED                               AuditLogEventType = "GATEWAY_ENDPOINT_DELETED"
 	AuditLogEventType_GATEWAY_ENDPOINT_UPDATED                               AuditLogEventType = "GATEWAY_ENDPOINT_UPDATED"
+	AuditLogEventType_GRID_MACHINE_USER_CREATED                              AuditLogEventType = "GRID_MACHINE_USER_CREATED"
+	AuditLogEventType_GRID_MACHINE_USER_DELETED                              AuditLogEventType = "GRID_MACHINE_USER_DELETED"
+	AuditLogEventType_GRID_MACHINE_USER_UPDATED                              AuditLogEventType = "GRID_MACHINE_USER_UPDATED"
 	AuditLogEventType_MODEL_DELETED                                          AuditLogEventType = "MODEL_DELETED"
 	AuditLogEventType_MODEL_DEPLOYED                                         AuditLogEventType = "MODEL_DEPLOYED"
 	AuditLogEventType_MODEL_DEPLOYMENT_ACTIVATED                             AuditLogEventType = "MODEL_DEPLOYMENT_ACTIVATED"
@@ -216,6 +220,8 @@ func (e AuditLogEventType) Valid() bool {
 		return true
 	case AuditLogEventType_API_KEY_DELETED:
 		return true
+	case AuditLogEventType_API_KEY_LIFETIME_LIMITS_UPDATED:
+		return true
 	case AuditLogEventType_CHAIN_DELETED:
 		return true
 	case AuditLogEventType_CHAIN_DEPLOYED:
@@ -249,6 +255,12 @@ func (e AuditLogEventType) Valid() bool {
 	case AuditLogEventType_GATEWAY_ENDPOINT_DELETED:
 		return true
 	case AuditLogEventType_GATEWAY_ENDPOINT_UPDATED:
+		return true
+	case AuditLogEventType_GRID_MACHINE_USER_CREATED:
+		return true
+	case AuditLogEventType_GRID_MACHINE_USER_DELETED:
+		return true
+	case AuditLogEventType_GRID_MACHINE_USER_UPDATED:
 		return true
 	case AuditLogEventType_MODEL_DELETED:
 		return true
@@ -334,12 +346,12 @@ const (
 	AuditLogEventTypeGroup_ACTIVATED_DEACTIVATED         AuditLogEventTypeGroup = "ACTIVATED_DEACTIVATED"
 	AuditLogEventTypeGroup_API_KEYS                      AuditLogEventTypeGroup = "API_KEYS"
 	AuditLogEventTypeGroup_AUTOSCALING_SETTINGS          AuditLogEventTypeGroup = "AUTOSCALING_SETTINGS"
-	AuditLogEventTypeGroup_CODE                          AuditLogEventTypeGroup = "CODE"
 	AuditLogEventTypeGroup_DELETED                       AuditLogEventTypeGroup = "DELETED"
 	AuditLogEventTypeGroup_DEPLOYED                      AuditLogEventTypeGroup = "DEPLOYED"
 	AuditLogEventTypeGroup_DIRECTORY_GROUP_MANAGEMENT    AuditLogEventTypeGroup = "DIRECTORY_GROUP_MANAGEMENT"
 	AuditLogEventTypeGroup_ENVIRONMENT_SETTINGS          AuditLogEventTypeGroup = "ENVIRONMENT_SETTINGS"
 	AuditLogEventTypeGroup_GATEWAY                       AuditLogEventTypeGroup = "GATEWAY"
+	AuditLogEventTypeGroup_GRID                          AuditLogEventTypeGroup = "GRID"
 	AuditLogEventTypeGroup_INSTANCE_TYPE_CHANGED         AuditLogEventTypeGroup = "INSTANCE_TYPE_CHANGED"
 	AuditLogEventTypeGroup_METADATA                      AuditLogEventTypeGroup = "METADATA"
 	AuditLogEventTypeGroup_PROMOTED                      AuditLogEventTypeGroup = "PROMOTED"
@@ -361,8 +373,6 @@ func (e AuditLogEventTypeGroup) Valid() bool {
 		return true
 	case AuditLogEventTypeGroup_AUTOSCALING_SETTINGS:
 		return true
-	case AuditLogEventTypeGroup_CODE:
-		return true
 	case AuditLogEventTypeGroup_DELETED:
 		return true
 	case AuditLogEventTypeGroup_DEPLOYED:
@@ -372,6 +382,8 @@ func (e AuditLogEventTypeGroup) Valid() bool {
 	case AuditLogEventTypeGroup_ENVIRONMENT_SETTINGS:
 		return true
 	case AuditLogEventTypeGroup_GATEWAY:
+		return true
+	case AuditLogEventTypeGroup_GRID:
 		return true
 	case AuditLogEventTypeGroup_INSTANCE_TYPE_CHANGED:
 		return true
@@ -472,10 +484,11 @@ func (e AuditLogSource) Valid() bool {
 
 // Defines values for AuthMethod.
 const (
-	AuthMethod_AWS_ASSUME_ROLE AuthMethod = "AWS_ASSUME_ROLE"
-	AuthMethod_AWS_OIDC        AuthMethod = "AWS_OIDC"
-	AuthMethod_CUSTOM_SECRET   AuthMethod = "CUSTOM_SECRET"
-	AuthMethod_GCP_OIDC        AuthMethod = "GCP_OIDC"
+	AuthMethod_AWS_ASSUME_ROLE   AuthMethod = "AWS_ASSUME_ROLE"
+	AuthMethod_AWS_OIDC          AuthMethod = "AWS_OIDC"
+	AuthMethod_CUSTOM_SECRET     AuthMethod = "CUSTOM_SECRET"
+	AuthMethod_GCP_OIDC          AuthMethod = "GCP_OIDC"
+	AuthMethod_HUGGING_FACE_OIDC AuthMethod = "HUGGING_FACE_OIDC"
 )
 
 // Valid indicates whether the value is a known member of the AuthMethod enum.
@@ -488,6 +501,8 @@ func (e AuthMethod) Valid() bool {
 	case AuthMethod_CUSTOM_SECRET:
 		return true
 	case AuthMethod_GCP_OIDC:
+		return true
+	case AuthMethod_HUGGING_FACE_OIDC:
 		return true
 	default:
 		return false
@@ -557,6 +572,24 @@ func (e AutoscalingScheduleWeekday) Valid() bool {
 	case AutoscalingScheduleWeekday_TUESDAY:
 		return true
 	case AutoscalingScheduleWeekday_WEDNESDAY:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AvailabilityModel.
+const (
+	AvailabilityModel_spot     AvailabilityModel = "spot"
+	AvailabilityModel_standard AvailabilityModel = "standard"
+)
+
+// Valid indicates whether the value is a known member of the AvailabilityModel enum.
+func (e AvailabilityModel) Valid() bool {
+	switch e {
+	case AvailabilityModel_spot:
+		return true
+	case AvailabilityModel_standard:
 		return true
 	default:
 		return false
@@ -806,6 +839,48 @@ func (e GridProvider) Valid() bool {
 	case GridProvider_VERTEX:
 		return true
 	case GridProvider_XAI:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GridRouteClassifierSupportedTradeoffs.
+const (
+	GridRouteClassifierSupportedTradeoffs_balanced     GridRouteClassifierSupportedTradeoffs = "balanced"
+	GridRouteClassifierSupportedTradeoffs_cost         GridRouteClassifierSupportedTradeoffs = "cost"
+	GridRouteClassifierSupportedTradeoffs_intelligence GridRouteClassifierSupportedTradeoffs = "intelligence"
+)
+
+// Valid indicates whether the value is a known member of the GridRouteClassifierSupportedTradeoffs enum.
+func (e GridRouteClassifierSupportedTradeoffs) Valid() bool {
+	switch e {
+	case GridRouteClassifierSupportedTradeoffs_balanced:
+		return true
+	case GridRouteClassifierSupportedTradeoffs_cost:
+		return true
+	case GridRouteClassifierSupportedTradeoffs_intelligence:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GridRouteTargetIntelligentTradeoff.
+const (
+	GridRouteTargetIntelligentTradeoff_balanced     GridRouteTargetIntelligentTradeoff = "balanced"
+	GridRouteTargetIntelligentTradeoff_cost         GridRouteTargetIntelligentTradeoff = "cost"
+	GridRouteTargetIntelligentTradeoff_intelligence GridRouteTargetIntelligentTradeoff = "intelligence"
+)
+
+// Valid indicates whether the value is a known member of the GridRouteTargetIntelligentTradeoff enum.
+func (e GridRouteTargetIntelligentTradeoff) Valid() bool {
+	switch e {
+	case GridRouteTargetIntelligentTradeoff_balanced:
+		return true
+	case GridRouteTargetIntelligentTradeoff_cost:
+		return true
+	case GridRouteTargetIntelligentTradeoff_intelligence:
 		return true
 	default:
 		return false
@@ -1076,6 +1151,27 @@ func (e LoopsLoRAConfigExpertLayout) Valid() bool {
 	}
 }
 
+// Defines values for LoopsPlacementScope.
+const (
+	LoopsPlacementScope_dedicated  LoopsPlacementScope = "dedicated"
+	LoopsPlacementScope_default    LoopsPlacementScope = "default"
+	LoopsPlacementScope_serverless LoopsPlacementScope = "serverless"
+)
+
+// Valid indicates whether the value is a known member of the LoopsPlacementScope enum.
+func (e LoopsPlacementScope) Valid() bool {
+	switch e {
+	case LoopsPlacementScope_dedicated:
+		return true
+	case LoopsPlacementScope_default:
+		return true
+	case LoopsPlacementScope_serverless:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for LoopsRunStatusName.
 const (
 	LoopsRunStatusName_ACTIVE   LoopsRunStatusName = "ACTIVE"
@@ -1112,11 +1208,90 @@ func (e LoopsUseCase) Valid() bool {
 	}
 }
 
+// Defines values for MetricKind.
+const (
+	MetricKind_COUNTER   MetricKind = "COUNTER"
+	MetricKind_GAUGE     MetricKind = "GAUGE"
+	MetricKind_HISTOGRAM MetricKind = "HISTOGRAM"
+)
+
+// Valid indicates whether the value is a known member of the MetricKind enum.
+func (e MetricKind) Valid() bool {
+	switch e {
+	case MetricKind_COUNTER:
+		return true
+	case MetricKind_GAUGE:
+		return true
+	case MetricKind_HISTOGRAM:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MetricMode.
+const (
+	MetricMode_CURRENT MetricMode = "CURRENT"
+	MetricMode_SERIES  MetricMode = "SERIES"
+	MetricMode_SUMMARY MetricMode = "SUMMARY"
+)
+
+// Valid indicates whether the value is a known member of the MetricMode enum.
+func (e MetricMode) Valid() bool {
+	switch e {
+	case MetricMode_CURRENT:
+		return true
+	case MetricMode_SERIES:
+		return true
+	case MetricMode_SUMMARY:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MetricUnitHint.
+const (
+	MetricUnitHint_BYTES      MetricUnitHint = "BYTES"
+	MetricUnitHint_CELSIUS    MetricUnitHint = "CELSIUS"
+	MetricUnitHint_COUNT      MetricUnitHint = "COUNT"
+	MetricUnitHint_MEBIBYTES  MetricUnitHint = "MEBIBYTES"
+	MetricUnitHint_PER_SECOND MetricUnitHint = "PER_SECOND"
+	MetricUnitHint_RATIO      MetricUnitHint = "RATIO"
+	MetricUnitHint_SECONDS    MetricUnitHint = "SECONDS"
+	MetricUnitHint_WATTS      MetricUnitHint = "WATTS"
+)
+
+// Valid indicates whether the value is a known member of the MetricUnitHint enum.
+func (e MetricUnitHint) Valid() bool {
+	switch e {
+	case MetricUnitHint_BYTES:
+		return true
+	case MetricUnitHint_CELSIUS:
+		return true
+	case MetricUnitHint_COUNT:
+		return true
+	case MetricUnitHint_MEBIBYTES:
+		return true
+	case MetricUnitHint_PER_SECOND:
+		return true
+	case MetricUnitHint_RATIO:
+		return true
+	case MetricUnitHint_SECONDS:
+		return true
+	case MetricUnitHint_WATTS:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ModelApiCostDimension.
 const (
 	ModelApiCostDimension_api_key_prefix ModelApiCostDimension = "api_key_prefix"
 	ModelApiCostDimension_model          ModelApiCostDimension = "model"
 	ModelApiCostDimension_service_tier   ModelApiCostDimension = "service_tier"
+	ModelApiCostDimension_team           ModelApiCostDimension = "team"
 	ModelApiCostDimension_user           ModelApiCostDimension = "user"
 )
 
@@ -1129,85 +1304,9 @@ func (e ModelApiCostDimension) Valid() bool {
 		return true
 	case ModelApiCostDimension_service_tier:
 		return true
+	case ModelApiCostDimension_team:
+		return true
 	case ModelApiCostDimension_user:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ModelMetricKind.
-const (
-	ModelMetricKind_COUNTER   ModelMetricKind = "COUNTER"
-	ModelMetricKind_GAUGE     ModelMetricKind = "GAUGE"
-	ModelMetricKind_HISTOGRAM ModelMetricKind = "HISTOGRAM"
-)
-
-// Valid indicates whether the value is a known member of the ModelMetricKind enum.
-func (e ModelMetricKind) Valid() bool {
-	switch e {
-	case ModelMetricKind_COUNTER:
-		return true
-	case ModelMetricKind_GAUGE:
-		return true
-	case ModelMetricKind_HISTOGRAM:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ModelMetricMode.
-const (
-	ModelMetricMode_CURRENT ModelMetricMode = "CURRENT"
-	ModelMetricMode_SERIES  ModelMetricMode = "SERIES"
-	ModelMetricMode_SUMMARY ModelMetricMode = "SUMMARY"
-)
-
-// Valid indicates whether the value is a known member of the ModelMetricMode enum.
-func (e ModelMetricMode) Valid() bool {
-	switch e {
-	case ModelMetricMode_CURRENT:
-		return true
-	case ModelMetricMode_SERIES:
-		return true
-	case ModelMetricMode_SUMMARY:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ModelMetricUnitHint.
-const (
-	ModelMetricUnitHint_BYTES      ModelMetricUnitHint = "BYTES"
-	ModelMetricUnitHint_CELSIUS    ModelMetricUnitHint = "CELSIUS"
-	ModelMetricUnitHint_COUNT      ModelMetricUnitHint = "COUNT"
-	ModelMetricUnitHint_MEBIBYTES  ModelMetricUnitHint = "MEBIBYTES"
-	ModelMetricUnitHint_PER_SECOND ModelMetricUnitHint = "PER_SECOND"
-	ModelMetricUnitHint_RATIO      ModelMetricUnitHint = "RATIO"
-	ModelMetricUnitHint_SECONDS    ModelMetricUnitHint = "SECONDS"
-	ModelMetricUnitHint_WATTS      ModelMetricUnitHint = "WATTS"
-)
-
-// Valid indicates whether the value is a known member of the ModelMetricUnitHint enum.
-func (e ModelMetricUnitHint) Valid() bool {
-	switch e {
-	case ModelMetricUnitHint_BYTES:
-		return true
-	case ModelMetricUnitHint_CELSIUS:
-		return true
-	case ModelMetricUnitHint_COUNT:
-		return true
-	case ModelMetricUnitHint_MEBIBYTES:
-		return true
-	case ModelMetricUnitHint_PER_SECOND:
-		return true
-	case ModelMetricUnitHint_RATIO:
-		return true
-	case ModelMetricUnitHint_SECONDS:
-		return true
-	case ModelMetricUnitHint_WATTS:
 		return true
 	default:
 		return false
@@ -1826,6 +1925,21 @@ func (e TokenScope) Valid() bool {
 	}
 }
 
+// Defines values for ToolCallUsageDimension.
+const (
+	ToolCallUsageDimension_TEAM ToolCallUsageDimension = "TEAM"
+)
+
+// Valid indicates whether the value is a known member of the ToolCallUsageDimension enum.
+func (e ToolCallUsageDimension) Valid() bool {
+	switch e {
+	case ToolCallUsageDimension_TEAM:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for TrafficRoutingRuleShadowSamplingMode.
 const (
 	TrafficRoutingRuleShadowSamplingMode_RANDOM       TrafficRoutingRuleShadowSamplingMode = "RANDOM"
@@ -1916,24 +2030,6 @@ const (
 func (e UsageLimitUnit) Valid() bool {
 	switch e {
 	case UsageLimitUnit_DAY:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for V1AvailabilityModel.
-const (
-	V1AvailabilityModel_dedicated V1AvailabilityModel = "dedicated"
-	V1AvailabilityModel_spot      V1AvailabilityModel = "spot"
-)
-
-// Valid indicates whether the value is a known member of the V1AvailabilityModel enum.
-func (e V1AvailabilityModel) Valid() bool {
-	switch e {
-	case V1AvailabilityModel_dedicated:
-		return true
-	case V1AvailabilityModel_spot:
 		return true
 	default:
 		return false
@@ -2238,6 +2334,16 @@ type AuditLogEventApiKeyDeleted struct {
 	EventType        string                          `json:"event_type"`
 	Prefix           string                          `json:"prefix"`
 	RevocationReason *AuditLogApiKeyRevocationReason `json:"revocation_reason,omitempty"`
+}
+
+// AuditLogEventApiKeyLifetimeLimitsUpdated An administrator updated the organization's API key lifetime limits.
+type AuditLogEventApiKeyLifetimeLimitsUpdated struct {
+	EventType                 string `json:"event_type"`
+	NewPersonalLimitDays      *int   `json:"new_personal_limit_days"`
+	NewTeamLimitDays          *int   `json:"new_team_limit_days"`
+	OrganizationId            string `json:"organization_id"`
+	PreviousPersonalLimitDays *int   `json:"previous_personal_limit_days"`
+	PreviousTeamLimitDays     *int   `json:"previous_team_limit_days"`
 }
 
 // AuditLogEventAutoscalingScheduleAction What an autoscaling change did to one schedule.
@@ -2569,6 +2675,34 @@ type AuditLogEventGatewayEndpointUpdated struct {
 	GatewayEndpointId string  `json:"gateway_endpoint_id"`
 	PreviousSlug      *string `json:"previous_slug"`
 	Slug              string  `json:"slug"`
+}
+
+// AuditLogEventGridMachineUserCreated A Grid machine user was created.
+type AuditLogEventGridMachineUserCreated struct {
+	EventType       string `json:"event_type"`
+	MachineUserId   string `json:"machine_user_id"`
+	MachineUserName string `json:"machine_user_name"`
+	TeamId          string `json:"team_id"`
+	TeamName        string `json:"team_name"`
+}
+
+// AuditLogEventGridMachineUserDeleted A Grid machine user was deleted, revoking its API keys.
+type AuditLogEventGridMachineUserDeleted struct {
+	EventType       string `json:"event_type"`
+	MachineUserId   string `json:"machine_user_id"`
+	MachineUserName string `json:"machine_user_name"`
+	TeamId          string `json:"team_id"`
+	TeamName        string `json:"team_name"`
+}
+
+// AuditLogEventGridMachineUserUpdated A Grid machine user was renamed.
+type AuditLogEventGridMachineUserUpdated struct {
+	EventType               string `json:"event_type"`
+	MachineUserId           string `json:"machine_user_id"`
+	MachineUserName         string `json:"machine_user_name"`
+	PreviousMachineUserName string `json:"previous_machine_user_name"`
+	TeamId                  string `json:"team_id"`
+	TeamName                string `json:"team_name"`
 }
 
 // AuditLogEventModelDeleted A model was deleted.
@@ -3141,6 +3275,9 @@ type AutoscalingSettings struct {
 	TargetUtilizationPercentage *int `json:"target_utilization_percentage"`
 }
 
+// AvailabilityModel Capacity a training job or Loops trainer runs on.
+type AvailabilityModel string
+
 // AwsAssumeRole AWS AssumeRole trust-policy inputs for the organization.
 type AwsAssumeRole struct {
 	// BasetenRoleArn Baseten role ARN to allow in an IAM role's trust policy
@@ -3481,7 +3618,7 @@ type CleanupSandboxImagesResponse struct {
 
 // CreateAPIKeyRequest Request to create an API key.
 type CreateAPIKeyRequest struct {
-	// ExpiresAt Expiration time in UTC. Must be in the future. Personal keys require an expiration no more than 90 days away; other keys may omit it or use null.
+	// ExpiresAt Expiration time in UTC. Must be in the future. Personal keys must expire within 90 days, or sooner if your organization sets a lower limit. Team and organization keys require an expiration within your organization's limit when one is set; otherwise they may omit it or use null. Organization lifetime limits do not apply to Grid keys.
 	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 
 	// ModelIds List of model IDs to scope the API key to, only present if type is 'WORKSPACE_EXPORT_METRICS' or 'WORKSPACE_INVOKE'
@@ -3696,6 +3833,9 @@ type CreateLLMModelRequest struct {
 	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
+	// Bdn BDN configuration for read-only sealed volume mounts; supports mounts only
+	Bdn *map[string]interface{} `json:"bdn,omitempty"`
+
 	// DeploymentName Name of the deployment, unique within the model. Use only A-Z, a-z, 0-9, '-', '_', and '.'. The name 'development' is reserved. If omitted or empty, a name is generated automatically.
 	DeploymentName *string `json:"deployment_name,omitempty"`
 
@@ -3740,6 +3880,9 @@ type CreateLLMModelVersionRequest struct {
 
 	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
+
+	// Bdn BDN configuration for read-only sealed volume mounts; supports mounts only
+	Bdn *map[string]interface{} `json:"bdn,omitempty"`
 
 	// DeploymentName Name of the deployment, unique within the model. Use only A-Z, a-z, 0-9, '-', '_', and '.'. The name 'development' is reserved. If omitted or empty, a name is generated automatically.
 	DeploymentName *string `json:"deployment_name,omitempty"`
@@ -3822,14 +3965,8 @@ type CreateLibraryListingVersionRequest struct {
 
 // CreateLoopsRunRequest Request to create a Loops run together with its paired sampler.
 type CreateLoopsRunRequest struct {
-	// AvailabilityModel Capacity guarantee under which a training job is scheduled.
-	//
-	// ``DEDICATED`` is on-demand capacity that is not preempted (the default). ``SPOT`` is
-	// interruptible capacity that may be preempted; the user is responsible for checkpointing
-	// their own progress. A managed/resumable model where the platform handles
-	// checkpoint/resume on its own is intentionally not defined yet; it is planned for a
-	// future milestone.
-	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+	// AvailabilityModel Capacity a training job or Loops trainer runs on.
+	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
 
 	// BaseCheckpoint Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in the team secret hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
 	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
@@ -3878,8 +4015,8 @@ type CreateLoopsRunResponse struct {
 
 // CreateLoopsSamplerRequest defines model for CreateLoopsSamplerRequest.
 type CreateLoopsSamplerRequest struct {
-	// AvailabilityModel Capacity the sampler runs on. 'spot' allows preemption when its GPUs are reclaimed. Defaults to 'dedicated' for standalone samplers. Paired samplers inherit their run's availability model; an explicit value must match it.
-	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+	// AvailabilityModel Capacity the sampler runs on. 'spot' allows preemption when its GPUs are reclaimed. Defaults to 'standard' for standalone samplers. Paired samplers inherit their run's availability model; an explicit value must match it.
+	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
 
 	// BaseModel Base model ID for a standalone sampler (for example, a baseline).
 	BaseModel *string `json:"base_model,omitempty"`
@@ -3899,6 +4036,9 @@ type CreateLoopsSamplerRequest struct {
 	// RunId ID of an existing run to attach this sampler to. When set, the sampler is paired to the run and weight-syncs from its trainer, and base_model is inherited from the run. Omit to create a standalone sampler.
 	RunId *string `json:"run_id,omitempty"`
 
+	// Scope Where a Loops run's trainer or a standalone sampler runs.
+	Scope *LoopsPlacementScope `json:"scope,omitempty"`
+
 	// SessionId ID of the Loops session this sampler belongs to.
 	SessionId string `json:"session_id"`
 }
@@ -3915,14 +4055,8 @@ type CreateLoopsSessionResponse struct {
 
 // CreateLoopsTrainerRequest defines model for CreateLoopsTrainerRequest.
 type CreateLoopsTrainerRequest struct {
-	// AvailabilityModel Capacity guarantee under which a training job is scheduled.
-	//
-	// ``DEDICATED`` is on-demand capacity that is not preempted (the default). ``SPOT`` is
-	// interruptible capacity that may be preempted; the user is responsible for checkpointing
-	// their own progress. A managed/resumable model where the platform handles
-	// checkpoint/resume on its own is intentionally not defined yet; it is planned for a
-	// future milestone.
-	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+	// AvailabilityModel Capacity a training job or Loops trainer runs on.
+	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
 
 	// BaseCheckpoint Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in the team secret hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
 	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
@@ -3953,6 +4087,9 @@ type CreateLoopsTrainerRequest struct {
 
 	// ScaleDownDelaySeconds Seconds of inactivity before the run scales to zero. Must be between 1 and 3600 (1 hour). Defaults to 900 (15 minutes).
 	ScaleDownDelaySeconds *int `json:"scale_down_delay_seconds,omitempty"`
+
+	// Scope Where a Loops run's trainer or a standalone sampler runs.
+	Scope *LoopsPlacementScope `json:"scope,omitempty"`
 
 	// Seed Random seed for reproducibility.
 	Seed *int `json:"seed,omitempty"`
@@ -4022,6 +4159,9 @@ type CreateSandboxPreviewTokenRequest struct {
 
 // CreateSandboxRequest Configuration for a new sandbox. The client may provide a name; otherwise the server generates one. The name is immutable after creation.
 type CreateSandboxRequest struct {
+	// Cpu Optional number of vCPUs, a whole number between 1 and 32. When omitted, the CPU allocation is derived from memory. When set, memory must be between 1024 and 8192 megabytes per vCPU (a ratio from 1:1 to 1:8), and cpu must not exceed the account's per-sandbox cpu quota. A value equal to the allocation memory alone would give is always accepted. When memory is omitted, it defaults to 8192 MB per vCPU, capped at the account's memory quota. Immutable after creation.
+	Cpu *int `json:"cpu,omitempty"`
+
 	// CreateIfNotExists When true, return the existing live sandbox with this name or recreate it if it is failed, terminated, or being deleted. The server handles concurrent creation and deletion races with a bounded wait; persistent contention returns a conflict. Requires name. Existing configuration is preserved. Defaults to false when omitted.
 	CreateIfNotExists *bool `json:"create_if_not_exists,omitempty"`
 
@@ -4043,7 +4183,7 @@ type CreateSandboxRequest struct {
 	// Lifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
 	Lifecycle *SandboxLifecycle `json:"lifecycle,omitempty"`
 
-	// Memory Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Defaults to 4096. Must be between 1024 and 262144.
+	// Memory Memory allocation in megabytes. Must be between 1024 and 262144. Defaults to 4096, or to 8192 MB per vCPU (a 1:8 ratio) when only cpu is set, capped at the account's memory quota. When cpu is omitted, memory also determines the CPU allocation (by default 2048 MB = 1 vCPU, 4096 MB = 2, 8192 MB = 4, 16384 MB = 6, 32768 MB = 8, 65536 MB = 16, 131072 MB or more = 32).
 	Memory *int `json:"memory,omitempty"`
 
 	// Name Optional unique sandbox name. Generated by the server when omitted; immutable after creation.
@@ -4144,6 +4284,9 @@ type CreateTrainingJobCacheConfig struct {
 	// MountBasePath Mount base path for the cache directory. The project cache and team cache will be mounted under this path.
 	MountBasePath *string `json:"mount_base_path,omitempty"`
 
+	// PersistentHome Whether to keep `$HOME` in a per-job directory on the project cache, so its contents outlive the job. Requires `enabled`.
+	PersistentHome *bool `json:"persistent_home,omitempty"`
+
 	// RequireCacheAffinity Whether to require region affinity for the read-write cache. If False, the resulting job is not guaranteed to be deployed alongside the previous cache.
 	RequireCacheAffinity *bool `json:"require_cache_affinity,omitempty"`
 }
@@ -4165,14 +4308,8 @@ type CreateTrainingJobCompute struct {
 	// Accelerator GPU specification for the training job
 	Accelerator *CreateTrainingJobAccelerator `json:"accelerator,omitempty"`
 
-	// AvailabilityModel Capacity guarantee under which a training job is scheduled.
-	//
-	// ``DEDICATED`` is on-demand capacity that is not preempted (the default). ``SPOT`` is
-	// interruptible capacity that may be preempted; the user is responsible for checkpointing
-	// their own progress. A managed/resumable model where the platform handles
-	// checkpoint/resume on its own is intentionally not defined yet; it is planned for a
-	// future milestone.
-	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+	// AvailabilityModel Capacity a training job or Loops trainer runs on.
+	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
 
 	// CpuCount Number of cpus for the training job.
 	CpuCount *int `json:"cpu_count,omitempty"`
@@ -5558,9 +5695,9 @@ type GetLogsResponse struct {
 // GetLoopsCapabilitiesResponse Response for “GET /v1/loops/capabilities“.
 //
 // A model Baseten does not support has no entry at all, so an empty list for
-// a single-model request means exactly that.
+// a single-model request without “enabled“ means exactly that.
 type GetLoopsCapabilitiesResponse struct {
-	// SupportedModels Models Baseten supports for this use case, each carrying an 'enabled' flag saying whether this workspace can run it now, and 'enablement_details' when it cannot. Filter on 'enabled' to get the models you can use.
+	// SupportedModels Models Baseten supports for this use case, each carrying an 'enabled' flag saying whether this workspace can run it now, and 'enablement_details' when it cannot. Models this workspace can run come first, then the rest, each group sorted by name.
 	SupportedModels []SupportedModel `json:"supported_models"`
 }
 
@@ -5623,20 +5760,20 @@ type GetLoopsUserConfigResponse struct {
 	UserConfig LoopsUserConfig `json:"user_config"`
 }
 
-// GetModelMetricsResponse Model metrics over a time window, index-mapped: metric descriptors appear once
+// GetMetricsResponse Model metrics over a time window, index-mapped: metric descriptors appear once
 // in “metric_descriptors“; each value set's “values“ are aligned to that order.
-type GetModelMetricsResponse struct {
+type GetMetricsResponse struct {
 	// EndEpochMillis End of the returned window.
 	EndEpochMillis int `json:"end_epoch_millis"`
 
 	// MetricDescriptors Descriptors for each metric; position defines the values index.
-	MetricDescriptors []ModelMetricDescriptor `json:"metric_descriptors"`
+	MetricDescriptors []MetricDescriptor `json:"metric_descriptors"`
 
 	// MetricValues Metric values per time step covering the window. In summary mode this always contains exactly one value set spanning the whole window.
-	MetricValues []ModelMetricValueSet `json:"metric_values"`
+	MetricValues []MetricValueSet `json:"metric_values"`
 
 	// Mode How metric values are aggregated over the request.
-	Mode ModelMetricMode `json:"mode"`
+	Mode MetricMode `json:"mode"`
 
 	// StartEpochMillis Start of the returned window.
 	StartEpochMillis int `json:"start_epoch_millis"`
@@ -5965,9 +6102,9 @@ type GridEffectiveSpendLimit struct {
 // GridHarnessDefaults defines model for GridHarnessDefaults.
 type GridHarnessDefaults struct {
 	ClaudeCode GridBackgroundHarnessDefaults `json:"claude_code"`
-	Codex      GridPrimaryHarnessDefaults    `json:"codex"`
+	Codex      GridBackgroundHarnessDefaults `json:"codex"`
 	Opencode   GridBackgroundHarnessDefaults `json:"opencode"`
-	Pi         GridPrimaryHarnessDefaults    `json:"pi"`
+	Pi         GridBackgroundHarnessDefaults `json:"pi"`
 }
 
 // GridHarnessModel defines model for GridHarnessModel.
@@ -6010,12 +6147,6 @@ type GridMachineUsersResponse struct {
 	Pagination PaginationResponse `json:"pagination"`
 }
 
-// GridPrimaryHarnessDefaults defines model for GridPrimaryHarnessDefaults.
-type GridPrimaryHarnessDefaults struct {
-	// Primary Route for the primary model, which new sessions use. Null when the team has no route to use.
-	Primary *GridHarnessModel `json:"primary"`
-}
-
 // GridProvider Upstream provider of a route target, named like the route target types.
 type GridProvider string
 
@@ -6055,6 +6186,31 @@ type GridRoute struct {
 // GridRoute_Target Configured upstream target.
 type GridRoute_Target struct {
 	union json.RawMessage
+}
+
+// GridRouteClassifier defines model for GridRouteClassifier.
+type GridRouteClassifier struct {
+	// DecidableModels Model identities the route classifier picks from.
+	DecidableModels []string `json:"decidable_models"`
+
+	// Id Stable route classifier identifier.
+	Id string `json:"id"`
+
+	// Name Display name of the route classifier.
+	Name string `json:"name"`
+
+	// SupportedTradeoffs Tradeoffs the route classifier supports. Empty when it supports all of them.
+	SupportedTradeoffs []GridRouteClassifierSupportedTradeoffs `json:"supported_tradeoffs"`
+}
+
+// GridRouteClassifierSupportedTradeoffs defines model for GridRouteClassifier.SupportedTradeoffs.
+type GridRouteClassifierSupportedTradeoffs string
+
+// GridRouteClassifiersResponse defines model for GridRouteClassifiersResponse.
+type GridRouteClassifiersResponse struct {
+	// Items Items in this page.
+	Items      []GridRouteClassifier `json:"items"`
+	Pagination PaginationResponse    `json:"pagination"`
 }
 
 // GridRouteRef defines model for GridRouteRef.
@@ -6099,6 +6255,20 @@ type GridRouteTargetConnection struct {
 	// Type Target kind for a provider reached through a team connection.
 	Type string `json:"type"`
 }
+
+// GridRouteTargetIntelligent defines model for GridRouteTargetIntelligent.
+type GridRouteTargetIntelligent struct {
+	RouteClassifier GridRouteClassifier `json:"route_classifier"`
+
+	// Tradeoff How the classifier weighs cost against quality.
+	Tradeoff GridRouteTargetIntelligentTradeoff `json:"tradeoff"`
+
+	// Type Target kind for an intelligent route: Baseten picks the model per request.
+	Type string `json:"type"`
+}
+
+// GridRouteTargetIntelligentTradeoff How the classifier weighs cost against quality.
+type GridRouteTargetIntelligentTradeoff string
 
 // GridRouteTombstone defines model for GridRouteTombstone.
 type GridRouteTombstone struct {
@@ -6513,6 +6683,7 @@ type LibraryListing struct {
 
 // LibraryListingMetadata defines model for LibraryListingMetadata.
 type LibraryListingMetadata struct {
+	BaseModel        *string                   `json:"base_model,omitempty"`
 	ContextLength    *int                      `json:"context_length,omitempty"`
 	Description      *string                   `json:"description,omitempty"`
 	InputModalities  *[]LibraryListingModality `json:"input_modalities,omitempty"`
@@ -6919,14 +7090,8 @@ type LoopsDeployment struct {
 	// ActiveRunId The ID of the run currently active on this deployment, if any. Null when the deployment's runs have been marked inactive (e.g. scale-to-zero) without a successor.
 	ActiveRunId *string `json:"active_run_id,omitempty"`
 
-	// AvailabilityModel Capacity guarantee under which a training job is scheduled.
-	//
-	// ``DEDICATED`` is on-demand capacity that is not preempted (the default). ``SPOT`` is
-	// interruptible capacity that may be preempted; the user is responsible for checkpointing
-	// their own progress. A managed/resumable model where the platform handles
-	// checkpoint/resume on its own is intentionally not defined yet; it is planned for a
-	// future milestone.
-	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+	// AvailabilityModel Capacity a training job or Loops trainer runs on.
+	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
 
 	// BaseCheckpoint The custom base checkpoint the deployment's trainer loaded, pinned to a commit (hf://<org>/<repo>@<sha>). Null when it uses the base model's own weights.
 	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
@@ -7059,6 +7224,9 @@ type LoopsMeterUsageSubtotal1 = string
 type LoopsMeterUsage_Subtotal struct {
 	union json.RawMessage
 }
+
+// LoopsPlacementScope Where a Loops run's trainer or a standalone sampler runs.
+type LoopsPlacementScope string
 
 // LoopsResourceItem defines model for LoopsResourceItem.
 type LoopsResourceItem struct {
@@ -7245,6 +7413,79 @@ type LoopsUserConfig struct {
 	TrainerAcceleratorPriority *[]string `json:"trainer_accelerator_priority"`
 }
 
+// MetricDescriptor Describes one metric. Its position in the response “metric_descriptors“
+// list is the index used to read that metric out of each value set's “values“.
+//
+// A metric may break down into multiple labeled series (e.g. latency quantiles,
+// or volume by status). “label_sets“ enumerates those series in order; each
+// value set's value for this metric is a list aligned to that order.
+type MetricDescriptor struct {
+	// Kind Semantic hint for how a metric behaves, to aid client rendering and
+	// aggregation. It does not describe the value's shape (that is carried by the
+	// descriptor's ``label_sets``; a metric may break down into multiple series).
+	//
+	// - ``GAUGE``: an instantaneous value (e.g. queue size, running requests).
+	// - ``COUNTER``: a cumulative total over the step (e.g. tokens, restarts).
+	// - ``HISTOGRAM``: a distribution, exposed as quantile/average series.
+	Kind MetricKind `json:"kind"`
+
+	// LabelSets The metric's series, in order. Each entry is the set of labels identifying one series; the value at the same index in each value set's ``values`` is that series' value. A plain metric has a single entry with no labels (`{}`). A histogram has one entry per quantile plus an average, e.g. {'quantile': '0.5'} … {'quantile': '0.99'}, {'stat': 'avg'}.
+	LabelSets []map[string]string `json:"label_sets"`
+
+	// Name Canonical metric name.
+	Name string `json:"name"`
+
+	// UnitHint Advisory unit of a metric's values. Values are reported as scraped, so the
+	// hint describes the raw value (e.g. GPU memory is reported in mebibytes).
+	//
+	// - ``PER_SECOND``: a rate per second.
+	// - ``SECONDS``: a duration in seconds.
+	// - ``BYTES``: a size in bytes.
+	// - ``MEBIBYTES``: a size in mebibytes (MiB).
+	// - ``COUNT``: a dimensionless tally of discrete things.
+	// - ``RATIO``: a dimensionless ratio. Usually in ``[0, 1]`` but may exceed 1
+	//   (e.g. CPU usage in cores = cpu-seconds/second).
+	// - ``CELSIUS``: a temperature in degrees Celsius.
+	// - ``WATTS``: power draw in watts.
+	UnitHint MetricUnitHint `json:"unit_hint"`
+}
+
+// MetricKind Semantic hint for how a metric behaves, to aid client rendering and
+// aggregation. It does not describe the value's shape (that is carried by the
+// descriptor's “label_sets“; a metric may break down into multiple series).
+//
+// - “GAUGE“: an instantaneous value (e.g. queue size, running requests).
+// - “COUNTER“: a cumulative total over the step (e.g. tokens, restarts).
+// - “HISTOGRAM“: a distribution, exposed as quantile/average series.
+type MetricKind string
+
+// MetricMode How metric values are aggregated over the request.
+type MetricMode string
+
+// MetricUnitHint Advisory unit of a metric's values. Values are reported as scraped, so the
+// hint describes the raw value (e.g. GPU memory is reported in mebibytes).
+//
+//   - “PER_SECOND“: a rate per second.
+//   - “SECONDS“: a duration in seconds.
+//   - “BYTES“: a size in bytes.
+//   - “MEBIBYTES“: a size in mebibytes (MiB).
+//   - “COUNT“: a dimensionless tally of discrete things.
+//   - “RATIO“: a dimensionless ratio. Usually in “[0, 1]“ but may exceed 1
+//     (e.g. CPU usage in cores = cpu-seconds/second).
+//   - “CELSIUS“: a temperature in degrees Celsius.
+//   - “WATTS“: power draw in watts.
+type MetricUnitHint string
+
+// MetricValueSet The metric values for one time step. “values“ is aligned by index to the
+// response “metric_descriptors“ list.
+type MetricValueSet struct {
+	// StartEpochMillis Start of the step. The step spans until the next value set's start, or the window end for the last one; a summary has a single value set starting at the window start.
+	StartEpochMillis int `json:"start_epoch_millis"`
+
+	// Values Metric values aligned to the ``metric_descriptors`` index. Each entry is a list aligned to that descriptor's ``label_sets`` (a single-element list for a plain metric). A series with no data in this step is null.
+	Values [][]*float32 `json:"values"`
+}
+
 // Model A model.
 type Model struct {
 	// CreatedAt Time the model was created in ISO 8601 format
@@ -7277,6 +7518,9 @@ type ModelAPI struct {
 	// ContextLength The model's context window length, in tokens.
 	ContextLength int `json:"context_length"`
 
+	// CostPerMillionCachedInputTokens Effective cost per million cached input tokens, in dollars. Null when pricing is unavailable or the Model API has no cached input price.
+	CostPerMillionCachedInputTokens *ModelAPI_CostPerMillionCachedInputTokens `json:"cost_per_million_cached_input_tokens"`
+
 	// CostPerMillionInputTokens Effective cost per million input tokens, in dollars. Null when pricing is unavailable.
 	CostPerMillionInputTokens *ModelAPI_CostPerMillionInputTokens `json:"cost_per_million_input_tokens"`
 
@@ -7306,6 +7550,17 @@ type ModelAPI struct {
 
 	// ReleaseDate Date the Model API was made available.
 	ReleaseDate string `json:"release_date"`
+}
+
+// ModelAPICostPerMillionCachedInputTokens0 defines model for .
+type ModelAPICostPerMillionCachedInputTokens0 = float32
+
+// ModelAPICostPerMillionCachedInputTokens1 defines model for .
+type ModelAPICostPerMillionCachedInputTokens1 = string
+
+// ModelAPI_CostPerMillionCachedInputTokens Effective cost per million cached input tokens, in dollars. Null when pricing is unavailable or the Model API has no cached input price.
+type ModelAPI_CostPerMillionCachedInputTokens struct {
+	union json.RawMessage
 }
 
 // ModelAPICostPerMillionInputTokens0 defines model for .
@@ -7406,6 +7661,9 @@ type ModelApisCostResult struct {
 
 	// Subtotal Model API cost in USD for this day and grouping combination, returned as an exact decimal string preserving fractional-cent amounts. This amount may differ from finalized invoice amounts.
 	Subtotal string `json:"subtotal"`
+
+	// TeamId Team the cost is attributed to. Null when not grouping by team or when team attribution is unavailable.
+	TeamId *string `json:"team_id,omitempty"`
 
 	// UserId Attributed user ID. Null when not grouping by user or when attribution is unavailable.
 	UserId *string `json:"user_id,omitempty"`
@@ -7545,79 +7803,6 @@ type ModelConfig struct {
 	// Slug Shared endpoint slug.
 	Slug        string        `json:"slug"`
 	UsageLimits *[]UsageLimit `json:"usage_limits,omitempty"`
-}
-
-// ModelMetricDescriptor Describes one metric. Its position in the response “metric_descriptors“
-// list is the index used to read that metric out of each value set's “values“.
-//
-// A metric may break down into multiple labeled series (e.g. latency quantiles,
-// or volume by status). “label_sets“ enumerates those series in order; each
-// value set's value for this metric is a list aligned to that order.
-type ModelMetricDescriptor struct {
-	// Kind Semantic hint for how a metric behaves, to aid client rendering and
-	// aggregation. It does not describe the value's shape (that is carried by the
-	// descriptor's ``label_sets``; a metric may break down into multiple series).
-	//
-	// - ``GAUGE``: an instantaneous value (e.g. queue size, running requests).
-	// - ``COUNTER``: a cumulative total over the step (e.g. tokens, restarts).
-	// - ``HISTOGRAM``: a distribution, exposed as quantile/average series.
-	Kind ModelMetricKind `json:"kind"`
-
-	// LabelSets The metric's series, in order. Each entry is the set of labels identifying one series; the value at the same index in each value set's ``values`` is that series' value. A plain metric has a single entry with no labels (`{}`). A histogram has one entry per quantile plus an average, e.g. {'quantile': '0.5'} … {'quantile': '0.99'}, {'stat': 'avg'}. A by-status metric has one entry per status, e.g. {'status': '2xx'}.
-	LabelSets []map[string]string `json:"label_sets"`
-
-	// Name Canonical metric name.
-	Name string `json:"name"`
-
-	// UnitHint Advisory unit of a metric's values. Values are reported as scraped, so the
-	// hint describes the raw value (e.g. GPU memory is reported in mebibytes).
-	//
-	// - ``PER_SECOND``: a rate per second.
-	// - ``SECONDS``: a duration in seconds.
-	// - ``BYTES``: a size in bytes.
-	// - ``MEBIBYTES``: a size in mebibytes (MiB).
-	// - ``COUNT``: a dimensionless tally of discrete things.
-	// - ``RATIO``: a dimensionless ratio. Usually in ``[0, 1]`` but may exceed 1
-	//   (e.g. CPU usage in cores = cpu-seconds/second).
-	// - ``CELSIUS``: a temperature in degrees Celsius.
-	// - ``WATTS``: power draw in watts.
-	UnitHint ModelMetricUnitHint `json:"unit_hint"`
-}
-
-// ModelMetricKind Semantic hint for how a metric behaves, to aid client rendering and
-// aggregation. It does not describe the value's shape (that is carried by the
-// descriptor's “label_sets“; a metric may break down into multiple series).
-//
-// - “GAUGE“: an instantaneous value (e.g. queue size, running requests).
-// - “COUNTER“: a cumulative total over the step (e.g. tokens, restarts).
-// - “HISTOGRAM“: a distribution, exposed as quantile/average series.
-type ModelMetricKind string
-
-// ModelMetricMode How metric values are aggregated over the request.
-type ModelMetricMode string
-
-// ModelMetricUnitHint Advisory unit of a metric's values. Values are reported as scraped, so the
-// hint describes the raw value (e.g. GPU memory is reported in mebibytes).
-//
-//   - “PER_SECOND“: a rate per second.
-//   - “SECONDS“: a duration in seconds.
-//   - “BYTES“: a size in bytes.
-//   - “MEBIBYTES“: a size in mebibytes (MiB).
-//   - “COUNT“: a dimensionless tally of discrete things.
-//   - “RATIO“: a dimensionless ratio. Usually in “[0, 1]“ but may exceed 1
-//     (e.g. CPU usage in cores = cpu-seconds/second).
-//   - “CELSIUS“: a temperature in degrees Celsius.
-//   - “WATTS“: power draw in watts.
-type ModelMetricUnitHint string
-
-// ModelMetricValueSet The metric values for one time step. “values“ is aligned by index to the
-// response “metric_descriptors“ list.
-type ModelMetricValueSet struct {
-	// StartEpochMillis Start of the step. The step spans until the next value set's start, or the window end for the last one; a summary has a single value set starting at the window start.
-	StartEpochMillis int `json:"start_epoch_millis"`
-
-	// Values Metric values aligned to the ``metric_descriptors`` index. Each entry is a list aligned to that descriptor's ``label_sets`` (a single-element list for a plain metric). A series with no data in this step is null.
-	Values [][]*float32 `json:"values"`
 }
 
 // ModelPromotionSettings Promotion settings for promoting models
@@ -8192,6 +8377,9 @@ type RuntimeOidc struct {
 
 // Sandbox defines model for Sandbox.
 type Sandbox struct {
+	// Cpu Number of vCPUs the sandbox runs with. Always returned, including for sandboxes created without cpu, whose CPU allocation was derived from memory. Set at creation only.
+	Cpu *int `json:"cpu,omitempty"`
+
 	// CreatedAt Time the sandbox was created.
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 
@@ -8222,7 +8410,7 @@ type Sandbox struct {
 	// Lifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
 	Lifecycle *SandboxLifecycle `json:"lifecycle,omitempty"`
 
-	// Memory Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Must be between 1024 and 262144.
+	// Memory Memory allocation in megabytes. Must be between 1024 and 262144. When cpu is not set at creation, memory also determines the CPU allocation (by default 2048 MB = 1 vCPU, 4096 MB = 2, 8192 MB = 4, 16384 MB = 6, 32768 MB = 8, 65536 MB = 16, 131072 MB or more = 32).
 	Memory *int `json:"memory,omitempty"`
 
 	// Name Immutable sandbox name, provided by the client or generated by the server, used in sandbox_name path parameters.
@@ -8264,6 +8452,9 @@ type SandboxApiPagination struct {
 
 // SandboxConfiguration Writable sandbox configuration. Fields are serialized at the root of the request or resource.
 type SandboxConfiguration struct {
+	// Cpu Number of vCPUs the sandbox runs with. Always returned, including for sandboxes created without cpu, whose CPU allocation was derived from memory. Set at creation only.
+	Cpu *int `json:"cpu,omitempty"`
+
 	// Envs Environment variables injected into the sandbox.
 	Envs *[]SandboxEnv `json:"envs,omitempty"`
 
@@ -8282,7 +8473,7 @@ type SandboxConfiguration struct {
 	// Lifecycle Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates
 	Lifecycle *SandboxLifecycle `json:"lifecycle,omitempty"`
 
-	// Memory Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Must be between 1024 and 262144.
+	// Memory Memory allocation in megabytes. Must be between 1024 and 262144. When cpu is not set at creation, memory also determines the CPU allocation (by default 2048 MB = 1 vCPU, 4096 MB = 2, 8192 MB = 4, 16384 MB = 6, 32768 MB = 8, 65536 MB = 16, 131072 MB or more = 32).
 	Memory *int `json:"memory,omitempty"`
 
 	// Network Network configuration for a sandbox including subnet, domain filtering, and proxy settings
@@ -9182,7 +9373,7 @@ type TeamTrainingGpuCapacityItem struct {
 	// Baseline Baseline GPU allocation for the team. 0 if not configured.
 	Baseline int `json:"baseline"`
 
-	// DedicatedUsageCount Portion of usage_count from dedicated (on-demand) jobs.
+	// DedicatedUsageCount Portion of usage_count from standard (non-spot) jobs.
 	DedicatedUsageCount *int `json:"dedicated_usage_count,omitempty"`
 
 	// GpuType GPU type identifier (e.g. H100, A100-40GB)
@@ -9247,7 +9438,13 @@ type ToolCallUsageBucket struct {
 
 	// Sku Charge unit, as `<provider>/<unit>`. The unit is what the provider reported, or the tool name when it reported none. Its meaning varies by provider.
 	Sku string `json:"sku"`
+
+	// TeamId Team attributed to the usage. Null when not grouping by team or when historical team attribution is unavailable.
+	TeamId *string `json:"team_id,omitempty"`
 }
+
+// ToolCallUsageDimension defines model for ToolCallUsageDimension.
+type ToolCallUsageDimension string
 
 // ToolCallUsageResponse Daily server-side tool call usage, ordered by day, provider, sku, and model.
 type ToolCallUsageResponse struct {
@@ -9345,7 +9542,7 @@ type TrainingGpuCapacityItem struct {
 	// Baseline Baseline GPU allocation; jobs below this threshold are expected to run immediately. 0 if not configured.
 	Baseline int `json:"baseline"`
 
-	// DedicatedUsageCount Portion of usage_count from dedicated (on-demand) jobs, which run against the baseline.
+	// DedicatedUsageCount Portion of usage_count from standard (non-spot) jobs, which run against the baseline.
 	DedicatedUsageCount *int `json:"dedicated_usage_count,omitempty"`
 
 	// GpuType GPU type identifier (e.g. H100, A100-40GB)
@@ -9388,14 +9585,8 @@ type TrainingItem_Subtotal struct {
 
 // TrainingJob defines model for TrainingJob.
 type TrainingJob struct {
-	// AvailabilityModel Capacity guarantee under which a training job is scheduled.
-	//
-	// ``DEDICATED`` is on-demand capacity that is not preempted (the default). ``SPOT`` is
-	// interruptible capacity that may be preempted; the user is responsible for checkpointing
-	// their own progress. A managed/resumable model where the platform handles
-	// checkpoint/resume on its own is intentionally not defined yet; it is planned for a
-	// future milestone.
-	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+	// AvailabilityModel Capacity a training job or Loops trainer runs on.
+	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
 
 	// CheckpointSyncStatus Checkpoint sync status of the training job.
 	CheckpointSyncStatus *CheckpointSyncStatus `json:"checkpoint_sync_status,omitempty"`
@@ -9524,6 +9715,9 @@ type TrainingProject struct {
 
 	// Name Name of the training project.
 	Name string `json:"name"`
+
+	// ProjectAccelerator Default GPU type for cache-enabled CPU job placement.
+	ProjectAccelerator *string `json:"project_accelerator,omitempty"`
 
 	// TeamName Name of the team associated with the training project.
 	TeamName *string `json:"team_name,omitempty"`
@@ -9824,25 +10018,19 @@ type UpdateGridHarnessDefaults struct {
 	ClaudeCode Optional[UpdateGridBackgroundHarnessModels] `json:"claude_code,omitzero"`
 
 	// Codex Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
-	Codex Optional[UpdateGridPrimaryHarnessModels] `json:"codex,omitzero"`
+	Codex Optional[UpdateGridBackgroundHarnessModels] `json:"codex,omitzero"`
 
 	// Opencode Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
 	Opencode Optional[UpdateGridBackgroundHarnessModels] `json:"opencode,omitzero"`
 
 	// Pi Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
-	Pi Optional[UpdateGridPrimaryHarnessModels] `json:"pi,omitzero"`
+	Pi Optional[UpdateGridBackgroundHarnessModels] `json:"pi,omitzero"`
 }
 
 // UpdateGridMachineUserRequest defines model for UpdateGridMachineUserRequest.
 type UpdateGridMachineUserRequest struct {
 	// Name Name of the machine user, unique within its team. At most 255 characters. Omit to keep it.
 	Name *string `json:"name,omitempty"`
-}
-
-// UpdateGridPrimaryHarnessModels defines model for UpdateGridPrimaryHarnessModels.
-type UpdateGridPrimaryHarnessModels struct {
-	// Primary Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.
-	Primary Optional[string] `json:"primary,omitzero"`
 }
 
 // UpdateGridRouteRequest defines model for UpdateGridRouteRequest.
@@ -10038,7 +10226,7 @@ type UpdateSandboxPreviewRequest struct {
 	Ttl *SandboxPreviewTtl `json:"ttl,omitempty"`
 }
 
-// UpdateSandboxRequest Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, network, region, image, ports, filesystem, and volumes are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.
+// UpdateSandboxRequest Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, cpu, network, region, image, ports, filesystem, and volumes are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.
 type UpdateSandboxRequest struct {
 	// Envs Environment variables injected into the sandbox.
 	Envs *[]SandboxEnv `json:"envs,omitempty"`
@@ -10087,8 +10275,8 @@ type UpdateTrafficRoutingSettings struct {
 // Every field is optional so a caller can patch one without the other, but at least
 // one must be provided: an empty body has nothing to apply.
 type UpdateTrainingJobRequest struct {
-	// AvailabilityModel New capacity guarantee for a PENDING training job. 'dedicated' runs on on-demand capacity that is not preempted. 'spot' runs on interruptible capacity that may be preempted; the user is responsible for checkpointing their own progress. Only jobs in the PENDING state can have their availability model changed.
-	AvailabilityModel *V1AvailabilityModel `json:"availability_model,omitempty"`
+	// AvailabilityModel New capacity guarantee for a PENDING training job. 'standard' runs on capacity that is not preempted. 'spot' runs on interruptible capacity that may be preempted; you are responsible for checkpointing your own progress. Only jobs in the PENDING state can have their availability model changed.
+	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
 
 	// Priority New queue priority for a PENDING training job. Higher values are dequeued first. Only jobs in the PENDING state can have their priority changed.
 	Priority *int `json:"priority,omitempty"`
@@ -10222,6 +10410,9 @@ type UpsertSecretRequest struct {
 type UpsertTrainingProject struct {
 	// Name Name of the training project.
 	Name string `json:"name"`
+
+	// ProjectAccelerator Optional default GPU type for cache-enabled CPU job placement, such as H100. GPU jobs use their requested GPU type; uncached CPU jobs use normal CPU routing. Omitting this field preserves the stored default; providing a value updates it. Existing cache-affinity requirements still apply.
+	ProjectAccelerator *string `json:"project_accelerator,omitempty"`
 }
 
 // UpsertTrainingProjectRequest A request to upsert a training project.
@@ -10291,15 +10482,6 @@ type UsersResponse struct {
 	Items      []UserInfo         `json:"items"`
 	Pagination PaginationResponse `json:"pagination"`
 }
-
-// V1AvailabilityModel Capacity guarantee under which a training job is scheduled.
-//
-// “DEDICATED“ is on-demand capacity that is not preempted (the default). “SPOT“ is
-// interruptible capacity that may be preempted; the user is responsible for checkpointing
-// their own progress. A managed/resumable model where the platform handles
-// checkpoint/resume on its own is intentionally not defined yet; it is planned for a
-// future milestone.
-type V1AvailabilityModel string
 
 // V1InteractiveSessionAuthProvider defines model for V1InteractiveSessionAuthProvider.
 type V1InteractiveSessionAuthProvider string
@@ -10444,6 +10626,12 @@ type VolumeSyncAuthenticationGCPOIDC struct {
 	WorkloadIdentityProvider string `json:"workload_identity_provider"`
 }
 
+// VolumeSyncAuthenticationHuggingFaceOIDC Authentication using a Hugging Face trusted publisher and Baseten workload identity.
+type VolumeSyncAuthenticationHuggingFaceOIDC struct {
+	// Resource Hugging Face username for an account CI/CD identity, or namespace/repository for a repository trusted publisher. Configure trust in Hugging Face before starting the sync.
+	Resource string `json:"resource"`
+}
+
 // VolumeSyncDestination BDN destination for a volume sync.
 type VolumeSyncDestination struct {
 	// Ref Destination as bdn:<namespace>/<volume> with an optional tag.
@@ -10538,6 +10726,9 @@ type VolumeSyncSourceHuggingFace struct {
 
 	// Exclude Glob patterns selecting files to exclude.
 	Exclude *[]string `json:"exclude,omitempty"`
+
+	// HfOidc Hugging Face OIDC authentication for this source. Cannot be combined with auth_secret_name.
+	HfOidc *VolumeSyncAuthenticationHuggingFaceOIDC `json:"hf_oidc,omitempty"`
 
 	// Include Glob patterns selecting files to include.
 	Include *[]string `json:"include,omitempty"`
@@ -10806,7 +10997,7 @@ type GetV1BillingModelApisParams struct {
 	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included. The date range cannot exceed 90 days.
 	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
 
-	// GroupBy Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, or service_tier. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily organization totals.
+	// GroupBy Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, service_tier, or team. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily totals across all teams you can manage.
 	GroupBy *[]ModelApiCostDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
 
 	// ApiKeyPrefixes Return only costs for these exact API key prefixes, repeated once per prefix.
@@ -10820,6 +11011,9 @@ type GetV1BillingModelApisParams struct {
 
 	// ServiceTiers Return only costs for these exact service tiers, repeated once per tier.
 	ServiceTiers *[]string `form:"service_tiers,omitempty" json:"service_tiers,omitempty"`
+
+	// TeamIds Return only costs attributed to these teams, repeated once per team. Defaults to all teams you can manage.
+	TeamIds *[]string `form:"team_ids,omitempty" json:"team_ids,omitempty"`
 }
 
 // GetV1BillingToolCallUsageParams defines parameters for GetV1BillingToolCallUsage.
@@ -10829,6 +11023,12 @@ type GetV1BillingToolCallUsageParams struct {
 
 	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included. The date range cannot exceed 90 days.
 	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
+
+	// TeamIds Return only usage for these teams, repeated once per team. Defaults to all teams you can manage. An unauthorized team ID causes a 403 response.
+	TeamIds *[]string `form:"team_ids,omitempty" json:"team_ids,omitempty"`
+
+	// GroupBy Pass TEAM to split daily rows by team. Defaults to aggregating across teams.
+	GroupBy *[]ToolCallUsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
 }
 
 // GetV1BillingUsageSummaryParams defines parameters for GetV1BillingUsageSummary.
@@ -10984,6 +11184,15 @@ type GetV1GridMachineUsersParams struct {
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
+// GetV1GridRouteClassifiersParams defines parameters for GetV1GridRouteClassifiers.
+type GetV1GridRouteClassifiersParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // GetV1GridRoutesParams defines parameters for GetV1GridRoutes.
 type GetV1GridRoutesParams struct {
 	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
@@ -11061,7 +11270,7 @@ type GetV1GridTeamSettingsUsersUserIdParams struct {
 
 // GetV1LoopsCapabilitiesParams defines parameters for GetV1LoopsCapabilities.
 type GetV1LoopsCapabilitiesParams struct {
-	// Model Restrict the response to one model, identified by its HuggingFace repo id. A supported model comes back with its 'enabled' flag and, when false, its 'enablement_details'. An empty list means Baseten does not support that model. Omit to list every supported model.
+	// Model Restrict the response to one model, identified by its HuggingFace repo id. A supported model comes back with its 'enabled' flag and, when false, its 'enablement_details'. Without 'enabled', an empty list means Baseten does not support that model. Omit to list every supported model.
 	Model *string `form:"model,omitempty" json:"model,omitempty"`
 
 	// UseCase What the caller intends to run. Defaults to 'rl', the stricter of the two: an RL run needs both a trainer and a sampler, so anything enabled for 'rl' is also enabled for 'sft'.
@@ -11069,6 +11278,9 @@ type GetV1LoopsCapabilitiesParams struct {
 
 	// MaxSeqLen The sequence length the caller intends to train at — the same value they would pass as 'max_seq_len' when creating the run. Models that cannot serve it are reported as not enabled rather than returned with a ceiling the caller cannot use. Omit for the model's highest enabled sequence length.
 	MaxSeqLen *int `form:"max_seq_len,omitempty" json:"max_seq_len,omitempty"`
+
+	// Enabled Pass true to list only the models this workspace can run now, or false for only the ones it cannot. Omit to list both. With 'model', an empty list can also mean the model is supported but filtered out.
+	Enabled *bool `form:"enabled,omitempty" json:"enabled,omitempty"`
 }
 
 // GetV1LoopsCheckpointsParams defines parameters for GetV1LoopsCheckpoints.
@@ -11194,6 +11406,21 @@ type GetV1ModelApisUsageParams struct {
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
 
+// GetV1ModelApisModelApiNameMetricsParams defines parameters for GetV1ModelApisModelApiNameMetrics.
+type GetV1ModelApisModelApiNameMetricsParams struct {
+	// Mode 'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration.
+	Mode *MetricMode `form:"mode,omitempty" json:"mode,omitempty"`
+
+	// StartEpochMillis Epoch millis timestamp to start fetching metrics. Defaults to one hour before the end.
+	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
+
+	// EndEpochMillis Epoch millis timestamp to end fetching metrics. Defaults to the current time. The window between start and end must not exceed 7 days.
+	EndEpochMillis *int `form:"end_epoch_millis,omitempty" json:"end_epoch_millis,omitempty"`
+
+	// Metrics Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_model_api_inference_requests_total, baseten_model_api_incoming_inference_requests_total, and baseten_model_api_tokens_total. Unknown names are rejected; valid names that are not enabled for your organization are omitted from the response.
+	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
+}
+
 // GetV1ModelsParams defines parameters for GetV1Models.
 type GetV1ModelsParams struct {
 	// Name When set, returns only models with this exact name, if any. On a team-scoped route this matches at most one model; on the org-wide route it may match models in multiple teams, since names are unique only within a team.
@@ -11290,7 +11517,7 @@ type GetV1ModelsModelIdDeploymentsDeploymentIdLogsParams struct {
 // GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdMetrics.
 type GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams struct {
 	// Mode 'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration.
-	Mode *ModelMetricMode `form:"mode,omitempty" json:"mode,omitempty"`
+	Mode *MetricMode `form:"mode,omitempty" json:"mode,omitempty"`
 
 	// StartEpochMillis Epoch millis timestamp to start fetching metrics. Defaults to one hour before the end.
 	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
@@ -11386,7 +11613,7 @@ type GetV1ModelsModelIdEnvironmentsEnvNameLogsParams struct {
 // GetV1ModelsModelIdEnvironmentsEnvNameMetricsParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameMetrics.
 type GetV1ModelsModelIdEnvironmentsEnvNameMetricsParams struct {
 	// Mode 'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration.
-	Mode *ModelMetricMode `form:"mode,omitempty" json:"mode,omitempty"`
+	Mode *MetricMode `form:"mode,omitempty" json:"mode,omitempty"`
 
 	// StartEpochMillis Epoch millis timestamp to start fetching metrics. Defaults to one hour before the end.
 	StartEpochMillis *int `form:"start_epoch_millis,omitempty" json:"start_epoch_millis,omitempty"`
@@ -12499,6 +12726,21 @@ func (t *AuditLogEntry_EventData) FromAuditLogEventApiKeyDeleted(v AuditLogEvent
 	return err
 }
 
+// AsAuditLogEventApiKeyLifetimeLimitsUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventApiKeyLifetimeLimitsUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventApiKeyLifetimeLimitsUpdated() (AuditLogEventApiKeyLifetimeLimitsUpdated, error) {
+	var body AuditLogEventApiKeyLifetimeLimitsUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventApiKeyLifetimeLimitsUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventApiKeyLifetimeLimitsUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventApiKeyLifetimeLimitsUpdated(v AuditLogEventApiKeyLifetimeLimitsUpdated) error {
+	v.EventType = "API_KEY_LIFETIME_LIMITS_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 // AsAuditLogEventGatewayEndpointCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventGatewayEndpointCreated
 func (t AuditLogEntry_EventData) AsAuditLogEventGatewayEndpointCreated() (AuditLogEventGatewayEndpointCreated, error) {
 	var body AuditLogEventGatewayEndpointCreated
@@ -12584,6 +12826,51 @@ func (t AuditLogEntry_EventData) AsAuditLogEventProviderConnectionDeleted() (Aud
 // FromAuditLogEventProviderConnectionDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventProviderConnectionDeleted
 func (t *AuditLogEntry_EventData) FromAuditLogEventProviderConnectionDeleted(v AuditLogEventProviderConnectionDeleted) error {
 	v.EventType = "PROVIDER_CONNECTION_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventGridMachineUserCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventGridMachineUserCreated
+func (t AuditLogEntry_EventData) AsAuditLogEventGridMachineUserCreated() (AuditLogEventGridMachineUserCreated, error) {
+	var body AuditLogEventGridMachineUserCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventGridMachineUserCreated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventGridMachineUserCreated
+func (t *AuditLogEntry_EventData) FromAuditLogEventGridMachineUserCreated(v AuditLogEventGridMachineUserCreated) error {
+	v.EventType = "GRID_MACHINE_USER_CREATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventGridMachineUserUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventGridMachineUserUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventGridMachineUserUpdated() (AuditLogEventGridMachineUserUpdated, error) {
+	var body AuditLogEventGridMachineUserUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventGridMachineUserUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventGridMachineUserUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventGridMachineUserUpdated(v AuditLogEventGridMachineUserUpdated) error {
+	v.EventType = "GRID_MACHINE_USER_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventGridMachineUserDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventGridMachineUserDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventGridMachineUserDeleted() (AuditLogEventGridMachineUserDeleted, error) {
+	var body AuditLogEventGridMachineUserDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventGridMachineUserDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventGridMachineUserDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventGridMachineUserDeleted(v AuditLogEventGridMachineUserDeleted) error {
+	v.EventType = "GRID_MACHINE_USER_DELETED"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -12982,6 +13269,8 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventApiKeyCreated()
 	case "API_KEY_DELETED":
 		return t.AsAuditLogEventApiKeyDeleted()
+	case "API_KEY_LIFETIME_LIMITS_UPDATED":
+		return t.AsAuditLogEventApiKeyLifetimeLimitsUpdated()
 	case "CHAIN_DELETED":
 		return t.AsAuditLogEventChainDeleted()
 	case "CHAIN_DEPLOYED":
@@ -13016,6 +13305,12 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventGatewayEndpointDeleted()
 	case "GATEWAY_ENDPOINT_UPDATED":
 		return t.AsAuditLogEventGatewayEndpointUpdated()
+	case "GRID_MACHINE_USER_CREATED":
+		return t.AsAuditLogEventGridMachineUserCreated()
+	case "GRID_MACHINE_USER_DELETED":
+		return t.AsAuditLogEventGridMachineUserDeleted()
+	case "GRID_MACHINE_USER_UPDATED":
+		return t.AsAuditLogEventGridMachineUserUpdated()
 	case "MODEL_DELETED":
 		return t.AsAuditLogEventModelDeleted()
 	case "MODEL_DEPLOYED":
@@ -14512,6 +14807,21 @@ func (t *GridRoute_Target) FromGridRouteTargetClassifier(v GridRouteTargetClassi
 	return err
 }
 
+// AsGridRouteTargetIntelligent returns the union data inside the GridRoute_Target as a GridRouteTargetIntelligent
+func (t GridRoute_Target) AsGridRouteTargetIntelligent() (GridRouteTargetIntelligent, error) {
+	var body GridRouteTargetIntelligent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGridRouteTargetIntelligent overwrites any union data inside the GridRoute_Target as the provided GridRouteTargetIntelligent
+func (t *GridRoute_Target) FromGridRouteTargetIntelligent(v GridRouteTargetIntelligent) error {
+	v.Type = "INTELLIGENT"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t GridRoute_Target) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"type"`
@@ -14532,6 +14842,8 @@ func (t GridRoute_Target) ValueByDiscriminator() (interface{}, error) {
 		return t.AsGridRouteTargetClassifier()
 	case "CONNECTION":
 		return t.AsGridRouteTargetConnection()
+	case "INTELLIGENT":
+		return t.AsGridRouteTargetIntelligent()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -14919,6 +15231,44 @@ func (t LoopsUsage_Total) MarshalJSON() ([]byte, error) {
 }
 
 func (t *LoopsUsage_Total) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsModelAPICostPerMillionCachedInputTokens0 returns the union data inside the ModelAPI_CostPerMillionCachedInputTokens as a ModelAPICostPerMillionCachedInputTokens0
+func (t ModelAPI_CostPerMillionCachedInputTokens) AsModelAPICostPerMillionCachedInputTokens0() (ModelAPICostPerMillionCachedInputTokens0, error) {
+	var body ModelAPICostPerMillionCachedInputTokens0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromModelAPICostPerMillionCachedInputTokens0 overwrites any union data inside the ModelAPI_CostPerMillionCachedInputTokens as the provided ModelAPICostPerMillionCachedInputTokens0
+func (t *ModelAPI_CostPerMillionCachedInputTokens) FromModelAPICostPerMillionCachedInputTokens0(v ModelAPICostPerMillionCachedInputTokens0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsModelAPICostPerMillionCachedInputTokens1 returns the union data inside the ModelAPI_CostPerMillionCachedInputTokens as a ModelAPICostPerMillionCachedInputTokens1
+func (t ModelAPI_CostPerMillionCachedInputTokens) AsModelAPICostPerMillionCachedInputTokens1() (ModelAPICostPerMillionCachedInputTokens1, error) {
+	var body ModelAPICostPerMillionCachedInputTokens1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromModelAPICostPerMillionCachedInputTokens1 overwrites any union data inside the ModelAPI_CostPerMillionCachedInputTokens as the provided ModelAPICostPerMillionCachedInputTokens1
+func (t *ModelAPI_CostPerMillionCachedInputTokens) FromModelAPICostPerMillionCachedInputTokens1(v ModelAPICostPerMillionCachedInputTokens1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t ModelAPI_CostPerMillionCachedInputTokens) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ModelAPI_CostPerMillionCachedInputTokens) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

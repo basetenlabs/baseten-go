@@ -3485,7 +3485,7 @@
                         "required": false,
                         "description": "'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration.",
                         "schema": {
-                            "$ref": "#/components/schemas/ModelMetricModeV1",
+                            "$ref": "#/components/schemas/MetricModeV1",
                             "default": "CURRENT"
                         }
                     },
@@ -3545,7 +3545,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/GetModelMetricsResponseV1"
+                                    "$ref": "#/components/schemas/GetMetricsResponseV1"
                                 }
                             }
                         }
@@ -4336,7 +4336,7 @@
                         "required": false,
                         "description": "'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration.",
                         "schema": {
-                            "$ref": "#/components/schemas/ModelMetricModeV1",
+                            "$ref": "#/components/schemas/MetricModeV1",
                             "default": "CURRENT"
                         }
                     },
@@ -4396,7 +4396,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/GetModelMetricsResponseV1"
+                                    "$ref": "#/components/schemas/GetMetricsResponseV1"
                                 }
                             }
                         }
@@ -5920,11 +5920,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/training_projects \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_project\": {\n    \"name\": \"My Training Project\"\n  }\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/training_projects \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_project\": {\n    \"name\": \"My Training Project\",\n    \"project_accelerator\": \"H100\"\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/training_projects\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_project': {'name': 'My Training Project'}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/training_projects\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_project': {'name': 'My Training Project', 'project_accelerator': 'H100'}}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Upserts a training project with the specified metadata for a team.",
@@ -6047,11 +6047,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_project\": {\n    \"name\": \"My Training Project\"\n  }\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_project\": {\n    \"name\": \"My Training Project\",\n    \"project_accelerator\": \"H100\"\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_project': {'name': 'My Training Project'}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_project': {'name': 'My Training Project', 'project_accelerator': 'H100'}}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Upserts a training project with the specified metadata.",
@@ -6116,11 +6116,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_job\": {\n    \"image\": {\n      \"base_image\": \"hello-world\",\n      \"docker_auth\": null\n    },\n    \"compute\": {\n      \"node_count\": 1,\n      \"cpu_count\": 1,\n      \"memory\": \"2Gi\",\n      \"accelerator\": {\n        \"accelerator\": \"H100\",\n        \"count\": 2\n      },\n      \"availability_model\": \"spot\"\n    },\n    \"runtime\": {\n      \"start_commands\": [\n        \"python main.py\"\n      ],\n      \"environment_variables\": {\n        \"API_KEY\": \"your_api_key_here\",\n        \"PATH\": \"/usr/bin\"\n      },\n      \"enable_cache\": true,\n      \"cache_config\": {\n        \"enable_legacy_hf_mount\": true,\n        \"enabled\": true,\n        \"mount_base_path\": \"/root/.cache\",\n        \"require_cache_affinity\": true\n      },\n      \"checkpointing_config\": {\n        \"enabled\": true,\n        \"checkpoint_path\": \"/mnt/ckpts\",\n        \"volume_size_gib\": 10\n      },\n      \"load_checkpoint_config\": null\n    },\n    \"name\": \"gpt-oss-job\",\n    \"truss_user_env\": null,\n    \"interactive_session\": null,\n    \"weights\": [\n      {\n        \"allow_patterns\": null,\n        \"auth\": null,\n        \"auth_secret_name\": null,\n        \"ignore_patterns\": null,\n        \"mount_location\": \"/app/models/base\",\n        \"source\": \"hf://meta-llama/Llama-3-8B@main\"\n      }\n    ],\n    \"enable_baseten_workdir\": false,\n    \"priority\": 0\n  }\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_job\": {\n    \"image\": {\n      \"base_image\": \"hello-world\",\n      \"docker_auth\": null\n    },\n    \"compute\": {\n      \"node_count\": 1,\n      \"cpu_count\": 1,\n      \"memory\": \"2Gi\",\n      \"accelerator\": {\n        \"accelerator\": \"H100\",\n        \"count\": 2\n      },\n      \"availability_model\": \"spot\"\n    },\n    \"runtime\": {\n      \"start_commands\": [\n        \"python main.py\"\n      ],\n      \"environment_variables\": {\n        \"API_KEY\": \"your_api_key_here\",\n        \"PATH\": \"/usr/bin\"\n      },\n      \"enable_cache\": true,\n      \"cache_config\": {\n        \"enable_legacy_hf_mount\": true,\n        \"enabled\": true,\n        \"mount_base_path\": \"/root/.cache\",\n        \"persistent_home\": false,\n        \"require_cache_affinity\": true\n      },\n      \"checkpointing_config\": {\n        \"enabled\": true,\n        \"checkpoint_path\": \"/mnt/ckpts\",\n        \"volume_size_gib\": 10\n      },\n      \"load_checkpoint_config\": null\n    },\n    \"name\": \"gpt-oss-job\",\n    \"truss_user_env\": null,\n    \"interactive_session\": null,\n    \"weights\": [\n      {\n        \"allow_patterns\": null,\n        \"auth\": null,\n        \"auth_secret_name\": null,\n        \"ignore_patterns\": null,\n        \"mount_location\": \"/app/models/base\",\n        \"source\": \"hf://meta-llama/Llama-3-8B@main\"\n      }\n    ],\n    \"enable_baseten_workdir\": false,\n    \"priority\": 0\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_job': {'image': {'base_image': 'hello-world', 'docker_auth': None}, 'compute': {'node_count': 1, 'cpu_count': 1, 'memory': '2Gi', 'accelerator': {'accelerator': 'H100', 'count': 2}, 'availability_model': 'spot'}, 'runtime': {'start_commands': ['python main.py'], 'environment_variables': {'API_KEY': 'your_api_key_here', 'PATH': '/usr/bin'}, 'enable_cache': True, 'cache_config': {'enable_legacy_hf_mount': True, 'enabled': True, 'mount_base_path': '/root/.cache', 'require_cache_affinity': True}, 'checkpointing_config': {'enabled': True, 'checkpoint_path': '/mnt/ckpts', 'volume_size_gib': 10}, 'load_checkpoint_config': None}, 'name': 'gpt-oss-job', 'truss_user_env': None, 'interactive_session': None, 'weights': [{'allow_patterns': None, 'auth': None, 'auth_secret_name': None, 'ignore_patterns': None, 'mount_location': '/app/models/base', 'source': 'hf://meta-llama/Llama-3-8B@main'}], 'enable_baseten_workdir': False, 'priority': 0}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_job': {'image': {'base_image': 'hello-world', 'docker_auth': None}, 'compute': {'node_count': 1, 'cpu_count': 1, 'memory': '2Gi', 'accelerator': {'accelerator': 'H100', 'count': 2}, 'availability_model': 'spot'}, 'runtime': {'start_commands': ['python main.py'], 'environment_variables': {'API_KEY': 'your_api_key_here', 'PATH': '/usr/bin'}, 'enable_cache': True, 'cache_config': {'enable_legacy_hf_mount': True, 'enabled': True, 'mount_base_path': '/root/.cache', 'persistent_home': False, 'require_cache_affinity': True}, 'checkpointing_config': {'enabled': True, 'checkpoint_path': '/mnt/ckpts', 'volume_size_gib': 10}, 'load_checkpoint_config': None}, 'name': 'gpt-oss-job', 'truss_user_env': None, 'interactive_session': None, 'weights': [{'allow_patterns': None, 'auth': None, 'auth_secret_name': None, 'ignore_patterns': None, 'mount_location': '/app/models/base', 'source': 'hf://meta-llama/Llama-3-8B@main'}], 'enable_baseten_workdir': False, 'priority': 0}}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a training job with the specified configuration.",
@@ -6221,7 +6221,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'priority': 0, 'availability_model': 'spot'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Updates mutable fields on a PENDING training job: the queue priority (higher priorities are dequeued first) and the availability model (dedicated or spot capacity). Changes take effect on the next queue evaluation, which is triggered immediately.",
+                "description": "Updates mutable fields on a PENDING training job: the queue priority (higher priorities are dequeued first) and the availability model (standard or spot capacity). Changes take effect on the next queue evaluation, which is triggered immediately.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -7029,16 +7029,16 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/capabilities\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'model': 'Qwen/Qwen3-8B', 'use_case': 'rl', 'max_seq_len': 32768}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/capabilities\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'model': 'Qwen/Qwen3-8B', 'use_case': 'rl', 'max_seq_len': 32768, 'enabled': True}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns the list of models supported by the Loops server, including each model's maximum context length and whether it supports vision-language inputs. Each entry carries an 'enabled' flag saying whether this workspace can run it now, and 'enablement_details' explaining why when it cannot; filter on 'enabled' for the usable set. Capacity is resolved when the run is created, not here. Pass ?model= to ask about one model \u2014 an empty list means Baseten does not support it. Pass ?use_case=sft for a run that needs no sampler, and ?max_seq_len= to check a specific sequence length.",
+                "description": "Returns the list of models supported by the Loops server, including each model's maximum context length and whether it supports vision-language inputs. Each entry carries an 'enabled' flag saying whether this workspace can run it now, and 'enablement_details' explaining why when it cannot. Models this workspace can run come first. Capacity is resolved when the run is created, not here. Pass ?enabled=true for only the models you can use. Pass ?model= to ask about one model \u2014 without ?enabled=, an empty list means Baseten does not support it. Pass ?use_case=sft for a run that needs no sampler, and ?max_seq_len= to check a specific sequence length.",
                 "parameters": [
                     {
                         "name": "model",
                         "in": "query",
                         "required": false,
-                        "description": "Restrict the response to one model, identified by its HuggingFace repo id. A supported model comes back with its 'enabled' flag and, when false, its 'enablement_details'. An empty list means Baseten does not support that model. Omit to list every supported model.",
+                        "description": "Restrict the response to one model, identified by its HuggingFace repo id. A supported model comes back with its 'enabled' flag and, when false, its 'enablement_details'. Without 'enabled', an empty list means Baseten does not support that model. Omit to list every supported model.",
                         "schema": {
                             "anyOf": [
                                 {
@@ -7088,6 +7088,27 @@
                                 32768
                             ],
                             "title": "Max Seq Len"
+                        }
+                    },
+                    {
+                        "name": "enabled",
+                        "in": "query",
+                        "required": false,
+                        "description": "Pass true to list only the models this workspace can run now, or false for only the ones it cannot. Omit to list both. With 'model', an empty list can also mean the model is supported but filtered out.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "boolean"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "examples": [
+                                true
+                            ],
+                            "title": "Enabled"
                         }
                     }
                 ],
@@ -7388,11 +7409,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null,\n  \"scope\": \"default\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None, 'scope': 'default'}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a trainer-only Loops run in the given session, without a sampler. To sample from it, create a sampler with POST /v1/loops/samplers and pass this run's ID as run_id to pair the two. List and read the trainer through the /v1/loops/runs endpoints.",
@@ -7496,11 +7517,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"availability_model\": null,\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null,\n  \"num_replicas\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"availability_model\": null,\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null,\n  \"num_replicas\": null,\n  \"scope\": \"default\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'availability_model': None, 'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None, 'num_replicas': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'availability_model': None, 'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None, 'num_replicas': None, 'scope': 'default'}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a standalone Loops sampler not linked to a run.",
@@ -8400,11 +8421,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null,\n  \"scope\": \"default\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None, 'scope': 'default'}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a trainer-only Loops run in the given session, without a sampler. To sample from it, create a sampler with POST /v1/loops/samplers and pass this run's ID as run_id to pair the two. List and read the trainer through the /v1/loops/runs endpoints.",
@@ -8518,11 +8539,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"availability_model\": null,\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null,\n  \"num_replicas\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/samplers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"availability_model\": null,\n  \"session_id\": null,\n  \"base_model\": null,\n  \"run_id\": null,\n  \"max_seq_length\": null,\n  \"model_path\": \"bt://loops:k4q95w5/sampler_weights/step-100\",\n  \"reuse_from_session_id\": null,\n  \"num_replicas\": null,\n  \"scope\": \"default\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'availability_model': None, 'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None, 'num_replicas': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/samplers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'availability_model': None, 'session_id': None, 'base_model': None, 'run_id': None, 'max_seq_length': None, 'model_path': 'bt://loops:k4q95w5/sampler_weights/step-100', 'reuse_from_session_id': None, 'num_replicas': None, 'scope': 'default'}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a standalone Loops sampler not linked to a run; the sampler belongs to the given team.",
@@ -9123,6 +9144,101 @@
                 }
             }
         },
+        "/v1/model_apis/{model_api_name}/metrics": {
+            "get": {
+                "summary": "Gets the metrics for a Model API",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/model_apis/{model_api_name}/metrics \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/model_apis/{model_api_name}/metrics\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'mode': 'CURRENT', 'start_epoch_millis': None, 'end_epoch_millis': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Gets the metrics for a Model API in the given time range.",
+                "parameters": [
+                    {
+                        "name": "mode",
+                        "in": "query",
+                        "required": false,
+                        "description": "'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration.",
+                        "schema": {
+                            "$ref": "#/components/schemas/MetricModeV1",
+                            "default": "CURRENT"
+                        }
+                    },
+                    {
+                        "name": "start_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to start fetching metrics. Defaults to one hour before the end.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Start Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "end_epoch_millis",
+                        "in": "query",
+                        "required": false,
+                        "description": "Epoch millis timestamp to end fetching metrics. Defaults to the current time. The window between start and end must not exceed 7 days.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "End Epoch Millis"
+                        }
+                    },
+                    {
+                        "name": "metrics",
+                        "in": "query",
+                        "required": false,
+                        "description": "Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_model_api_inference_requests_total, baseten_model_api_incoming_inference_requests_total, and baseten_model_api_tokens_total. Unknown names are rejected; valid names that are not enabled for your organization are omitted from the response.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Metrics",
+                            "type": "array"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetMetricsResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_api_name"
+                }
+            ]
+        },
         "/v1/model_apis/{model_api_name}": {
             "get": {
                 "summary": "Gets a Model API",
@@ -9162,11 +9278,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"deployment_name\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"runtime\": null,\n  \"name\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"deployment_name\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"bdn\": null,\n  \"egress_restrictions\": null,\n  \"runtime\": null,\n  \"name\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'deployment_name': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'runtime': None, 'name': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'deployment_name': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'bdn': None, 'egress_restrictions': None, 'runtime': None, 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -9199,11 +9315,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"deployment_name\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"runtime\": null,\n  \"name\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/llm_models \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"deployment_name\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"bdn\": null,\n  \"egress_restrictions\": null,\n  \"runtime\": null,\n  \"name\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'deployment_name': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'runtime': None, 'name': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/llm_models\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'deployment_name': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'bdn': None, 'egress_restrictions': None, 'runtime': None, 'name': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -9241,11 +9357,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models/{model_id}/deployments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"deployment_name\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"egress_restrictions\": null,\n  \"runtime\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/llm_models/{model_id}/deployments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"resources\": null,\n  \"deployment_name\": null,\n  \"region\": null,\n  \"llm_version\": null,\n  \"model_metadata\": null,\n  \"autoscaling_settings\": {\n    \"autoscaling_window\": 600,\n    \"concurrency_target\": null,\n    \"max_replica\": 5,\n    \"max_scale_down_rate\": null,\n    \"min_replica\": 1,\n    \"scale_down_delay\": 300,\n    \"target_in_flight_tokens\": null,\n    \"target_utilization_percentage\": null\n  },\n  \"additional_autoscaling_config\": {\n    \"metrics\": [\n      {\n        \"name\": \"in_flight_tokens\",\n        \"target\": 40000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"environment\": \"production\",\n    \"git_sha\": \"abc123\"\n  },\n  \"weights\": [\n    {\n      \"mount_location\": \"/models/base\",\n      \"source\": \"hf://meta-llama/Llama-3-8B\"\n    }\n  ],\n  \"bdn\": null,\n  \"egress_restrictions\": null,\n  \"runtime\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models/{model_id}/deployments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'deployment_name': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'egress_restrictions': None, 'runtime': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/llm_models/{model_id}/deployments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'resources': None, 'deployment_name': None, 'region': None, 'llm_version': None, 'model_metadata': None, 'autoscaling_settings': {'autoscaling_window': 600, 'concurrency_target': None, 'max_replica': 5, 'max_scale_down_rate': None, 'min_replica': 1, 'scale_down_delay': 300, 'target_in_flight_tokens': None, 'target_utilization_percentage': None}, 'additional_autoscaling_config': {'metrics': [{'name': 'in_flight_tokens', 'target': 40000}]}, 'metadata': {'environment': 'production', 'git_sha': 'abc123'}, 'weights': [{'mount_location': '/models/base', 'source': 'hf://meta-llama/Llama-3-8B'}], 'bdn': None, 'egress_restrictions': None, 'runtime': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "requestBody": {
@@ -9616,7 +9732,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/billing/model_apis\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns daily Model API costs in USD for your organization, with optional filtering and grouping by API key, user, model, and service tier. Results may differ from finalized invoice amounts. Cost history is available from August 5, 2026 at 20:45 UTC. August 5 is a partial day; earlier dates are unavailable.",
+                "description": "Returns daily Model API costs in USD for the teams you can manage, with optional filtering and grouping by API key, user, model, service tier, and team. Organization admins receive organization-wide totals by default; other callers may receive lower totals than callers with management access to more teams. Results may differ from finalized invoice amounts. Cost history is available from August 5, 2026 at 20:45 UTC. August 5 is a partial day; earlier dates are unavailable. Team attribution began on October 12, 2026 at 21:54 UTC, with no historical backfill. October 12 is a partial day for team-scoped queries. Only unfiltered organization-admin queries include older unattributed usage.",
                 "parameters": [
                     {
                         "name": "cursor",
@@ -9691,7 +9807,7 @@
                         "name": "group_by",
                         "in": "query",
                         "required": false,
-                        "description": "Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, or service_tier. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily organization totals.",
+                        "description": "Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, service_tier, or team. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily totals across all teams you can manage.",
                         "schema": {
                             "items": {
                                 "$ref": "#/components/schemas/ModelApiCostDimensionV1"
@@ -9749,6 +9865,19 @@
                                 "type": "string"
                             },
                             "title": "Service Tiers",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "team_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only costs attributed to these teams, repeated once per team. Defaults to all teams you can manage.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Team Ids",
                             "type": "array"
                         }
                     }
@@ -9832,7 +9961,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/billing/tool_call_usage\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns your organization's server-side tool call usage (web search and fetch tools Baseten executes on your behalf) as daily rows grouped by provider, charge unit (sku), and model.",
+                "description": "Returns your organization's server-side tool call usage (web search and fetch tools Baseten executes on your behalf) as daily rows grouped by provider, charge unit (sku), and model. Defaults to teams you can manage; org admins include all organization history. Use team_ids to narrow the scope and group_by=TEAM for per-team rows. An unauthorized team filter causes a 403 response.",
                 "parameters": [
                     {
                         "name": "start_date",
@@ -9862,6 +9991,32 @@
                             ],
                             "default": null,
                             "title": "End Date"
+                        }
+                    },
+                    {
+                        "name": "team_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage for these teams, repeated once per team. Defaults to all teams you can manage. An unauthorized team ID causes a 403 response.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Team Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "group_by",
+                        "in": "query",
+                        "required": false,
+                        "description": "Pass TEAM to split daily rows by team. Defaults to aggregating across teams.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/ToolCallUsageDimensionV1"
+                            },
+                            "title": "Group By",
+                            "type": "array"
                         }
                     }
                 ],
@@ -11319,6 +11474,101 @@
             "parameters": [
                 {
                     "$ref": "#/components/parameters/classifier_id"
+                }
+            ]
+        },
+        "/v1/grid/route_classifiers": {
+            "get": {
+                "summary": "Lists route classifiers available for intelligent routes",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/route_classifiers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/route_classifiers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns Baseten-managed route classifiers available to your organization, ordered by identifier. Route classifiers cannot be created or modified through this API.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GridRouteClassifiersResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/grid/route_classifiers/{route_classifier_id}": {
+            "get": {
+                "summary": "Gets a route classifier available for intelligent routes",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/route_classifiers/{route_classifier_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/route_classifiers/{route_classifier_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GridRouteClassifierV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/route_classifier_id"
                 }
             ]
         },
@@ -14608,6 +14858,26 @@
                 "title": "VolumeSyncAuthenticationGCPOIDCV1",
                 "type": "object"
             },
+            "VolumeSyncAuthenticationHuggingFaceOIDCV1": {
+                "description": "Authentication using a Hugging Face trusted publisher and Baseten workload identity.",
+                "properties": {
+                    "resource": {
+                        "description": "Hugging Face username for an account CI/CD identity, or namespace/repository for a repository trusted publisher. Configure trust in Hugging Face before starting the sync.",
+                        "examples": [
+                            "hf-user",
+                            "organization/private-model"
+                        ],
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9_][A-Za-z0-9_.-]*)?$",
+                        "title": "Resource",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "resource"
+                ],
+                "title": "VolumeSyncAuthenticationHuggingFaceOIDCV1",
+                "type": "object"
+            },
             "VolumeSyncDestinationV1": {
                 "description": "BDN destination for a volume sync.",
                 "properties": {
@@ -14893,6 +15163,18 @@
                         "description": "Hugging Face source type.",
                         "title": "Type",
                         "type": "string"
+                    },
+                    "hf_oidc": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeSyncAuthenticationHuggingFaceOIDCV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Hugging Face OIDC authentication for this source. Cannot be combined with auth_secret_name."
                     }
                 },
                 "required": [
@@ -17907,6 +18189,7 @@
                             "mapping": {
                                 "API_KEY_CREATED": "#/components/schemas/AuditLogEventApiKeyCreatedV1",
                                 "API_KEY_DELETED": "#/components/schemas/AuditLogEventApiKeyDeletedV1",
+                                "API_KEY_LIFETIME_LIMITS_UPDATED": "#/components/schemas/AuditLogEventApiKeyLifetimeLimitsUpdatedV1",
                                 "CHAINLET_AUTOSCALING_SETTINGS_CHANGED": "#/components/schemas/AuditLogEventChainletAutoscalingSettingsChangedV1",
                                 "CHAINLET_INSTANCE_TYPE_CHANGED": "#/components/schemas/AuditLogEventChainletInstanceTypeChangedV1",
                                 "CHAIN_DELETED": "#/components/schemas/AuditLogEventChainDeletedV1",
@@ -17924,6 +18207,9 @@
                                 "GATEWAY_ENDPOINT_CREATED": "#/components/schemas/AuditLogEventGatewayEndpointCreatedV1",
                                 "GATEWAY_ENDPOINT_DELETED": "#/components/schemas/AuditLogEventGatewayEndpointDeletedV1",
                                 "GATEWAY_ENDPOINT_UPDATED": "#/components/schemas/AuditLogEventGatewayEndpointUpdatedV1",
+                                "GRID_MACHINE_USER_CREATED": "#/components/schemas/AuditLogEventGridMachineUserCreatedV1",
+                                "GRID_MACHINE_USER_DELETED": "#/components/schemas/AuditLogEventGridMachineUserDeletedV1",
+                                "GRID_MACHINE_USER_UPDATED": "#/components/schemas/AuditLogEventGridMachineUserUpdatedV1",
                                 "MODEL_DELETED": "#/components/schemas/AuditLogEventModelDeletedV1",
                                 "MODEL_DEPLOYED": "#/components/schemas/AuditLogEventModelDeployedV1",
                                 "MODEL_DEPLOYMENT_ACTIVATED": "#/components/schemas/AuditLogEventModelDeploymentActivatedV1",
@@ -18041,6 +18327,9 @@
                                 "$ref": "#/components/schemas/AuditLogEventApiKeyDeletedV1"
                             },
                             {
+                                "$ref": "#/components/schemas/AuditLogEventApiKeyLifetimeLimitsUpdatedV1"
+                            },
+                            {
                                 "$ref": "#/components/schemas/AuditLogEventGatewayEndpointCreatedV1"
                             },
                             {
@@ -18057,6 +18346,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventProviderConnectionDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventGridMachineUserCreatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventGridMachineUserUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventGridMachineUserDeletedV1"
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventUserInvitedV1"
@@ -18269,6 +18567,74 @@
                     "prefix"
                 ],
                 "title": "AuditLogEventApiKeyDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventApiKeyLifetimeLimitsUpdatedV1": {
+                "description": "An administrator updated the organization's API key lifetime limits.",
+                "properties": {
+                    "event_type": {
+                        "const": "API_KEY_LIFETIME_LIMITS_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "organization_id": {
+                        "title": "Organization Id",
+                        "type": "string"
+                    },
+                    "previous_personal_limit_days": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Previous Personal Limit Days"
+                    },
+                    "new_personal_limit_days": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "New Personal Limit Days"
+                    },
+                    "previous_team_limit_days": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Previous Team Limit Days"
+                    },
+                    "new_team_limit_days": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "New Team Limit Days"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "organization_id",
+                    "previous_personal_limit_days",
+                    "new_personal_limit_days",
+                    "previous_team_limit_days",
+                    "new_team_limit_days"
+                ],
+                "title": "AuditLogEventApiKeyLifetimeLimitsUpdatedV1",
                 "type": "object"
             },
             "AuditLogEventAutoscalingScheduleActionV1": {
@@ -20518,6 +20884,116 @@
                 "title": "AuditLogEventGatewayEndpointUpdatedV1",
                 "type": "object"
             },
+            "AuditLogEventGridMachineUserCreatedV1": {
+                "description": "A Grid machine user was created.",
+                "properties": {
+                    "event_type": {
+                        "const": "GRID_MACHINE_USER_CREATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "machine_user_id": {
+                        "title": "Machine User Id",
+                        "type": "string"
+                    },
+                    "machine_user_name": {
+                        "title": "Machine User Name",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "title": "Team Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "machine_user_id",
+                    "machine_user_name",
+                    "team_id",
+                    "team_name"
+                ],
+                "title": "AuditLogEventGridMachineUserCreatedV1",
+                "type": "object"
+            },
+            "AuditLogEventGridMachineUserDeletedV1": {
+                "description": "A Grid machine user was deleted, revoking its API keys.",
+                "properties": {
+                    "event_type": {
+                        "const": "GRID_MACHINE_USER_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "machine_user_id": {
+                        "title": "Machine User Id",
+                        "type": "string"
+                    },
+                    "machine_user_name": {
+                        "title": "Machine User Name",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "title": "Team Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "machine_user_id",
+                    "machine_user_name",
+                    "team_id",
+                    "team_name"
+                ],
+                "title": "AuditLogEventGridMachineUserDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventGridMachineUserUpdatedV1": {
+                "description": "A Grid machine user was renamed.",
+                "properties": {
+                    "event_type": {
+                        "const": "GRID_MACHINE_USER_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "machine_user_id": {
+                        "title": "Machine User Id",
+                        "type": "string"
+                    },
+                    "machine_user_name": {
+                        "title": "Machine User Name",
+                        "type": "string"
+                    },
+                    "previous_machine_user_name": {
+                        "title": "Previous Machine User Name",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "title": "Team Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "machine_user_id",
+                    "machine_user_name",
+                    "previous_machine_user_name",
+                    "team_id",
+                    "team_name"
+                ],
+                "title": "AuditLogEventGridMachineUserUpdatedV1",
+                "type": "object"
+            },
             "AuditLogEventModelDeletedV1": {
                 "description": "A model was deleted.",
                 "properties": {
@@ -21758,12 +22234,16 @@
                     "SECRET_DELETED",
                     "API_KEY_CREATED",
                     "API_KEY_DELETED",
+                    "API_KEY_LIFETIME_LIMITS_UPDATED",
                     "GATEWAY_ENDPOINT_CREATED",
                     "GATEWAY_ENDPOINT_UPDATED",
                     "GATEWAY_ENDPOINT_DELETED",
                     "PROVIDER_CONNECTION_CREATED",
                     "PROVIDER_CONNECTION_UPDATED",
                     "PROVIDER_CONNECTION_DELETED",
+                    "GRID_MACHINE_USER_CREATED",
+                    "GRID_MACHINE_USER_UPDATED",
+                    "GRID_MACHINE_USER_DELETED",
                     "USER_INVITED",
                     "USER_JOINED_ORGANIZATION",
                     "WEBHOOK_SIGNING_SECRET_CREATED",
@@ -22277,7 +22757,7 @@
                     "SECRETS",
                     "API_KEYS",
                     "GATEWAY",
-                    "CODE",
+                    "GRID",
                     "WEBHOOK_SIGNING_SECRETS",
                     "USER_MANAGEMENT",
                     "DIRECTORY_GROUP_MANAGEMENT",
@@ -24121,7 +24601,7 @@
                 "title": "SyncDeploymentPatchesResponseV1",
                 "type": "object"
             },
-            "ModelMetricDescriptorV1": {
+            "MetricDescriptorV1": {
                 "description": "Describes one metric. Its position in the response ``metric_descriptors``\nlist is the index used to read that metric out of each value set's ``values``.\n\nA metric may break down into multiple labeled series (e.g. latency quantiles,\nor volume by status). ``label_sets`` enumerates those series in order; each\nvalue set's value for this metric is a list aligned to that order.",
                 "properties": {
                     "name": {
@@ -24130,15 +24610,15 @@
                         "type": "string"
                     },
                     "unit_hint": {
-                        "$ref": "#/components/schemas/ModelMetricUnitHintV1",
+                        "$ref": "#/components/schemas/MetricUnitHintV1",
                         "description": "Advisory unit of the metric's values."
                     },
                     "kind": {
-                        "$ref": "#/components/schemas/ModelMetricKindV1",
+                        "$ref": "#/components/schemas/MetricKindV1",
                         "description": "Semantic hint for how the metric behaves (GAUGE, COUNTER, HISTOGRAM)."
                     },
                     "label_sets": {
-                        "description": "The metric's series, in order. Each entry is the set of labels identifying one series; the value at the same index in each value set's ``values`` is that series' value. A plain metric has a single entry with no labels (`{}`). A histogram has one entry per quantile plus an average, e.g. {'quantile': '0.5'} \u2026 {'quantile': '0.99'}, {'stat': 'avg'}. A by-status metric has one entry per status, e.g. {'status': '2xx'}.",
+                        "description": "The metric's series, in order. Each entry is the set of labels identifying one series; the value at the same index in each value set's ``values`` is that series' value. A plain metric has a single entry with no labels (`{}`). A histogram has one entry per quantile plus an average, e.g. {'quantile': '0.5'} \u2026 {'quantile': '0.99'}, {'stat': 'avg'}.",
                         "items": {
                             "additionalProperties": {
                                 "type": "string"
@@ -24155,30 +24635,30 @@
                     "kind",
                     "label_sets"
                 ],
-                "title": "ModelMetricDescriptorV1",
+                "title": "MetricDescriptorV1",
                 "type": "object"
             },
-            "ModelMetricKindV1": {
+            "MetricKindV1": {
                 "description": "Semantic hint for how a metric behaves, to aid client rendering and\naggregation. It does not describe the value's shape (that is carried by the\ndescriptor's ``label_sets``; a metric may break down into multiple series).\n\n- ``GAUGE``: an instantaneous value (e.g. queue size, running requests).\n- ``COUNTER``: a cumulative total over the step (e.g. tokens, restarts).\n- ``HISTOGRAM``: a distribution, exposed as quantile/average series.",
                 "enum": [
                     "GAUGE",
                     "COUNTER",
                     "HISTOGRAM"
                 ],
-                "title": "ModelMetricKindV1",
+                "title": "MetricKindV1",
                 "type": "string"
             },
-            "ModelMetricModeV1": {
+            "MetricModeV1": {
                 "description": "How metric values are aggregated over the request.",
                 "enum": [
                     "CURRENT",
                     "SUMMARY",
                     "SERIES"
                 ],
-                "title": "ModelMetricModeV1",
+                "title": "MetricModeV1",
                 "type": "string"
             },
-            "ModelMetricUnitHintV1": {
+            "MetricUnitHintV1": {
                 "description": "Advisory unit of a metric's values. Values are reported as scraped, so the\nhint describes the raw value (e.g. GPU memory is reported in mebibytes).\n\n- ``PER_SECOND``: a rate per second.\n- ``SECONDS``: a duration in seconds.\n- ``BYTES``: a size in bytes.\n- ``MEBIBYTES``: a size in mebibytes (MiB).\n- ``COUNT``: a dimensionless tally of discrete things.\n- ``RATIO``: a dimensionless ratio. Usually in ``[0, 1]`` but may exceed 1\n  (e.g. CPU usage in cores = cpu-seconds/second).\n- ``CELSIUS``: a temperature in degrees Celsius.\n- ``WATTS``: power draw in watts.",
                 "enum": [
                     "PER_SECOND",
@@ -24190,10 +24670,10 @@
                     "CELSIUS",
                     "WATTS"
                 ],
-                "title": "ModelMetricUnitHintV1",
+                "title": "MetricUnitHintV1",
                 "type": "string"
             },
-            "ModelMetricValueSetV1": {
+            "MetricValueSetV1": {
                 "description": "The metric values for one time step. ``values`` is aligned by index to the\nresponse ``metric_descriptors`` list.",
                 "properties": {
                     "start_epoch_millis": {
@@ -24224,10 +24704,10 @@
                     "start_epoch_millis",
                     "values"
                 ],
-                "title": "ModelMetricValueSetV1",
+                "title": "MetricValueSetV1",
                 "type": "object"
             },
-            "GetModelMetricsResponseV1": {
+            "GetMetricsResponseV1": {
                 "description": "Model metrics over a time window, index-mapped: metric descriptors appear once\nin ``metric_descriptors``; each value set's ``values`` are aligned to that order.",
                 "properties": {
                     "start_epoch_millis": {
@@ -24241,7 +24721,7 @@
                         "type": "integer"
                     },
                     "mode": {
-                        "$ref": "#/components/schemas/ModelMetricModeV1",
+                        "$ref": "#/components/schemas/MetricModeV1",
                         "description": "The aggregation mode used."
                     },
                     "step_seconds": {
@@ -24259,7 +24739,7 @@
                     "metric_descriptors": {
                         "description": "Descriptors for each metric; position defines the values index.",
                         "items": {
-                            "$ref": "#/components/schemas/ModelMetricDescriptorV1"
+                            "$ref": "#/components/schemas/MetricDescriptorV1"
                         },
                         "title": "Metric Descriptors",
                         "type": "array"
@@ -24267,7 +24747,7 @@
                     "metric_values": {
                         "description": "Metric values per time step covering the window. In summary mode this always contains exactly one value set spanning the whole window.",
                         "items": {
-                            "$ref": "#/components/schemas/ModelMetricValueSetV1"
+                            "$ref": "#/components/schemas/MetricValueSetV1"
                         },
                         "title": "Metric Values",
                         "type": "array"
@@ -24281,14 +24761,14 @@
                     "metric_descriptors",
                     "metric_values"
                 ],
-                "title": "GetModelMetricsResponseV1",
+                "title": "GetMetricsResponseV1",
                 "type": "object"
             },
             "GetDeploymentMetricsRequestV1": {
                 "description": "Query params for ``GET /v1/models/.../deployments/.../metrics``.",
                 "properties": {
                     "mode": {
-                        "$ref": "#/components/schemas/ModelMetricModeV1",
+                        "$ref": "#/components/schemas/MetricModeV1",
                         "default": "CURRENT",
                         "description": "'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration."
                     },
@@ -26322,7 +26802,7 @@
                 "description": "Query params for ``GET /v1/models/.../environments/.../metrics``.",
                 "properties": {
                     "mode": {
-                        "$ref": "#/components/schemas/ModelMetricModeV1",
+                        "$ref": "#/components/schemas/MetricModeV1",
                         "default": "CURRENT",
                         "description": "'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration."
                     },
@@ -27329,6 +27809,22 @@
                         ],
                         "title": "Name",
                         "type": "string"
+                    },
+                    "project_accelerator": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional default GPU type for cache-enabled CPU job placement, such as H100. GPU jobs use their requested GPU type; uncached CPU jobs use normal CPU routing. Omitting this field preserves the stored default; providing a value updates it. Existing cache-affinity requirements still apply.",
+                        "examples": [
+                            "H100"
+                        ],
+                        "title": "Project Accelerator"
                     }
                 },
                 "required": [
@@ -27350,6 +27846,15 @@
                 ],
                 "title": "UpsertTrainingProjectRequestV1",
                 "type": "object"
+            },
+            "AvailabilityModelV1": {
+                "description": "Capacity a training job or Loops trainer runs on.",
+                "enum": [
+                    "standard",
+                    "spot"
+                ],
+                "title": "AvailabilityModelV1",
+                "type": "string"
             },
             "CheckpointSyncStatus": {
                 "description": "Lifecycle state for the checkpoint uploader.",
@@ -27455,9 +27960,9 @@
                         "type": "integer"
                     },
                     "availability_model": {
-                        "$ref": "#/components/schemas/V1AvailabilityModel",
-                        "default": "dedicated",
-                        "description": "Capacity guarantee for the job. 'dedicated' is non-preemptible on-demand capacity; 'spot' is interruptible."
+                        "$ref": "#/components/schemas/AvailabilityModelV1",
+                        "default": "standard",
+                        "description": "Capacity guarantee for the job. 'standard' runs on capacity that is not preempted. 'spot' runs on interruptible capacity that may be preempted; you are responsible for checkpointing your own progress."
                     },
                     "user": {
                         "anyOf": [
@@ -27516,6 +28021,19 @@
                         "description": "Name of the training project.",
                         "title": "Name",
                         "type": "string"
+                    },
+                    "project_accelerator": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Default GPU type for cache-enabled CPU job placement.",
+                        "title": "Project Accelerator"
                     },
                     "created_at": {
                         "description": "Time the training project was created in ISO 8601 format.",
@@ -27583,15 +28101,6 @@
                 },
                 "title": "UserV1",
                 "type": "object"
-            },
-            "V1AvailabilityModel": {
-                "description": "Capacity guarantee under which a training job is scheduled.\n\n``DEDICATED`` is on-demand capacity that is not preempted (the default). ``SPOT`` is\ninterruptible capacity that may be preempted; the user is responsible for checkpointing\ntheir own progress. A managed/resumable model where the platform handles\ncheckpoint/resume on its own is intentionally not defined yet; it is planned for a\nfuture milestone.",
-                "enum": [
-                    "dedicated",
-                    "spot"
-                ],
-                "title": "V1AvailabilityModel",
-                "type": "string"
             },
             "UpsertTrainingProjectResponseV1": {
                 "description": "A response to upserting a training project.",
@@ -27706,6 +28215,7 @@
                     "CUSTOM_SECRET",
                     "AWS_OIDC",
                     "GCP_OIDC",
+                    "HUGGING_FACE_OIDC",
                     "AWS_ASSUME_ROLE"
                 ],
                 "title": "AuthMethod",
@@ -28048,6 +28558,16 @@
                         ],
                         "title": "Mount Base Path",
                         "type": "string"
+                    },
+                    "persistent_home": {
+                        "default": false,
+                        "description": "Whether to keep `$HOME` in a per-job directory on the project cache, so its contents outlive the job. Requires `enabled`.",
+                        "examples": [
+                            true,
+                            false
+                        ],
+                        "title": "Persistent Home",
+                        "type": "boolean"
                     }
                 },
                 "title": "CreateTrainingJobCacheConfig",
@@ -28149,9 +28669,9 @@
                         ]
                     },
                     "availability_model": {
-                        "$ref": "#/components/schemas/V1AvailabilityModel",
-                        "default": "dedicated",
-                        "description": "Capacity guarantee for the job. 'dedicated' (the default) runs on on-demand capacity that is not preempted. 'spot' runs on interruptible capacity that may be preempted; the user is responsible for checkpointing their own progress.",
+                        "$ref": "#/components/schemas/AvailabilityModelV1",
+                        "default": "standard",
+                        "description": "Capacity guarantee for the job. Defaults to 'standard'. 'standard' runs on capacity that is not preempted. 'spot' runs on interruptible capacity that may be preempted; you are responsible for checkpointing your own progress.",
                         "examples": [
                             "spot"
                         ]
@@ -28267,6 +28787,7 @@
                                 "enable_legacy_hf_mount": true,
                                 "enabled": true,
                                 "mount_base_path": "/root/.cache",
+                                "persistent_home": false,
                                 "require_cache_affinity": true
                             }
                         ]
@@ -29109,14 +29630,14 @@
                     "availability_model": {
                         "anyOf": [
                             {
-                                "$ref": "#/components/schemas/V1AvailabilityModel"
+                                "$ref": "#/components/schemas/AvailabilityModelV1"
                             },
                             {
                                 "type": "null"
                             }
                         ],
                         "default": null,
-                        "description": "New capacity guarantee for a PENDING training job. 'dedicated' runs on on-demand capacity that is not preempted. 'spot' runs on interruptible capacity that may be preempted; the user is responsible for checkpointing their own progress. Only jobs in the PENDING state can have their availability model changed.",
+                        "description": "New capacity guarantee for a PENDING training job. 'standard' runs on capacity that is not preempted. 'spot' runs on interruptible capacity that may be preempted; you are responsible for checkpointing your own progress. Only jobs in the PENDING state can have their availability model changed.",
                         "examples": [
                             "spot"
                         ]
@@ -30358,10 +30879,10 @@
                 "type": "object"
             },
             "GetLoopsCapabilitiesResponseV1": {
-                "description": "Response for ``GET /v1/loops/capabilities``.\n\nA model Baseten does not support has no entry at all, so an empty list for\na single-model request means exactly that.",
+                "description": "Response for ``GET /v1/loops/capabilities``.\n\nA model Baseten does not support has no entry at all, so an empty list for\na single-model request without ``enabled`` means exactly that.",
                 "properties": {
                     "supported_models": {
-                        "description": "Models Baseten supports for this use case, each carrying an 'enabled' flag saying whether this workspace can run it now, and 'enablement_details' when it cannot. Filter on 'enabled' to get the models you can use.",
+                        "description": "Models Baseten supports for this use case, each carrying an 'enabled' flag saying whether this workspace can run it now, and 'enablement_details' when it cannot. Models this workspace can run come first, then the rest, each group sorted by name.",
                         "items": {
                             "$ref": "#/components/schemas/SupportedModelV1"
                         },
@@ -30397,7 +30918,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Restrict the response to one model, identified by its HuggingFace repo id. A supported model comes back with its 'enabled' flag and, when false, its 'enablement_details'. An empty list means Baseten does not support that model. Omit to list every supported model.",
+                        "description": "Restrict the response to one model, identified by its HuggingFace repo id. A supported model comes back with its 'enabled' flag and, when false, its 'enablement_details'. Without 'enabled', an empty list means Baseten does not support that model. Omit to list every supported model.",
                         "examples": [
                             "Qwen/Qwen3-8B"
                         ],
@@ -30427,6 +30948,22 @@
                             32768
                         ],
                         "title": "Max Seq Len"
+                    },
+                    "enabled": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Pass true to list only the models this workspace can run now, or false for only the ones it cannot. Omit to list both. With 'model', an empty list can also mean the model is supported but filtered out.",
+                        "examples": [
+                            true
+                        ],
+                        "title": "Enabled"
                     }
                 },
                 "title": "GetLoopsCapabilitiesQueryParamsV1",
@@ -30877,9 +31414,9 @@
                         "type": "integer"
                     },
                     "availability_model": {
-                        "$ref": "#/components/schemas/V1AvailabilityModel",
-                        "default": "dedicated",
-                        "description": "Capacity the trainer runs on. 'dedicated' is not preempted. 'spot' runs below inference and reaches idle reserved capacity, but the run is stopped if its GPUs are reclaimed and cannot be resumed.",
+                        "$ref": "#/components/schemas/AvailabilityModelV1",
+                        "default": "standard",
+                        "description": "Capacity the trainer runs on. 'standard' is not preempted. 'spot' runs below inference and reaches idle reserved capacity, but the run is stopped if its GPUs are reclaimed and cannot be resumed.",
                         "examples": [
                             "spot"
                         ]
@@ -31020,6 +31557,16 @@
                 "title": "GetLoopsRunResponseV1",
                 "type": "object"
             },
+            "LoopsPlacementScopeV1": {
+                "description": "Where a Loops run's trainer or a standalone sampler runs.",
+                "enum": [
+                    "default",
+                    "serverless",
+                    "dedicated"
+                ],
+                "title": "LoopsPlacementScopeV1",
+                "type": "string"
+            },
             "CreateLoopsTrainerRequestV1": {
                 "properties": {
                     "session_id": {
@@ -31089,9 +31636,9 @@
                         "type": "integer"
                     },
                     "availability_model": {
-                        "$ref": "#/components/schemas/V1AvailabilityModel",
-                        "default": "dedicated",
-                        "description": "Capacity the trainer runs on. 'dedicated' is not preempted. 'spot' runs below inference and reaches idle reserved capacity, but the run is stopped if its GPUs are reclaimed and cannot be resumed.",
+                        "$ref": "#/components/schemas/AvailabilityModelV1",
+                        "default": "standard",
+                        "description": "Capacity the trainer runs on. 'standard' is not preempted. 'spot' runs below inference and reaches idle reserved capacity, but the run is stopped if its GPUs are reclaimed and cannot be resumed.",
                         "examples": [
                             "spot"
                         ]
@@ -31157,6 +31704,11 @@
                         "default": null,
                         "description": "Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in the team secret hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.",
                         "title": "Base Checkpoint"
+                    },
+                    "scope": {
+                        "$ref": "#/components/schemas/LoopsPlacementScopeV1",
+                        "default": "default",
+                        "description": "Choose where this runs. 'default' lets Baseten choose. 'serverless' runs on Baseten's shared capacity, and fails instead of falling back when shared capacity can't serve the request. 'dedicated' gives it its own deployment, which you size and pay for."
                     }
                 },
                 "required": [
@@ -31228,14 +31780,14 @@
                     "availability_model": {
                         "anyOf": [
                             {
-                                "$ref": "#/components/schemas/V1AvailabilityModel"
+                                "$ref": "#/components/schemas/AvailabilityModelV1"
                             },
                             {
                                 "type": "null"
                             }
                         ],
                         "default": null,
-                        "description": "Capacity the sampler runs on. 'spot' allows preemption when its GPUs are reclaimed. Defaults to 'dedicated' for standalone samplers. Paired samplers inherit their run's availability model; an explicit value must match it."
+                        "description": "Capacity the sampler runs on. 'spot' allows preemption when its GPUs are reclaimed. Defaults to 'standard' for standalone samplers. Paired samplers inherit their run's availability model; an explicit value must match it."
                     },
                     "session_id": {
                         "description": "ID of the Loops session this sampler belongs to.",
@@ -31323,6 +31875,11 @@
                         "default": null,
                         "description": "Number of replicas the sampler runs, applied as both its minimum and maximum. Must be at least 1. If omitted, a new sampler uses the platform defaults and a paired sampler reused from an earlier run keeps its settings. A run that already has a sampler keeps it unchanged, and when a run ends, its sampler is scaled down.",
                         "title": "Num Replicas"
+                    },
+                    "scope": {
+                        "$ref": "#/components/schemas/LoopsPlacementScopeV1",
+                        "default": "default",
+                        "description": "Choose where this runs. 'default' lets Baseten choose. 'serverless' runs on Baseten's shared capacity, and fails instead of falling back when shared capacity can't serve the request. 'dedicated' gives it its own deployment, which you size and pay for. Standalone samplers only: a run's sampler runs where its run does."
                     }
                 },
                 "required": [
@@ -31921,8 +32478,8 @@
                         "type": "string"
                     },
                     "availability_model": {
-                        "$ref": "#/components/schemas/V1AvailabilityModel",
-                        "default": "dedicated",
+                        "$ref": "#/components/schemas/AvailabilityModelV1",
+                        "default": "standard",
                         "description": "Capacity the trainer was scheduled on."
                     },
                     "instance_type": {
@@ -32549,7 +33106,7 @@
                     },
                     "dedicated_usage_count": {
                         "default": 0,
-                        "description": "Portion of usage_count from dedicated (on-demand) jobs.",
+                        "description": "Portion of usage_count from standard (non-spot) jobs.",
                         "title": "Dedicated Usage Count",
                         "type": "integer"
                     },
@@ -32596,7 +33153,7 @@
                     },
                     "dedicated_usage_count": {
                         "default": 0,
-                        "description": "Portion of usage_count from dedicated (on-demand) jobs, which run against the baseline.",
+                        "description": "Portion of usage_count from standard (non-spot) jobs, which run against the baseline.",
                         "title": "Dedicated Usage Count",
                         "type": "integer"
                     },
@@ -33142,7 +33699,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Expiration time in UTC. Must be in the future. Personal keys require an expiration no more than 90 days away; other keys may omit it or use null.",
+                        "description": "Expiration time in UTC. Must be in the future. Personal keys must expire within 90 days, or sooner if your organization sets a lower limit. Team and organization keys require an expiration within your organization's limit when one is set; otherwise they may omit it or use null. Organization lifetime limits do not apply to Grid keys.",
                         "examples": [
                             "2027-01-01T00:00:00Z"
                         ],
@@ -33531,6 +34088,25 @@
                         ],
                         "title": "Cost Per Million Input Tokens"
                     },
+                    "cost_per_million_cached_input_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Effective cost per million cached input tokens, in dollars. Null when pricing is unavailable or the Model API has no cached input price.",
+                        "examples": [
+                            "0.03"
+                        ],
+                        "title": "Cost Per Million Cached Input Tokens"
+                    },
                     "cost_per_million_output_tokens": {
                         "anyOf": [
                             {
@@ -33579,6 +34155,7 @@
                     "invoke_url",
                     "context_length",
                     "cost_per_million_input_tokens",
+                    "cost_per_million_cached_input_tokens",
                     "cost_per_million_output_tokens",
                     "rate_limits"
                 ],
@@ -33956,6 +34533,52 @@
                 "title": "ModelApisUsageRequestV1",
                 "type": "object"
             },
+            "GetModelAPIMetricsRequestV1": {
+                "description": "Query params for ``GET /v1/model_apis/.../metrics``.",
+                "properties": {
+                    "mode": {
+                        "$ref": "#/components/schemas/MetricModeV1",
+                        "default": "CURRENT",
+                        "description": "'CURRENT': a single instantaneous snapshot at now; start/end must be omitted. 'SUMMARY': a single value set aggregating the whole window. 'SERIES': evenly-spaced value sets across the window, with the step derived from the window duration."
+                    },
+                    "start_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch millis timestamp to start fetching metrics. Defaults to one hour before the end.",
+                        "title": "Start Epoch Millis"
+                    },
+                    "end_epoch_millis": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Epoch millis timestamp to end fetching metrics. Defaults to the current time. The window between start and end must not exceed 7 days.",
+                        "title": "End Epoch Millis"
+                    },
+                    "metrics": {
+                        "description": "Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_model_api_inference_requests_total, baseten_model_api_incoming_inference_requests_total, and baseten_model_api_tokens_total. Unknown names are rejected; valid names that are not enabled for your organization are omitted from the response.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Metrics",
+                        "type": "array"
+                    }
+                },
+                "title": "GetModelAPIMetricsRequestV1",
+                "type": "object"
+            },
             "EgressRestrictionsV1": {
                 "properties": {
                     "fqdn_allow_list": {
@@ -34222,6 +34845,20 @@
                         ],
                         "title": "Weights"
                     },
+                    "bdn": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "BDN configuration for read-only sealed volume mounts; supports mounts only",
+                        "title": "Bdn"
+                    },
                     "egress_restrictions": {
                         "anyOf": [
                             {
@@ -34466,6 +35103,20 @@
                         ],
                         "title": "Weights"
                     },
+                    "bdn": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "BDN configuration for read-only sealed volume mounts; supports mounts only",
+                        "title": "Bdn"
+                    },
                     "egress_restrictions": {
                         "anyOf": [
                             {
@@ -34558,6 +35209,18 @@
                         ],
                         "default": null,
                         "title": "Variant"
+                    },
+                    "base_model": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "title": "Base Model"
                     },
                     "publisher": {
                         "anyOf": [
@@ -35408,6 +36071,19 @@
                         "description": "Service tier. Null when not grouping by service_tier or when attribution is unavailable.",
                         "title": "Service Tier"
                     },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Team the cost is attributed to. Null when not grouping by team or when team attribution is unavailable.",
+                        "title": "Team Id"
+                    },
                     "subtotal": {
                         "description": "Model API cost in USD for this day and grouping combination, returned as an exact decimal string preserving fractional-cent amounts. This amount may differ from finalized invoice amounts.",
                         "examples": [
@@ -35451,7 +36127,8 @@
                     "api_key_prefix",
                     "user",
                     "model",
-                    "service_tier"
+                    "service_tier",
+                    "team"
                 ],
                 "title": "ModelApiCostDimensionV1",
                 "type": "string"
@@ -35508,7 +36185,7 @@
                         "title": "End Date"
                     },
                     "group_by": {
-                        "description": "Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, or service_tier. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily organization totals.",
+                        "description": "Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, service_tier, or team. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily totals across all teams you can manage.",
                         "items": {
                             "$ref": "#/components/schemas/ModelApiCostDimensionV1"
                         },
@@ -35545,6 +36222,14 @@
                             "type": "string"
                         },
                         "title": "Service Tiers",
+                        "type": "array"
+                    },
+                    "team_ids": {
+                        "description": "Return only costs attributed to these teams, repeated once per team. Defaults to all teams you can manage.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Team Ids",
                         "type": "array"
                     }
                 },
@@ -36621,6 +37306,19 @@
                         "description": "Billable quantity in the provider's sku unit, summed over the calls.",
                         "title": "Quantity",
                         "type": "number"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Team attributed to the usage. Null when not grouping by team or when historical team attribution is unavailable.",
+                        "title": "Team Id"
                     }
                 },
                 "required": [
@@ -36648,6 +37346,13 @@
                 "title": "ToolCallUsageResponseV1",
                 "type": "object"
             },
+            "ToolCallUsageDimensionV1": {
+                "enum": [
+                    "TEAM"
+                ],
+                "title": "ToolCallUsageDimensionV1",
+                "type": "string"
+            },
             "ToolCallUsageRequestV1": {
                 "properties": {
                     "start_date": {
@@ -36669,6 +37374,22 @@
                         "default": null,
                         "description": "Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included. The date range cannot exceed 90 days.",
                         "title": "End Date"
+                    },
+                    "team_ids": {
+                        "description": "Return only usage for these teams, repeated once per team. Defaults to all teams you can manage. An unauthorized team ID causes a 403 response.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Team Ids",
+                        "type": "array"
+                    },
+                    "group_by": {
+                        "description": "Pass TEAM to split daily rows by team. Defaults to aggregating across teams.",
+                        "items": {
+                            "$ref": "#/components/schemas/ToolCallUsageDimensionV1"
+                        },
+                        "title": "Group By",
+                        "type": "array"
                     }
                 },
                 "required": [
@@ -37520,6 +38241,62 @@
                 "title": "GridClassifierV1",
                 "type": "object"
             },
+            "GridRouteClassifierV1": {
+                "properties": {
+                    "id": {
+                        "description": "Stable route classifier identifier.",
+                        "examples": [
+                            "general-v1"
+                        ],
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Display name of the route classifier.",
+                        "examples": [
+                            "General"
+                        ],
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "supported_tradeoffs": {
+                        "description": "Tradeoffs the route classifier supports. Empty when it supports all of them.",
+                        "items": {
+                            "enum": [
+                                "cost",
+                                "balanced",
+                                "intelligence"
+                            ],
+                            "title": "GridRouteTradeoffV1",
+                            "type": "string"
+                        },
+                        "title": "Supported Tradeoffs",
+                        "type": "array"
+                    },
+                    "decidable_models": {
+                        "description": "Model identities the route classifier picks from.",
+                        "examples": [
+                            [
+                                "zai-org/GLM-5.3",
+                                "anthropic/claude-opus-5-5"
+                            ]
+                        ],
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Decidable Models",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "supported_tradeoffs",
+                    "decidable_models"
+                ],
+                "title": "GridRouteClassifierV1",
+                "type": "object"
+            },
             "GridRouteRefV1": {
                 "properties": {
                     "id": {
@@ -37631,6 +38408,37 @@
                 "title": "GridRouteTargetConnectionV1",
                 "type": "object"
             },
+            "GridRouteTargetIntelligentV1": {
+                "properties": {
+                    "type": {
+                        "const": "INTELLIGENT",
+                        "description": "Target kind for an intelligent route: Baseten picks the model per request.",
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "route_classifier": {
+                        "$ref": "#/components/schemas/GridRouteClassifierV1",
+                        "description": "Route classifier that picks the model."
+                    },
+                    "tradeoff": {
+                        "description": "How the classifier weighs cost against quality.",
+                        "enum": [
+                            "cost",
+                            "balanced",
+                            "intelligence"
+                        ],
+                        "title": "GridRouteTradeoffV1",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "route_classifier",
+                    "tradeoff"
+                ],
+                "title": "GridRouteTargetIntelligentV1",
+                "type": "object"
+            },
             "GridRouteV1": {
                 "properties": {
                     "id": {
@@ -37669,7 +38477,8 @@
                             "mapping": {
                                 "BASETEN_MODEL_API": "#/components/schemas/GridRouteTargetBasetenModelAPIV1",
                                 "CLASSIFIER": "#/components/schemas/GridRouteTargetClassifierV1",
-                                "CONNECTION": "#/components/schemas/GridRouteTargetConnectionV1"
+                                "CONNECTION": "#/components/schemas/GridRouteTargetConnectionV1",
+                                "INTELLIGENT": "#/components/schemas/GridRouteTargetIntelligentV1"
                             },
                             "propertyName": "type"
                         },
@@ -37682,6 +38491,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/GridRouteTargetClassifierV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/GridRouteTargetIntelligentV1"
                             }
                         ],
                         "title": "Target"
@@ -38465,11 +39277,11 @@
                         "description": "Default models for OpenCode."
                     },
                     "codex": {
-                        "$ref": "#/components/schemas/GridPrimaryHarnessDefaultsV1",
+                        "$ref": "#/components/schemas/GridBackgroundHarnessDefaultsV1",
                         "description": "Default models for Codex."
                     },
                     "pi": {
-                        "$ref": "#/components/schemas/GridPrimaryHarnessDefaultsV1",
+                        "$ref": "#/components/schemas/GridBackgroundHarnessDefaultsV1",
                         "description": "Default models for Pi."
                     }
                 },
@@ -38498,26 +39310,6 @@
                     "route"
                 ],
                 "title": "GridHarnessModelV1",
-                "type": "object"
-            },
-            "GridPrimaryHarnessDefaultsV1": {
-                "properties": {
-                    "primary": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/GridHarnessModelV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Route for the primary model, which new sessions use. Null when the team has no route to use."
-                    }
-                },
-                "required": [
-                    "primary"
-                ],
-                "title": "GridPrimaryHarnessDefaultsV1",
                 "type": "object"
             },
             "GridSettingSourceV1": {
@@ -38704,7 +39496,7 @@
                     "codex": {
                         "anyOf": [
                             {
-                                "$ref": "#/components/schemas/UpdateGridPrimaryHarnessModelsV1"
+                                "$ref": "#/components/schemas/UpdateGridBackgroundHarnessModelsV1"
                             },
                             {
                                 "type": "null"
@@ -38717,7 +39509,7 @@
                     "pi": {
                         "anyOf": [
                             {
-                                "$ref": "#/components/schemas/UpdateGridPrimaryHarnessModelsV1"
+                                "$ref": "#/components/schemas/UpdateGridBackgroundHarnessModelsV1"
                             },
                             {
                                 "type": "null"
@@ -38729,32 +39521,6 @@
                     }
                 },
                 "title": "UpdateGridHarnessDefaultsV1",
-                "type": "object"
-            },
-            "UpdateGridPrimaryHarnessModelsV1": {
-                "additionalProperties": false,
-                "minProperties": 1,
-                "properties": {
-                    "primary": {
-                        "anyOf": [
-                            {
-                                "minLength": 1,
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.",
-                        "examples": [
-                            "abc1234"
-                        ],
-                        "title": "Primary",
-                        "x-null-distinct": true
-                    }
-                },
-                "title": "UpdateGridPrimaryHarnessModelsV1",
                 "type": "object"
             },
             "UpdateGridTeamSpendLimitSettingV1": {
@@ -39950,6 +40716,55 @@
                     }
                 },
                 "title": "GridClassifiersRequestV1",
+                "type": "object"
+            },
+            "GridRouteClassifiersResponseV1": {
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/GridRouteClassifierV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "GridRouteClassifiersResponseV1",
+                "type": "object"
+            },
+            "GridRouteClassifiersRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    }
+                },
+                "title": "GridRouteClassifiersRequestV1",
                 "type": "object"
             },
             "GridMachineUserV1": {
@@ -42247,10 +43062,17 @@
                     },
                     "memory": {
                         "type": "integer",
-                        "description": "Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Must be between 1024 and 262144.",
+                        "description": "Memory allocation in megabytes. Must be between 1024 and 262144. When cpu is not set at creation, memory also determines the CPU allocation (by default 2048 MB = 1 vCPU, 4096 MB = 2, 8192 MB = 4, 16384 MB = 6, 32768 MB = 8, 65536 MB = 16, 131072 MB or more = 32).",
                         "example": 4096,
                         "minimum": 512,
                         "maximum": 262144
+                    },
+                    "cpu": {
+                        "type": "integer",
+                        "description": "Number of vCPUs the sandbox runs with. Always returned, including for sandboxes created without cpu, whose CPU allocation was derived from memory. Set at creation only.",
+                        "example": 2,
+                        "minimum": 1,
+                        "maximum": 32
                     },
                     "filesystem": {
                         "description": "Filesystem configuration. Set at creation only.",
@@ -42377,6 +43199,7 @@
                     ],
                     "image": "baseten/base-image:latest",
                     "memory": 4096,
+                    "cpu": 2,
                     "ports": [
                         {
                             "name": "http",
@@ -42508,11 +43331,17 @@
                     },
                     "memory": {
                         "type": "integer",
-                        "description": "Memory allocation in megabytes. Also determines CPU allocation (CPU cores = memory in MB / 2048, e.g., 4096MB = 2 CPUs). Defaults to 4096. Must be between 1024 and 262144.",
-                        "default": 4096,
+                        "description": "Memory allocation in megabytes. Must be between 1024 and 262144. Defaults to 4096, or to 8192 MB per vCPU (a 1:8 ratio) when only cpu is set, capped at the account's memory quota. When cpu is omitted, memory also determines the CPU allocation (by default 2048 MB = 1 vCPU, 4096 MB = 2, 8192 MB = 4, 16384 MB = 6, 32768 MB = 8, 65536 MB = 16, 131072 MB or more = 32).",
                         "example": 4096,
                         "minimum": 512,
                         "maximum": 262144
+                    },
+                    "cpu": {
+                        "type": "integer",
+                        "description": "Optional number of vCPUs, a whole number between 1 and 32. When omitted, the CPU allocation is derived from memory. When set, memory must be between 1024 and 8192 megabytes per vCPU (a ratio from 1:1 to 1:8), and cpu must not exceed the account's per-sandbox cpu quota. A value equal to the allocation memory alone would give is always accepted. When memory is omitted, it defaults to 8192 MB per vCPU, capped at the account's memory quota. Immutable after creation.",
+                        "example": 2,
+                        "minimum": 1,
+                        "maximum": 32
                     },
                     "filesystem": {
                         "description": "Filesystem configuration. Set at creation only.",
@@ -42640,6 +43469,7 @@
                     ],
                     "image": "baseten/base-image:latest",
                     "memory": 4096,
+                    "cpu": 2,
                     "ports": [
                         {
                             "name": "http",
@@ -42657,7 +43487,7 @@
             },
             "UpdateSandboxRequestV1": {
                 "type": "object",
-                "description": "Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, network, region, image, ports, filesystem, and volumes are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.",
+                "description": "Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, cpu, network, region, image, ports, filesystem, and volumes are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.",
                 "properties": {
                     "lifecycle": {
                         "description": "Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates",
@@ -42930,6 +43760,7 @@
                     ],
                     "image": "baseten/base-image:latest",
                     "memory": 4096,
+                    "cpu": 2,
                     "ports": [
                         {
                             "name": "http",
@@ -43076,6 +43907,7 @@
                                 ],
                                 "image": "baseten/base-image:latest",
                                 "memory": 4096,
+                                "cpu": 2,
                                 "ports": [
                                     {
                                         "name": "http",
@@ -43187,6 +44019,7 @@
                             ],
                             "image": "baseten/base-image:latest",
                             "memory": 4096,
+                            "cpu": 2,
                             "ports": [
                                 {
                                     "name": "http",
@@ -44373,6 +45206,14 @@
                 "in": "path",
                 "required": true
             },
+            "route_classifier_id": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "route_classifier_id",
+                "in": "path",
+                "required": true
+            },
             "machine_user_id": {
                 "schema": {
                     "type": "string"
@@ -44741,6 +45582,7 @@
                     ],
                     "image": "baseten/base-image:latest",
                     "memory": 4096,
+                    "cpu": 2,
                     "ports": [
                         {
                             "name": "http",
@@ -44871,6 +45713,7 @@
                     ],
                     "image": "baseten/base-image:latest",
                     "memory": 4096,
+                    "cpu": 2,
                     "ports": [
                         {
                             "name": "http",
@@ -44965,6 +45808,7 @@
                     ],
                     "image": "baseten/base-image:latest",
                     "memory": 4096,
+                    "cpu": 2,
                     "ports": [
                         {
                             "name": "http",
@@ -45059,6 +45903,7 @@
                     ],
                     "image": "baseten/base-image:latest",
                     "memory": 4096,
+                    "cpu": 2,
                     "ports": [
                         {
                             "name": "http",
@@ -45154,6 +45999,7 @@
                             ],
                             "image": "baseten/base-image:latest",
                             "memory": 4096,
+                            "cpu": 2,
                             "ports": [
                                 {
                                     "name": "http",
@@ -45256,6 +46102,7 @@
                             ],
                             "image": "baseten/base-image:latest",
                             "memory": 4096,
+                            "cpu": 2,
                             "ports": [
                                 {
                                     "name": "http",
