@@ -1152,6 +1152,15 @@ func TestE2EImagePushAndCreate(t *testing.T) {
 		"COPY --from=ghcr.io/blaxel-ai/sandbox:latest /sandbox-api /usr/local/bin/sandbox-api\n"+
 			`ENTRYPOINT ["/usr/local/bin/sandbox-api"]`+"\n"), "no injected lines in %s", dockerfile)
 	pushed, err := client.Images().Push(ctx, sandbox.ImagePushOptions{Name: imageName, SourceBuilder: builder})
+	if err != nil {
+		logs, logErr := client.Images().Logs(ctx, sandbox.ImageLogsOptions{Name: imageName})
+		if logErr != nil {
+			t.Logf("fetching image build logs: %v", logErr)
+		}
+		for _, line := range logs {
+			t.Logf("build: %s %s", line.Timestamp.Format(time.RFC3339), line.Text)
+		}
+	}
 	require.NoError(t, err)
 	require.Equal(t, imageName, pushed.Name)
 	require.Equal(t, sandbox.ImageStatusBuilt, pushed.Status)
