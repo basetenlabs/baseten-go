@@ -780,6 +780,29 @@ func (c *Client) GetGridMachineUsersMachineUserId(ctx context.Context, machineUs
 	})
 }
 
+// GetGridRouteClassifiers: Lists route classifiers available for intelligent routes
+func (c *Client) GetGridRouteClassifiers(ctx context.Context, params GetV1GridRouteClassifiersParams) (*GridRouteClassifiersResponse, error) {
+	return doJSON[GridRouteClassifiersResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/route_classifiers",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridRouteClassifiersRouteClassifierId: Gets a route classifier available for intelligent routes
+func (c *Client) GetGridRouteClassifiersRouteClassifierId(ctx context.Context, routeClassifierId string) (*GridRouteClassifier, error) {
+	return doJSON[GridRouteClassifier](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/route_classifiers/%s",
+		pathArgs:     []any{routeClassifierId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // GetGridRoutes: Lists routes
 func (c *Client) GetGridRoutes(ctx context.Context, params GetV1GridRoutesParams) (*GridRoutesResponse, error) {
 	return doJSON[GridRoutesResponse](c, ctx, apiRequest{

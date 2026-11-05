@@ -647,7 +647,7 @@ func (c *Client) PostProcessStdin(ctx context.Context, identifier string, req Ad
 
 // PostUpgrade: Upgrade the sandbox-api
 //
-// Returns [*ResponseErrorResponse] on HTTP 500.
+// Returns [*ResponseErrorResponse] on HTTP 400, 500.
 func (c *Client) PostUpgrade(ctx context.Context, body UpgradeRequest) (*SuccessResponse, error) {
 	return doJSON[SuccessResponse](c, ctx, apiRequest{
 		method:       "POST",
@@ -655,7 +655,7 @@ func (c *Client) PostUpgrade(ctx context.Context, body UpgradeRequest) (*Success
 		pathArgs:     nil,
 		body:         body,
 		successCodes: []int{200},
-		errorCodes:   map[int]errorType{500: errorTypeErrorResponse},
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
 }
 

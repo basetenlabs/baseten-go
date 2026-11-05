@@ -5920,11 +5920,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/training_projects \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_project\": {\n    \"name\": \"My Training Project\"\n  }\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/training_projects \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_project\": {\n    \"name\": \"My Training Project\",\n    \"project_accelerator\": \"H100\"\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/training_projects\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_project': {'name': 'My Training Project'}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/training_projects\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_project': {'name': 'My Training Project', 'project_accelerator': 'H100'}}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Upserts a training project with the specified metadata for a team.",
@@ -6047,11 +6047,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_project\": {\n    \"name\": \"My Training Project\"\n  }\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_project\": {\n    \"name\": \"My Training Project\",\n    \"project_accelerator\": \"H100\"\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_project': {'name': 'My Training Project'}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_project': {'name': 'My Training Project', 'project_accelerator': 'H100'}}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Upserts a training project with the specified metadata.",
@@ -9732,7 +9732,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/billing/model_apis\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns daily Model API costs in USD for your organization, with optional filtering and grouping by API key, user, model, and service tier. Results may differ from finalized invoice amounts. Cost history is available from August 5, 2026 at 20:45 UTC. August 5 is a partial day; earlier dates are unavailable.",
+                "description": "Returns daily Model API costs in USD for the teams you can manage, with optional filtering and grouping by API key, user, model, service tier, and team. Organization admins receive organization-wide totals by default; other callers may receive lower totals than callers with management access to more teams. Results may differ from finalized invoice amounts. Cost history is available from August 5, 2026 at 20:45 UTC. August 5 is a partial day; earlier dates are unavailable. Team attribution began on October 12, 2026 at 21:54 UTC, with no historical backfill. October 12 is a partial day for team-scoped queries. Only unfiltered organization-admin queries include older unattributed usage.",
                 "parameters": [
                     {
                         "name": "cursor",
@@ -9807,7 +9807,7 @@
                         "name": "group_by",
                         "in": "query",
                         "required": false,
-                        "description": "Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, or service_tier. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily organization totals.",
+                        "description": "Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, service_tier, or team. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily totals across all teams you can manage.",
                         "schema": {
                             "items": {
                                 "$ref": "#/components/schemas/ModelApiCostDimensionV1"
@@ -9865,6 +9865,19 @@
                                 "type": "string"
                             },
                             "title": "Service Tiers",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "team_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only costs attributed to these teams, repeated once per team. Defaults to all teams you can manage.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Team Ids",
                             "type": "array"
                         }
                     }
@@ -9948,7 +9961,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/billing/tool_call_usage\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns your organization's server-side tool call usage (web search and fetch tools Baseten executes on your behalf) as daily rows grouped by provider, charge unit (sku), and model.",
+                "description": "Returns your organization's server-side tool call usage (web search and fetch tools Baseten executes on your behalf) as daily rows grouped by provider, charge unit (sku), and model. Defaults to teams you can manage; org admins include all organization history. Use team_ids to narrow the scope and group_by=TEAM for per-team rows. An unauthorized team filter causes a 403 response.",
                 "parameters": [
                     {
                         "name": "start_date",
@@ -9978,6 +9991,32 @@
                             ],
                             "default": null,
                             "title": "End Date"
+                        }
+                    },
+                    {
+                        "name": "team_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage for these teams, repeated once per team. Defaults to all teams you can manage. An unauthorized team ID causes a 403 response.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Team Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "group_by",
+                        "in": "query",
+                        "required": false,
+                        "description": "Pass TEAM to split daily rows by team. Defaults to aggregating across teams.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/ToolCallUsageDimensionV1"
+                            },
+                            "title": "Group By",
+                            "type": "array"
                         }
                     }
                 ],
@@ -11435,6 +11474,101 @@
             "parameters": [
                 {
                     "$ref": "#/components/parameters/classifier_id"
+                }
+            ]
+        },
+        "/v1/grid/route_classifiers": {
+            "get": {
+                "summary": "Lists route classifiers available for intelligent routes",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/route_classifiers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/route_classifiers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns Baseten-managed route classifiers available to your organization, ordered by identifier. Route classifiers cannot be created or modified through this API.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GridRouteClassifiersResponseV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/grid/route_classifiers/{route_classifier_id}": {
+            "get": {
+                "summary": "Gets a route classifier available for intelligent routes",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/route_classifiers/{route_classifier_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/route_classifiers/{route_classifier_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GridRouteClassifierV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/route_classifier_id"
                 }
             ]
         },
@@ -14724,6 +14858,26 @@
                 "title": "VolumeSyncAuthenticationGCPOIDCV1",
                 "type": "object"
             },
+            "VolumeSyncAuthenticationHuggingFaceOIDCV1": {
+                "description": "Authentication using a Hugging Face trusted publisher and Baseten workload identity.",
+                "properties": {
+                    "resource": {
+                        "description": "Hugging Face username for an account CI/CD identity, or namespace/repository for a repository trusted publisher. Configure trust in Hugging Face before starting the sync.",
+                        "examples": [
+                            "hf-user",
+                            "organization/private-model"
+                        ],
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9_][A-Za-z0-9_.-]*)?$",
+                        "title": "Resource",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "resource"
+                ],
+                "title": "VolumeSyncAuthenticationHuggingFaceOIDCV1",
+                "type": "object"
+            },
             "VolumeSyncDestinationV1": {
                 "description": "BDN destination for a volume sync.",
                 "properties": {
@@ -15009,6 +15163,18 @@
                         "description": "Hugging Face source type.",
                         "title": "Type",
                         "type": "string"
+                    },
+                    "hf_oidc": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeSyncAuthenticationHuggingFaceOIDCV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Hugging Face OIDC authentication for this source. Cannot be combined with auth_secret_name."
                     }
                 },
                 "required": [
@@ -27643,6 +27809,22 @@
                         ],
                         "title": "Name",
                         "type": "string"
+                    },
+                    "project_accelerator": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional default GPU type for cache-enabled CPU job placement, such as H100. GPU jobs use their requested GPU type; uncached CPU jobs use normal CPU routing. Omitting this field preserves the stored default; providing a value updates it. Existing cache-affinity requirements still apply.",
+                        "examples": [
+                            "H100"
+                        ],
+                        "title": "Project Accelerator"
                     }
                 },
                 "required": [
@@ -27840,6 +28022,19 @@
                         "title": "Name",
                         "type": "string"
                     },
+                    "project_accelerator": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Default GPU type for cache-enabled CPU job placement.",
+                        "title": "Project Accelerator"
+                    },
                     "created_at": {
                         "description": "Time the training project was created in ISO 8601 format.",
                         "format": "date-time",
@@ -28020,6 +28215,7 @@
                     "CUSTOM_SECRET",
                     "AWS_OIDC",
                     "GCP_OIDC",
+                    "HUGGING_FACE_OIDC",
                     "AWS_ASSUME_ROLE"
                 ],
                 "title": "AuthMethod",
@@ -33892,6 +34088,25 @@
                         ],
                         "title": "Cost Per Million Input Tokens"
                     },
+                    "cost_per_million_cached_input_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Effective cost per million cached input tokens, in dollars. Null when pricing is unavailable or the Model API has no cached input price.",
+                        "examples": [
+                            "0.03"
+                        ],
+                        "title": "Cost Per Million Cached Input Tokens"
+                    },
                     "cost_per_million_output_tokens": {
                         "anyOf": [
                             {
@@ -33940,6 +34155,7 @@
                     "invoke_url",
                     "context_length",
                     "cost_per_million_input_tokens",
+                    "cost_per_million_cached_input_tokens",
                     "cost_per_million_output_tokens",
                     "rate_limits"
                 ],
@@ -35855,6 +36071,19 @@
                         "description": "Service tier. Null when not grouping by service_tier or when attribution is unavailable.",
                         "title": "Service Tier"
                     },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Team the cost is attributed to. Null when not grouping by team or when team attribution is unavailable.",
+                        "title": "Team Id"
+                    },
                     "subtotal": {
                         "description": "Model API cost in USD for this day and grouping combination, returned as an exact decimal string preserving fractional-cent amounts. This amount may differ from finalized invoice amounts.",
                         "examples": [
@@ -35898,7 +36127,8 @@
                     "api_key_prefix",
                     "user",
                     "model",
-                    "service_tier"
+                    "service_tier",
+                    "team"
                 ],
                 "title": "ModelApiCostDimensionV1",
                 "type": "string"
@@ -35955,7 +36185,7 @@
                         "title": "End Date"
                     },
                     "group_by": {
-                        "description": "Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, or service_tier. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily organization totals.",
+                        "description": "Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, service_tier, or team. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily totals across all teams you can manage.",
                         "items": {
                             "$ref": "#/components/schemas/ModelApiCostDimensionV1"
                         },
@@ -35992,6 +36222,14 @@
                             "type": "string"
                         },
                         "title": "Service Tiers",
+                        "type": "array"
+                    },
+                    "team_ids": {
+                        "description": "Return only costs attributed to these teams, repeated once per team. Defaults to all teams you can manage.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Team Ids",
                         "type": "array"
                     }
                 },
@@ -37068,6 +37306,19 @@
                         "description": "Billable quantity in the provider's sku unit, summed over the calls.",
                         "title": "Quantity",
                         "type": "number"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Team attributed to the usage. Null when not grouping by team or when historical team attribution is unavailable.",
+                        "title": "Team Id"
                     }
                 },
                 "required": [
@@ -37095,6 +37346,13 @@
                 "title": "ToolCallUsageResponseV1",
                 "type": "object"
             },
+            "ToolCallUsageDimensionV1": {
+                "enum": [
+                    "TEAM"
+                ],
+                "title": "ToolCallUsageDimensionV1",
+                "type": "string"
+            },
             "ToolCallUsageRequestV1": {
                 "properties": {
                     "start_date": {
@@ -37116,6 +37374,22 @@
                         "default": null,
                         "description": "Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included. The date range cannot exceed 90 days.",
                         "title": "End Date"
+                    },
+                    "team_ids": {
+                        "description": "Return only usage for these teams, repeated once per team. Defaults to all teams you can manage. An unauthorized team ID causes a 403 response.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Team Ids",
+                        "type": "array"
+                    },
+                    "group_by": {
+                        "description": "Pass TEAM to split daily rows by team. Defaults to aggregating across teams.",
+                        "items": {
+                            "$ref": "#/components/schemas/ToolCallUsageDimensionV1"
+                        },
+                        "title": "Group By",
+                        "type": "array"
                     }
                 },
                 "required": [
@@ -37967,6 +38241,62 @@
                 "title": "GridClassifierV1",
                 "type": "object"
             },
+            "GridRouteClassifierV1": {
+                "properties": {
+                    "id": {
+                        "description": "Stable route classifier identifier.",
+                        "examples": [
+                            "general-v1"
+                        ],
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Display name of the route classifier.",
+                        "examples": [
+                            "General"
+                        ],
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "supported_tradeoffs": {
+                        "description": "Tradeoffs the route classifier supports. Empty when it supports all of them.",
+                        "items": {
+                            "enum": [
+                                "cost",
+                                "balanced",
+                                "intelligence"
+                            ],
+                            "title": "GridRouteTradeoffV1",
+                            "type": "string"
+                        },
+                        "title": "Supported Tradeoffs",
+                        "type": "array"
+                    },
+                    "decidable_models": {
+                        "description": "Model identities the route classifier picks from.",
+                        "examples": [
+                            [
+                                "zai-org/GLM-5.3",
+                                "anthropic/claude-opus-5-5"
+                            ]
+                        ],
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Decidable Models",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "supported_tradeoffs",
+                    "decidable_models"
+                ],
+                "title": "GridRouteClassifierV1",
+                "type": "object"
+            },
             "GridRouteRefV1": {
                 "properties": {
                     "id": {
@@ -38078,6 +38408,37 @@
                 "title": "GridRouteTargetConnectionV1",
                 "type": "object"
             },
+            "GridRouteTargetIntelligentV1": {
+                "properties": {
+                    "type": {
+                        "const": "INTELLIGENT",
+                        "description": "Target kind for an intelligent route: Baseten picks the model per request.",
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "route_classifier": {
+                        "$ref": "#/components/schemas/GridRouteClassifierV1",
+                        "description": "Route classifier that picks the model."
+                    },
+                    "tradeoff": {
+                        "description": "How the classifier weighs cost against quality.",
+                        "enum": [
+                            "cost",
+                            "balanced",
+                            "intelligence"
+                        ],
+                        "title": "GridRouteTradeoffV1",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "route_classifier",
+                    "tradeoff"
+                ],
+                "title": "GridRouteTargetIntelligentV1",
+                "type": "object"
+            },
             "GridRouteV1": {
                 "properties": {
                     "id": {
@@ -38116,7 +38477,8 @@
                             "mapping": {
                                 "BASETEN_MODEL_API": "#/components/schemas/GridRouteTargetBasetenModelAPIV1",
                                 "CLASSIFIER": "#/components/schemas/GridRouteTargetClassifierV1",
-                                "CONNECTION": "#/components/schemas/GridRouteTargetConnectionV1"
+                                "CONNECTION": "#/components/schemas/GridRouteTargetConnectionV1",
+                                "INTELLIGENT": "#/components/schemas/GridRouteTargetIntelligentV1"
                             },
                             "propertyName": "type"
                         },
@@ -38129,6 +38491,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/GridRouteTargetClassifierV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/GridRouteTargetIntelligentV1"
                             }
                         ],
                         "title": "Target"
@@ -38912,11 +39277,11 @@
                         "description": "Default models for OpenCode."
                     },
                     "codex": {
-                        "$ref": "#/components/schemas/GridPrimaryHarnessDefaultsV1",
+                        "$ref": "#/components/schemas/GridBackgroundHarnessDefaultsV1",
                         "description": "Default models for Codex."
                     },
                     "pi": {
-                        "$ref": "#/components/schemas/GridPrimaryHarnessDefaultsV1",
+                        "$ref": "#/components/schemas/GridBackgroundHarnessDefaultsV1",
                         "description": "Default models for Pi."
                     }
                 },
@@ -38945,26 +39310,6 @@
                     "route"
                 ],
                 "title": "GridHarnessModelV1",
-                "type": "object"
-            },
-            "GridPrimaryHarnessDefaultsV1": {
-                "properties": {
-                    "primary": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/GridHarnessModelV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Route for the primary model, which new sessions use. Null when the team has no route to use."
-                    }
-                },
-                "required": [
-                    "primary"
-                ],
-                "title": "GridPrimaryHarnessDefaultsV1",
                 "type": "object"
             },
             "GridSettingSourceV1": {
@@ -39151,7 +39496,7 @@
                     "codex": {
                         "anyOf": [
                             {
-                                "$ref": "#/components/schemas/UpdateGridPrimaryHarnessModelsV1"
+                                "$ref": "#/components/schemas/UpdateGridBackgroundHarnessModelsV1"
                             },
                             {
                                 "type": "null"
@@ -39164,7 +39509,7 @@
                     "pi": {
                         "anyOf": [
                             {
-                                "$ref": "#/components/schemas/UpdateGridPrimaryHarnessModelsV1"
+                                "$ref": "#/components/schemas/UpdateGridBackgroundHarnessModelsV1"
                             },
                             {
                                 "type": "null"
@@ -39176,32 +39521,6 @@
                     }
                 },
                 "title": "UpdateGridHarnessDefaultsV1",
-                "type": "object"
-            },
-            "UpdateGridPrimaryHarnessModelsV1": {
-                "additionalProperties": false,
-                "minProperties": 1,
-                "properties": {
-                    "primary": {
-                        "anyOf": [
-                            {
-                                "minLength": 1,
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.",
-                        "examples": [
-                            "abc1234"
-                        ],
-                        "title": "Primary",
-                        "x-null-distinct": true
-                    }
-                },
-                "title": "UpdateGridPrimaryHarnessModelsV1",
                 "type": "object"
             },
             "UpdateGridTeamSpendLimitSettingV1": {
@@ -40397,6 +40716,55 @@
                     }
                 },
                 "title": "GridClassifiersRequestV1",
+                "type": "object"
+            },
+            "GridRouteClassifiersResponseV1": {
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/GridRouteClassifierV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "GridRouteClassifiersResponseV1",
+                "type": "object"
+            },
+            "GridRouteClassifiersRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    }
+                },
+                "title": "GridRouteClassifiersRequestV1",
                 "type": "object"
             },
             "GridMachineUserV1": {
@@ -44835,6 +45203,14 @@
                     "type": "string"
                 },
                 "name": "classifier_id",
+                "in": "path",
+                "required": true
+            },
+            "route_classifier_id": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "route_classifier_id",
                 "in": "path",
                 "required": true
             },

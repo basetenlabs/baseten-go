@@ -757,10 +757,10 @@ type TunnelConfigRequest struct {
 
 // UpgradeRequest defines model for UpgradeRequest.
 type UpgradeRequest struct {
-	// BaseUrl Base URL for releases (useful for forks)
+	// BaseUrl Deprecated: custom binary sources are not accepted
 	BaseUrl *string `json:"baseUrl,omitempty"`
 
-	// Version Version to upgrade to: "latest" (default), "develop", "main", or specific tag like "v1.0.0"
+	// Version Version to upgrade to: "latest" (default), "develop", "main", or a release tag like "v1.0.0"
 	Version *string `json:"version,omitempty"`
 }
 

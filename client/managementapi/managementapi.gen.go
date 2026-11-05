@@ -484,10 +484,11 @@ func (e AuditLogSource) Valid() bool {
 
 // Defines values for AuthMethod.
 const (
-	AuthMethod_AWS_ASSUME_ROLE AuthMethod = "AWS_ASSUME_ROLE"
-	AuthMethod_AWS_OIDC        AuthMethod = "AWS_OIDC"
-	AuthMethod_CUSTOM_SECRET   AuthMethod = "CUSTOM_SECRET"
-	AuthMethod_GCP_OIDC        AuthMethod = "GCP_OIDC"
+	AuthMethod_AWS_ASSUME_ROLE   AuthMethod = "AWS_ASSUME_ROLE"
+	AuthMethod_AWS_OIDC          AuthMethod = "AWS_OIDC"
+	AuthMethod_CUSTOM_SECRET     AuthMethod = "CUSTOM_SECRET"
+	AuthMethod_GCP_OIDC          AuthMethod = "GCP_OIDC"
+	AuthMethod_HUGGING_FACE_OIDC AuthMethod = "HUGGING_FACE_OIDC"
 )
 
 // Valid indicates whether the value is a known member of the AuthMethod enum.
@@ -500,6 +501,8 @@ func (e AuthMethod) Valid() bool {
 	case AuthMethod_CUSTOM_SECRET:
 		return true
 	case AuthMethod_GCP_OIDC:
+		return true
+	case AuthMethod_HUGGING_FACE_OIDC:
 		return true
 	default:
 		return false
@@ -836,6 +839,48 @@ func (e GridProvider) Valid() bool {
 	case GridProvider_VERTEX:
 		return true
 	case GridProvider_XAI:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GridRouteClassifierSupportedTradeoffs.
+const (
+	GridRouteClassifierSupportedTradeoffs_balanced     GridRouteClassifierSupportedTradeoffs = "balanced"
+	GridRouteClassifierSupportedTradeoffs_cost         GridRouteClassifierSupportedTradeoffs = "cost"
+	GridRouteClassifierSupportedTradeoffs_intelligence GridRouteClassifierSupportedTradeoffs = "intelligence"
+)
+
+// Valid indicates whether the value is a known member of the GridRouteClassifierSupportedTradeoffs enum.
+func (e GridRouteClassifierSupportedTradeoffs) Valid() bool {
+	switch e {
+	case GridRouteClassifierSupportedTradeoffs_balanced:
+		return true
+	case GridRouteClassifierSupportedTradeoffs_cost:
+		return true
+	case GridRouteClassifierSupportedTradeoffs_intelligence:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GridRouteTargetIntelligentTradeoff.
+const (
+	GridRouteTargetIntelligentTradeoff_balanced     GridRouteTargetIntelligentTradeoff = "balanced"
+	GridRouteTargetIntelligentTradeoff_cost         GridRouteTargetIntelligentTradeoff = "cost"
+	GridRouteTargetIntelligentTradeoff_intelligence GridRouteTargetIntelligentTradeoff = "intelligence"
+)
+
+// Valid indicates whether the value is a known member of the GridRouteTargetIntelligentTradeoff enum.
+func (e GridRouteTargetIntelligentTradeoff) Valid() bool {
+	switch e {
+	case GridRouteTargetIntelligentTradeoff_balanced:
+		return true
+	case GridRouteTargetIntelligentTradeoff_cost:
+		return true
+	case GridRouteTargetIntelligentTradeoff_intelligence:
 		return true
 	default:
 		return false
@@ -1246,6 +1291,7 @@ const (
 	ModelApiCostDimension_api_key_prefix ModelApiCostDimension = "api_key_prefix"
 	ModelApiCostDimension_model          ModelApiCostDimension = "model"
 	ModelApiCostDimension_service_tier   ModelApiCostDimension = "service_tier"
+	ModelApiCostDimension_team           ModelApiCostDimension = "team"
 	ModelApiCostDimension_user           ModelApiCostDimension = "user"
 )
 
@@ -1257,6 +1303,8 @@ func (e ModelApiCostDimension) Valid() bool {
 	case ModelApiCostDimension_model:
 		return true
 	case ModelApiCostDimension_service_tier:
+		return true
+	case ModelApiCostDimension_team:
 		return true
 	case ModelApiCostDimension_user:
 		return true
@@ -1871,6 +1919,21 @@ const (
 func (e TokenScope) Valid() bool {
 	switch e {
 	case TokenScope_sandboxes:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ToolCallUsageDimension.
+const (
+	ToolCallUsageDimension_TEAM ToolCallUsageDimension = "TEAM"
+)
+
+// Valid indicates whether the value is a known member of the ToolCallUsageDimension enum.
+func (e ToolCallUsageDimension) Valid() bool {
+	switch e {
+	case ToolCallUsageDimension_TEAM:
 		return true
 	default:
 		return false
@@ -6039,9 +6102,9 @@ type GridEffectiveSpendLimit struct {
 // GridHarnessDefaults defines model for GridHarnessDefaults.
 type GridHarnessDefaults struct {
 	ClaudeCode GridBackgroundHarnessDefaults `json:"claude_code"`
-	Codex      GridPrimaryHarnessDefaults    `json:"codex"`
+	Codex      GridBackgroundHarnessDefaults `json:"codex"`
 	Opencode   GridBackgroundHarnessDefaults `json:"opencode"`
-	Pi         GridPrimaryHarnessDefaults    `json:"pi"`
+	Pi         GridBackgroundHarnessDefaults `json:"pi"`
 }
 
 // GridHarnessModel defines model for GridHarnessModel.
@@ -6084,12 +6147,6 @@ type GridMachineUsersResponse struct {
 	Pagination PaginationResponse `json:"pagination"`
 }
 
-// GridPrimaryHarnessDefaults defines model for GridPrimaryHarnessDefaults.
-type GridPrimaryHarnessDefaults struct {
-	// Primary Route for the primary model, which new sessions use. Null when the team has no route to use.
-	Primary *GridHarnessModel `json:"primary"`
-}
-
 // GridProvider Upstream provider of a route target, named like the route target types.
 type GridProvider string
 
@@ -6129,6 +6186,31 @@ type GridRoute struct {
 // GridRoute_Target Configured upstream target.
 type GridRoute_Target struct {
 	union json.RawMessage
+}
+
+// GridRouteClassifier defines model for GridRouteClassifier.
+type GridRouteClassifier struct {
+	// DecidableModels Model identities the route classifier picks from.
+	DecidableModels []string `json:"decidable_models"`
+
+	// Id Stable route classifier identifier.
+	Id string `json:"id"`
+
+	// Name Display name of the route classifier.
+	Name string `json:"name"`
+
+	// SupportedTradeoffs Tradeoffs the route classifier supports. Empty when it supports all of them.
+	SupportedTradeoffs []GridRouteClassifierSupportedTradeoffs `json:"supported_tradeoffs"`
+}
+
+// GridRouteClassifierSupportedTradeoffs defines model for GridRouteClassifier.SupportedTradeoffs.
+type GridRouteClassifierSupportedTradeoffs string
+
+// GridRouteClassifiersResponse defines model for GridRouteClassifiersResponse.
+type GridRouteClassifiersResponse struct {
+	// Items Items in this page.
+	Items      []GridRouteClassifier `json:"items"`
+	Pagination PaginationResponse    `json:"pagination"`
 }
 
 // GridRouteRef defines model for GridRouteRef.
@@ -6173,6 +6255,20 @@ type GridRouteTargetConnection struct {
 	// Type Target kind for a provider reached through a team connection.
 	Type string `json:"type"`
 }
+
+// GridRouteTargetIntelligent defines model for GridRouteTargetIntelligent.
+type GridRouteTargetIntelligent struct {
+	RouteClassifier GridRouteClassifier `json:"route_classifier"`
+
+	// Tradeoff How the classifier weighs cost against quality.
+	Tradeoff GridRouteTargetIntelligentTradeoff `json:"tradeoff"`
+
+	// Type Target kind for an intelligent route: Baseten picks the model per request.
+	Type string `json:"type"`
+}
+
+// GridRouteTargetIntelligentTradeoff How the classifier weighs cost against quality.
+type GridRouteTargetIntelligentTradeoff string
 
 // GridRouteTombstone defines model for GridRouteTombstone.
 type GridRouteTombstone struct {
@@ -7422,6 +7518,9 @@ type ModelAPI struct {
 	// ContextLength The model's context window length, in tokens.
 	ContextLength int `json:"context_length"`
 
+	// CostPerMillionCachedInputTokens Effective cost per million cached input tokens, in dollars. Null when pricing is unavailable or the Model API has no cached input price.
+	CostPerMillionCachedInputTokens *ModelAPI_CostPerMillionCachedInputTokens `json:"cost_per_million_cached_input_tokens"`
+
 	// CostPerMillionInputTokens Effective cost per million input tokens, in dollars. Null when pricing is unavailable.
 	CostPerMillionInputTokens *ModelAPI_CostPerMillionInputTokens `json:"cost_per_million_input_tokens"`
 
@@ -7451,6 +7550,17 @@ type ModelAPI struct {
 
 	// ReleaseDate Date the Model API was made available.
 	ReleaseDate string `json:"release_date"`
+}
+
+// ModelAPICostPerMillionCachedInputTokens0 defines model for .
+type ModelAPICostPerMillionCachedInputTokens0 = float32
+
+// ModelAPICostPerMillionCachedInputTokens1 defines model for .
+type ModelAPICostPerMillionCachedInputTokens1 = string
+
+// ModelAPI_CostPerMillionCachedInputTokens Effective cost per million cached input tokens, in dollars. Null when pricing is unavailable or the Model API has no cached input price.
+type ModelAPI_CostPerMillionCachedInputTokens struct {
+	union json.RawMessage
 }
 
 // ModelAPICostPerMillionInputTokens0 defines model for .
@@ -7551,6 +7661,9 @@ type ModelApisCostResult struct {
 
 	// Subtotal Model API cost in USD for this day and grouping combination, returned as an exact decimal string preserving fractional-cent amounts. This amount may differ from finalized invoice amounts.
 	Subtotal string `json:"subtotal"`
+
+	// TeamId Team the cost is attributed to. Null when not grouping by team or when team attribution is unavailable.
+	TeamId *string `json:"team_id,omitempty"`
 
 	// UserId Attributed user ID. Null when not grouping by user or when attribution is unavailable.
 	UserId *string `json:"user_id,omitempty"`
@@ -9325,7 +9438,13 @@ type ToolCallUsageBucket struct {
 
 	// Sku Charge unit, as `<provider>/<unit>`. The unit is what the provider reported, or the tool name when it reported none. Its meaning varies by provider.
 	Sku string `json:"sku"`
+
+	// TeamId Team attributed to the usage. Null when not grouping by team or when historical team attribution is unavailable.
+	TeamId *string `json:"team_id,omitempty"`
 }
+
+// ToolCallUsageDimension defines model for ToolCallUsageDimension.
+type ToolCallUsageDimension string
 
 // ToolCallUsageResponse Daily server-side tool call usage, ordered by day, provider, sku, and model.
 type ToolCallUsageResponse struct {
@@ -9596,6 +9715,9 @@ type TrainingProject struct {
 
 	// Name Name of the training project.
 	Name string `json:"name"`
+
+	// ProjectAccelerator Default GPU type for cache-enabled CPU job placement.
+	ProjectAccelerator *string `json:"project_accelerator,omitempty"`
 
 	// TeamName Name of the team associated with the training project.
 	TeamName *string `json:"team_name,omitempty"`
@@ -9896,25 +10018,19 @@ type UpdateGridHarnessDefaults struct {
 	ClaudeCode Optional[UpdateGridBackgroundHarnessModels] `json:"claude_code,omitzero"`
 
 	// Codex Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
-	Codex Optional[UpdateGridPrimaryHarnessModels] `json:"codex,omitzero"`
+	Codex Optional[UpdateGridBackgroundHarnessModels] `json:"codex,omitzero"`
 
 	// Opencode Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
 	Opencode Optional[UpdateGridBackgroundHarnessModels] `json:"opencode,omitzero"`
 
 	// Pi Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.
-	Pi Optional[UpdateGridPrimaryHarnessModels] `json:"pi,omitzero"`
+	Pi Optional[UpdateGridBackgroundHarnessModels] `json:"pi,omitzero"`
 }
 
 // UpdateGridMachineUserRequest defines model for UpdateGridMachineUserRequest.
 type UpdateGridMachineUserRequest struct {
 	// Name Name of the machine user, unique within its team. At most 255 characters. Omit to keep it.
 	Name *string `json:"name,omitempty"`
-}
-
-// UpdateGridPrimaryHarnessModels defines model for UpdateGridPrimaryHarnessModels.
-type UpdateGridPrimaryHarnessModels struct {
-	// Primary Route ID for the primary model, which new sessions use. Omit to keep the current route, or pass null to use the team's default.
-	Primary Optional[string] `json:"primary,omitzero"`
 }
 
 // UpdateGridRouteRequest defines model for UpdateGridRouteRequest.
@@ -10294,6 +10410,9 @@ type UpsertSecretRequest struct {
 type UpsertTrainingProject struct {
 	// Name Name of the training project.
 	Name string `json:"name"`
+
+	// ProjectAccelerator Optional default GPU type for cache-enabled CPU job placement, such as H100. GPU jobs use their requested GPU type; uncached CPU jobs use normal CPU routing. Omitting this field preserves the stored default; providing a value updates it. Existing cache-affinity requirements still apply.
+	ProjectAccelerator *string `json:"project_accelerator,omitempty"`
 }
 
 // UpsertTrainingProjectRequest A request to upsert a training project.
@@ -10507,6 +10626,12 @@ type VolumeSyncAuthenticationGCPOIDC struct {
 	WorkloadIdentityProvider string `json:"workload_identity_provider"`
 }
 
+// VolumeSyncAuthenticationHuggingFaceOIDC Authentication using a Hugging Face trusted publisher and Baseten workload identity.
+type VolumeSyncAuthenticationHuggingFaceOIDC struct {
+	// Resource Hugging Face username for an account CI/CD identity, or namespace/repository for a repository trusted publisher. Configure trust in Hugging Face before starting the sync.
+	Resource string `json:"resource"`
+}
+
 // VolumeSyncDestination BDN destination for a volume sync.
 type VolumeSyncDestination struct {
 	// Ref Destination as bdn:<namespace>/<volume> with an optional tag.
@@ -10601,6 +10726,9 @@ type VolumeSyncSourceHuggingFace struct {
 
 	// Exclude Glob patterns selecting files to exclude.
 	Exclude *[]string `json:"exclude,omitempty"`
+
+	// HfOidc Hugging Face OIDC authentication for this source. Cannot be combined with auth_secret_name.
+	HfOidc *VolumeSyncAuthenticationHuggingFaceOIDC `json:"hf_oidc,omitempty"`
 
 	// Include Glob patterns selecting files to include.
 	Include *[]string `json:"include,omitempty"`
@@ -10869,7 +10997,7 @@ type GetV1BillingModelApisParams struct {
 	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included. The date range cannot exceed 90 days.
 	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
 
-	// GroupBy Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, or service_tier. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily organization totals.
+	// GroupBy Dimensions to break costs down by, repeated once per dimension: api_key_prefix, user, model, service_tier, or team. Each result represents one observed combination of the requested dimensions within that day. For example, grouping by api_key_prefix and user returns each API-key and user pair that had usage. Combinations without usage are omitted, so result counts can differ between days. Omit for daily totals across all teams you can manage.
 	GroupBy *[]ModelApiCostDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
 
 	// ApiKeyPrefixes Return only costs for these exact API key prefixes, repeated once per prefix.
@@ -10883,6 +11011,9 @@ type GetV1BillingModelApisParams struct {
 
 	// ServiceTiers Return only costs for these exact service tiers, repeated once per tier.
 	ServiceTiers *[]string `form:"service_tiers,omitempty" json:"service_tiers,omitempty"`
+
+	// TeamIds Return only costs attributed to these teams, repeated once per team. Defaults to all teams you can manage.
+	TeamIds *[]string `form:"team_ids,omitempty" json:"team_ids,omitempty"`
 }
 
 // GetV1BillingToolCallUsageParams defines parameters for GetV1BillingToolCallUsage.
@@ -10892,6 +11023,12 @@ type GetV1BillingToolCallUsageParams struct {
 
 	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included. The date range cannot exceed 90 days.
 	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
+
+	// TeamIds Return only usage for these teams, repeated once per team. Defaults to all teams you can manage. An unauthorized team ID causes a 403 response.
+	TeamIds *[]string `form:"team_ids,omitempty" json:"team_ids,omitempty"`
+
+	// GroupBy Pass TEAM to split daily rows by team. Defaults to aggregating across teams.
+	GroupBy *[]ToolCallUsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
 }
 
 // GetV1BillingUsageSummaryParams defines parameters for GetV1BillingUsageSummary.
@@ -11045,6 +11182,15 @@ type GetV1GridMachineUsersParams struct {
 
 	// TeamId Limit machine users to this team. Without it, every team you administer.
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// GetV1GridRouteClassifiersParams defines parameters for GetV1GridRouteClassifiers.
+type GetV1GridRouteClassifiersParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // GetV1GridRoutesParams defines parameters for GetV1GridRoutes.
@@ -14661,6 +14807,21 @@ func (t *GridRoute_Target) FromGridRouteTargetClassifier(v GridRouteTargetClassi
 	return err
 }
 
+// AsGridRouteTargetIntelligent returns the union data inside the GridRoute_Target as a GridRouteTargetIntelligent
+func (t GridRoute_Target) AsGridRouteTargetIntelligent() (GridRouteTargetIntelligent, error) {
+	var body GridRouteTargetIntelligent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGridRouteTargetIntelligent overwrites any union data inside the GridRoute_Target as the provided GridRouteTargetIntelligent
+func (t *GridRoute_Target) FromGridRouteTargetIntelligent(v GridRouteTargetIntelligent) error {
+	v.Type = "INTELLIGENT"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t GridRoute_Target) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"type"`
@@ -14681,6 +14842,8 @@ func (t GridRoute_Target) ValueByDiscriminator() (interface{}, error) {
 		return t.AsGridRouteTargetClassifier()
 	case "CONNECTION":
 		return t.AsGridRouteTargetConnection()
+	case "INTELLIGENT":
+		return t.AsGridRouteTargetIntelligent()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -15068,6 +15231,44 @@ func (t LoopsUsage_Total) MarshalJSON() ([]byte, error) {
 }
 
 func (t *LoopsUsage_Total) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsModelAPICostPerMillionCachedInputTokens0 returns the union data inside the ModelAPI_CostPerMillionCachedInputTokens as a ModelAPICostPerMillionCachedInputTokens0
+func (t ModelAPI_CostPerMillionCachedInputTokens) AsModelAPICostPerMillionCachedInputTokens0() (ModelAPICostPerMillionCachedInputTokens0, error) {
+	var body ModelAPICostPerMillionCachedInputTokens0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromModelAPICostPerMillionCachedInputTokens0 overwrites any union data inside the ModelAPI_CostPerMillionCachedInputTokens as the provided ModelAPICostPerMillionCachedInputTokens0
+func (t *ModelAPI_CostPerMillionCachedInputTokens) FromModelAPICostPerMillionCachedInputTokens0(v ModelAPICostPerMillionCachedInputTokens0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsModelAPICostPerMillionCachedInputTokens1 returns the union data inside the ModelAPI_CostPerMillionCachedInputTokens as a ModelAPICostPerMillionCachedInputTokens1
+func (t ModelAPI_CostPerMillionCachedInputTokens) AsModelAPICostPerMillionCachedInputTokens1() (ModelAPICostPerMillionCachedInputTokens1, error) {
+	var body ModelAPICostPerMillionCachedInputTokens1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromModelAPICostPerMillionCachedInputTokens1 overwrites any union data inside the ModelAPI_CostPerMillionCachedInputTokens as the provided ModelAPICostPerMillionCachedInputTokens1
+func (t *ModelAPI_CostPerMillionCachedInputTokens) FromModelAPICostPerMillionCachedInputTokens1(v ModelAPICostPerMillionCachedInputTokens1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t ModelAPI_CostPerMillionCachedInputTokens) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ModelAPI_CostPerMillionCachedInputTokens) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
