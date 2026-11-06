@@ -54,9 +54,6 @@ func TestTypeParity(t *testing.T) {
 			oursOnly: map[string]string{"After": "the duration of TTL policies"},
 		},
 		{name: "Port", ours: Port{}, generated: managementapi.SandboxPort{}},
-		{name: "Network", ours: Network{}, generated: managementapi.SandboxNetwork{}},
-		{name: "NetworkProxy", ours: NetworkProxy{}, generated: managementapi.SandboxProxyConfig{}},
-		{name: "NetworkProxyRoute", ours: NetworkProxyRoute{}, generated: managementapi.SandboxProxyTarget{}},
 		{
 			name: "FileSystem", ours: FileSystem{}, generated: managementapi.SandboxFilesystem{},
 			oursOnly: map[string]string{"MaxMemoryUsageMegabytes": "the integer form of MaxMemoryUsage"},

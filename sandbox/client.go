@@ -176,10 +176,6 @@ type CreateOptions struct {
 	// Ports are the ports the sandbox exposes.
 	Ports []Port
 
-	// Network is the sandbox's network configuration. It cannot be updated
-	// later.
-	Network *Network
-
 	// FileSystem is the sandbox's filesystem configuration. It cannot be
 	// updated later.
 	FileSystem *FileSystem
@@ -222,7 +218,6 @@ func (c *Client) Create(ctx context.Context, opts CreateOptions) (*CreateResult,
 		ExternalId:        optional(opts.ExternalID),
 		Lifecycle:         lifecycle,
 		Ports:             portsToAPI(opts.Ports),
-		Network:           networkToAPI(opts.Network),
 		Filesystem:        fileSystem,
 		Volumes:           volumeMountsToAPI(opts.Volumes),
 	})

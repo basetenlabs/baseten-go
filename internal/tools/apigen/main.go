@@ -17,7 +17,7 @@ const (
 	defaultManagementSpecURL = "https://api.baseten.co/v1/spec"
 	defaultInferenceSpecURL  = "https://api.baseten.co/inference-spec"
 	trussConfigSchemaURL     = "https://raw.githubusercontent.com/basetenlabs/truss/main/truss/config.schema.json"
-	sandboxSpecURL           = "https://raw.githubusercontent.com/blaxel-ai/sandbox/main/sandbox-api/docs/openapi.yml"
+	sandboxSpecURL           = "https://raw.githubusercontent.com/basetenlabs/sandbox/main/sandbox-api/docs/openapi.yml"
 )
 
 func main() {

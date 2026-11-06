@@ -8906,7 +8906,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/model_apis\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists Model APIs visible to the caller. By default returns the full catalog; pass `added_only=true` to restrict to Model APIs the workspace has added.",
+                "description": "Lists model metadata with added-model details for teams where you can invoke Model APIs. Legacy Default Team fields remain deprecated but unchanged. Pass team_ids to narrow team details; unauthorized teams cause a 403. added_only=true returns models added by any team in scope. Models added in scope sort first, by their latest addition. Pagination is by model; cursor filters are preserved and reauthorized on every page.",
                 "parameters": [
                     {
                         "name": "cursor",
@@ -8940,10 +8940,23 @@
                         }
                     },
                     {
+                        "name": "team_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Select teams for added-model details, filtering, and ordering, repeated once per team. Defaults to all teams where you can invoke Model APIs. Any unauthorized team causes a 403.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Team Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
                         "name": "added_only",
                         "in": "query",
                         "required": false,
-                        "description": "When true, restrict the result to Model APIs the workspace has added. Defaults to the full visible catalog.",
+                        "description": "When true, restrict the result to Model APIs added by any team where you can invoke Model APIs. Explicit team_ids narrow this to the selected teams. Defaults to the full visible catalog.",
                         "schema": {
                             "default": false,
                             "title": "Added Only",
@@ -9249,10 +9262,25 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/model_apis/{model_api_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/model_apis/{model_api_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Fetches a Model API by name, with workspace overlay when added.",
+                "description": "Returns model metadata with added-model details for teams where you can invoke Model APIs. Legacy Default Team fields remain deprecated but unchanged. Pass team_ids to narrow team details; unauthorized teams cause a 403.",
+                "parameters": [
+                    {
+                        "name": "team_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Select teams for added-model details, repeated once per team. Defaults to all teams where you can invoke Model APIs. Any unauthorized team causes a 403.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Team Ids",
+                            "type": "array"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -9909,13 +9937,13 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/billing/usage_summary\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns billing usage data within the specified date range. Includes dedicated model serving, training, and model APIs usage. The date range must not exceed 31 days.",
+                "description": "Returns billing usage within [start_date, end_date): the start date is inclusive and the end date is exclusive. Both dates are normalized to midnight UTC. Includes dedicated model serving, training, and model APIs usage. The date range must not exceed 31 days.",
                 "parameters": [
                     {
                         "name": "start_date",
                         "in": "query",
                         "required": true,
-                        "description": "Start date (ISO 8601, UTC). Earliest queryable: 2026-01-01.",
+                        "description": "Inclusive start date (ISO 8601, normalized to midnight UTC). Earliest queryable: 2026-01-01.",
                         "schema": {
                             "format": "date-time",
                             "title": "Start Date",
@@ -9926,7 +9954,7 @@
                         "name": "end_date",
                         "in": "query",
                         "required": true,
-                        "description": "End date in ISO 8601 format (UTC). Date range cannot exceed 31 days.",
+                        "description": "Exclusive end date (ISO 8601, normalized to midnight UTC). Date range cannot exceed 31 days.",
                         "schema": {
                             "format": "date-time",
                             "title": "End Date",
@@ -10726,7 +10754,7 @@
                         "name": "group_by",
                         "in": "query",
                         "required": false,
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, ROUTER, or HARNESS. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, or HARNESS. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. Defaults to MODEL.",
                         "schema": {
                             "items": {
                                 "$ref": "#/components/schemas/GridRouteUsageDimensionV1"
@@ -12789,7 +12817,7 @@
                 ],
                 "operationId": "UpdateSandbox",
                 "summary": "Update a sandbox",
-                "description": "Partially update configuration. Omitted fields remain unchanged; supplied arrays and maps replace their previous values. Structured objects update only supplied fields. The name, memory, network, region, image, ports, filesystem, and volumes are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.",
+                "description": "Partially update configuration. Omitted fields remain unchanged; supplied arrays and maps replace their previous values. Structured objects update only supplied fields. The name, memory, region, image, ports, filesystem, and volumes are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.",
                 "tags": [
                     "Sandboxes"
                 ],
@@ -12825,12 +12853,12 @@
                         }
                     },
                     "400": {
-                        "description": "Invalid request, including attempts to change memory or network configuration.",
+                        "description": "Invalid request, including attempts to change memory configuration.",
                         "content": {
                             "application/json": {
                                 "example": {
                                     "code": "INVALID_REQUEST",
-                                    "message": "Memory and network configuration cannot be changed after creation."
+                                    "message": "Memory configuration cannot be changed after creation."
                                 }
                             }
                         }
@@ -32351,7 +32379,7 @@
                         "type": "string"
                     },
                     "path": {
-                        "description": "Directory inside that version holding the checkpoint's files.",
+                        "description": "Directory inside that version holding the checkpoint's files. Empty when the checkpoint is the whole version.",
                         "title": "Path",
                         "type": "string"
                     }
@@ -33976,10 +34004,10 @@
                 "type": "string"
             },
             "ModelAPIOrgDetailsV1": {
-                "description": "Workspace-specific state for a Model API.",
+                "description": "Team-specific state for an added Model API.",
                 "properties": {
                     "added_at": {
-                        "description": "When the workspace first added this Model API.",
+                        "description": "When the team first added this Model API.",
                         "format": "date-time",
                         "title": "Added At",
                         "type": "string"
@@ -33995,7 +34023,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "When the workspace last invoked this Model API. Null if the workspace has never invoked it.",
+                        "description": "When the team last invoked this Model API. Null if the team has never invoked it.",
                         "title": "Last Used At"
                     }
                 },
@@ -34005,8 +34033,170 @@
                 "title": "ModelAPIOrgDetailsV1",
                 "type": "object"
             },
+            "ModelAPIRateLimitV1": {
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/LimitTypeV1",
+                        "description": "The type of the rate limit",
+                        "examples": [
+                            "TOKEN",
+                            "REQUEST"
+                        ]
+                    },
+                    "unit": {
+                        "$ref": "#/components/schemas/RateLimitUnitV1",
+                        "description": "The unit of the rate limit",
+                        "examples": [
+                            "SECOND",
+                            "MINUTE"
+                        ]
+                    },
+                    "threshold": {
+                        "description": "The threshold for the rate limit",
+                        "examples": [
+                            1000,
+                            50000
+                        ],
+                        "minimum": 0,
+                        "title": "Threshold",
+                        "type": "integer"
+                    },
+                    "is_pooled": {
+                        "description": "Whether this limit uses the organization-wide pool. The threshold is the effective limit, including any adaptive grant.",
+                        "title": "Is Pooled",
+                        "type": "boolean"
+                    },
+                    "service_tier": {
+                        "$ref": "#/components/schemas/ModelAPIServiceTierV1",
+                        "description": "Service tier the rate limit applies to.",
+                        "examples": [
+                            "DEFAULT",
+                            "FLEX"
+                        ]
+                    },
+                    "baseline_threshold": {
+                        "description": "Configured baseline threshold for the rate limit, before any adaptive increase. Equal to `threshold` when no adaptive increase is in effect.",
+                        "examples": [
+                            1000,
+                            50000
+                        ],
+                        "minimum": 0,
+                        "title": "Baseline Threshold",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "type",
+                    "unit",
+                    "threshold",
+                    "is_pooled",
+                    "service_tier",
+                    "baseline_threshold"
+                ],
+                "title": "ModelAPIRateLimitV1",
+                "type": "object"
+            },
+            "ModelAPIServiceTierV1": {
+                "enum": [
+                    "DEFAULT",
+                    "FLEX",
+                    "PRIORITY"
+                ],
+                "title": "ModelAPIServiceTierV1",
+                "type": "string"
+            },
+            "ModelAPITeamDetailsV1": {
+                "properties": {
+                    "id": {
+                        "description": "Organization Shared Endpoint ID.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "description": "Team that has added this Model API.",
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "description": "Name of the team that has added this Model API.",
+                        "title": "Team Name",
+                        "type": "string"
+                    },
+                    "added_at": {
+                        "description": "When the team first added this Model API.",
+                        "format": "date-time",
+                        "title": "Added At",
+                        "type": "string"
+                    },
+                    "last_used_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "When the team last invoked this Model API. Null if never invoked.",
+                        "title": "Last Used At"
+                    },
+                    "rate_limits": {
+                        "description": "Effective rate limits for this team's Model API, at most one per type, unit, and service tier.",
+                        "items": {
+                            "$ref": "#/components/schemas/ModelAPIRateLimitV1"
+                        },
+                        "title": "Rate Limits",
+                        "type": "array"
+                    },
+                    "cost_per_million_input_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Effective cost per million input tokens, in dollars. Null if unavailable.",
+                        "title": "Cost Per Million Input Tokens"
+                    },
+                    "cost_per_million_output_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Effective cost per million output tokens, in dollars. Null if unavailable.",
+                        "title": "Cost Per Million Output Tokens"
+                    }
+                },
+                "required": [
+                    "id",
+                    "team_id",
+                    "team_name",
+                    "added_at",
+                    "last_used_at",
+                    "rate_limits",
+                    "cost_per_million_input_tokens",
+                    "cost_per_million_output_tokens"
+                ],
+                "title": "ModelAPITeamDetailsV1",
+                "type": "object"
+            },
             "ModelAPIV1": {
-                "description": "A Model API catalog row, optionally enriched with workspace-specific state.",
+                "description": "Model metadata and authorized team details, with retained legacy fields.",
                 "properties": {
                     "name": {
                         "description": "Identifier of the Model API. Stable, URL-safe slug used as the public identifier.",
@@ -34082,7 +34272,8 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Effective cost per million input tokens, in dollars. Null when pricing is unavailable.",
+                        "deprecated": true,
+                        "description": "Deprecated and will be removed in a future version. Legacy effective input-token price. Use team_details pricing instead. Retained during migration; null when pricing is unavailable.",
                         "examples": [
                             "0.13"
                         ],
@@ -34120,16 +34311,18 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Effective cost per million output tokens, in dollars. Null when pricing is unavailable.",
+                        "deprecated": true,
+                        "description": "Deprecated and will be removed in a future version. Legacy effective output-token price. Use team_details pricing instead. Retained during migration; null when pricing is unavailable.",
                         "examples": [
                             "0.50"
                         ],
                         "title": "Cost Per Million Output Tokens"
                     },
                     "rate_limits": {
-                        "description": "Rate limits in effect for the workspace. Workspace-specific overrides are returned when the workspace has added this Model API and configured them; otherwise the catalog default rate limits are returned.",
+                        "deprecated": true,
+                        "description": "Deprecated and will be removed in a future version. Legacy Default Team effective limits, independent of team_ids, or catalog defaults when not added or unauthorized. Use team_details for team limits; this field is not the org-pool limit view.",
                         "items": {
-                            "$ref": "#/components/schemas/RateLimitV1"
+                            "$ref": "#/components/schemas/ModelAPIRateLimitV1"
                         },
                         "title": "Rate Limits",
                         "type": "array"
@@ -34144,7 +34337,16 @@
                             }
                         ],
                         "default": null,
-                        "description": "Workspace-specific state. Null when the workspace has not added this Model API."
+                        "deprecated": true,
+                        "description": "Deprecated and will be removed in a future version. Legacy Default Team state, independent of team_ids. Use team_details instead. Null when not added or unauthorized."
+                    },
+                    "team_details": {
+                        "description": "Added Model API details for authorized teams, ordered by team ID. Empty when no team in the selected scope has added this Model API.",
+                        "items": {
+                            "$ref": "#/components/schemas/ModelAPITeamDetailsV1"
+                        },
+                        "title": "Team Details",
+                        "type": "array"
                     }
                 },
                 "required": [
@@ -34169,43 +34371,6 @@
                 ],
                 "title": "RateLimitUnitV1",
                 "type": "string"
-            },
-            "RateLimitV1": {
-                "properties": {
-                    "type": {
-                        "$ref": "#/components/schemas/LimitTypeV1",
-                        "description": "The type of the rate limit",
-                        "examples": [
-                            "TOKEN",
-                            "REQUEST"
-                        ]
-                    },
-                    "unit": {
-                        "$ref": "#/components/schemas/RateLimitUnitV1",
-                        "description": "The unit of the rate limit",
-                        "examples": [
-                            "SECOND",
-                            "MINUTE"
-                        ]
-                    },
-                    "threshold": {
-                        "description": "The threshold for the rate limit",
-                        "examples": [
-                            1000,
-                            50000
-                        ],
-                        "minimum": 0,
-                        "title": "Threshold",
-                        "type": "integer"
-                    }
-                },
-                "required": [
-                    "type",
-                    "unit",
-                    "threshold"
-                ],
-                "title": "RateLimitV1",
-                "type": "object"
             },
             "ModelAPIsResponseV1": {
                 "description": "Page of Model APIs visible to the caller.",
@@ -34254,9 +34419,17 @@
                         "title": "Limit",
                         "type": "integer"
                     },
+                    "team_ids": {
+                        "description": "Select teams for added-model details, filtering, and ordering, repeated once per team. Defaults to all teams where you can invoke Model APIs. Any unauthorized team causes a 403.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Team Ids",
+                        "type": "array"
+                    },
                     "added_only": {
                         "default": false,
-                        "description": "When true, restrict the result to Model APIs the workspace has added. Defaults to the full visible catalog.",
+                        "description": "When true, restrict the result to Model APIs added by any team where you can invoke Model APIs. Explicit team_ids narrow this to the selected teams. Defaults to the full visible catalog.",
                         "title": "Added Only",
                         "type": "boolean"
                     }
@@ -34577,6 +34750,21 @@
                     }
                 },
                 "title": "GetModelAPIMetricsRequestV1",
+                "type": "object"
+            },
+            "ModelAPIRequestV1": {
+                "description": "Query-string filters for ``GET /v1/model_apis/{model_api_name}``.",
+                "properties": {
+                    "team_ids": {
+                        "description": "Select teams for added-model details, repeated once per team. Defaults to all teams where you can invoke Model APIs. Any unauthorized team causes a 403.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Team Ids",
+                        "type": "array"
+                    }
+                },
+                "title": "ModelAPIRequestV1",
                 "type": "object"
             },
             "EgressRestrictionsV1": {
@@ -37254,13 +37442,13 @@
             "UsageSummaryRequestV1": {
                 "properties": {
                     "start_date": {
-                        "description": "Start date (ISO 8601, UTC). Earliest queryable: 2026-01-01.",
+                        "description": "Inclusive start date (ISO 8601, normalized to midnight UTC). Earliest queryable: 2026-01-01.",
                         "format": "date-time",
                         "title": "Start Date",
                         "type": "string"
                     },
                     "end_date": {
-                        "description": "End date in ISO 8601 format (UTC). Date range cannot exceed 31 days.",
+                        "description": "Exclusive end date (ISO 8601, normalized to midnight UTC). Date range cannot exceed 31 days.",
                         "format": "date-time",
                         "title": "End Date",
                         "type": "string"
@@ -38928,7 +39116,7 @@
                         "default": null,
                         "description": "Provider that served the requests. Null when not grouping by PROVIDER."
                     },
-                    "router_id": {
+                    "intelligent_route": {
                         "anyOf": [
                             {
                                 "type": "string"
@@ -38938,8 +39126,8 @@
                             }
                         ],
                         "default": null,
-                        "description": "Slug of the intelligent router, matching its name in `GET /v1/grid/routes`. Null when not grouping by ROUTER.",
-                        "title": "Router Id"
+                        "description": "Name of the intelligent route, as in `GET /v1/grid/routes`. Null when not grouping by INTELLIGENT_ROUTE.",
+                        "title": "Intelligent Route"
                     },
                     "harness": {
                         "anyOf": [
@@ -38982,7 +39170,7 @@
                         "type": "integer"
                     },
                     "requests": {
-                        "description": "Number of requests; with ROUTER, the requests sent through that router. Usage recorded before requests were counted adds zero.",
+                        "description": "Number of requests; with INTELLIGENT_ROUTE, the requests sent through that route. Usage recorded before requests were counted adds zero.",
                         "title": "Requests",
                         "type": "integer"
                     }
@@ -39026,7 +39214,7 @@
                     "TEAM",
                     "MODEL",
                     "PROVIDER",
-                    "ROUTER",
+                    "INTELLIGENT_ROUTE",
                     "HARNESS"
                 ],
                 "title": "GridRouteUsageDimensionV1",
@@ -39097,7 +39285,7 @@
                         "title": "End Date"
                     },
                     "group_by": {
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, ROUTER, or HARNESS. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. ROUTER returns only usage sent through an intelligent router, one row per router, or per router and model with MODEL. Router rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, or HARNESS. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. Defaults to MODEL.",
                         "items": {
                             "$ref": "#/components/schemas/GridRouteUsageDimensionV1"
                         },
@@ -39234,54 +39422,22 @@
                 "title": "UpdateGridRouteRequestV1",
                 "type": "object"
             },
-            "GridBackgroundHarnessDefaultsV1": {
-                "properties": {
-                    "primary": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/GridHarnessModelV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Route for the primary model, which new sessions use. Null when the team has no route to use."
-                    },
-                    "background": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/GridHarnessModelV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Route for background tasks, such as session titles. Null when the team has no route to use."
-                    }
-                },
-                "required": [
-                    "primary",
-                    "background"
-                ],
-                "title": "GridBackgroundHarnessDefaultsV1",
-                "type": "object"
-            },
             "GridHarnessDefaultsV1": {
                 "properties": {
                     "claude_code": {
-                        "$ref": "#/components/schemas/GridBackgroundHarnessDefaultsV1",
+                        "$ref": "#/components/schemas/GridHarnessModelsV1",
                         "description": "Default models for Claude Code."
                     },
                     "opencode": {
-                        "$ref": "#/components/schemas/GridBackgroundHarnessDefaultsV1",
+                        "$ref": "#/components/schemas/GridHarnessModelsV1",
                         "description": "Default models for OpenCode."
                     },
                     "codex": {
-                        "$ref": "#/components/schemas/GridBackgroundHarnessDefaultsV1",
+                        "$ref": "#/components/schemas/GridHarnessModelsV1",
                         "description": "Default models for Codex."
                     },
                     "pi": {
-                        "$ref": "#/components/schemas/GridBackgroundHarnessDefaultsV1",
+                        "$ref": "#/components/schemas/GridHarnessModelsV1",
                         "description": "Default models for Pi."
                     }
                 },
@@ -39310,6 +39466,38 @@
                     "route"
                 ],
                 "title": "GridHarnessModelV1",
+                "type": "object"
+            },
+            "GridHarnessModelsV1": {
+                "properties": {
+                    "primary": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/GridHarnessModelV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Route for the primary model, which new sessions use. Null when the team has no route to use."
+                    },
+                    "background": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/GridHarnessModelV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Route for background tasks, such as session titles. Null when the team has no route to use."
+                    }
+                },
+                "required": [
+                    "primary",
+                    "background"
+                ],
+                "title": "GridHarnessModelsV1",
                 "type": "object"
             },
             "GridSettingSourceV1": {
@@ -39419,7 +39607,67 @@
                 "title": "GridTeamSettingsRequestV1",
                 "type": "object"
             },
-            "UpdateGridBackgroundHarnessModelsV1": {
+            "UpdateGridHarnessDefaultsV1": {
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                    "claude_code": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateGridHarnessModelsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
+                        "x-null-distinct": true
+                    },
+                    "opencode": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateGridHarnessModelsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
+                        "x-null-distinct": true
+                    },
+                    "codex": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateGridHarnessModelsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
+                        "x-null-distinct": true
+                    },
+                    "pi": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UpdateGridHarnessModelsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
+                        "x-null-distinct": true
+                    }
+                },
+                "title": "UpdateGridHarnessDefaultsV1",
+                "type": "object"
+            },
+            "UpdateGridHarnessModelsV1": {
                 "additionalProperties": false,
                 "minProperties": 1,
                 "properties": {
@@ -39460,67 +39708,7 @@
                         "x-null-distinct": true
                     }
                 },
-                "title": "UpdateGridBackgroundHarnessModelsV1",
-                "type": "object"
-            },
-            "UpdateGridHarnessDefaultsV1": {
-                "additionalProperties": false,
-                "minProperties": 1,
-                "properties": {
-                    "claude_code": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/UpdateGridBackgroundHarnessModelsV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
-                        "x-null-distinct": true
-                    },
-                    "opencode": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/UpdateGridBackgroundHarnessModelsV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
-                        "x-null-distinct": true
-                    },
-                    "codex": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/UpdateGridBackgroundHarnessModelsV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
-                        "x-null-distinct": true
-                    },
-                    "pi": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/UpdateGridBackgroundHarnessModelsV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Route IDs for the model roles to change; roles left out are unchanged. Every route must belong to the team. Pass null to clear every role, or omit to leave the harness unchanged.",
-                        "x-null-distinct": true
-                    }
-                },
-                "title": "UpdateGridHarnessDefaultsV1",
+                "title": "UpdateGridHarnessModelsV1",
                 "type": "object"
             },
             "UpdateGridTeamSpendLimitSettingV1": {
@@ -41779,6 +41967,43 @@
                 "title": "ModelConfigV1",
                 "type": "object"
             },
+            "RateLimitV1": {
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/LimitTypeV1",
+                        "description": "The type of the rate limit",
+                        "examples": [
+                            "TOKEN",
+                            "REQUEST"
+                        ]
+                    },
+                    "unit": {
+                        "$ref": "#/components/schemas/RateLimitUnitV1",
+                        "description": "The unit of the rate limit",
+                        "examples": [
+                            "SECOND",
+                            "MINUTE"
+                        ]
+                    },
+                    "threshold": {
+                        "description": "The threshold for the rate limit",
+                        "examples": [
+                            1000,
+                            50000
+                        ],
+                        "minimum": 0,
+                        "title": "Threshold",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "type",
+                    "unit",
+                    "threshold"
+                ],
+                "title": "RateLimitV1",
+                "type": "object"
+            },
             "UsageLimitUnitV1": {
                 "enum": [
                     "DAY"
@@ -42605,249 +42830,6 @@
                     }
                 }
             },
-            "SandboxNetworkV1": {
-                "type": "object",
-                "description": "Network configuration for a sandbox including subnet, domain filtering, and proxy settings",
-                "properties": {
-                    "proxy": {
-                        "description": "Proxy configuration for routing sandbox HTTP traffic through the platform proxy with MITM inspection and per-destination header/body injection",
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/SandboxProxyConfigV1"
-                            }
-                        ],
-                        "example": {
-                            "allowed_domains": [
-                                "api.openai.com",
-                                "pypi.org",
-                                "files.pythonhosted.org",
-                                "registry.npmjs.org"
-                            ],
-                            "bypass": [
-                                "registry.npmjs.org"
-                            ],
-                            "forbidden_domains": [
-                                "facebook.com",
-                                "*.facebook.com"
-                            ],
-                            "routing": [
-                                {
-                                    "destinations": [
-                                        "api.openai.com"
-                                    ],
-                                    "headers": {
-                                        "Authorization": "Bearer {{SECRET:openai-key}}"
-                                    },
-                                    "body": {
-                                        "user": "baseten-api-review-0916"
-                                    },
-                                    "secrets": {
-                                        "openai-key": "sk-proj-demo-not-a-valid-api-key"
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "subnet": {
-                        "type": "string",
-                        "description": "Subnet name for the sandbox. Defaults to \"default\" at creation.",
-                        "example": "default"
-                    }
-                },
-                "example": {
-                    "proxy": {
-                        "allowed_domains": [
-                            "api.openai.com",
-                            "pypi.org",
-                            "files.pythonhosted.org",
-                            "registry.npmjs.org"
-                        ],
-                        "bypass": [
-                            "registry.npmjs.org"
-                        ],
-                        "forbidden_domains": [
-                            "facebook.com",
-                            "*.facebook.com"
-                        ],
-                        "routing": [
-                            {
-                                "destinations": [
-                                    "api.openai.com"
-                                ],
-                                "headers": {
-                                    "Authorization": "Bearer {{SECRET:openai-key}}"
-                                },
-                                "body": {
-                                    "user": "baseten-api-review-0916"
-                                },
-                                "secrets": {
-                                    "openai-key": "sk-proj-demo-not-a-valid-api-key"
-                                }
-                            }
-                        ]
-                    },
-                    "subnet": "default"
-                }
-            },
-            "SandboxProxyConfigV1": {
-                "type": "object",
-                "description": "Proxy configuration for routing sandbox HTTP traffic through the platform proxy with MITM inspection and per-destination header/body injection",
-                "properties": {
-                    "allowed_domains": {
-                        "type": "array",
-                        "description": "List of allowed external domains (allowlist). When set, only these domains are reachable. Supports wildcards (e.g. *.storage.example.com).",
-                        "items": {
-                            "type": "string",
-                            "example": "api.openai.com"
-                        },
-                        "example": [
-                            "api.openai.com",
-                            "pypi.org",
-                            "files.pythonhosted.org",
-                            "registry.npmjs.org"
-                        ]
-                    },
-                    "bypass": {
-                        "type": "array",
-                        "description": "Domains that bypass the proxy entirely via the NO_PROXY directive. Traffic to these destinations goes direct, not through the CONNECT tunnel. Supports wildcards. Note that localhost, private ranges (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), 169.254.169.254, .local and .internal are always bypassed by default.",
-                        "items": {
-                            "type": "string",
-                            "example": "registry.npmjs.org"
-                        },
-                        "example": [
-                            "registry.npmjs.org"
-                        ]
-                    },
-                    "forbidden_domains": {
-                        "type": "array",
-                        "description": "List of forbidden external domains (denylist). When set, all domains except these are reachable. Supports wildcards (e.g. *.malware.com). If both allowed_domains and forbidden_domains are set, allowed_domains takes precedence.",
-                        "items": {
-                            "type": "string",
-                            "example": "facebook.com"
-                        },
-                        "example": [
-                            "facebook.com",
-                            "*.facebook.com"
-                        ]
-                    },
-                    "routing": {
-                        "type": "array",
-                        "description": "Per-destination routing rules with header/body injection and secrets. Use destinations [\"*\"] for global rules that apply to all destinations.",
-                        "items": {
-                            "$ref": "#/components/schemas/SandboxProxyTargetV1"
-                        },
-                        "example": [
-                            {
-                                "destinations": [
-                                    "api.openai.com"
-                                ],
-                                "headers": {
-                                    "Authorization": "Bearer {{SECRET:openai-key}}"
-                                },
-                                "body": {
-                                    "user": "baseten-api-review-0916"
-                                },
-                                "secrets": {
-                                    "openai-key": "sk-proj-demo-not-a-valid-api-key"
-                                }
-                            }
-                        ]
-                    }
-                },
-                "example": {
-                    "allowed_domains": [
-                        "api.openai.com",
-                        "pypi.org",
-                        "files.pythonhosted.org",
-                        "registry.npmjs.org"
-                    ],
-                    "bypass": [
-                        "registry.npmjs.org"
-                    ],
-                    "forbidden_domains": [
-                        "facebook.com",
-                        "*.facebook.com"
-                    ],
-                    "routing": [
-                        {
-                            "destinations": [
-                                "api.openai.com"
-                            ],
-                            "headers": {
-                                "Authorization": "Bearer {{SECRET:openai-key}}"
-                            },
-                            "body": {
-                                "user": "baseten-api-review-0916"
-                            },
-                            "secrets": {
-                                "openai-key": "sk-proj-demo-not-a-valid-api-key"
-                            }
-                        }
-                    ]
-                }
-            },
-            "SandboxProxyTargetV1": {
-                "type": "object",
-                "description": "Routing rule that injects headers and body fields into requests matching the given destinations. Use destinations [\"*\"] for a global rule that applies to all proxied traffic.",
-                "properties": {
-                    "body": {
-                        "type": "object",
-                        "description": "Body fields to inject into matching requests. Values may contain {{SECRET:name}} references resolved from this rule's secrets.",
-                        "additionalProperties": {
-                            "type": "string"
-                        },
-                        "example": {
-                            "user": "baseten-api-review-0916"
-                        }
-                    },
-                    "destinations": {
-                        "type": "array",
-                        "description": "Destination domains this rule applies to. Use [\"*\"] for a global rule that matches all destinations.",
-                        "items": {
-                            "type": "string",
-                            "example": "api.openai.com"
-                        },
-                        "example": [
-                            "api.openai.com"
-                        ]
-                    },
-                    "headers": {
-                        "type": "object",
-                        "description": "Headers to inject into matching requests. Values may contain {{SECRET:name}} references resolved from this rule's secrets.",
-                        "additionalProperties": {
-                            "type": "string"
-                        },
-                        "example": {
-                            "Authorization": "Bearer {{SECRET:openai-key}}"
-                        }
-                    },
-                    "secrets": {
-                        "type": "object",
-                        "description": "Named secret values for this routing rule, referenced in headers/body via {{SECRET:name}}. Stored encrypted at rest. Write-only: never returned in API responses.",
-                        "additionalProperties": {
-                            "type": "string"
-                        },
-                        "example": {
-                            "openai-key": "sk-proj-demo-not-a-valid-api-key"
-                        },
-                        "writeOnly": true
-                    }
-                },
-                "example": {
-                    "destinations": [
-                        "api.openai.com"
-                    ],
-                    "headers": {
-                        "Authorization": "Bearer {{SECRET:openai-key}}"
-                    },
-                    "body": {
-                        "user": "baseten-api-review-0916"
-                    },
-                    "secrets": {
-                        "openai-key": "sk-proj-demo-not-a-valid-api-key"
-                    }
-                }
-            },
             "SandboxEnvV1": {
                 "type": "object",
                 "description": "Environment variable with name and value",
@@ -42989,48 +42971,6 @@
                             "terminated_retention": "24h"
                         }
                     },
-                    "network": {
-                        "description": "Network configuration for a sandbox including subnet, domain filtering, and proxy settings",
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/SandboxNetworkV1"
-                            }
-                        ],
-                        "example": {
-                            "proxy": {
-                                "allowed_domains": [
-                                    "api.openai.com",
-                                    "pypi.org",
-                                    "files.pythonhosted.org",
-                                    "registry.npmjs.org"
-                                ],
-                                "bypass": [
-                                    "registry.npmjs.org"
-                                ],
-                                "forbidden_domains": [
-                                    "facebook.com",
-                                    "*.facebook.com"
-                                ],
-                                "routing": [
-                                    {
-                                        "destinations": [
-                                            "api.openai.com"
-                                        ],
-                                        "headers": {
-                                            "Authorization": "Bearer {{SECRET:openai-key}}"
-                                        },
-                                        "body": {
-                                            "user": "baseten-api-review-0916"
-                                        },
-                                        "secrets": {
-                                            "openai-key": "sk-proj-demo-not-a-valid-api-key"
-                                        }
-                                    }
-                                ]
-                            },
-                            "subnet": "default"
-                        }
-                    },
                     "region": {
                         "type": "string",
                         "description": "Region where the sandbox runs (for example us-pdx-1 or eu-lon-1). When omitted at creation, the default sandbox region is used.",
@@ -43150,40 +43090,6 @@
                         ],
                         "terminated_retention": "24h"
                     },
-                    "network": {
-                        "proxy": {
-                            "allowed_domains": [
-                                "api.openai.com",
-                                "pypi.org",
-                                "files.pythonhosted.org",
-                                "registry.npmjs.org"
-                            ],
-                            "bypass": [
-                                "registry.npmjs.org"
-                            ],
-                            "forbidden_domains": [
-                                "facebook.com",
-                                "*.facebook.com"
-                            ],
-                            "routing": [
-                                {
-                                    "destinations": [
-                                        "api.openai.com"
-                                    ],
-                                    "headers": {
-                                        "Authorization": "Bearer {{SECRET:openai-key}}"
-                                    },
-                                    "body": {
-                                        "user": "baseten-api-review-0916"
-                                    },
-                                    "secrets": {
-                                        "openai-key": "sk-proj-demo-not-a-valid-api-key"
-                                    }
-                                }
-                            ]
-                        },
-                        "subnet": "default"
-                    },
                     "region": "us-pdx-1",
                     "envs": [
                         {
@@ -43255,48 +43161,6 @@
                                 }
                             ],
                             "terminated_retention": "24h"
-                        }
-                    },
-                    "network": {
-                        "description": "Network configuration for a sandbox including subnet, domain filtering, and proxy settings",
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/SandboxNetworkV1"
-                            }
-                        ],
-                        "example": {
-                            "proxy": {
-                                "allowed_domains": [
-                                    "api.openai.com",
-                                    "pypi.org",
-                                    "files.pythonhosted.org",
-                                    "registry.npmjs.org"
-                                ],
-                                "bypass": [
-                                    "registry.npmjs.org"
-                                ],
-                                "forbidden_domains": [
-                                    "facebook.com",
-                                    "*.facebook.com"
-                                ],
-                                "routing": [
-                                    {
-                                        "destinations": [
-                                            "api.openai.com"
-                                        ],
-                                        "headers": {
-                                            "Authorization": "Bearer {{SECRET:openai-key}}"
-                                        },
-                                        "body": {
-                                            "user": "baseten-api-review-0916"
-                                        },
-                                        "secrets": {
-                                            "openai-key": "sk-proj-demo-not-a-valid-api-key"
-                                        }
-                                    }
-                                ]
-                            },
-                            "subnet": "default"
                         }
                     },
                     "region": {
@@ -43420,40 +43284,6 @@
                         ],
                         "terminated_retention": "24h"
                     },
-                    "network": {
-                        "proxy": {
-                            "allowed_domains": [
-                                "api.openai.com",
-                                "pypi.org",
-                                "files.pythonhosted.org",
-                                "registry.npmjs.org"
-                            ],
-                            "bypass": [
-                                "registry.npmjs.org"
-                            ],
-                            "forbidden_domains": [
-                                "facebook.com",
-                                "*.facebook.com"
-                            ],
-                            "routing": [
-                                {
-                                    "destinations": [
-                                        "api.openai.com"
-                                    ],
-                                    "headers": {
-                                        "Authorization": "Bearer {{SECRET:openai-key}}"
-                                    },
-                                    "body": {
-                                        "user": "baseten-api-review-0916"
-                                    },
-                                    "secrets": {
-                                        "openai-key": "sk-proj-demo-not-a-valid-api-key"
-                                    }
-                                }
-                            ]
-                        },
-                        "subnet": "default"
-                    },
                     "region": "us-pdx-1",
                     "envs": [
                         {
@@ -43487,7 +43317,7 @@
             },
             "UpdateSandboxRequestV1": {
                 "type": "object",
-                "description": "Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, cpu, network, region, image, ports, filesystem, and volumes are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.",
+                "description": "Partial sandbox update. Omitted fields remain unchanged. Supplied arrays and maps (including labels) replace their previous values; supplied structured objects update only their supplied fields. Null is not accepted. The name, memory, cpu, region, image, ports, filesystem, and volumes are immutable after creation. Supplying any of these fields returns 400, including unchanged, empty, or null values.",
                 "properties": {
                     "lifecycle": {
                         "description": "Lifecycle configuration controlling automatic sandbox deletion based on idle time, max age, or specific dates",
@@ -43714,37 +43544,6 @@
                         ],
                         "terminated_retention": "24h"
                     },
-                    "network": {
-                        "proxy": {
-                            "allowed_domains": [
-                                "api.openai.com",
-                                "pypi.org",
-                                "files.pythonhosted.org",
-                                "registry.npmjs.org"
-                            ],
-                            "bypass": [
-                                "registry.npmjs.org"
-                            ],
-                            "forbidden_domains": [
-                                "facebook.com",
-                                "*.facebook.com"
-                            ],
-                            "routing": [
-                                {
-                                    "destinations": [
-                                        "api.openai.com"
-                                    ],
-                                    "headers": {
-                                        "Authorization": "Bearer {{SECRET:openai-key}}"
-                                    },
-                                    "body": {
-                                        "user": "baseten-api-review-0916"
-                                    }
-                                }
-                            ]
-                        },
-                        "subnet": "default"
-                    },
                     "region": "us-pdx-1",
                     "envs": [
                         {
@@ -43861,37 +43660,6 @@
                                     ],
                                     "terminated_retention": "24h"
                                 },
-                                "network": {
-                                    "proxy": {
-                                        "allowed_domains": [
-                                            "api.openai.com",
-                                            "pypi.org",
-                                            "files.pythonhosted.org",
-                                            "registry.npmjs.org"
-                                        ],
-                                        "bypass": [
-                                            "registry.npmjs.org"
-                                        ],
-                                        "forbidden_domains": [
-                                            "facebook.com",
-                                            "*.facebook.com"
-                                        ],
-                                        "routing": [
-                                            {
-                                                "destinations": [
-                                                    "api.openai.com"
-                                                ],
-                                                "headers": {
-                                                    "Authorization": "Bearer {{SECRET:openai-key}}"
-                                                },
-                                                "body": {
-                                                    "user": "baseten-api-review-0916"
-                                                }
-                                            }
-                                        ]
-                                    },
-                                    "subnet": "default"
-                                },
                                 "region": "us-pdx-1",
                                 "envs": [
                                     {
@@ -43972,37 +43740,6 @@
                                     }
                                 ],
                                 "terminated_retention": "24h"
-                            },
-                            "network": {
-                                "proxy": {
-                                    "allowed_domains": [
-                                        "api.openai.com",
-                                        "pypi.org",
-                                        "files.pythonhosted.org",
-                                        "registry.npmjs.org"
-                                    ],
-                                    "bypass": [
-                                        "registry.npmjs.org"
-                                    ],
-                                    "forbidden_domains": [
-                                        "facebook.com",
-                                        "*.facebook.com"
-                                    ],
-                                    "routing": [
-                                        {
-                                            "destinations": [
-                                                "api.openai.com"
-                                            ],
-                                            "headers": {
-                                                "Authorization": "Bearer {{SECRET:openai-key}}"
-                                            },
-                                            "body": {
-                                                "user": "baseten-api-review-0916"
-                                            }
-                                        }
-                                    ]
-                                },
-                                "subnet": "default"
                             },
                             "region": "us-pdx-1",
                             "envs": [
@@ -45533,40 +45270,6 @@
                         ],
                         "terminated_retention": "24h"
                     },
-                    "network": {
-                        "proxy": {
-                            "allowed_domains": [
-                                "api.openai.com",
-                                "pypi.org",
-                                "files.pythonhosted.org",
-                                "registry.npmjs.org"
-                            ],
-                            "bypass": [
-                                "registry.npmjs.org"
-                            ],
-                            "forbidden_domains": [
-                                "facebook.com",
-                                "*.facebook.com"
-                            ],
-                            "routing": [
-                                {
-                                    "destinations": [
-                                        "api.openai.com"
-                                    ],
-                                    "headers": {
-                                        "Authorization": "Bearer {{SECRET:openai-key}}"
-                                    },
-                                    "body": {
-                                        "user": "baseten-api-review-0916"
-                                    },
-                                    "secrets": {
-                                        "openai-key": "sk-proj-demo-not-a-valid-api-key"
-                                    }
-                                }
-                            ]
-                        },
-                        "subnet": "default"
-                    },
                     "region": "us-pdx-1",
                     "envs": [
                         {
@@ -45642,7 +45345,7 @@
                         "revision": "2"
                     }
                 },
-                "description": "All mutable request fields are shown. Memory and network configuration are only accepted during creation."
+                "description": "All mutable request fields are shown. Memory configuration is only accepted during creation."
             },
             "SandboxReady": {
                 "summary": "Running sandbox with complete configuration",
@@ -45666,37 +45369,6 @@
                             }
                         ],
                         "terminated_retention": "24h"
-                    },
-                    "network": {
-                        "proxy": {
-                            "allowed_domains": [
-                                "api.openai.com",
-                                "pypi.org",
-                                "files.pythonhosted.org",
-                                "registry.npmjs.org"
-                            ],
-                            "bypass": [
-                                "registry.npmjs.org"
-                            ],
-                            "forbidden_domains": [
-                                "facebook.com",
-                                "*.facebook.com"
-                            ],
-                            "routing": [
-                                {
-                                    "destinations": [
-                                        "api.openai.com"
-                                    ],
-                                    "headers": {
-                                        "Authorization": "Bearer {{SECRET:openai-key}}"
-                                    },
-                                    "body": {
-                                        "user": "baseten-api-review-0916"
-                                    }
-                                }
-                            ]
-                        },
-                        "subnet": "default"
                     },
                     "region": "us-pdx-1",
                     "envs": [
@@ -45737,7 +45409,7 @@
                     "last_used_at": "2026-09-16T21:31:13Z",
                     "expires_in": 86400
                 },
-                "description": "Example sandbox URL in the b10.run domain. Write-only proxy secrets are not returned. Other values illustrate a fully configured sandbox."
+                "description": "Example sandbox URL in the b10.run domain. Other values illustrate a fully configured sandbox."
             },
             "SandboxUpdated": {
                 "summary": "Updated sandbox with complete configuration",
@@ -45761,37 +45433,6 @@
                             }
                         ],
                         "terminated_retention": "24h"
-                    },
-                    "network": {
-                        "proxy": {
-                            "allowed_domains": [
-                                "api.openai.com",
-                                "pypi.org",
-                                "files.pythonhosted.org",
-                                "registry.npmjs.org"
-                            ],
-                            "bypass": [
-                                "registry.npmjs.org"
-                            ],
-                            "forbidden_domains": [
-                                "facebook.com",
-                                "*.facebook.com"
-                            ],
-                            "routing": [
-                                {
-                                    "destinations": [
-                                        "api.openai.com"
-                                    ],
-                                    "headers": {
-                                        "Authorization": "Bearer {{SECRET:openai-key}}"
-                                    },
-                                    "body": {
-                                        "user": "baseten-api-review-0916"
-                                    }
-                                }
-                            ]
-                        },
-                        "subnet": "default"
                     },
                     "region": "us-pdx-1",
                     "envs": [
@@ -45857,37 +45498,6 @@
                         ],
                         "terminated_retention": "24h"
                     },
-                    "network": {
-                        "proxy": {
-                            "allowed_domains": [
-                                "api.openai.com",
-                                "pypi.org",
-                                "files.pythonhosted.org",
-                                "registry.npmjs.org"
-                            ],
-                            "bypass": [
-                                "registry.npmjs.org"
-                            ],
-                            "forbidden_domains": [
-                                "facebook.com",
-                                "*.facebook.com"
-                            ],
-                            "routing": [
-                                {
-                                    "destinations": [
-                                        "api.openai.com"
-                                    ],
-                                    "headers": {
-                                        "Authorization": "Bearer {{SECRET:openai-key}}"
-                                    },
-                                    "body": {
-                                        "user": "baseten-api-review-0916"
-                                    }
-                                }
-                            ]
-                        },
-                        "subnet": "default"
-                    },
                     "region": "us-pdx-1",
                     "envs": [
                         {
@@ -45952,37 +45562,6 @@
                                     }
                                 ],
                                 "terminated_retention": "24h"
-                            },
-                            "network": {
-                                "proxy": {
-                                    "allowed_domains": [
-                                        "api.openai.com",
-                                        "pypi.org",
-                                        "files.pythonhosted.org",
-                                        "registry.npmjs.org"
-                                    ],
-                                    "bypass": [
-                                        "registry.npmjs.org"
-                                    ],
-                                    "forbidden_domains": [
-                                        "facebook.com",
-                                        "*.facebook.com"
-                                    ],
-                                    "routing": [
-                                        {
-                                            "destinations": [
-                                                "api.openai.com"
-                                            ],
-                                            "headers": {
-                                                "Authorization": "Bearer {{SECRET:openai-key}}"
-                                            },
-                                            "body": {
-                                                "user": "baseten-api-review-0916"
-                                            }
-                                        }
-                                    ]
-                                },
-                                "subnet": "default"
                             },
                             "region": "us-pdx-1",
                             "envs": [
@@ -46055,37 +45634,6 @@
                                     }
                                 ],
                                 "terminated_retention": "24h"
-                            },
-                            "network": {
-                                "proxy": {
-                                    "allowed_domains": [
-                                        "api.openai.com",
-                                        "pypi.org",
-                                        "files.pythonhosted.org",
-                                        "registry.npmjs.org"
-                                    ],
-                                    "bypass": [
-                                        "registry.npmjs.org"
-                                    ],
-                                    "forbidden_domains": [
-                                        "facebook.com",
-                                        "*.facebook.com"
-                                    ],
-                                    "routing": [
-                                        {
-                                            "destinations": [
-                                                "api.openai.com"
-                                            ],
-                                            "headers": {
-                                                "Authorization": "Bearer {{SECRET:openai-key}}"
-                                            },
-                                            "body": {
-                                                "user": "baseten-api-review-0916"
-                                            }
-                                        }
-                                    ]
-                                },
-                                "subnet": "default"
                             },
                             "region": "us-pdx-1",
                             "envs": [
