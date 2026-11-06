@@ -33,7 +33,10 @@ func TestTypeParity(t *testing.T) {
 	ttlPolicy := map[string]string{"After": "Value"}
 	ttlOnly := map[string]string{"At": "the time of DATE policies"}
 	for _, pair := range []parityPair{
-		{name: "Info", ours: Info{}, generated: managementapi.Sandbox{}},
+		{
+			name: "Info", ours: Info{}, generated: managementapi.Sandbox{},
+			generatedOnly: map[string]string{"Network": "removed upstream, pending a spec sync"},
+		},
 		{
 			name: "EnvValue", ours: EnvValue{}, generated: managementapi.SandboxEnv{},
 			renamed:       map[string]string{"NonSecret": "Secret"},
@@ -54,9 +57,6 @@ func TestTypeParity(t *testing.T) {
 			oursOnly: map[string]string{"After": "the duration of TTL policies"},
 		},
 		{name: "Port", ours: Port{}, generated: managementapi.SandboxPort{}},
-		{name: "Network", ours: Network{}, generated: managementapi.SandboxNetwork{}},
-		{name: "NetworkProxy", ours: NetworkProxy{}, generated: managementapi.SandboxProxyConfig{}},
-		{name: "NetworkProxyRoute", ours: NetworkProxyRoute{}, generated: managementapi.SandboxProxyTarget{}},
 		{
 			name: "FileSystem", ours: FileSystem{}, generated: managementapi.SandboxFilesystem{},
 			oursOnly: map[string]string{"MaxMemoryUsageMegabytes": "the integer form of MaxMemoryUsage"},
