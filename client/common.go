@@ -107,7 +107,7 @@ func validateAuthOptions(apiKey string, credentials AccessTokenSource, deferAuth
 		return errors.New("APIKey, Credentials, and DeferAuth are mutually exclusive")
 	}
 	if set == 0 {
-		return errors.New("APIKey is required (or Credentials or DeferAuth)")
+		return errors.New("one of APIKey, Credentials, or DeferAuth is required")
 	}
 	if credentials != nil {
 		// Checked by name rather than Header.Get, which misses non-canonical keys.

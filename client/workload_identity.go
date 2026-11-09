@@ -82,9 +82,7 @@ type WorkloadIdentityCredentialsOptions struct {
 type WorkloadIdentityCredentials struct {
 	opts        WorkloadIdentityCredentialsOptions
 	exchangeURL string
-	httpClient  interface {
-		Do(*http.Request) (*http.Response, error)
-	}
+	httpClient  httpDoer
 
 	// sem is a one-slot lock that, unlike sync.Mutex, lets a waiter give up
 	// when its context ends while another caller's exchange is in flight.
@@ -145,7 +143,7 @@ func (c *WorkloadIdentityCredentials) AccessToken(ctx context.Context) (AccessTo
 		return c.current, nil
 	}
 	// Bounded because every other caller waits on sem behind this exchange.
-	exchangeCtx, cancel := context.WithTimeout(ctx, tokenExchangeTimeout)
+	exchangeCtx, cancel := context.WithTimeout(ctx, workloadIdentityExchangeTimeout)
 	defer cancel()
 	token, lifetime, err := c.exchange(exchangeCtx)
 	if err != nil {
@@ -265,6 +263,9 @@ func truncateForError(body []byte) string {
 	}
 	return s
 }
+
+// workloadIdentityExchangeTimeout bounds one identity token exchange.
+const workloadIdentityExchangeTimeout = 10 * time.Second
 
 type httpDoer interface {
 	Do(*http.Request) (*http.Response, error)
