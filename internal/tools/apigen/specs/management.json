@@ -8906,7 +8906,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/model_apis\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists Model APIs visible to the caller. By default returns the full catalog; pass `added_only=true` to restrict to Model APIs the workspace has added.",
+                "description": "Lists model metadata with added-model details for teams where you can invoke Model APIs. Legacy Default Team fields remain deprecated but unchanged. Pass team_ids to narrow team details; unauthorized teams cause a 403. added_only=true returns models added by any team in scope. Models added in scope sort first, by their latest addition. Pagination is by model; cursor filters are preserved and reauthorized on every page.",
                 "parameters": [
                     {
                         "name": "cursor",
@@ -8940,10 +8940,23 @@
                         }
                     },
                     {
+                        "name": "team_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Select teams for added-model details, filtering, and ordering, repeated once per team. Defaults to all teams where you can invoke Model APIs. Any unauthorized team causes a 403.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Team Ids",
+                            "type": "array"
+                        }
+                    },
+                    {
                         "name": "added_only",
                         "in": "query",
                         "required": false,
-                        "description": "When true, restrict the result to Model APIs the workspace has added. Defaults to the full visible catalog.",
+                        "description": "When true, restrict the result to Model APIs added by any team where you can invoke Model APIs. Explicit team_ids narrow this to the selected teams. Defaults to the full visible catalog.",
                         "schema": {
                             "default": false,
                             "title": "Added Only",
@@ -9249,10 +9262,25 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/model_apis/{model_api_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/model_apis/{model_api_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Fetches a Model API by name, with workspace overlay when added.",
+                "description": "Returns model metadata with added-model details for teams where you can invoke Model APIs. Legacy Default Team fields remain deprecated but unchanged. Pass team_ids to narrow team details; unauthorized teams cause a 403.",
+                "parameters": [
+                    {
+                        "name": "team_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Select teams for added-model details, repeated once per team. Defaults to all teams where you can invoke Model APIs. Any unauthorized team causes a 403.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Team Ids",
+                            "type": "array"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -10204,6 +10232,794 @@
                     }
                 },
                 "x-stability": "unstable"
+            },
+            "patch": {
+                "summary": "Updates the authenticated organization",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/organizations/me \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"allow_personal_api_keys\": null,\n  \"allow_service_account_api_keys\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/organizations/me\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'allow_personal_api_keys': None, 'allow_service_account_api_keys': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Updates settings of the organization of the user making the request. Only organization admins can call it. Omitted or null fields are unchanged.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateOrganizationRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrganizationInfoV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/service_accounts": {
+            "get": {
+                "summary": "Lists service accounts",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/service_accounts \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/service_accounts\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None, 'disabled': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists the service accounts you administer: every account for an organization admin, and your teams' accounts for a team admin. Workload identity federation tokens act as service accounts.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "team_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only this team's accounts",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Team Id"
+                        }
+                    },
+                    {
+                        "name": "disabled",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only disabled or enabled accounts",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "boolean"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Disabled"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServiceAccountsV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Creates a service account",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/service_accounts \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"ci-deployer\",\n  \"description\": \"GitHub Actions deploys from acme/models\",\n  \"team_id\": \"abcd1234\",\n  \"preset_permissions\": {\n    \"type\": \"WORKSPACE_MANAGE_ALL\"\n  }\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/service_accounts\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'ci-deployer', 'description': 'GitHub Actions deploys from acme/models', 'team_id': 'abcd1234', 'preset_permissions': {'type': 'WORKSPACE_MANAGE_ALL'}}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Creates a service account that workload identity federation tokens act as. It's enabled at once. Omit `team_id` for an organization account, which only an organization admin can create. A team admin can create accounts for their own team.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateServiceAccountRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServiceAccountV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/service_accounts/{service_account_id}": {
+            "delete": {
+                "summary": "Deletes a service account",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/service_accounts/{service_account_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/service_accounts/{service_account_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Deletes a disabled service account that no trust rule uses. Disable the account and delete its trust rules first.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeletedServiceAccountV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/service_account_id"
+                }
+            ],
+            "get": {
+                "summary": "Gets a service account",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/service_accounts/{service_account_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/service_accounts/{service_account_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServiceAccountV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "summary": "Updates a service account",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/service_accounts/{service_account_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"disabled\": true\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/service_accounts/{service_account_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'disabled': True}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Updates the fields you send. Set `disabled` to true to stop the account being used, and back to false to restore it. `preset_permissions` replaces the account's access as a whole. The owning team can't change.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateServiceAccountRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServiceAccountV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/access/predefined_identity_providers": {
+            "get": {
+                "summary": "Lists predefined identity providers",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/access/predefined_identity_providers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/predefined_identity_providers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists the identity providers Baseten predefines, which you can add to your organization without further configuration.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PredefinedIdentityProvidersV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/access/identity_providers": {
+            "get": {
+                "summary": "Lists identity providers",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/access/identity_providers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'type': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists the organization's identity providers. Organization and team admins can list them.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only predefined or only custom providers",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "enum": [
+                                        "PREDEFINED",
+                                        "CUSTOM"
+                                    ],
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Type"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/IdentityProvidersV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Adds an identity provider",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/identity_providers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"type\": \"PREDEFINED\",\n  \"predefined\": \"GITHUB_ACTIONS\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'type': 'PREDEFINED', 'predefined': 'GITHUB_ACTIONS'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Adds a predefined identity provider to the organization, or registers a custom one. A custom provider's issuer is fetched and its keys are parsed before it's saved; a failure returns 422 with the reason. Each predefined provider can be added once. Only organization admins can call this endpoint.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateIdentityProviderRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/IdentityProviderV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/access/identity_providers/verify": {
+            "post": {
+                "summary": "Checks a custom identity provider's configuration",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/identity_providers/verify \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"issuer_url\": \"https://oidc.eks.us-west-2.amazonaws.com/id/EXAMPLE\",\n  \"jwks\": {\n    \"type\": \"DISCOVERY\"\n  }\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers/verify\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'issuer_url': 'https://oidc.eks.us-west-2.amazonaws.com/id/EXAMPLE', 'jwks': {'type': 'DISCOVERY'}}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Runs the checks adding a custom identity provider runs, without saving anything: fetches the issuer's discovery document and key set and parses the keys. A failed check still returns 200, with `ok` false and the reason in `error`. Only organization admins can call this endpoint.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VerifyIdentityProviderRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VerifyIdentityProviderResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/access/identity_providers/{identity_provider_id}": {
+            "delete": {
+                "summary": "Deletes an identity provider",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/access/identity_providers/{identity_provider_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers/{identity_provider_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Removes the identity provider from the organization. Returns 409 while a trust rule uses it. Only organization admins can call this endpoint.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeletedIdentityProviderV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/identity_provider_id"
+                }
+            ],
+            "get": {
+                "summary": "Gets an identity provider",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/access/identity_providers/{identity_provider_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers/{identity_provider_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/IdentityProviderV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "summary": "Updates an identity provider",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/access/identity_providers/{identity_provider_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"prod-eks\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers/{identity_provider_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'name': 'prod-eks'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Updates the fields you send. A custom provider's new key source is checked before it's saved; a failure returns 422. The type and issuer can't change. Only organization admins can call this endpoint.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateIdentityProviderRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/IdentityProviderV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/access/trust_rules": {
+            "get": {
+                "summary": "Lists trust rules",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/access/trust_rules \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/trust_rules\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'identity_provider_id': None, 'service_account_id': None, 'team_id': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists the trust rules you administer: every rule for an organization admin, and rules for your teams' service accounts for a team admin.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "identity_provider_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only this provider's rules",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Identity Provider Id"
+                        }
+                    },
+                    {
+                        "name": "service_account_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only rules for this service account",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Service Account Id"
+                        }
+                    },
+                    {
+                        "name": "team_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only rules for this team's service accounts",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Team Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TrustRulesV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Creates a trust rule",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/trust_rules \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"models-main-deploy\",\n  \"identity_provider_id\": \"abcd1234\",\n  \"service_account_id\": \"wxyz5678\",\n  \"match\": {\n    \"subject_glob\": \"repo:acme/models:ref:refs/heads/main\",\n    \"claims\": {\n      \"repository_owner_id\": \"12345\"\n    }\n  }\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/trust_rules\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'models-main-deploy', 'identity_provider_id': 'abcd1234', 'service_account_id': 'wxyz5678', 'match': {'subject_glob': 'repo:acme/models:ref:refs/heads/main', 'claims': {'repository_owner_id': '12345'}}}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Creates a rule that lets tokens from an identity provider act as a service account. A workload names the rule's ID when it exchanges a token. A team admin can create rules for their own team's service accounts. A rule on a predefined provider must pin your own account, because anyone can get a token from GitHub or Google. API keys can't call this endpoint.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateTrustRuleRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TrustRuleV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/access/trust_rules/{trust_rule_id}": {
+            "delete": {
+                "summary": "Deletes a trust rule",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/access/trust_rules/{trust_rule_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/trust_rules/{trust_rule_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "New exchanges through the rule fail at once; tokens it already issued keep working until they expire. To cut a workload off at once, disable its service account. API keys can't call this endpoint.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeletedTrustRuleV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/trust_rule_id"
+                }
+            ],
+            "get": {
+                "summary": "Gets a trust rule",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/access/trust_rules/{trust_rule_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/trust_rules/{trust_rule_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TrustRuleV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "summary": "Updates a trust rule",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/access/trust_rules/{trust_rule_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"models-release-deploy\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/trust_rules/{trust_rule_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'name': 'models-release-deploy'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Updates the fields you send. New exchanges use the change at once; tokens already issued keep working until they expire. Moving the rule needs admin rights on both service accounts. The identity provider and token lifetime can't change.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateTrustRuleRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TrustRuleV1"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/v1/gateway/events": {
@@ -33976,10 +34792,10 @@
                 "type": "string"
             },
             "ModelAPIOrgDetailsV1": {
-                "description": "Workspace-specific state for a Model API.",
+                "description": "Team-specific state for an added Model API.",
                 "properties": {
                     "added_at": {
-                        "description": "When the workspace first added this Model API.",
+                        "description": "When the team first added this Model API.",
                         "format": "date-time",
                         "title": "Added At",
                         "type": "string"
@@ -33995,7 +34811,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "When the workspace last invoked this Model API. Null if the workspace has never invoked it.",
+                        "description": "When the team last invoked this Model API. Null if the team has never invoked it.",
                         "title": "Last Used At"
                     }
                 },
@@ -34005,8 +34821,170 @@
                 "title": "ModelAPIOrgDetailsV1",
                 "type": "object"
             },
+            "ModelAPIRateLimitV1": {
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/LimitTypeV1",
+                        "description": "The type of the rate limit",
+                        "examples": [
+                            "TOKEN",
+                            "REQUEST"
+                        ]
+                    },
+                    "unit": {
+                        "$ref": "#/components/schemas/RateLimitUnitV1",
+                        "description": "The unit of the rate limit",
+                        "examples": [
+                            "SECOND",
+                            "MINUTE"
+                        ]
+                    },
+                    "threshold": {
+                        "description": "The threshold for the rate limit",
+                        "examples": [
+                            1000,
+                            50000
+                        ],
+                        "minimum": 0,
+                        "title": "Threshold",
+                        "type": "integer"
+                    },
+                    "is_pooled": {
+                        "description": "Whether this limit uses the organization-wide pool. The threshold is the effective limit, including any adaptive grant.",
+                        "title": "Is Pooled",
+                        "type": "boolean"
+                    },
+                    "service_tier": {
+                        "$ref": "#/components/schemas/ModelAPIServiceTierV1",
+                        "description": "Service tier the rate limit applies to.",
+                        "examples": [
+                            "DEFAULT",
+                            "FLEX"
+                        ]
+                    },
+                    "baseline_threshold": {
+                        "description": "Configured baseline threshold for the rate limit, before any adaptive increase. Equal to `threshold` when no adaptive increase is in effect.",
+                        "examples": [
+                            1000,
+                            50000
+                        ],
+                        "minimum": 0,
+                        "title": "Baseline Threshold",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "type",
+                    "unit",
+                    "threshold",
+                    "is_pooled",
+                    "service_tier",
+                    "baseline_threshold"
+                ],
+                "title": "ModelAPIRateLimitV1",
+                "type": "object"
+            },
+            "ModelAPIServiceTierV1": {
+                "enum": [
+                    "DEFAULT",
+                    "FLEX",
+                    "PRIORITY"
+                ],
+                "title": "ModelAPIServiceTierV1",
+                "type": "string"
+            },
+            "ModelAPITeamDetailsV1": {
+                "properties": {
+                    "id": {
+                        "description": "Organization Shared Endpoint ID.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "description": "Team that has added this Model API.",
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "description": "Name of the team that has added this Model API.",
+                        "title": "Team Name",
+                        "type": "string"
+                    },
+                    "added_at": {
+                        "description": "When the team first added this Model API.",
+                        "format": "date-time",
+                        "title": "Added At",
+                        "type": "string"
+                    },
+                    "last_used_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "When the team last invoked this Model API. Null if never invoked.",
+                        "title": "Last Used At"
+                    },
+                    "rate_limits": {
+                        "description": "Effective rate limits for this team's Model API, at most one per type, unit, and service tier.",
+                        "items": {
+                            "$ref": "#/components/schemas/ModelAPIRateLimitV1"
+                        },
+                        "title": "Rate Limits",
+                        "type": "array"
+                    },
+                    "cost_per_million_input_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Effective cost per million input tokens, in dollars. Null if unavailable.",
+                        "title": "Cost Per Million Input Tokens"
+                    },
+                    "cost_per_million_output_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Effective cost per million output tokens, in dollars. Null if unavailable.",
+                        "title": "Cost Per Million Output Tokens"
+                    }
+                },
+                "required": [
+                    "id",
+                    "team_id",
+                    "team_name",
+                    "added_at",
+                    "last_used_at",
+                    "rate_limits",
+                    "cost_per_million_input_tokens",
+                    "cost_per_million_output_tokens"
+                ],
+                "title": "ModelAPITeamDetailsV1",
+                "type": "object"
+            },
             "ModelAPIV1": {
-                "description": "A Model API catalog row, optionally enriched with workspace-specific state.",
+                "description": "Model metadata and authorized team details, with retained legacy fields.",
                 "properties": {
                     "name": {
                         "description": "Identifier of the Model API. Stable, URL-safe slug used as the public identifier.",
@@ -34082,7 +35060,8 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Effective cost per million input tokens, in dollars. Null when pricing is unavailable.",
+                        "deprecated": true,
+                        "description": "Deprecated and will be removed in a future version. Legacy effective input-token price. Use team_details pricing instead. Retained during migration; null when pricing is unavailable.",
                         "examples": [
                             "0.13"
                         ],
@@ -34120,16 +35099,18 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Effective cost per million output tokens, in dollars. Null when pricing is unavailable.",
+                        "deprecated": true,
+                        "description": "Deprecated and will be removed in a future version. Legacy effective output-token price. Use team_details pricing instead. Retained during migration; null when pricing is unavailable.",
                         "examples": [
                             "0.50"
                         ],
                         "title": "Cost Per Million Output Tokens"
                     },
                     "rate_limits": {
-                        "description": "Rate limits in effect for the workspace. Workspace-specific overrides are returned when the workspace has added this Model API and configured them; otherwise the catalog default rate limits are returned.",
+                        "deprecated": true,
+                        "description": "Deprecated and will be removed in a future version. Legacy Default Team effective limits, independent of team_ids, or catalog defaults when not added or unauthorized. Use team_details for team limits; this field is not the org-pool limit view.",
                         "items": {
-                            "$ref": "#/components/schemas/RateLimitV1"
+                            "$ref": "#/components/schemas/ModelAPIRateLimitV1"
                         },
                         "title": "Rate Limits",
                         "type": "array"
@@ -34144,7 +35125,16 @@
                             }
                         ],
                         "default": null,
-                        "description": "Workspace-specific state. Null when the workspace has not added this Model API."
+                        "deprecated": true,
+                        "description": "Deprecated and will be removed in a future version. Legacy Default Team state, independent of team_ids. Use team_details instead. Null when not added or unauthorized."
+                    },
+                    "team_details": {
+                        "description": "Added Model API details for authorized teams, ordered by team ID. Empty when no team in the selected scope has added this Model API.",
+                        "items": {
+                            "$ref": "#/components/schemas/ModelAPITeamDetailsV1"
+                        },
+                        "title": "Team Details",
+                        "type": "array"
                     }
                 },
                 "required": [
@@ -34169,43 +35159,6 @@
                 ],
                 "title": "RateLimitUnitV1",
                 "type": "string"
-            },
-            "RateLimitV1": {
-                "properties": {
-                    "type": {
-                        "$ref": "#/components/schemas/LimitTypeV1",
-                        "description": "The type of the rate limit",
-                        "examples": [
-                            "TOKEN",
-                            "REQUEST"
-                        ]
-                    },
-                    "unit": {
-                        "$ref": "#/components/schemas/RateLimitUnitV1",
-                        "description": "The unit of the rate limit",
-                        "examples": [
-                            "SECOND",
-                            "MINUTE"
-                        ]
-                    },
-                    "threshold": {
-                        "description": "The threshold for the rate limit",
-                        "examples": [
-                            1000,
-                            50000
-                        ],
-                        "minimum": 0,
-                        "title": "Threshold",
-                        "type": "integer"
-                    }
-                },
-                "required": [
-                    "type",
-                    "unit",
-                    "threshold"
-                ],
-                "title": "RateLimitV1",
-                "type": "object"
             },
             "ModelAPIsResponseV1": {
                 "description": "Page of Model APIs visible to the caller.",
@@ -34254,9 +35207,17 @@
                         "title": "Limit",
                         "type": "integer"
                     },
+                    "team_ids": {
+                        "description": "Select teams for added-model details, filtering, and ordering, repeated once per team. Defaults to all teams where you can invoke Model APIs. Any unauthorized team causes a 403.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Team Ids",
+                        "type": "array"
+                    },
                     "added_only": {
                         "default": false,
-                        "description": "When true, restrict the result to Model APIs the workspace has added. Defaults to the full visible catalog.",
+                        "description": "When true, restrict the result to Model APIs added by any team where you can invoke Model APIs. Explicit team_ids narrow this to the selected teams. Defaults to the full visible catalog.",
                         "title": "Added Only",
                         "type": "boolean"
                     }
@@ -34577,6 +35538,21 @@
                     }
                 },
                 "title": "GetModelAPIMetricsRequestV1",
+                "type": "object"
+            },
+            "ModelAPIRequestV1": {
+                "description": "Query-string filters for ``GET /v1/model_apis/{model_api_name}``.",
+                "properties": {
+                    "team_ids": {
+                        "description": "Select teams for added-model details, repeated once per team. Defaults to all teams where you can invoke Model APIs. Any unauthorized team causes a 403.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Team Ids",
+                        "type": "array"
+                    }
+                },
+                "title": "ModelAPIRequestV1",
                 "type": "object"
             },
             "EgressRestrictionsV1": {
@@ -37575,13 +38551,1480 @@
                         ],
                         "default": null,
                         "description": "AWS AssumeRole trust-policy inputs; null while the method is not enabled for the organization"
+                    },
+                    "allow_personal_api_keys": {
+                        "description": "Whether members can create new personal API keys. Existing keys keep working.",
+                        "title": "Allow Personal Api Keys",
+                        "type": "boolean"
+                    },
+                    "allow_service_account_api_keys": {
+                        "description": "Whether new team and organization API keys can be created. Existing keys keep working.",
+                        "title": "Allow Service Account Api Keys",
+                        "type": "boolean"
                     }
                 },
                 "required": [
                     "org_id",
-                    "created_at"
+                    "created_at",
+                    "allow_personal_api_keys",
+                    "allow_service_account_api_keys"
                 ],
                 "title": "OrganizationInfoV1",
+                "type": "object"
+            },
+            "ServiceAccountPresetPermissionsV1": {
+                "description": "A service account's access: one of the access types API keys have.",
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/ServiceAccountPresetTypeV1",
+                        "description": "What the service account may do. WORKSPACE_MANAGE_API_KEYS is for organization-level accounts only; every other type needs a team.",
+                        "examples": [
+                            "WORKSPACE_MANAGE_ALL"
+                        ]
+                    },
+                    "model_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "WORKSPACE_INVOKE and WORKSPACE_EXPORT_METRICS only. Models the account covers. Omit for every model in the team, including models added later.",
+                        "examples": [
+                            [
+                                "abcd1234"
+                            ]
+                        ],
+                        "title": "Model Ids"
+                    },
+                    "environment_names": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "WORKSPACE_INVOKE: environments the account may call; omit for all. With model_ids, each model must have each environment. WORKSPACE_MANAGE_ALL: restricted environments the account may also manage.",
+                        "examples": [
+                            [
+                                "production"
+                            ]
+                        ],
+                        "title": "Environment Names"
+                    },
+                    "model_api_slugs": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "WORKSPACE_INVOKE_MODEL_APIS only. Model APIs the account may call; omit for all.",
+                        "examples": [
+                            [
+                                "my-model-api"
+                            ]
+                        ],
+                        "title": "Model Api Slugs"
+                    }
+                },
+                "required": [
+                    "type"
+                ],
+                "title": "ServiceAccountPresetPermissionsV1",
+                "type": "object"
+            },
+            "ServiceAccountPresetTypeV1": {
+                "description": "What a service account may do: the workspace API key categories, plus Model APIs.",
+                "enum": [
+                    "WORKSPACE_MANAGE_ALL",
+                    "WORKSPACE_INVOKE",
+                    "WORKSPACE_EXPORT_METRICS",
+                    "WORKSPACE_MANAGE_API_KEYS",
+                    "WORKSPACE_INVOKE_MODEL_APIS"
+                ],
+                "title": "ServiceAccountPresetTypeV1",
+                "type": "string"
+            },
+            "ServiceAccountV1": {
+                "description": "A named service account that workload identity federation tokens act as.",
+                "properties": {
+                    "id": {
+                        "description": "Service account ID",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name, unique in the organization",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Description",
+                        "title": "Description"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The team that owns the account. Null for an organization account.",
+                        "title": "Team Id"
+                    },
+                    "preset_permissions": {
+                        "$ref": "#/components/schemas/ServiceAccountPresetPermissionsV1",
+                        "description": "What the service account may do"
+                    },
+                    "disabled": {
+                        "description": "Whether the account is disabled. A disabled account can't be used.",
+                        "title": "Disabled",
+                        "type": "boolean"
+                    },
+                    "last_used_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Last time a token was exchanged for this account. Null until the first.",
+                        "title": "Last Used At"
+                    },
+                    "created_at": {
+                        "description": "Time the account was created",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "description": "Time the account was last updated",
+                        "format": "date-time",
+                        "title": "Updated At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "preset_permissions",
+                    "disabled",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "ServiceAccountV1",
+                "type": "object"
+            },
+            "ServiceAccountsV1": {
+                "description": "A page of service accounts.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/ServiceAccountV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "ServiceAccountsV1",
+                "type": "object"
+            },
+            "ServiceAccountsRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only this team's accounts",
+                        "title": "Team Id"
+                    },
+                    "disabled": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only disabled or enabled accounts",
+                        "title": "Disabled"
+                    }
+                },
+                "title": "ServiceAccountsRequestV1",
+                "type": "object"
+            },
+            "ServiceAccountPresetPermissionsRequestV1": {
+                "additionalProperties": false,
+                "description": "A service account's access, as sent. Omit a list for no restriction; never send it empty.",
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/ServiceAccountPresetTypeV1",
+                        "description": "What the service account may do. WORKSPACE_MANAGE_API_KEYS is for organization-level accounts only; every other type needs a team.",
+                        "examples": [
+                            "WORKSPACE_MANAGE_ALL"
+                        ]
+                    },
+                    "model_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "WORKSPACE_INVOKE and WORKSPACE_EXPORT_METRICS only. Models the account covers. Omit for every model in the team, including models added later.",
+                        "examples": [
+                            [
+                                "abcd1234"
+                            ]
+                        ],
+                        "title": "Model Ids"
+                    },
+                    "environment_names": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "WORKSPACE_INVOKE: environments the account may call; omit for all. With model_ids, each model must have each environment. WORKSPACE_MANAGE_ALL: restricted environments the account may also manage.",
+                        "examples": [
+                            [
+                                "production"
+                            ]
+                        ],
+                        "title": "Environment Names"
+                    },
+                    "model_api_slugs": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "WORKSPACE_INVOKE_MODEL_APIS only. Model APIs the account may call; omit for all.",
+                        "examples": [
+                            [
+                                "my-model-api"
+                            ]
+                        ],
+                        "title": "Model Api Slugs"
+                    }
+                },
+                "required": [
+                    "type"
+                ],
+                "title": "ServiceAccountPresetPermissionsRequestV1",
+                "type": "object"
+            },
+            "CreateServiceAccountRequestV1": {
+                "additionalProperties": false,
+                "description": "Request to create a service account.",
+                "properties": {
+                    "name": {
+                        "description": "Name, unique in the organization. Can be changed later.",
+                        "examples": [
+                            "ci-deployer"
+                        ],
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "maxLength": 1024,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional description, up to 1,024 characters",
+                        "title": "Description"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The team that owns the account. Omit for an organization account. Can't be changed.",
+                        "title": "Team Id"
+                    },
+                    "preset_permissions": {
+                        "$ref": "#/components/schemas/ServiceAccountPresetPermissionsRequestV1",
+                        "description": "What the service account may do. Can be changed later."
+                    }
+                },
+                "required": [
+                    "name",
+                    "preset_permissions"
+                ],
+                "title": "CreateServiceAccountRequestV1",
+                "type": "object"
+            },
+            "DeletedServiceAccountV1": {
+                "properties": {
+                    "id": {
+                        "description": "ID of the deleted service account",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "deleted": {
+                        "description": "Always true",
+                        "title": "Deleted",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "id",
+                    "deleted"
+                ],
+                "title": "DeletedServiceAccountV1",
+                "type": "object"
+            },
+            "UpdateServiceAccountRequestV1": {
+                "additionalProperties": false,
+                "description": "Request to update a service account. Only the fields sent change.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "maxLength": 255,
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name, unique in the organization",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "maxLength": 1024,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Description, up to 1,024 characters; null clears it",
+                        "title": "Description"
+                    },
+                    "disabled": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Disable the account to stop it being used, or enable it again",
+                        "title": "Disabled"
+                    },
+                    "preset_permissions": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ServiceAccountPresetPermissionsRequestV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Replaces the account's access as a whole"
+                    }
+                },
+                "title": "UpdateServiceAccountRequestV1",
+                "type": "object"
+            },
+            "PredefinedIdentityProviderInfoV1": {
+                "properties": {
+                    "predefined": {
+                        "description": "Pass as `predefined` when adding the provider",
+                        "enum": [
+                            "GITHUB_ACTIONS",
+                            "GCP"
+                        ],
+                        "title": "Predefined",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Display name",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "issuer_url": {
+                        "description": "The `iss` claim its tokens carry",
+                        "title": "Issuer Url",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "predefined",
+                    "name",
+                    "issuer_url"
+                ],
+                "title": "PredefinedIdentityProviderInfoV1",
+                "type": "object"
+            },
+            "PredefinedIdentityProvidersV1": {
+                "properties": {
+                    "items": {
+                        "description": "Identity providers Baseten predefines",
+                        "items": {
+                            "$ref": "#/components/schemas/PredefinedIdentityProviderInfoV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "items"
+                ],
+                "title": "PredefinedIdentityProvidersV1",
+                "type": "object"
+            },
+            "IdentityProviderJwksV1": {
+                "description": "How Baseten gets a custom identity provider's public signing keys.",
+                "properties": {
+                    "type": {
+                        "description": "`DISCOVERY` reads the keys from the issuer's `/.well-known/openid-configuration`. `EXPLICIT_URL` and `INLINE` aren't supported yet.",
+                        "enum": [
+                            "DISCOVERY",
+                            "EXPLICIT_URL",
+                            "INLINE"
+                        ],
+                        "examples": [
+                            "DISCOVERY"
+                        ],
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The key set URL, for `EXPLICIT_URL`",
+                        "title": "Url"
+                    },
+                    "keys": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "additionalProperties": true,
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "A JWK Set's keys, for `INLINE`",
+                        "title": "Keys"
+                    }
+                },
+                "required": [
+                    "type"
+                ],
+                "title": "IdentityProviderJwksV1",
+                "type": "object"
+            },
+            "IdentityProviderV1": {
+                "description": "An OIDC issuer whose tokens the organization accepts for workload identity federation.",
+                "properties": {
+                    "id": {
+                        "description": "Identity provider ID",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "type": {
+                        "description": "Whether Baseten predefines the provider",
+                        "enum": [
+                            "PREDEFINED",
+                            "CUSTOM"
+                        ],
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "predefined": {
+                        "anyOf": [
+                            {
+                                "enum": [
+                                    "GITHUB_ACTIONS",
+                                    "GCP"
+                                ],
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Which predefined provider this is. Null for a custom provider.",
+                        "title": "Predefined"
+                    },
+                    "name": {
+                        "description": "Name, unique in the organization",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Description",
+                        "title": "Description"
+                    },
+                    "issuer_url": {
+                        "description": "The `iss` claim the provider's tokens carry",
+                        "title": "Issuer Url",
+                        "type": "string"
+                    },
+                    "jwks": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/IdentityProviderJwksV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the keys come from. Null for a predefined provider."
+                    },
+                    "created_by": {
+                        "description": "ID of the user who added the provider",
+                        "title": "Created By",
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "description": "Time the provider was added",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "description": "Time the provider was last updated",
+                        "format": "date-time",
+                        "title": "Updated At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "type",
+                    "name",
+                    "issuer_url",
+                    "created_by",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "IdentityProviderV1",
+                "type": "object"
+            },
+            "IdentityProvidersV1": {
+                "description": "A page of identity providers.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/IdentityProviderV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "IdentityProvidersV1",
+                "type": "object"
+            },
+            "IdentityProvidersRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "type": {
+                        "anyOf": [
+                            {
+                                "enum": [
+                                    "PREDEFINED",
+                                    "CUSTOM"
+                                ],
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only predefined or only custom providers",
+                        "title": "Type"
+                    }
+                },
+                "title": "IdentityProvidersRequestV1",
+                "type": "object"
+            },
+            "IdentityProviderJwksRequestV1": {
+                "additionalProperties": false,
+                "description": "A key source as sent.",
+                "properties": {
+                    "type": {
+                        "description": "`DISCOVERY` reads the keys from the issuer's `/.well-known/openid-configuration`. `EXPLICIT_URL` and `INLINE` aren't supported yet.",
+                        "enum": [
+                            "DISCOVERY",
+                            "EXPLICIT_URL",
+                            "INLINE"
+                        ],
+                        "examples": [
+                            "DISCOVERY"
+                        ],
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The key set URL, for `EXPLICIT_URL`",
+                        "title": "Url"
+                    },
+                    "keys": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "additionalProperties": true,
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "A JWK Set's keys, for `INLINE`",
+                        "title": "Keys"
+                    }
+                },
+                "required": [
+                    "type"
+                ],
+                "title": "IdentityProviderJwksRequestV1",
+                "type": "object"
+            },
+            "CreateIdentityProviderRequestV1": {
+                "additionalProperties": false,
+                "description": "Request to add a predefined identity provider or register a custom one.",
+                "properties": {
+                    "type": {
+                        "description": "Predefined or custom. Can't be changed.",
+                        "enum": [
+                            "PREDEFINED",
+                            "CUSTOM"
+                        ],
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "predefined": {
+                        "anyOf": [
+                            {
+                                "enum": [
+                                    "GITHUB_ACTIONS",
+                                    "GCP"
+                                ],
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Which predefined provider, when `type` is predefined",
+                        "title": "Predefined"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "maxLength": 255,
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name, unique in the organization. Required for a custom provider; defaults to the provider's display name for a predefined one.",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional description",
+                        "title": "Description"
+                    },
+                    "issuer_url": {
+                        "anyOf": [
+                            {
+                                "maxLength": 1024,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "For a custom provider: the exact `iss` claim of its tokens, an https URL. Unique in the organization. Can't be changed.",
+                        "title": "Issuer Url"
+                    },
+                    "jwks": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/IdentityProviderJwksRequestV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "For a custom provider: where its keys come from"
+                    }
+                },
+                "required": [
+                    "type"
+                ],
+                "title": "CreateIdentityProviderRequestV1",
+                "type": "object"
+            },
+            "VerifyIdentityProviderRequestV1": {
+                "additionalProperties": false,
+                "description": "A custom identity provider configuration to check.",
+                "properties": {
+                    "issuer_url": {
+                        "description": "The provider's issuer, an https URL",
+                        "maxLength": 1024,
+                        "title": "Issuer Url",
+                        "type": "string"
+                    },
+                    "jwks": {
+                        "$ref": "#/components/schemas/IdentityProviderJwksRequestV1",
+                        "description": "Where the provider's keys come from"
+                    }
+                },
+                "required": [
+                    "issuer_url",
+                    "jwks"
+                ],
+                "title": "VerifyIdentityProviderRequestV1",
+                "type": "object"
+            },
+            "VerifyIdentityProviderResponseV1": {
+                "properties": {
+                    "ok": {
+                        "description": "Whether the keys could be fetched and parsed",
+                        "title": "Ok",
+                        "type": "boolean"
+                    },
+                    "key_ids": {
+                        "description": "The `kid` of each key found. Empty when not `ok`.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Key Ids",
+                        "type": "array"
+                    },
+                    "error": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Why the check failed. Null when `ok`.",
+                        "title": "Error"
+                    }
+                },
+                "required": [
+                    "ok",
+                    "key_ids"
+                ],
+                "title": "VerifyIdentityProviderResponseV1",
+                "type": "object"
+            },
+            "DeletedIdentityProviderV1": {
+                "properties": {
+                    "id": {
+                        "description": "ID of the deleted identity provider",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "deleted": {
+                        "description": "Always true",
+                        "title": "Deleted",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "id",
+                    "deleted"
+                ],
+                "title": "DeletedIdentityProviderV1",
+                "type": "object"
+            },
+            "UpdateIdentityProviderRequestV1": {
+                "additionalProperties": false,
+                "description": "Request to update an identity provider. Only the fields sent change.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "maxLength": 255,
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name, unique in the organization",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Description; null clears it",
+                        "title": "Description"
+                    },
+                    "jwks": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/IdentityProviderJwksRequestV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Custom providers only. Replaces the key source and is checked again."
+                    }
+                },
+                "title": "UpdateIdentityProviderRequestV1",
+                "type": "object"
+            },
+            "TrustRuleMatchV1": {
+                "description": "Which tokens the rule accepts. Every field that is set must pass.",
+                "properties": {
+                    "subject_glob": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Glob on the token's `sub` claim. `*` matches any run of characters, including `:`; nothing else is special. Up to 1,024 characters, and more than wildcards.",
+                        "examples": [
+                            "repo:acme/models:ref:refs/heads/main"
+                        ],
+                        "title": "Subject Glob"
+                    },
+                    "claims": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": {
+                                    "type": "string"
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Top-level string claims that must equal these values, for example `{\"repository_owner_id\": \"12345\"}`. Up to 32 claims.",
+                        "title": "Claims"
+                    },
+                    "condition": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "A CEL expression over the token's claims, available as `claims`, that must evaluate to true, for example `claims.ref == 'refs/heads/main' && claims.event_name in ['push', 'release']`. Up to 4,096 characters. It can compare values, combine them with `&&`, `||`, `!` and `? :`, test membership with `in`, index with `[]`, and call `has`, `size`, `startsWith`, `endsWith`, `contains` and `int`. Other functions, including `matches()` and list macros such as `all()`, arithmetic, map and object literals, and backslash escapes aren't allowed.",
+                        "title": "Condition"
+                    },
+                    "audience": {
+                        "default": "https://api.baseten.co",
+                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Defaults to `https://api.baseten.co`.",
+                        "title": "Audience",
+                        "type": "string"
+                    }
+                },
+                "title": "TrustRuleMatchV1",
+                "type": "object"
+            },
+            "TrustRuleV1": {
+                "description": "Which tokens from an identity provider may act as a service account.",
+                "properties": {
+                    "id": {
+                        "description": "Trust rule ID. Workloads pass it when they exchange a token.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name, unique in the organization",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Description",
+                        "title": "Description"
+                    },
+                    "identity_provider_id": {
+                        "description": "The identity provider whose tokens it accepts",
+                        "title": "Identity Provider Id",
+                        "type": "string"
+                    },
+                    "service_account_id": {
+                        "description": "The service account its tokens act as",
+                        "title": "Service Account Id",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The service account's team. Null for an organization service account.",
+                        "title": "Team Id"
+                    },
+                    "match": {
+                        "$ref": "#/components/schemas/TrustRuleMatchV1",
+                        "description": "Which tokens the rule accepts"
+                    },
+                    "max_access_token_lifetime_seconds": {
+                        "description": "Longest lifetime of a token the rule issues, in seconds",
+                        "title": "Max Access Token Lifetime Seconds",
+                        "type": "integer"
+                    },
+                    "last_used_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Last token exchange through the rule. Null until the first.",
+                        "title": "Last Used At"
+                    },
+                    "created_by": {
+                        "description": "ID of the user who created the rule",
+                        "title": "Created By",
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "description": "Time the rule was created",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "description": "Time the rule was last updated",
+                        "format": "date-time",
+                        "title": "Updated At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "identity_provider_id",
+                    "service_account_id",
+                    "match",
+                    "max_access_token_lifetime_seconds",
+                    "created_by",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "TrustRuleV1",
+                "type": "object"
+            },
+            "TrustRulesV1": {
+                "description": "A page of trust rules.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/TrustRuleV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "TrustRulesV1",
+                "type": "object"
+            },
+            "TrustRulesRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "identity_provider_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only this provider's rules",
+                        "title": "Identity Provider Id"
+                    },
+                    "service_account_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only rules for this service account",
+                        "title": "Service Account Id"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only rules for this team's service accounts",
+                        "title": "Team Id"
+                    }
+                },
+                "title": "TrustRulesRequestV1",
+                "type": "object"
+            },
+            "TrustRuleMatchRequestV1": {
+                "additionalProperties": false,
+                "description": "A match as sent. A misspelled criterion must fail rather than be dropped, widening the rule.",
+                "properties": {
+                    "subject_glob": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Glob on the token's `sub` claim. `*` matches any run of characters, including `:`; nothing else is special. Up to 1,024 characters, and more than wildcards.",
+                        "examples": [
+                            "repo:acme/models:ref:refs/heads/main"
+                        ],
+                        "title": "Subject Glob"
+                    },
+                    "claims": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": {
+                                    "type": "string"
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Top-level string claims that must equal these values, for example `{\"repository_owner_id\": \"12345\"}`. Up to 32 claims.",
+                        "title": "Claims"
+                    },
+                    "condition": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "A CEL expression over the token's claims, available as `claims`, that must evaluate to true, for example `claims.ref == 'refs/heads/main' && claims.event_name in ['push', 'release']`. Up to 4,096 characters. It can compare values, combine them with `&&`, `||`, `!` and `? :`, test membership with `in`, index with `[]`, and call `has`, `size`, `startsWith`, `endsWith`, `contains` and `int`. Other functions, including `matches()` and list macros such as `all()`, arithmetic, map and object literals, and backslash escapes aren't allowed.",
+                        "title": "Condition"
+                    },
+                    "audience": {
+                        "default": "https://api.baseten.co",
+                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Defaults to `https://api.baseten.co`.",
+                        "title": "Audience",
+                        "type": "string"
+                    }
+                },
+                "title": "TrustRuleMatchRequestV1",
+                "type": "object"
+            },
+            "CreateTrustRuleRequestV1": {
+                "additionalProperties": false,
+                "description": "Request to create a trust rule.",
+                "properties": {
+                    "name": {
+                        "description": "Name, unique in the organization. Can be changed later.",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional description",
+                        "title": "Description"
+                    },
+                    "identity_provider_id": {
+                        "description": "Whose tokens the rule accepts. Can't be changed. Custom identity providers aren't supported yet.",
+                        "title": "Identity Provider Id",
+                        "type": "string"
+                    },
+                    "service_account_id": {
+                        "description": "The service account its tokens act as. Can be changed later.",
+                        "title": "Service Account Id",
+                        "type": "string"
+                    },
+                    "match": {
+                        "$ref": "#/components/schemas/TrustRuleMatchRequestV1",
+                        "description": "Which tokens the rule accepts. A GitHub Actions rule must set `claims.repository_owner_id`; a Google Cloud rule must set `subject_glob` to the exact service account ID."
+                    },
+                    "max_access_token_lifetime_seconds": {
+                        "default": 3600,
+                        "description": "Longest lifetime of a token the rule issues, 60 to 3600 seconds. Can't be changed.",
+                        "maximum": 3600,
+                        "minimum": 60,
+                        "title": "Max Access Token Lifetime Seconds",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "name",
+                    "identity_provider_id",
+                    "service_account_id",
+                    "match"
+                ],
+                "title": "CreateTrustRuleRequestV1",
+                "type": "object"
+            },
+            "DeletedTrustRuleV1": {
+                "properties": {
+                    "id": {
+                        "description": "ID of the deleted trust rule",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "deleted": {
+                        "description": "Always true",
+                        "title": "Deleted",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "id",
+                    "deleted"
+                ],
+                "title": "DeletedTrustRuleV1",
+                "type": "object"
+            },
+            "UpdateTrustRuleRequestV1": {
+                "additionalProperties": false,
+                "description": "Request to update a trust rule. Only the fields sent change.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "maxLength": 255,
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name, unique in the organization",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Description; null clears it",
+                        "title": "Description"
+                    },
+                    "match": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/TrustRuleMatchRequestV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Replaces the match as a whole"
+                    },
+                    "service_account_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Moves the rule to another service account. Tokens already issued keep the old account until they expire.",
+                        "title": "Service Account Id"
+                    }
+                },
+                "title": "UpdateTrustRuleRequestV1",
                 "type": "object"
             },
             "GatewayEventTokensV1": {
@@ -41779,6 +44222,43 @@
                 "title": "ModelConfigV1",
                 "type": "object"
             },
+            "RateLimitV1": {
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/LimitTypeV1",
+                        "description": "The type of the rate limit",
+                        "examples": [
+                            "TOKEN",
+                            "REQUEST"
+                        ]
+                    },
+                    "unit": {
+                        "$ref": "#/components/schemas/RateLimitUnitV1",
+                        "description": "The unit of the rate limit",
+                        "examples": [
+                            "SECOND",
+                            "MINUTE"
+                        ]
+                    },
+                    "threshold": {
+                        "description": "The threshold for the rate limit",
+                        "examples": [
+                            1000,
+                            50000
+                        ],
+                        "minimum": 0,
+                        "title": "Threshold",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "type",
+                    "unit",
+                    "threshold"
+                ],
+                "title": "RateLimitV1",
+                "type": "object"
+            },
             "UsageLimitUnitV1": {
                 "enum": [
                     "DAY"
@@ -44979,6 +47459,40 @@
                     "items",
                     "pagination"
                 ]
+            },
+            "UpdateOrganizationRequestV1": {
+                "additionalProperties": false,
+                "description": "Partial update of the caller's organization settings. Omitted or null fields are unchanged.",
+                "properties": {
+                    "allow_personal_api_keys": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Whether members can create new personal API keys",
+                        "title": "Allow Personal Api Keys"
+                    },
+                    "allow_service_account_api_keys": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Whether new team and organization API keys can be created",
+                        "title": "Allow Service Account Api Keys"
+                    }
+                },
+                "title": "UpdateOrganizationRequestV1",
+                "type": "object"
             }
         },
         "parameters": {
@@ -45179,6 +47693,30 @@
                     "type": "string"
                 },
                 "name": "user_id",
+                "in": "path",
+                "required": true
+            },
+            "service_account_id": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "service_account_id",
+                "in": "path",
+                "required": true
+            },
+            "identity_provider_id": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "identity_provider_id",
+                "in": "path",
+                "required": true
+            },
+            "trust_rule_id": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "trust_rule_id",
                 "in": "path",
                 "required": true
             },

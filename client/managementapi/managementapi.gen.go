@@ -653,6 +653,42 @@ func (e CheckpointSyncStatus) Valid() bool {
 	}
 }
 
+// Defines values for CreateIdentityProviderRequestPredefined.
+const (
+	CreateIdentityProviderRequestPredefined_GCP            CreateIdentityProviderRequestPredefined = "GCP"
+	CreateIdentityProviderRequestPredefined_GITHUB_ACTIONS CreateIdentityProviderRequestPredefined = "GITHUB_ACTIONS"
+)
+
+// Valid indicates whether the value is a known member of the CreateIdentityProviderRequestPredefined enum.
+func (e CreateIdentityProviderRequestPredefined) Valid() bool {
+	switch e {
+	case CreateIdentityProviderRequestPredefined_GCP:
+		return true
+	case CreateIdentityProviderRequestPredefined_GITHUB_ACTIONS:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateIdentityProviderRequestType.
+const (
+	CreateIdentityProviderRequestType_CUSTOM     CreateIdentityProviderRequestType = "CUSTOM"
+	CreateIdentityProviderRequestType_PREDEFINED CreateIdentityProviderRequestType = "PREDEFINED"
+)
+
+// Valid indicates whether the value is a known member of the CreateIdentityProviderRequestType enum.
+func (e CreateIdentityProviderRequestType) Valid() bool {
+	switch e {
+	case CreateIdentityProviderRequestType_CUSTOM:
+		return true
+	case CreateIdentityProviderRequestType_PREDEFINED:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DeploymentConfigOutputFormat.
 const (
 	DeploymentConfigOutputFormat_both   DeploymentConfigOutputFormat = "both"
@@ -977,6 +1013,84 @@ func (e GridSpendBlockedBy) Valid() bool {
 	}
 }
 
+// Defines values for IdentityProviderPredefined.
+const (
+	IdentityProviderPredefined_GCP            IdentityProviderPredefined = "GCP"
+	IdentityProviderPredefined_GITHUB_ACTIONS IdentityProviderPredefined = "GITHUB_ACTIONS"
+)
+
+// Valid indicates whether the value is a known member of the IdentityProviderPredefined enum.
+func (e IdentityProviderPredefined) Valid() bool {
+	switch e {
+	case IdentityProviderPredefined_GCP:
+		return true
+	case IdentityProviderPredefined_GITHUB_ACTIONS:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for IdentityProviderType.
+const (
+	IdentityProviderType_CUSTOM     IdentityProviderType = "CUSTOM"
+	IdentityProviderType_PREDEFINED IdentityProviderType = "PREDEFINED"
+)
+
+// Valid indicates whether the value is a known member of the IdentityProviderType enum.
+func (e IdentityProviderType) Valid() bool {
+	switch e {
+	case IdentityProviderType_CUSTOM:
+		return true
+	case IdentityProviderType_PREDEFINED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for IdentityProviderJwksType.
+const (
+	IdentityProviderJwksType_DISCOVERY    IdentityProviderJwksType = "DISCOVERY"
+	IdentityProviderJwksType_EXPLICIT_URL IdentityProviderJwksType = "EXPLICIT_URL"
+	IdentityProviderJwksType_INLINE       IdentityProviderJwksType = "INLINE"
+)
+
+// Valid indicates whether the value is a known member of the IdentityProviderJwksType enum.
+func (e IdentityProviderJwksType) Valid() bool {
+	switch e {
+	case IdentityProviderJwksType_DISCOVERY:
+		return true
+	case IdentityProviderJwksType_EXPLICIT_URL:
+		return true
+	case IdentityProviderJwksType_INLINE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for IdentityProviderJwksRequestType.
+const (
+	IdentityProviderJwksRequestType_DISCOVERY    IdentityProviderJwksRequestType = "DISCOVERY"
+	IdentityProviderJwksRequestType_EXPLICIT_URL IdentityProviderJwksRequestType = "EXPLICIT_URL"
+	IdentityProviderJwksRequestType_INLINE       IdentityProviderJwksRequestType = "INLINE"
+)
+
+// Valid indicates whether the value is a known member of the IdentityProviderJwksRequestType enum.
+func (e IdentityProviderJwksRequestType) Valid() bool {
+	switch e {
+	case IdentityProviderJwksRequestType_DISCOVERY:
+		return true
+	case IdentityProviderJwksRequestType_EXPLICIT_URL:
+		return true
+	case IdentityProviderJwksRequestType_INLINE:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for InProgressPromotionStatus.
 const (
 	InProgressPromotionStatus_CANCELED     InProgressPromotionStatus = "CANCELED"
@@ -1286,6 +1400,27 @@ func (e MetricUnitHint) Valid() bool {
 	}
 }
 
+// Defines values for ModelAPIServiceTier.
+const (
+	ModelAPIServiceTier_DEFAULT  ModelAPIServiceTier = "DEFAULT"
+	ModelAPIServiceTier_FLEX     ModelAPIServiceTier = "FLEX"
+	ModelAPIServiceTier_PRIORITY ModelAPIServiceTier = "PRIORITY"
+)
+
+// Valid indicates whether the value is a known member of the ModelAPIServiceTier enum.
+func (e ModelAPIServiceTier) Valid() bool {
+	switch e {
+	case ModelAPIServiceTier_DEFAULT:
+		return true
+	case ModelAPIServiceTier_FLEX:
+		return true
+	case ModelAPIServiceTier_PRIORITY:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ModelApiCostDimension.
 const (
 	ModelApiCostDimension_api_key_prefix ModelApiCostDimension = "api_key_prefix"
@@ -1340,6 +1475,24 @@ func (e Name) Valid() bool {
 	case Name_SCALED_TO_ZERO:
 		return true
 	case Name_STOPPED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PredefinedIdentityProviderInfoPredefined.
+const (
+	PredefinedIdentityProviderInfoPredefined_GCP            PredefinedIdentityProviderInfoPredefined = "GCP"
+	PredefinedIdentityProviderInfoPredefined_GITHUB_ACTIONS PredefinedIdentityProviderInfoPredefined = "GITHUB_ACTIONS"
+)
+
+// Valid indicates whether the value is a known member of the PredefinedIdentityProviderInfoPredefined enum.
+func (e PredefinedIdentityProviderInfoPredefined) Valid() bool {
+	switch e {
+	case PredefinedIdentityProviderInfoPredefined_GCP:
+		return true
+	case PredefinedIdentityProviderInfoPredefined_GITHUB_ACTIONS:
 		return true
 	default:
 		return false
@@ -1781,6 +1934,33 @@ func (e SandboxVolumeStatus) Valid() bool {
 	}
 }
 
+// Defines values for ServiceAccountPresetType.
+const (
+	ServiceAccountPresetType_WORKSPACE_EXPORT_METRICS    ServiceAccountPresetType = "WORKSPACE_EXPORT_METRICS"
+	ServiceAccountPresetType_WORKSPACE_INVOKE            ServiceAccountPresetType = "WORKSPACE_INVOKE"
+	ServiceAccountPresetType_WORKSPACE_INVOKE_MODEL_APIS ServiceAccountPresetType = "WORKSPACE_INVOKE_MODEL_APIS"
+	ServiceAccountPresetType_WORKSPACE_MANAGE_ALL        ServiceAccountPresetType = "WORKSPACE_MANAGE_ALL"
+	ServiceAccountPresetType_WORKSPACE_MANAGE_API_KEYS   ServiceAccountPresetType = "WORKSPACE_MANAGE_API_KEYS"
+)
+
+// Valid indicates whether the value is a known member of the ServiceAccountPresetType enum.
+func (e ServiceAccountPresetType) Valid() bool {
+	switch e {
+	case ServiceAccountPresetType_WORKSPACE_EXPORT_METRICS:
+		return true
+	case ServiceAccountPresetType_WORKSPACE_INVOKE:
+		return true
+	case ServiceAccountPresetType_WORKSPACE_INVOKE_MODEL_APIS:
+		return true
+	case ServiceAccountPresetType_WORKSPACE_MANAGE_ALL:
+		return true
+	case ServiceAccountPresetType_WORKSPACE_MANAGE_API_KEYS:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SharedEndpointRegion.
 const (
 	SharedEndpointRegion_EU           SharedEndpointRegion = "EU"
@@ -2141,6 +2321,24 @@ func (e VolumeTokenScope) Valid() bool {
 	case VolumeTokenScope_PUSH:
 		return true
 	case VolumeTokenScope_TAG:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetV1AccessIdentityProvidersParamsType.
+const (
+	GetV1AccessIdentityProvidersParamsType_CUSTOM     GetV1AccessIdentityProvidersParamsType = "CUSTOM"
+	GetV1AccessIdentityProvidersParamsType_PREDEFINED GetV1AccessIdentityProvidersParamsType = "PREDEFINED"
+)
+
+// Valid indicates whether the value is a known member of the GetV1AccessIdentityProvidersParamsType enum.
+func (e GetV1AccessIdentityProvidersParamsType) Valid() bool {
+	switch e {
+	case GetV1AccessIdentityProvidersParamsType_CUSTOM:
+		return true
+	case GetV1AccessIdentityProvidersParamsType_PREDEFINED:
 		return true
 	default:
 		return false
@@ -3800,6 +3998,33 @@ type CreateGroupRequest struct {
 	Models []ModelConfig `json:"models"`
 }
 
+// CreateIdentityProviderRequest Request to add a predefined identity provider or register a custom one.
+type CreateIdentityProviderRequest struct {
+	// Description Optional description
+	Description *string `json:"description,omitempty"`
+
+	// IssuerUrl For a custom provider: the exact `iss` claim of its tokens, an https URL. Unique in the organization. Can't be changed.
+	IssuerUrl *string `json:"issuer_url,omitempty"`
+
+	// Jwks For a custom provider: where its keys come from
+	Jwks *IdentityProviderJwksRequest `json:"jwks,omitempty"`
+
+	// Name Name, unique in the organization. Required for a custom provider; defaults to the provider's display name for a predefined one.
+	Name *string `json:"name,omitempty"`
+
+	// Predefined Which predefined provider, when `type` is predefined
+	Predefined *CreateIdentityProviderRequestPredefined `json:"predefined,omitempty"`
+
+	// Type Predefined or custom. Can't be changed.
+	Type CreateIdentityProviderRequestType `json:"type"`
+}
+
+// CreateIdentityProviderRequestPredefined Which predefined provider, when `type` is predefined
+type CreateIdentityProviderRequestPredefined string
+
+// CreateIdentityProviderRequestType Predefined or custom. Can't be changed.
+type CreateIdentityProviderRequestType string
+
 // CreateJobWeightConfig Weight source configuration for MDN (Model Distribution Network).
 //
 // Enables training jobs to mount external model weights from HuggingFace, S3, GCS, R2,
@@ -4228,6 +4453,21 @@ type CreateSandboxVolumeRequest_Size struct {
 	union json.RawMessage
 }
 
+// CreateServiceAccountRequest Request to create a service account.
+type CreateServiceAccountRequest struct {
+	// Description Optional description, up to 1,024 characters
+	Description *string `json:"description,omitempty"`
+
+	// Name Name, unique in the organization. Can be changed later.
+	Name string `json:"name"`
+
+	// PresetPermissions A service account's access, as sent. Omit a list for no restriction; never send it empty.
+	PresetPermissions ServiceAccountPresetPermissionsRequest `json:"preset_permissions"`
+
+	// TeamId The team that owns the account. Omit for an organization account. Can't be changed.
+	TeamId *string `json:"team_id,omitempty"`
+}
+
 // CreateTokenRequest defines model for CreateTokenRequest.
 type CreateTokenRequest struct {
 	// Scopes What the token should grant access to. Only `sandboxes` is supported today; the token then authenticates against the sandbox API.
@@ -4378,6 +4618,27 @@ type CreateTrainingJobS3Artifact struct {
 
 	// S3Key S3 key for the uploaded runtime artifact.
 	S3Key string `json:"s3_key"`
+}
+
+// CreateTrustRuleRequest Request to create a trust rule.
+type CreateTrustRuleRequest struct {
+	// Description Optional description
+	Description *string `json:"description,omitempty"`
+
+	// IdentityProviderId Whose tokens the rule accepts. Can't be changed. Custom identity providers aren't supported yet.
+	IdentityProviderId string `json:"identity_provider_id"`
+
+	// Match A match as sent. A misspelled criterion must fail rather than be dropped, widening the rule.
+	Match TrustRuleMatchRequest `json:"match"`
+
+	// MaxAccessTokenLifetimeSeconds Longest lifetime of a token the rule issues, 60 to 3600 seconds. Can't be changed.
+	MaxAccessTokenLifetimeSeconds *int `json:"max_access_token_lifetime_seconds,omitempty"`
+
+	// Name Name, unique in the organization. Can be changed later.
+	Name string `json:"name"`
+
+	// ServiceAccountId The service account its tokens act as. Can be changed later.
+	ServiceAccountId string `json:"service_account_id"`
 }
 
 // CreateVolumeSyncRequest Request to start an asynchronous volume sync.
@@ -4819,6 +5080,33 @@ type DeleteVolumeVersionResponse struct {
 
 	// VolumeSequence Revision of the volume after the delete.
 	VolumeSequence int `json:"volume_sequence"`
+}
+
+// DeletedIdentityProvider defines model for DeletedIdentityProvider.
+type DeletedIdentityProvider struct {
+	// Deleted Always true
+	Deleted bool `json:"deleted"`
+
+	// Id ID of the deleted identity provider
+	Id string `json:"id"`
+}
+
+// DeletedServiceAccount defines model for DeletedServiceAccount.
+type DeletedServiceAccount struct {
+	// Deleted Always true
+	Deleted bool `json:"deleted"`
+
+	// Id ID of the deleted service account
+	Id string `json:"id"`
+}
+
+// DeletedTrustRule defines model for DeletedTrustRule.
+type DeletedTrustRule struct {
+	// Deleted Always true
+	Deleted bool `json:"deleted"`
+
+	// Id ID of the deleted trust rule
+	Id string `json:"id"`
 }
 
 // DeployLoopsCheckpointRequest defines model for DeployLoopsCheckpointRequest.
@@ -6488,6 +6776,82 @@ type GroupsResponse struct {
 	Pagination PaginationResponse `json:"pagination"`
 }
 
+// IdentityProvider An OIDC issuer whose tokens the organization accepts for workload identity federation.
+type IdentityProvider struct {
+	// CreatedAt Time the provider was added
+	CreatedAt time.Time `json:"created_at"`
+
+	// CreatedBy ID of the user who added the provider
+	CreatedBy string `json:"created_by"`
+
+	// Description Description
+	Description *string `json:"description,omitempty"`
+
+	// Id Identity provider ID
+	Id string `json:"id"`
+
+	// IssuerUrl The `iss` claim the provider's tokens carry
+	IssuerUrl string `json:"issuer_url"`
+
+	// Jwks Where the keys come from. Null for a predefined provider.
+	Jwks *IdentityProviderJwks `json:"jwks,omitempty"`
+
+	// Name Name, unique in the organization
+	Name string `json:"name"`
+
+	// Predefined Which predefined provider this is. Null for a custom provider.
+	Predefined *IdentityProviderPredefined `json:"predefined,omitempty"`
+
+	// Type Whether Baseten predefines the provider
+	Type IdentityProviderType `json:"type"`
+
+	// UpdatedAt Time the provider was last updated
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// IdentityProviderPredefined Which predefined provider this is. Null for a custom provider.
+type IdentityProviderPredefined string
+
+// IdentityProviderType Whether Baseten predefines the provider
+type IdentityProviderType string
+
+// IdentityProviderJwks How Baseten gets a custom identity provider's public signing keys.
+type IdentityProviderJwks struct {
+	// Keys A JWK Set's keys, for `INLINE`
+	Keys *[]map[string]interface{} `json:"keys,omitempty"`
+
+	// Type `DISCOVERY` reads the keys from the issuer's `/.well-known/openid-configuration`. `EXPLICIT_URL` and `INLINE` aren't supported yet.
+	Type IdentityProviderJwksType `json:"type"`
+
+	// Url The key set URL, for `EXPLICIT_URL`
+	Url *string `json:"url,omitempty"`
+}
+
+// IdentityProviderJwksType `DISCOVERY` reads the keys from the issuer's `/.well-known/openid-configuration`. `EXPLICIT_URL` and `INLINE` aren't supported yet.
+type IdentityProviderJwksType string
+
+// IdentityProviderJwksRequest A key source as sent.
+type IdentityProviderJwksRequest struct {
+	// Keys A JWK Set's keys, for `INLINE`
+	Keys *[]map[string]interface{} `json:"keys,omitempty"`
+
+	// Type `DISCOVERY` reads the keys from the issuer's `/.well-known/openid-configuration`. `EXPLICIT_URL` and `INLINE` aren't supported yet.
+	Type IdentityProviderJwksRequestType `json:"type"`
+
+	// Url The key set URL, for `EXPLICIT_URL`
+	Url *string `json:"url,omitempty"`
+}
+
+// IdentityProviderJwksRequestType `DISCOVERY` reads the keys from the issuer's `/.well-known/openid-configuration`. `EXPLICIT_URL` and `INLINE` aren't supported yet.
+type IdentityProviderJwksRequestType string
+
+// IdentityProviders A page of identity providers.
+type IdentityProviders struct {
+	// Items Items in this page.
+	Items      []IdentityProvider `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
 // InProgressPromotion Details of an in-progress promotion.
 type InProgressPromotion struct {
 	// ErrorMessage Error message if promotion failed
@@ -7513,7 +7877,7 @@ type Model struct {
 	TeamName string `json:"team_name"`
 }
 
-// ModelAPI A Model API catalog row, optionally enriched with workspace-specific state.
+// ModelAPI Model metadata and authorized team details, with retained legacy fields.
 type ModelAPI struct {
 	// ContextLength The model's context window length, in tokens.
 	ContextLength int `json:"context_length"`
@@ -7521,10 +7885,12 @@ type ModelAPI struct {
 	// CostPerMillionCachedInputTokens Effective cost per million cached input tokens, in dollars. Null when pricing is unavailable or the Model API has no cached input price.
 	CostPerMillionCachedInputTokens *ModelAPI_CostPerMillionCachedInputTokens `json:"cost_per_million_cached_input_tokens"`
 
-	// CostPerMillionInputTokens Effective cost per million input tokens, in dollars. Null when pricing is unavailable.
+	// CostPerMillionInputTokens Deprecated and will be removed in a future version. Legacy effective input-token price. Use team_details pricing instead. Retained during migration; null when pricing is unavailable.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	CostPerMillionInputTokens *ModelAPI_CostPerMillionInputTokens `json:"cost_per_million_input_tokens"`
 
-	// CostPerMillionOutputTokens Effective cost per million output tokens, in dollars. Null when pricing is unavailable.
+	// CostPerMillionOutputTokens Deprecated and will be removed in a future version. Legacy effective output-token price. Use team_details pricing instead. Retained during migration; null when pricing is unavailable.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	CostPerMillionOutputTokens *ModelAPI_CostPerMillionOutputTokens `json:"cost_per_million_output_tokens"`
 
 	// Description Description of the Model API.
@@ -7542,14 +7908,19 @@ type ModelAPI struct {
 	// Name Identifier of the Model API. Stable, URL-safe slug used as the public identifier.
 	Name string `json:"name"`
 
-	// OrgDetails Workspace-specific state. Null when the workspace has not added this Model API.
+	// OrgDetails Deprecated and will be removed in a future version. Legacy Default Team state, independent of team_ids. Use team_details instead. Null when not added or unauthorized.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OrgDetails *ModelAPIOrgDetails `json:"org_details,omitempty"`
 
-	// RateLimits Rate limits in effect for the workspace. Workspace-specific overrides are returned when the workspace has added this Model API and configured them; otherwise the catalog default rate limits are returned.
-	RateLimits []RateLimit `json:"rate_limits"`
+	// RateLimits Deprecated and will be removed in a future version. Legacy Default Team effective limits, independent of team_ids, or catalog defaults when not added or unauthorized. Use team_details for team limits; this field is not the org-pool limit view.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
+	RateLimits []ModelAPIRateLimit `json:"rate_limits"`
 
 	// ReleaseDate Date the Model API was made available.
 	ReleaseDate string `json:"release_date"`
+
+	// TeamDetails Added Model API details for authorized teams, ordered by team ID. Empty when no team in the selected scope has added this Model API.
+	TeamDetails *[]ModelAPITeamDetails `json:"team_details,omitempty"`
 }
 
 // ModelAPICostPerMillionCachedInputTokens0 defines model for .
@@ -7569,7 +7940,7 @@ type ModelAPICostPerMillionInputTokens0 = float32
 // ModelAPICostPerMillionInputTokens1 defines model for .
 type ModelAPICostPerMillionInputTokens1 = string
 
-// ModelAPI_CostPerMillionInputTokens Effective cost per million input tokens, in dollars. Null when pricing is unavailable.
+// ModelAPI_CostPerMillionInputTokens Deprecated and will be removed in a future version. Legacy effective input-token price. Use team_details pricing instead. Retained during migration; null when pricing is unavailable.
 type ModelAPI_CostPerMillionInputTokens struct {
 	union json.RawMessage
 }
@@ -7580,18 +7951,85 @@ type ModelAPICostPerMillionOutputTokens0 = float32
 // ModelAPICostPerMillionOutputTokens1 defines model for .
 type ModelAPICostPerMillionOutputTokens1 = string
 
-// ModelAPI_CostPerMillionOutputTokens Effective cost per million output tokens, in dollars. Null when pricing is unavailable.
+// ModelAPI_CostPerMillionOutputTokens Deprecated and will be removed in a future version. Legacy effective output-token price. Use team_details pricing instead. Retained during migration; null when pricing is unavailable.
 type ModelAPI_CostPerMillionOutputTokens struct {
 	union json.RawMessage
 }
 
-// ModelAPIOrgDetails Workspace-specific state for a Model API.
+// ModelAPIOrgDetails Team-specific state for an added Model API.
 type ModelAPIOrgDetails struct {
-	// AddedAt When the workspace first added this Model API.
+	// AddedAt When the team first added this Model API.
 	AddedAt time.Time `json:"added_at"`
 
-	// LastUsedAt When the workspace last invoked this Model API. Null if the workspace has never invoked it.
+	// LastUsedAt When the team last invoked this Model API. Null if the team has never invoked it.
 	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+}
+
+// ModelAPIRateLimit defines model for ModelAPIRateLimit.
+type ModelAPIRateLimit struct {
+	// BaselineThreshold Configured baseline threshold for the rate limit, before any adaptive increase. Equal to `threshold` when no adaptive increase is in effect.
+	BaselineThreshold int `json:"baseline_threshold"`
+
+	// IsPooled Whether this limit uses the organization-wide pool. The threshold is the effective limit, including any adaptive grant.
+	IsPooled    bool                `json:"is_pooled"`
+	ServiceTier ModelAPIServiceTier `json:"service_tier"`
+
+	// Threshold The threshold for the rate limit
+	Threshold int           `json:"threshold"`
+	Type      LimitType     `json:"type"`
+	Unit      RateLimitUnit `json:"unit"`
+}
+
+// ModelAPIServiceTier defines model for ModelAPIServiceTier.
+type ModelAPIServiceTier string
+
+// ModelAPITeamDetails defines model for ModelAPITeamDetails.
+type ModelAPITeamDetails struct {
+	// AddedAt When the team first added this Model API.
+	AddedAt time.Time `json:"added_at"`
+
+	// CostPerMillionInputTokens Effective cost per million input tokens, in dollars. Null if unavailable.
+	CostPerMillionInputTokens *ModelAPITeamDetails_CostPerMillionInputTokens `json:"cost_per_million_input_tokens"`
+
+	// CostPerMillionOutputTokens Effective cost per million output tokens, in dollars. Null if unavailable.
+	CostPerMillionOutputTokens *ModelAPITeamDetails_CostPerMillionOutputTokens `json:"cost_per_million_output_tokens"`
+
+	// Id Organization Shared Endpoint ID.
+	Id string `json:"id"`
+
+	// LastUsedAt When the team last invoked this Model API. Null if never invoked.
+	LastUsedAt *time.Time `json:"last_used_at"`
+
+	// RateLimits Effective rate limits for this team's Model API, at most one per type, unit, and service tier.
+	RateLimits []ModelAPIRateLimit `json:"rate_limits"`
+
+	// TeamId Team that has added this Model API.
+	TeamId string `json:"team_id"`
+
+	// TeamName Name of the team that has added this Model API.
+	TeamName string `json:"team_name"`
+}
+
+// ModelAPITeamDetailsCostPerMillionInputTokens0 defines model for .
+type ModelAPITeamDetailsCostPerMillionInputTokens0 = float32
+
+// ModelAPITeamDetailsCostPerMillionInputTokens1 defines model for .
+type ModelAPITeamDetailsCostPerMillionInputTokens1 = string
+
+// ModelAPITeamDetails_CostPerMillionInputTokens Effective cost per million input tokens, in dollars. Null if unavailable.
+type ModelAPITeamDetails_CostPerMillionInputTokens struct {
+	union json.RawMessage
+}
+
+// ModelAPITeamDetailsCostPerMillionOutputTokens0 defines model for .
+type ModelAPITeamDetailsCostPerMillionOutputTokens0 = float32
+
+// ModelAPITeamDetailsCostPerMillionOutputTokens1 defines model for .
+type ModelAPITeamDetailsCostPerMillionOutputTokens1 = string
+
+// ModelAPITeamDetails_CostPerMillionOutputTokens Effective cost per million output tokens, in dollars. Null if unavailable.
+type ModelAPITeamDetails_CostPerMillionOutputTokens struct {
+	union json.RawMessage
 }
 
 // ModelAPIsResponse Page of Model APIs visible to the caller.
@@ -7903,6 +8341,12 @@ type OrderBy struct {
 
 // OrganizationInfo The caller's organization.
 type OrganizationInfo struct {
+	// AllowPersonalApiKeys Whether members can create new personal API keys. Existing keys keep working.
+	AllowPersonalApiKeys bool `json:"allow_personal_api_keys"`
+
+	// AllowServiceAccountApiKeys Whether new team and organization API keys can be created. Existing keys keep working.
+	AllowServiceAccountApiKeys bool `json:"allow_service_account_api_keys"`
+
 	// AwsAssumeRole AWS AssumeRole trust-policy inputs; null while the method is not enabled for the organization
 	AwsAssumeRole *AwsAssumeRole `json:"aws_assume_role,omitempty"`
 
@@ -8032,6 +8476,27 @@ type PendingJobAheadAtSubmit struct {
 
 	// TrainingJobName Other job's name
 	TrainingJobName *string `json:"training_job_name,omitempty"`
+}
+
+// PredefinedIdentityProviderInfo defines model for PredefinedIdentityProviderInfo.
+type PredefinedIdentityProviderInfo struct {
+	// IssuerUrl The `iss` claim its tokens carry
+	IssuerUrl string `json:"issuer_url"`
+
+	// Name Display name
+	Name string `json:"name"`
+
+	// Predefined Pass as `predefined` when adding the provider
+	Predefined PredefinedIdentityProviderInfoPredefined `json:"predefined"`
+}
+
+// PredefinedIdentityProviderInfoPredefined Pass as `predefined` when adding the provider
+type PredefinedIdentityProviderInfoPredefined string
+
+// PredefinedIdentityProviders defines model for PredefinedIdentityProviders.
+type PredefinedIdentityProviders struct {
+	// Items Identity providers Baseten predefines
+	Items []PredefinedIdentityProviderInfo `json:"items"`
 }
 
 // PrepareModelUploadRequest Body for `POST /v1/prepare_model_upload`.
@@ -9057,6 +9522,76 @@ type Secrets struct {
 	Secrets []Secret `json:"secrets"`
 }
 
+// ServiceAccount A named service account that workload identity federation tokens act as.
+type ServiceAccount struct {
+	// CreatedAt Time the account was created
+	CreatedAt time.Time `json:"created_at"`
+
+	// Description Description
+	Description *string `json:"description,omitempty"`
+
+	// Disabled Whether the account is disabled. A disabled account can't be used.
+	Disabled bool `json:"disabled"`
+
+	// Id Service account ID
+	Id string `json:"id"`
+
+	// LastUsedAt Last time a token was exchanged for this account. Null until the first.
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+
+	// Name Name, unique in the organization
+	Name string `json:"name"`
+
+	// PresetPermissions A service account's access: one of the access types API keys have.
+	PresetPermissions ServiceAccountPresetPermissions `json:"preset_permissions"`
+
+	// TeamId The team that owns the account. Null for an organization account.
+	TeamId *string `json:"team_id,omitempty"`
+
+	// UpdatedAt Time the account was last updated
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// ServiceAccountPresetPermissions A service account's access: one of the access types API keys have.
+type ServiceAccountPresetPermissions struct {
+	// EnvironmentNames WORKSPACE_INVOKE: environments the account may call; omit for all. With model_ids, each model must have each environment. WORKSPACE_MANAGE_ALL: restricted environments the account may also manage.
+	EnvironmentNames *[]string `json:"environment_names,omitempty"`
+
+	// ModelApiSlugs WORKSPACE_INVOKE_MODEL_APIS only. Model APIs the account may call; omit for all.
+	ModelApiSlugs *[]string `json:"model_api_slugs,omitempty"`
+
+	// ModelIds WORKSPACE_INVOKE and WORKSPACE_EXPORT_METRICS only. Models the account covers. Omit for every model in the team, including models added later.
+	ModelIds *[]string `json:"model_ids,omitempty"`
+
+	// Type What a service account may do: the workspace API key categories, plus Model APIs.
+	Type ServiceAccountPresetType `json:"type"`
+}
+
+// ServiceAccountPresetPermissionsRequest A service account's access, as sent. Omit a list for no restriction; never send it empty.
+type ServiceAccountPresetPermissionsRequest struct {
+	// EnvironmentNames WORKSPACE_INVOKE: environments the account may call; omit for all. With model_ids, each model must have each environment. WORKSPACE_MANAGE_ALL: restricted environments the account may also manage.
+	EnvironmentNames *[]string `json:"environment_names,omitempty"`
+
+	// ModelApiSlugs WORKSPACE_INVOKE_MODEL_APIS only. Model APIs the account may call; omit for all.
+	ModelApiSlugs *[]string `json:"model_api_slugs,omitempty"`
+
+	// ModelIds WORKSPACE_INVOKE and WORKSPACE_EXPORT_METRICS only. Models the account covers. Omit for every model in the team, including models added later.
+	ModelIds *[]string `json:"model_ids,omitempty"`
+
+	// Type What a service account may do: the workspace API key categories, plus Model APIs.
+	Type ServiceAccountPresetType `json:"type"`
+}
+
+// ServiceAccountPresetType What a service account may do: the workspace API key categories, plus Model APIs.
+type ServiceAccountPresetType string
+
+// ServiceAccounts A page of service accounts.
+type ServiceAccounts struct {
+	// Items Items in this page.
+	Items      []ServiceAccount   `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
 // SetVolumeTagRequest defines model for SetVolumeTagRequest.
 type SetVolumeTagRequest struct {
 	// ExpectedSequence Revision the volume is expected to be at. When set, the request fails with a conflict if the volume has changed since. Take the value from volume_sequence.
@@ -9836,6 +10371,82 @@ type TrussUserEnv struct {
 	TrussClientVersion   *string  `json:"truss_client_version,omitempty"`
 }
 
+// TrustRule Which tokens from an identity provider may act as a service account.
+type TrustRule struct {
+	// CreatedAt Time the rule was created
+	CreatedAt time.Time `json:"created_at"`
+
+	// CreatedBy ID of the user who created the rule
+	CreatedBy string `json:"created_by"`
+
+	// Description Description
+	Description *string `json:"description,omitempty"`
+
+	// Id Trust rule ID. Workloads pass it when they exchange a token.
+	Id string `json:"id"`
+
+	// IdentityProviderId The identity provider whose tokens it accepts
+	IdentityProviderId string `json:"identity_provider_id"`
+
+	// LastUsedAt Last token exchange through the rule. Null until the first.
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+
+	// Match Which tokens the rule accepts. Every field that is set must pass.
+	Match TrustRuleMatch `json:"match"`
+
+	// MaxAccessTokenLifetimeSeconds Longest lifetime of a token the rule issues, in seconds
+	MaxAccessTokenLifetimeSeconds int `json:"max_access_token_lifetime_seconds"`
+
+	// Name Name, unique in the organization
+	Name string `json:"name"`
+
+	// ServiceAccountId The service account its tokens act as
+	ServiceAccountId string `json:"service_account_id"`
+
+	// TeamId The service account's team. Null for an organization service account.
+	TeamId *string `json:"team_id,omitempty"`
+
+	// UpdatedAt Time the rule was last updated
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// TrustRuleMatch Which tokens the rule accepts. Every field that is set must pass.
+type TrustRuleMatch struct {
+	// Audience The token's `aud` must equal this, or contain it when `aud` is a list. Defaults to `https://api.baseten.co`.
+	Audience *string `json:"audience,omitempty"`
+
+	// Claims Top-level string claims that must equal these values, for example `{"repository_owner_id": "12345"}`. Up to 32 claims.
+	Claims *map[string]string `json:"claims,omitempty"`
+
+	// Condition A CEL expression over the token's claims, available as `claims`, that must evaluate to true, for example `claims.ref == 'refs/heads/main' && claims.event_name in ['push', 'release']`. Up to 4,096 characters. It can compare values, combine them with `&&`, `||`, `!` and `? :`, test membership with `in`, index with `[]`, and call `has`, `size`, `startsWith`, `endsWith`, `contains` and `int`. Other functions, including `matches()` and list macros such as `all()`, arithmetic, map and object literals, and backslash escapes aren't allowed.
+	Condition *string `json:"condition,omitempty"`
+
+	// SubjectGlob Glob on the token's `sub` claim. `*` matches any run of characters, including `:`; nothing else is special. Up to 1,024 characters, and more than wildcards.
+	SubjectGlob *string `json:"subject_glob,omitempty"`
+}
+
+// TrustRuleMatchRequest A match as sent. A misspelled criterion must fail rather than be dropped, widening the rule.
+type TrustRuleMatchRequest struct {
+	// Audience The token's `aud` must equal this, or contain it when `aud` is a list. Defaults to `https://api.baseten.co`.
+	Audience *string `json:"audience,omitempty"`
+
+	// Claims Top-level string claims that must equal these values, for example `{"repository_owner_id": "12345"}`. Up to 32 claims.
+	Claims *map[string]string `json:"claims,omitempty"`
+
+	// Condition A CEL expression over the token's claims, available as `claims`, that must evaluate to true, for example `claims.ref == 'refs/heads/main' && claims.event_name in ['push', 'release']`. Up to 4,096 characters. It can compare values, combine them with `&&`, `||`, `!` and `? :`, test membership with `in`, index with `[]`, and call `has`, `size`, `startsWith`, `endsWith`, `contains` and `int`. Other functions, including `matches()` and list macros such as `all()`, arithmetic, map and object literals, and backslash escapes aren't allowed.
+	Condition *string `json:"condition,omitempty"`
+
+	// SubjectGlob Glob on the token's `sub` claim. `*` matches any run of characters, including `:`; nothing else is special. Up to 1,024 characters, and more than wildcards.
+	SubjectGlob *string `json:"subject_glob,omitempty"`
+}
+
+// TrustRules A page of trust rules.
+type TrustRules struct {
+	// Items Items in this page.
+	Items      []TrustRule        `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
 // UpdateAutoscalingScheduleSettings Partial mutation of an environment's autoscaling schedule collection.
 type UpdateAutoscalingScheduleSettings struct {
 	// DeleteSchedules Stable identifiers of schedules to delete. To clear all schedules, include every existing schedule identifier.
@@ -10104,6 +10715,18 @@ type UpdateGroupRequest struct {
 	Models *[]ModelConfig `json:"models,omitempty"`
 }
 
+// UpdateIdentityProviderRequest Request to update an identity provider. Only the fields sent change.
+type UpdateIdentityProviderRequest struct {
+	// Description Description; null clears it
+	Description *string `json:"description,omitempty"`
+
+	// Jwks Custom providers only. Replaces the key source and is checked again.
+	Jwks *IdentityProviderJwksRequest `json:"jwks,omitempty"`
+
+	// Name Name, unique in the organization
+	Name *string `json:"name,omitempty"`
+}
+
 // UpdateLibraryListingRequest Request to update a library listing.
 type UpdateLibraryListingRequest struct {
 	// DisplayName New display name for the library listing
@@ -10161,6 +10784,15 @@ type UpdateModelPromotionSettings struct {
 type UpdateModelRequest struct {
 	// Name New name for the model, unique within its team. Renaming does not change the model ID, endpoints, or deployments. Pushes that still use the old model_name create another model or target a model that now uses that name, so update config.yaml after renaming.
 	Name *string `json:"name,omitempty"`
+}
+
+// UpdateOrganizationRequest Partial update of the caller's organization settings. Omitted or null fields are unchanged.
+type UpdateOrganizationRequest struct {
+	// AllowPersonalApiKeys Whether members can create new personal API keys
+	AllowPersonalApiKeys *bool `json:"allow_personal_api_keys,omitempty"`
+
+	// AllowServiceAccountApiKeys Whether new team and organization API keys can be created
+	AllowServiceAccountApiKeys *bool `json:"allow_service_account_api_keys,omitempty"`
 }
 
 // UpdatePromotionSettings Promotion settings for model promotion
@@ -10261,6 +10893,21 @@ type UpdateSandboxVolumeRequest_Size struct {
 	union json.RawMessage
 }
 
+// UpdateServiceAccountRequest Request to update a service account. Only the fields sent change.
+type UpdateServiceAccountRequest struct {
+	// Description Description, up to 1,024 characters; null clears it
+	Description *string `json:"description,omitempty"`
+
+	// Disabled Disable the account to stop it being used, or enable it again
+	Disabled *bool `json:"disabled,omitempty"`
+
+	// Name Name, unique in the organization
+	Name *string `json:"name,omitempty"`
+
+	// PresetPermissions Replaces the account's access as a whole
+	PresetPermissions *ServiceAccountPresetPermissionsRequest `json:"preset_permissions,omitempty"`
+}
+
 // UpdateTrafficRoutingSettings Partial update of an environment's traffic routing rules.
 type UpdateTrafficRoutingSettings struct {
 	// DeleteRules IDs of rules to delete
@@ -10285,6 +10932,21 @@ type UpdateTrainingJobRequest struct {
 // UpdateTrainingJobResponse A response to updating a training job.
 type UpdateTrainingJobResponse struct {
 	TrainingJob TrainingJob `json:"training_job"`
+}
+
+// UpdateTrustRuleRequest Request to update a trust rule. Only the fields sent change.
+type UpdateTrustRuleRequest struct {
+	// Description Description; null clears it
+	Description *string `json:"description,omitempty"`
+
+	// Match Replaces the match as a whole
+	Match *TrustRuleMatchRequest `json:"match,omitempty"`
+
+	// Name Name, unique in the organization
+	Name *string `json:"name,omitempty"`
+
+	// ServiceAccountId Moves the rule to another service account. Tokens already issued keep the old account until they expire.
+	ServiceAccountId *string `json:"service_account_id,omitempty"`
 }
 
 // UpsertGridConnectionBedrockAccessKeysAuth defines model for UpsertGridConnectionBedrockAccessKeysAuth.
@@ -10505,6 +11167,27 @@ type ValidateLoopsCheckpointRequest struct {
 // inaccessible or malformed paths, and checkpoints of another LoRA config than
 // “run_id“'s, raise 400.
 type ValidateLoopsCheckpointResponse = map[string]interface{}
+
+// VerifyIdentityProviderRequest A custom identity provider configuration to check.
+type VerifyIdentityProviderRequest struct {
+	// IssuerUrl The provider's issuer, an https URL
+	IssuerUrl string `json:"issuer_url"`
+
+	// Jwks A key source as sent.
+	Jwks IdentityProviderJwksRequest `json:"jwks"`
+}
+
+// VerifyIdentityProviderResponse defines model for VerifyIdentityProviderResponse.
+type VerifyIdentityProviderResponse struct {
+	// Error Why the check failed. Null when `ok`.
+	Error *string `json:"error,omitempty"`
+
+	// KeyIds The `kid` of each key found. Empty when not `ok`.
+	KeyIds []string `json:"key_ids"`
+
+	// Ok Whether the keys could be fetched and parsed
+	Ok bool `json:"ok"`
+}
 
 // VertexTargetConfig defines model for VertexTargetConfig.
 type VertexTargetConfig struct {
@@ -10934,6 +11617,39 @@ type SandboxError429 interface{}
 
 // SandboxError500 defines model for SandboxError500.
 type SandboxError500 interface{}
+
+// GetV1AccessIdentityProvidersParams defines parameters for GetV1AccessIdentityProviders.
+type GetV1AccessIdentityProvidersParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Type Only predefined or only custom providers
+	Type *GetV1AccessIdentityProvidersParamsType `form:"type,omitempty" json:"type,omitempty"`
+}
+
+// GetV1AccessIdentityProvidersParamsType defines parameters for GetV1AccessIdentityProviders.
+type GetV1AccessIdentityProvidersParamsType string
+
+// GetV1AccessTrustRulesParams defines parameters for GetV1AccessTrustRules.
+type GetV1AccessTrustRulesParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// IdentityProviderId Only this provider's rules
+	IdentityProviderId *string `form:"identity_provider_id,omitempty" json:"identity_provider_id,omitempty"`
+
+	// ServiceAccountId Only rules for this service account
+	ServiceAccountId *string `form:"service_account_id,omitempty" json:"service_account_id,omitempty"`
+
+	// TeamId Only rules for this team's service accounts
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
 
 // GetV1ApiKeysParams defines parameters for GetV1ApiKeys.
 type GetV1ApiKeysParams struct {
@@ -11369,7 +12085,10 @@ type GetV1ModelApisParams struct {
 	// Limit Maximum number of items to return.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// AddedOnly When true, restrict the result to Model APIs the workspace has added. Defaults to the full visible catalog.
+	// TeamIds Select teams for added-model details, filtering, and ordering, repeated once per team. Defaults to all teams where you can invoke Model APIs. Any unauthorized team causes a 403.
+	TeamIds *[]string `form:"team_ids,omitempty" json:"team_ids,omitempty"`
+
+	// AddedOnly When true, restrict the result to Model APIs added by any team where you can invoke Model APIs. Explicit team_ids narrow this to the selected teams. Defaults to the full visible catalog.
 	AddedOnly *bool `form:"added_only,omitempty" json:"added_only,omitempty"`
 }
 
@@ -11404,6 +12123,12 @@ type GetV1ModelApisUsageParams struct {
 
 	// Cursor Opaque cursor from the pagination.cursor field of a previous response
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// GetV1ModelApisModelApiNameParams defines parameters for GetV1ModelApisModelApiName.
+type GetV1ModelApisModelApiNameParams struct {
+	// TeamIds Select teams for added-model details, repeated once per team. Defaults to all teams where you can invoke Model APIs. Any unauthorized team causes a 403.
+	TeamIds *[]string `form:"team_ids,omitempty" json:"team_ids,omitempty"`
 }
 
 // GetV1ModelApisModelApiNameMetricsParams defines parameters for GetV1ModelApisModelApiNameMetrics.
@@ -11940,6 +12665,21 @@ type UpdateSandboxVolumeParams struct {
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
+// GetV1ServiceAccountsParams defines parameters for GetV1ServiceAccounts.
+type GetV1ServiceAccountsParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// TeamId Only this team's accounts
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Disabled Only disabled or enabled accounts
+	Disabled *bool `form:"disabled,omitempty" json:"disabled,omitempty"`
+}
+
 // GetV1TeamsParams defines parameters for GetV1Teams.
 type GetV1TeamsParams struct {
 	// Name When set, returns only the team with this exact name, if any.
@@ -12077,6 +12817,21 @@ type GetV1VolumesVolumeNamespaceVolumeNameVersionsParams struct {
 	// IncludeTombstoned Whether to include deleted and expired versions. Such a version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.
 	IncludeTombstoned *bool `form:"include_tombstoned,omitempty" json:"include_tombstoned,omitempty"`
 }
+
+// PostV1AccessIdentityProvidersJSONRequestBody defines body for PostV1AccessIdentityProviders for application/json ContentType.
+type PostV1AccessIdentityProvidersJSONRequestBody = CreateIdentityProviderRequest
+
+// PostV1AccessIdentityProvidersVerifyJSONRequestBody defines body for PostV1AccessIdentityProvidersVerify for application/json ContentType.
+type PostV1AccessIdentityProvidersVerifyJSONRequestBody = VerifyIdentityProviderRequest
+
+// PatchV1AccessIdentityProvidersIdentityProviderIdJSONRequestBody defines body for PatchV1AccessIdentityProvidersIdentityProviderId for application/json ContentType.
+type PatchV1AccessIdentityProvidersIdentityProviderIdJSONRequestBody = UpdateIdentityProviderRequest
+
+// PostV1AccessTrustRulesJSONRequestBody defines body for PostV1AccessTrustRules for application/json ContentType.
+type PostV1AccessTrustRulesJSONRequestBody = CreateTrustRuleRequest
+
+// PatchV1AccessTrustRulesTrustRuleIdJSONRequestBody defines body for PatchV1AccessTrustRulesTrustRuleId for application/json ContentType.
+type PatchV1AccessTrustRulesTrustRuleIdJSONRequestBody = UpdateTrustRuleRequest
 
 // PostV1ApiKeysJSONRequestBody defines body for PostV1ApiKeys for application/json ContentType.
 type PostV1ApiKeysJSONRequestBody = CreateAPIKeyRequest
@@ -12237,6 +12992,9 @@ type PatchV1ModelsModelIdEnvironmentsEnvNameJSONRequestBody = UpdateEnvironmentR
 // PostV1ModelsModelIdEnvironmentsEnvNamePromoteJSONRequestBody defines body for PostV1ModelsModelIdEnvironmentsEnvNamePromote for application/json ContentType.
 type PostV1ModelsModelIdEnvironmentsEnvNamePromoteJSONRequestBody = PromoteToEnvironmentRequest
 
+// PatchV1OrganizationsMeJSONRequestBody defines body for PatchV1OrganizationsMe for application/json ContentType.
+type PatchV1OrganizationsMeJSONRequestBody = UpdateOrganizationRequest
+
 // PostV1PrepareModelUploadJSONRequestBody defines body for PostV1PrepareModelUpload for application/json ContentType.
 type PostV1PrepareModelUploadJSONRequestBody = PrepareModelUploadRequest
 
@@ -12266,6 +13024,12 @@ type UpdateSandboxVolumeJSONRequestBody = UpdateSandboxVolumeRequest
 
 // PostV1SecretsJSONRequestBody defines body for PostV1Secrets for application/json ContentType.
 type PostV1SecretsJSONRequestBody = UpsertSecretRequest
+
+// PostV1ServiceAccountsJSONRequestBody defines body for PostV1ServiceAccounts for application/json ContentType.
+type PostV1ServiceAccountsJSONRequestBody = CreateServiceAccountRequest
+
+// PatchV1ServiceAccountsServiceAccountIdJSONRequestBody defines body for PatchV1ServiceAccountsServiceAccountId for application/json ContentType.
+type PatchV1ServiceAccountsServiceAccountIdJSONRequestBody = UpdateServiceAccountRequest
 
 // PostV1TeamsTeamIdApiKeysJSONRequestBody defines body for PostV1TeamsTeamIdApiKeys for application/json ContentType.
 type PostV1TeamsTeamIdApiKeysJSONRequestBody = CreateAPIKeyRequest
@@ -15345,6 +16109,82 @@ func (t ModelAPI_CostPerMillionOutputTokens) MarshalJSON() ([]byte, error) {
 }
 
 func (t *ModelAPI_CostPerMillionOutputTokens) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsModelAPITeamDetailsCostPerMillionInputTokens0 returns the union data inside the ModelAPITeamDetails_CostPerMillionInputTokens as a ModelAPITeamDetailsCostPerMillionInputTokens0
+func (t ModelAPITeamDetails_CostPerMillionInputTokens) AsModelAPITeamDetailsCostPerMillionInputTokens0() (ModelAPITeamDetailsCostPerMillionInputTokens0, error) {
+	var body ModelAPITeamDetailsCostPerMillionInputTokens0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromModelAPITeamDetailsCostPerMillionInputTokens0 overwrites any union data inside the ModelAPITeamDetails_CostPerMillionInputTokens as the provided ModelAPITeamDetailsCostPerMillionInputTokens0
+func (t *ModelAPITeamDetails_CostPerMillionInputTokens) FromModelAPITeamDetailsCostPerMillionInputTokens0(v ModelAPITeamDetailsCostPerMillionInputTokens0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsModelAPITeamDetailsCostPerMillionInputTokens1 returns the union data inside the ModelAPITeamDetails_CostPerMillionInputTokens as a ModelAPITeamDetailsCostPerMillionInputTokens1
+func (t ModelAPITeamDetails_CostPerMillionInputTokens) AsModelAPITeamDetailsCostPerMillionInputTokens1() (ModelAPITeamDetailsCostPerMillionInputTokens1, error) {
+	var body ModelAPITeamDetailsCostPerMillionInputTokens1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromModelAPITeamDetailsCostPerMillionInputTokens1 overwrites any union data inside the ModelAPITeamDetails_CostPerMillionInputTokens as the provided ModelAPITeamDetailsCostPerMillionInputTokens1
+func (t *ModelAPITeamDetails_CostPerMillionInputTokens) FromModelAPITeamDetailsCostPerMillionInputTokens1(v ModelAPITeamDetailsCostPerMillionInputTokens1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t ModelAPITeamDetails_CostPerMillionInputTokens) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ModelAPITeamDetails_CostPerMillionInputTokens) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsModelAPITeamDetailsCostPerMillionOutputTokens0 returns the union data inside the ModelAPITeamDetails_CostPerMillionOutputTokens as a ModelAPITeamDetailsCostPerMillionOutputTokens0
+func (t ModelAPITeamDetails_CostPerMillionOutputTokens) AsModelAPITeamDetailsCostPerMillionOutputTokens0() (ModelAPITeamDetailsCostPerMillionOutputTokens0, error) {
+	var body ModelAPITeamDetailsCostPerMillionOutputTokens0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromModelAPITeamDetailsCostPerMillionOutputTokens0 overwrites any union data inside the ModelAPITeamDetails_CostPerMillionOutputTokens as the provided ModelAPITeamDetailsCostPerMillionOutputTokens0
+func (t *ModelAPITeamDetails_CostPerMillionOutputTokens) FromModelAPITeamDetailsCostPerMillionOutputTokens0(v ModelAPITeamDetailsCostPerMillionOutputTokens0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsModelAPITeamDetailsCostPerMillionOutputTokens1 returns the union data inside the ModelAPITeamDetails_CostPerMillionOutputTokens as a ModelAPITeamDetailsCostPerMillionOutputTokens1
+func (t ModelAPITeamDetails_CostPerMillionOutputTokens) AsModelAPITeamDetailsCostPerMillionOutputTokens1() (ModelAPITeamDetailsCostPerMillionOutputTokens1, error) {
+	var body ModelAPITeamDetailsCostPerMillionOutputTokens1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromModelAPITeamDetailsCostPerMillionOutputTokens1 overwrites any union data inside the ModelAPITeamDetails_CostPerMillionOutputTokens as the provided ModelAPITeamDetailsCostPerMillionOutputTokens1
+func (t *ModelAPITeamDetails_CostPerMillionOutputTokens) FromModelAPITeamDetailsCostPerMillionOutputTokens1(v ModelAPITeamDetailsCostPerMillionOutputTokens1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t ModelAPITeamDetails_CostPerMillionOutputTokens) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ModelAPITeamDetails_CostPerMillionOutputTokens) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
