@@ -1151,11 +1151,12 @@ func (c *Client) GetModelApisMetrics(ctx context.Context, modelApiName string, p
 }
 
 // GetModelApisModelApiName: Gets a Model API
-func (c *Client) GetModelApisModelApiName(ctx context.Context, modelApiName string) (*ModelAPI, error) {
+func (c *Client) GetModelApisModelApiName(ctx context.Context, modelApiName string, params GetV1ModelApisModelApiNameParams) (*ModelAPI, error) {
 	return doJSON[ModelAPI](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/model_apis/%s",
 		pathArgs:     []any{modelApiName},
+		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
