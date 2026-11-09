@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -262,6 +264,11 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		}
 		srv := httptest.NewServer(fake)
 		defer srv.Close()
+		// Runs before srv.Close, which waits for the blocked handler, even
+		// when an assertion below fails before the explicit release.
+		var releaseOnce sync.Once
+		releaseAll := func() { releaseOnce.Do(func() { close(release) }) }
+		defer releaseAll()
 		creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{})
 
 		const callers = 32
@@ -283,7 +290,7 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 				t.Fatalf("exchange not started yet")
 			}
 		})
-		close(release)
+		releaseAll()
 		wg.Wait()
 		close(errs)
 		for err := range errs {
@@ -410,6 +417,67 @@ func TestBearerAuthDoerLeavesOtherHostsAlone(t *testing.T) {
 	require.Equal(t, "", gotAuth.Load().(string))
 }
 
+// TestBearerAuthDoerRedirects checks that the bearer survives a redirect on
+// the same host but not one to a subdomain, which net/http alone would allow.
+func TestBearerAuthDoerRedirects(t *testing.T) {
+	var subAuth atomic.Value
+	sub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		subAuth.Store(r.Header.Get("Authorization"))
+	}))
+	defer sub.Close()
+	var apiAuth []string
+	var apiURL string
+	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		apiAuth = append(apiAuth, r.Header.Get("Authorization"))
+		switch r.URL.Path {
+		case "/start":
+			http.Redirect(w, r, apiURL+"/same-host", http.StatusFound)
+		case "/same-host":
+			http.Redirect(w, r, "http://sub.api.example.test:"+sub.URL[strings.LastIndex(sub.URL, ":")+1:]+"/landing", http.StatusFound)
+		default:
+			t.Errorf("unexpected path %s", r.URL.Path)
+		}
+	}))
+	defer api.Close()
+	apiURL = "http://api.example.test:" + api.URL[strings.LastIndex(api.URL, ":")+1:]
+
+	// Resolve the fake host names to the two test servers.
+	listeners := map[string]string{
+		"api.example.test":     api.Listener.Addr().String(),
+		"sub.api.example.test": sub.Listener.Addr().String(),
+	}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+		host, _, err := net.SplitHostPort(addr)
+		if err != nil {
+			return nil, err
+		}
+		target, ok := listeners[host]
+		if !ok {
+			return nil, fmt.Errorf("unexpected host %s", host)
+		}
+		return (&net.Dialer{}).DialContext(ctx, network, target)
+	}
+	callerClient := &http.Client{Transport: transport}
+
+	source := accessTokenSourceFunc(func(context.Context) (AccessToken, error) {
+		return AccessToken{Token: "secret"}, nil
+	})
+	doer, err := newBearerAuthDoer(callerClient, source, apiURL)
+	require.NoError(t, err)
+	req, err := http.NewRequest(http.MethodGet, apiURL+"/start", nil)
+	require.NoError(t, err)
+	resp, err := doer.Do(req)
+	require.NoError(t, err)
+	resp.Body.Close()
+
+	require.Len(t, apiAuth, 2)
+	require.Equal(t, "Bearer secret", apiAuth[0])
+	require.Equal(t, "Bearer secret", apiAuth[1])
+	require.Equal(t, "", subAuth.Load().(string))
+	require.True(t, callerClient.CheckRedirect == nil, "the caller's client was modified")
+}
+
 func TestClientAuthOptionsValidation(t *testing.T) {
 	creds, err := NewWorkloadIdentityCredentials(WorkloadIdentityCredentialsOptions{
 		TrustRuleID:   "r",
@@ -421,11 +489,13 @@ func TestClientAuthOptionsValidation(t *testing.T) {
 	require.Error(t, err)
 	_, err = NewManagementClient(ManagementClientOptions{Credentials: creds, DeferAuth: true})
 	require.Error(t, err)
-	_, err = NewManagementClient(ManagementClientOptions{
-		Credentials: creds,
-		Headers:     http.Header{"Authorization": {"Bearer x"}},
-	})
-	require.Error(t, err)
+	for _, name := range []string{"Authorization", "authorization"} {
+		_, err = NewManagementClient(ManagementClientOptions{
+			Credentials: creds,
+			Headers:     http.Header{name: {"Bearer x"}},
+		})
+		require.True(t, err != nil, "Headers key %q was not rejected", name)
+	}
 	_, err = NewInferenceClient(InferenceClientOptions{Credentials: creds, APIKey: "k", ModelID: "m"})
 	require.Error(t, err)
 	_, err = NewInferenceClient(InferenceClientOptions{Credentials: creds, ModelID: "m"})

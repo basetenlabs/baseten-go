@@ -273,7 +273,10 @@ type httpDoer interface {
 // bearerAuthDoer sets "Authorization: Bearer" from source on each request to
 // host, so a long-running operation picks up refreshed tokens. Requests to
 // other hosts (such as pre-signed storage URLs) and requests that already
-// carry an Authorization header are passed through untouched.
+// carry an Authorization header are passed through untouched. When next is an
+// *http.Client, redirects to any other host drop the Authorization header;
+// net/http alone would still send it to subdomains and other ports of host.
+// Any other doer must handle redirects itself.
 type bearerAuthDoer struct {
 	next   httpDoer
 	source AccessTokenSource
@@ -288,7 +291,31 @@ func newBearerAuthDoer(next httpDoer, source AccessTokenSource, baseURL string) 
 	if u.Host == "" {
 		return nil, fmt.Errorf("BaseURL %q has no host", baseURL)
 	}
+	if hc, ok := next.(*http.Client); ok {
+		next = withExactHostRedirectAuth(hc, u.Host)
+	}
 	return &bearerAuthDoer{next: next, source: source, host: u.Host}, nil
+}
+
+// withExactHostRedirectAuth returns a copy of hc whose redirects keep the
+// Authorization header only while they stay on host. hc is not modified.
+func withExactHostRedirectAuth(hc *http.Client, host string) *http.Client {
+	clone := *hc
+	checkRedirect := hc.CheckRedirect
+	clone.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if req.URL.Host != host {
+			req.Header.Del("Authorization")
+		}
+		if checkRedirect != nil {
+			return checkRedirect(req, via)
+		}
+		// net/http's default policy for a nil CheckRedirect.
+		if len(via) >= 10 {
+			return errors.New("stopped after 10 redirects")
+		}
+		return nil
+	}
+	return &clone
 }
 
 func (d *bearerAuthDoer) Do(req *http.Request) (*http.Response, error) {

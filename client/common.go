@@ -109,8 +109,13 @@ func validateAuthOptions(apiKey string, credentials AccessTokenSource, deferAuth
 	if set == 0 {
 		return errors.New("APIKey is required (or Credentials or DeferAuth)")
 	}
-	if credentials != nil && headers.Get("Authorization") != "" {
-		return errors.New("Headers must not set Authorization when Credentials is set")
+	if credentials != nil {
+		// Checked by name rather than Header.Get, which misses non-canonical keys.
+		for name := range headers {
+			if strings.EqualFold(name, "Authorization") {
+				return errors.New("Headers must not set Authorization when Credentials is set")
+			}
+		}
 	}
 	return nil
 }
