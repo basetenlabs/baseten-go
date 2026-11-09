@@ -10,9 +10,14 @@ import (
 
 // InferenceClientOptions configures an InferenceClient.
 type InferenceClientOptions struct {
-	// APIKey is the Baseten API key used for authentication. Required
-	// unless DeferAuth is true.
+	// APIKey is the Baseten API key used for authentication. Exactly one of
+	// APIKey, Credentials, and DeferAuth is required.
 	APIKey string
+
+	// Credentials supplies short-lived access tokens instead of an API key,
+	// for example [WorkloadIdentityCredentials]. A token is fetched for every
+	// request, so long-running operations survive token refresh.
+	Credentials AccessTokenSource
 
 	// ModelID is the model to target. Mutually exclusive with ChainID.
 	ModelID string
@@ -89,11 +94,8 @@ func InferenceClientDefaultBaseURL(modelID, chainID, environment string) (string
 
 // NewInferenceClient creates a new InferenceClient.
 func NewInferenceClient(opts InferenceClientOptions) (*InferenceClient, error) {
-	if opts.DeferAuth && opts.APIKey != "" {
-		return nil, fmt.Errorf("APIKey and DeferAuth are mutually exclusive")
-	}
-	if opts.APIKey == "" && !opts.DeferAuth {
-		return nil, fmt.Errorf("APIKey is required")
+	if err := validateAuthOptions(opts.APIKey, opts.Credentials, opts.DeferAuth, opts.Headers); err != nil {
+		return nil, err
 	}
 
 	var baseURL string
@@ -110,9 +112,16 @@ func NewInferenceClient(opts InferenceClientOptions) (*InferenceClient, error) {
 		}
 	}
 
-	httpClient := opts.HTTPClient
+	var httpClient httpDoer = opts.HTTPClient
 	if httpClient == nil {
 		httpClient = http.DefaultClient
+	}
+	if opts.Credentials != nil {
+		doer, err := newBearerAuthDoer(httpClient, opts.Credentials, baseURL)
+		if err != nil {
+			return nil, err
+		}
+		httpClient = doer
 	}
 
 	headers := opts.Headers.Clone()

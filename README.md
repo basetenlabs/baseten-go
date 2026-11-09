@@ -54,6 +54,23 @@ func main() {
 }
 ```
 
+### Authenticating with workload identity federation
+
+Instead of an API key, a workload can exchange its identity provider's token (for example a projected Kubernetes service
+account token) for a short-lived Baseten access token under a trust rule. The credentials exchange on first use, cache
+the access token, and replace it before it expires:
+
+```go
+creds, err := client.NewWorkloadIdentityCredentials(client.WorkloadIdentityCredentialsOptions{
+	IdentityTokenFile: "/var/run/secrets/tokens/baseten",
+	TrustRuleID:       "my-trust-rule-id",
+})
+if err != nil {
+	log.Fatal(err)
+}
+cl, err := client.NewManagementClient(client.ManagementClientOptions{Credentials: creds})
+```
+
 ### Pushing a model
 
 `PushModel` validates the push, builds a tar archive of the model directory, uploads it, and creates the model or adds a
