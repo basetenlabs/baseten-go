@@ -71,9 +71,6 @@ type Info struct {
 	// Ports are the ports the sandbox exposes.
 	Ports []Port
 
-	// Network is the sandbox's network configuration, nil when it has none.
-	Network *Network
-
 	// FileSystem is the sandbox's filesystem configuration, nil when it has
 	// none.
 	FileSystem *FileSystem
@@ -188,49 +185,6 @@ type Port struct {
 	Protocol PortProtocol
 }
 
-// Network is a sandbox's network configuration. It is set at creation and
-// cannot be updated.
-type Network struct {
-	// Subnet is the subnet the sandbox joins. Empty uses the server's
-	// default.
-	Subnet string
-
-	// Proxy routes the sandbox's outbound traffic, nil for none.
-	Proxy *NetworkProxy
-}
-
-// NetworkProxy controls a sandbox's outbound traffic.
-type NetworkProxy struct {
-	// AllowedDomains are the only domains the sandbox may reach, when set.
-	AllowedDomains []string
-
-	// ForbiddenDomains are domains the sandbox may not reach.
-	ForbiddenDomains []string
-
-	// Bypass are domains whose traffic goes direct instead of through the
-	// proxy.
-	Bypass []string
-
-	// Routing adds headers, body fields, and secrets to requests for
-	// matching destinations.
-	Routing []NetworkProxyRoute
-}
-
-// NetworkProxyRoute adds to outbound requests for matching destinations.
-type NetworkProxyRoute struct {
-	// Destinations are the domains this route applies to.
-	Destinations []string
-
-	// Headers are added to matching requests.
-	Headers map[string]string
-
-	// Body fields are added to matching requests.
-	Body map[string]string
-
-	// Secrets are added to matching requests. Write-only: never returned.
-	Secrets map[string]string
-}
-
 // FileSystem is a sandbox's filesystem configuration. It is set at creation
 // and cannot be updated. The filesystem is held in memory, so files written
 // count against the sandbox's memory.
@@ -289,10 +243,6 @@ func infoFromAPI(sandbox *managementapi.Sandbox) (Info, error) {
 			return Info{}, err
 		}
 		info.Lifecycle = &lifecycle
-	}
-	if sandbox.Network != nil {
-		network := networkFromAPI(sandbox.Network)
-		info.Network = &network
 	}
 	if sandbox.Filesystem != nil {
 		fileSystem, err := fileSystemFromAPI(sandbox.Filesystem)
@@ -435,54 +385,6 @@ func portsFromAPI(ports []managementapi.SandboxPort) []Port {
 			Name:     deref(port.Name),
 			Protocol: PortProtocol(deref(port.Protocol)),
 		})
-	}
-	return result
-}
-
-func networkToAPI(network *Network) *managementapi.SandboxNetwork {
-	if network == nil {
-		return nil
-	}
-	result := &managementapi.SandboxNetwork{Subnet: optional(network.Subnet)}
-	if proxy := network.Proxy; proxy != nil {
-		apiProxy := &managementapi.SandboxProxyConfig{
-			AllowedDomains:   optionalSlice(proxy.AllowedDomains),
-			ForbiddenDomains: optionalSlice(proxy.ForbiddenDomains),
-			Bypass:           optionalSlice(proxy.Bypass),
-		}
-		if proxy.Routing != nil {
-			routes := make([]managementapi.SandboxProxyTarget, 0, len(proxy.Routing))
-			for _, route := range proxy.Routing {
-				routes = append(routes, managementapi.SandboxProxyTarget{
-					Destinations: optionalSlice(route.Destinations),
-					Headers:      optionalMap(route.Headers),
-					Body:         optionalMap(route.Body),
-					Secrets:      optionalMap(route.Secrets),
-				})
-			}
-			apiProxy.Routing = &routes
-		}
-		result.Proxy = apiProxy
-	}
-	return result
-}
-
-func networkFromAPI(network *managementapi.SandboxNetwork) Network {
-	result := Network{Subnet: deref(network.Subnet)}
-	if proxy := network.Proxy; proxy != nil {
-		result.Proxy = &NetworkProxy{
-			AllowedDomains:   deref(proxy.AllowedDomains),
-			ForbiddenDomains: deref(proxy.ForbiddenDomains),
-			Bypass:           deref(proxy.Bypass),
-		}
-		for _, route := range deref(proxy.Routing) {
-			result.Proxy.Routing = append(result.Proxy.Routing, NetworkProxyRoute{
-				Destinations: deref(route.Destinations),
-				Headers:      deref(route.Headers),
-				Body:         deref(route.Body),
-				Secrets:      deref(route.Secrets),
-			})
-		}
 	}
 	return result
 }

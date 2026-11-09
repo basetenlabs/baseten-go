@@ -70,14 +70,14 @@ func (e *ResponseErrorResponse) Error() string {
 
 // DeleteDrivesMount: Detach a drive from a local path
 //
-// Returns [*ResponseErrorResponse] on HTTP 400, 404, 500.
+// Returns [*ResponseErrorResponse] on HTTP 400, 500.
 func (c *Client) DeleteDrivesMount(ctx context.Context, mountPath string) (*DriveUnmountResponse, error) {
 	return doJSON[DriveUnmountResponse](c, ctx, apiRequest{
 		method:       "DELETE",
 		pathFmt:      "/drives/mount/%s",
 		pathArgs:     []any{mountPath},
 		successCodes: []int{200},
-		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 404: errorTypeErrorResponse, 500: errorTypeErrorResponse},
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
 }
 
@@ -328,12 +328,11 @@ func (c *Client) GetFilesystemSearch(ctx context.Context, path string, params Ge
 // GetFilesystemTree: Get directory tree
 //
 // Returns [*ResponseErrorResponse] on HTTP 400, 422, 500.
-func (c *Client) GetFilesystemTree(ctx context.Context, path string, params GetFilesystemTreePathParams) (*Directory, error) {
+func (c *Client) GetFilesystemTree(ctx context.Context, path string) (*Directory, error) {
 	return doJSON[Directory](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/filesystem/tree/%s",
 		pathArgs:     []any{path},
-		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 422: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
@@ -517,7 +516,7 @@ func (c *Client) PostArchiveResume(ctx context.Context) (*QuiesceStatus, error) 
 
 // PostDrivesMount: Attach a drive to a local path
 //
-// Returns [*ResponseErrorResponse] on HTTP 400, 403, 409, 500, 507.
+// Returns [*ResponseErrorResponse] on HTTP 400, 403, 409, 500.
 func (c *Client) PostDrivesMount(ctx context.Context, body DriveMountRequest) (*DriveMountResponse, error) {
 	return doJSON[DriveMountResponse](c, ctx, apiRequest{
 		method:       "POST",
@@ -525,7 +524,7 @@ func (c *Client) PostDrivesMount(ctx context.Context, body DriveMountRequest) (*
 		pathArgs:     nil,
 		body:         body,
 		successCodes: []int{200},
-		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 403: errorTypeErrorResponse, 409: errorTypeErrorResponse, 500: errorTypeErrorResponse, 507: errorTypeErrorResponse},
+		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 403: errorTypeErrorResponse, 409: errorTypeErrorResponse, 500: errorTypeErrorResponse},
 	})
 }
 
@@ -539,20 +538,6 @@ func (c *Client) PostEnvironmentReload(ctx context.Context) (*HandlerReloadRespo
 		pathArgs:     nil,
 		successCodes: []int{200},
 		errorCodes:   map[int]errorType{404: errorTypeErrorResponse, 500: errorTypeErrorResponse},
-	})
-}
-
-// PostFilesystemCopy: Copy a file or directory
-//
-// Returns [*ResponseErrorResponse] on HTTP 400, 409, 422.
-func (c *Client) PostFilesystemCopy(ctx context.Context, body CopyRequest) (*CopyResponse, error) {
-	return doJSON[CopyResponse](c, ctx, apiRequest{
-		method:       "POST",
-		pathFmt:      "/filesystem-copy",
-		pathArgs:     nil,
-		body:         body,
-		successCodes: []int{200},
-		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 409: errorTypeErrorResponse, 422: errorTypeErrorResponse},
 	})
 }
 
@@ -647,7 +632,7 @@ func (c *Client) PostProcessStdin(ctx context.Context, identifier string, req Ad
 
 // PostUpgrade: Upgrade the sandbox-api
 //
-// Returns [*ResponseErrorResponse] on HTTP 400, 500.
+// Returns [*ResponseErrorResponse] on HTTP 500.
 func (c *Client) PostUpgrade(ctx context.Context, body UpgradeRequest) (*SuccessResponse, error) {
 	return doJSON[SuccessResponse](c, ctx, apiRequest{
 		method:       "POST",
@@ -655,7 +640,7 @@ func (c *Client) PostUpgrade(ctx context.Context, body UpgradeRequest) (*Success
 		pathArgs:     nil,
 		body:         body,
 		successCodes: []int{200},
-		errorCodes:   map[int]errorType{400: errorTypeErrorResponse, 500: errorTypeErrorResponse},
+		errorCodes:   map[int]errorType{500: errorTypeErrorResponse},
 	})
 }
 

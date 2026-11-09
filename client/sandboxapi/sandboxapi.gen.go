@@ -239,20 +239,6 @@ type ContentSearchResponse struct {
 	Total   int                  `json:"total"`
 }
 
-// CopyRequest defines model for CopyRequest.
-type CopyRequest struct {
-	Destination string `json:"destination"`
-	NoOverwrite *bool  `json:"noOverwrite,omitempty"`
-	Source      string `json:"source"`
-}
-
-// CopyResponse defines model for CopyResponse.
-type CopyResponse struct {
-	Destination string `json:"destination"`
-	Message     string `json:"message"`
-	Source      string `json:"source"`
-}
-
 // DeleteNetworkProcessMonitorResponse defines model for DeleteNetworkProcessMonitorResponse.
 type DeleteNetworkProcessMonitorResponse map[string]interface{}
 
@@ -261,11 +247,6 @@ type Directory struct {
 	Files []File `json:"files"`
 	Name  string `json:"name"`
 	Path  string `json:"path"`
-
-	// Recursive Recursive is true when files and subdirectories hold every level below
-	// path (tree read with recursive=true). Older APIs ignore that parameter
-	// and omit this field, so clients can tell a one-level listing apart.
-	Recursive *bool `json:"recursive,omitempty"`
 
 	// Subdirectories @name Subdirectories
 	Subdirectories []Subdirectory `json:"subdirectories"`
@@ -333,8 +314,7 @@ type DriveUnmountResponse struct {
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
-	Code  *string `json:"code,omitempty"`
-	Error string  `json:"error"`
+	Error string `json:"error"`
 }
 
 // ExportOptions defines model for ExportOptions.
@@ -421,15 +401,13 @@ type ExportResult struct {
 
 // File defines model for File.
 type File struct {
-	// Content Content is set only by a tree read with content=true, for regular files.
-	Content      *string `json:"content,omitempty"`
-	Group        string  `json:"group"`
-	LastModified string  `json:"lastModified"`
-	Name         string  `json:"name"`
-	Owner        string  `json:"owner"`
-	Path         string  `json:"path"`
-	Permissions  string  `json:"permissions"`
-	Size         int     `json:"size"`
+	Group        string `json:"group"`
+	LastModified string `json:"lastModified"`
+	Name         string `json:"name"`
+	Owner        string `json:"owner"`
+	Path         string `json:"path"`
+	Permissions  string `json:"permissions"`
+	Size         int    `json:"size"`
 }
 
 // FileRequest defines model for FileRequest.
@@ -757,10 +735,10 @@ type TunnelConfigRequest struct {
 
 // UpgradeRequest defines model for UpgradeRequest.
 type UpgradeRequest struct {
-	// BaseUrl Deprecated: custom binary sources are not accepted
+	// BaseUrl Base URL for releases (useful for forks)
 	BaseUrl *string `json:"baseUrl,omitempty"`
 
-	// Version Version to upgrade to: "latest" (default), "develop", "main", or a release tag like "v1.0.0"
+	// Version Version to upgrade to: "latest" (default), "develop", "main", or specific tag like "v1.0.0"
 	Version *string `json:"version,omitempty"`
 }
 
@@ -881,30 +859,6 @@ type DeleteFilesystemTreePathParams struct {
 	Recursive *bool `form:"recursive,omitempty" json:"recursive,omitempty"`
 }
 
-// GetFilesystemTreePathParams defines parameters for GetFilesystemTreePath.
-type GetFilesystemTreePathParams struct {
-	// Recursive List every file and directory below the path, not only its direct children (default: false)
-	Recursive *bool `form:"recursive,omitempty" json:"recursive,omitempty"`
-
-	// Content Include the content of each regular file, as UTF-8 text (default: false)
-	Content *bool `form:"content,omitempty" json:"content,omitempty"`
-
-	// Patterns Comma-separated glob patterns matched against file names (e.g., *.json,*.md). Directories are not filtered.
-	Patterns *string `form:"patterns,omitempty" json:"patterns,omitempty"`
-
-	// ExcludeDirs Comma-separated directory names to skip with everything below them (default: none)
-	ExcludeDirs *string `form:"excludeDirs,omitempty" json:"excludeDirs,omitempty"`
-
-	// ExcludeHidden Skip files and directories whose name starts with a dot (default: false)
-	ExcludeHidden *bool `form:"excludeHidden,omitempty" json:"excludeHidden,omitempty"`
-
-	// MaxFiles Fail with 422 when more files match (default: 10000 with recursive or content, otherwise unlimited; at most 100000)
-	MaxFiles *int `form:"maxFiles,omitempty" json:"maxFiles,omitempty"`
-
-	// MaxBytes With content=true, fail with 422 when the matching files hold more bytes (default: 33554432, 32 MiB; at most 268435456, 256 MiB)
-	MaxBytes *int `form:"maxBytes,omitempty" json:"maxBytes,omitempty"`
-}
-
 // DeleteFilesystemPathParams defines parameters for DeleteFilesystemPath.
 type DeleteFilesystemPathParams struct {
 	// Recursive Delete directory recursively
@@ -931,7 +885,7 @@ type PutFilesystemPathMultipartBody struct {
 
 // GetWatchFilesystemPathParams defines parameters for GetWatchFilesystemPath.
 type GetWatchFilesystemPathParams struct {
-	// Ignore Comma-separated substrings; events whose full path contains one are skipped, and matching directories are not watched at all
+	// Ignore Comma-separated substrings; events whose full path contains one are skipped
 	Ignore *string `form:"ignore,omitempty" json:"ignore,omitempty"`
 }
 
@@ -943,9 +897,6 @@ type PutCodegenFastapplyPathJSONRequestBody = ApplyEditRequest
 
 // PostDrivesMountJSONRequestBody defines body for PostDrivesMount for application/json ContentType.
 type PostDrivesMountJSONRequestBody = DriveMountRequest
-
-// PostFilesystemCopyJSONRequestBody defines body for PostFilesystemCopy for application/json ContentType.
-type PostFilesystemCopyJSONRequestBody = CopyRequest
 
 // PostFilesystemMultipartInitiatePathJSONRequestBody defines body for PostFilesystemMultipartInitiatePath for application/json ContentType.
 type PostFilesystemMultipartInitiatePathJSONRequestBody = MultipartInitiateRequest

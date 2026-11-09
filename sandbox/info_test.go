@@ -37,7 +37,6 @@ func TestInfoFromAPI(t *testing.T) {
 				]
 			},
 			"ports": [{"target": 8080, "name": "api", "protocol": "HTTP"}],
-			"network": {"subnet": "", "proxy": {"allowed_domains": ["example.com"], "routing": [{"destinations": ["api.example.com"], "headers": {"X": "y"}}]}},
 			"filesystem": {"max_memory_usage": "80%"},
 			"created_at": "2026-10-01T00:00:00Z", "expires_in": 90
 		}`))
@@ -60,8 +59,6 @@ func TestInfoFromAPI(t *testing.T) {
 		require.Equal(t, ExpirationAction("ARCHIVE"), policies[2].Action)
 		require.Equal(t, 7*day, policies[2].After)
 		require.Equal(t, Port{Target: 8080, Name: "api", Protocol: PortProtocolHTTP}, info.Ports[0])
-		require.Equal(t, "example.com", info.Network.Proxy.AllowedDomains[0])
-		require.MapEqual(t, info.Network.Proxy.Routing[0].Headers, "X", "y")
 		require.Equal(t, FileSystem{MaxMemoryUsage: "80%"}, *info.FileSystem)
 		require.Equal(t, 90*time.Second, info.ExpiresIn)
 		require.True(t, info.UpdatedAt.IsZero(), "unset UpdatedAt is zero")
@@ -72,7 +69,6 @@ func TestInfoFromAPI(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, "", info.URL)
 		require.Nil(t, info.Lifecycle)
-		require.Nil(t, info.Network)
 		require.Nil(t, info.FileSystem)
 		// Collections are always set, so callers can range and index them.
 		require.True(t, info.Envs != nil && info.Labels != nil && info.Ports != nil, "collections must be set")
@@ -141,17 +137,6 @@ func TestEnvsToAPI(t *testing.T) {
 	}
 	require.MapEqual(t, secrets, "A", true)
 	require.MapEqual(t, secrets, "B", false)
-}
-
-func TestNetworkToAPI(t *testing.T) {
-	require.Nil(t, networkToAPI(nil))
-	raw, err := json.Marshal(networkToAPI(&Network{Proxy: &NetworkProxy{
-		Bypass:  []string{},
-		Routing: []NetworkProxyRoute{{Destinations: []string{"api.example.com"}, Secrets: map[string]string{"K": "v"}}},
-	}}))
-	require.NoError(t, err)
-	// Unset fields are omitted, set but empty ones sent.
-	require.Equal(t, `{"proxy":{"bypass":[],"routing":[{"destinations":["api.example.com"],"secrets":{"K":"v"}}]}}`, string(raw))
 }
 
 func TestFileSystemToAPI(t *testing.T) {
