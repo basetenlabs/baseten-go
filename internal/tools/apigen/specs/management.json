@@ -38697,6 +38697,23 @@
                         ],
                         "description": "Resolved model metadata; for a router, the envelope of its allowed routes' metadata. Null when nothing is linked."
                     },
+                    "preferred_api_format": {
+                        "anyOf": [
+                            {
+                                "enum": [
+                                    "messages",
+                                    "responses",
+                                    "chat_completions"
+                                ],
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "API format to call the route with: the first format `metadata.supported_api_formats` advertises, in the order `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target. Null when the metadata advertises no formats.",
+                        "title": "Preferred Api Format"
+                    },
                     "invoke_url": {
                         "description": "Base URL for inference requests using this route.",
                         "title": "Invoke Url",
@@ -38718,6 +38735,7 @@
                     "description",
                     "target",
                     "metadata",
+                    "preferred_api_format",
                     "invoke_url",
                     "created_at"
                 ],

@@ -845,6 +845,27 @@ func (e GridProvider) Valid() bool {
 	}
 }
 
+// Defines values for GridRoutePreferredApiFormat.
+const (
+	GridRoutePreferredApiFormat_chat_completions GridRoutePreferredApiFormat = "chat_completions"
+	GridRoutePreferredApiFormat_messages         GridRoutePreferredApiFormat = "messages"
+	GridRoutePreferredApiFormat_responses        GridRoutePreferredApiFormat = "responses"
+)
+
+// Valid indicates whether the value is a known member of the GridRoutePreferredApiFormat enum.
+func (e GridRoutePreferredApiFormat) Valid() bool {
+	switch e {
+	case GridRoutePreferredApiFormat_chat_completions:
+		return true
+	case GridRoutePreferredApiFormat_messages:
+		return true
+	case GridRoutePreferredApiFormat_responses:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for GridRouteClassifierSupportedTradeoffs.
 const (
 	GridRouteClassifierSupportedTradeoffs_balanced     GridRouteClassifierSupportedTradeoffs = "balanced"
@@ -6191,6 +6212,9 @@ type GridRoute struct {
 	// Name Name to send in the inference request's model field.
 	Name string `json:"name"`
 
+	// PreferredApiFormat API format to call the route with: the first format `metadata.supported_api_formats` advertises, in the order `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target. Null when the metadata advertises no formats.
+	PreferredApiFormat *GridRoutePreferredApiFormat `json:"preferred_api_format"`
+
 	// Target Configured upstream target.
 	Target GridRoute_Target `json:"target"`
 
@@ -6200,6 +6224,9 @@ type GridRoute struct {
 	// TeamName Name of the owning team.
 	TeamName string `json:"team_name"`
 }
+
+// GridRoutePreferredApiFormat API format to call the route with: the first format `metadata.supported_api_formats` advertises, in the order `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target. Null when the metadata advertises no formats.
+type GridRoutePreferredApiFormat string
 
 // GridRoute_Target Configured upstream target.
 type GridRoute_Target struct {
