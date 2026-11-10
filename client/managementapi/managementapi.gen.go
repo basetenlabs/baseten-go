@@ -6212,7 +6212,7 @@ type GridRoute struct {
 	// Name Name to send in the inference request's model field.
 	Name string `json:"name"`
 
-	// PreferredApiFormat API format to call the route with: the first format `metadata.supported_api_formats` advertises, in the order `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target. Null when the metadata advertises no formats.
+	// PreferredApiFormat API format to call the route with: the first format `metadata.supported_api_formats` advertises, in the order `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target. Null when the route has no metadata or its metadata has no `supported_api_formats`.
 	PreferredApiFormat *GridRoutePreferredApiFormat `json:"preferred_api_format"`
 
 	// Target Configured upstream target.
@@ -6225,7 +6225,7 @@ type GridRoute struct {
 	TeamName string `json:"team_name"`
 }
 
-// GridRoutePreferredApiFormat API format to call the route with: the first format `metadata.supported_api_formats` advertises, in the order `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target. Null when the metadata advertises no formats.
+// GridRoutePreferredApiFormat API format to call the route with: the first format `metadata.supported_api_formats` advertises, in the order `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target. Null when the route has no metadata or its metadata has no `supported_api_formats`.
 type GridRoutePreferredApiFormat string
 
 // GridRoute_Target Configured upstream target.

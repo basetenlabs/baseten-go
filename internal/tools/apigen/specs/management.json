@@ -38705,14 +38705,14 @@
                                     "responses",
                                     "chat_completions"
                                 ],
+                                "title": "GridRouteAPIFormatV1",
                                 "type": "string"
                             },
                             {
                                 "type": "null"
                             }
                         ],
-                        "description": "API format to call the route with: the first format `metadata.supported_api_formats` advertises, in the order `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target. Null when the metadata advertises no formats.",
-                        "title": "Preferred Api Format"
+                        "description": "API format to call the route with: the first format `metadata.supported_api_formats` advertises, in the order `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target. Null when the route has no metadata or its metadata has no `supported_api_formats`."
                     },
                     "invoke_url": {
                         "description": "Base URL for inference requests using this route.",
