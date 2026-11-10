@@ -4013,8 +4013,11 @@ type CreateLoopsRunRequest struct {
 	// AvailabilityModel Capacity a training job or Loops trainer runs on.
 	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
 
-	// BaseCheckpoint Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in the team secret hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
+	// BaseCheckpoint Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in a team secret: the one named in base_checkpoint_auth, else hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
 	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
+
+	// BaseCheckpointAuth Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, the team secret hf_access_token is used if it exists. Requires base_checkpoint.
+	BaseCheckpointAuth *TrainingWeightAuth `json:"base_checkpoint_auth,omitempty"`
 
 	// BaseModel Base model ID (e.g. 'Qwen/Qwen3-8B').
 	BaseModel string `json:"base_model"`
@@ -4103,8 +4106,11 @@ type CreateLoopsTrainerRequest struct {
 	// AvailabilityModel Capacity a training job or Loops trainer runs on.
 	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
 
-	// BaseCheckpoint Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in the team secret hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
+	// BaseCheckpoint Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in a team secret: the one named in base_checkpoint_auth, else hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
 	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
+
+	// BaseCheckpointAuth Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, the team secret hf_access_token is used if it exists. Requires base_checkpoint.
+	BaseCheckpointAuth *TrainingWeightAuth `json:"base_checkpoint_auth,omitempty"`
 
 	// BaseModel Base model ID (e.g. 'Qwen/Qwen3-8B').
 	BaseModel string `json:"base_model"`
@@ -4909,6 +4915,9 @@ type Deployment struct {
 
 	// Environment The environment associated with the deployment
 	Environment *string `json:"environment"`
+
+	// FailureReason Why the deployment failed. Set only when the status is DEPLOY_FAILED; null otherwise.
+	FailureReason *string `json:"failure_reason,omitempty"`
 
 	// Id Unique identifier of the deployment
 	Id string `json:"id"`
@@ -11482,6 +11491,9 @@ type GetV1ModelApisModelApiNameMetricsParams struct {
 
 	// Metrics Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_model_api_inference_requests_total, baseten_model_api_incoming_inference_requests_total, and baseten_model_api_tokens_total. Unknown names are rejected; valid names that are not enabled for your organization are omitted from the response.
 	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
+
+	// TeamIds Return only metrics for these teams, repeated once per team. Defaults to all teams you can manage. Any unauthorized team causes a 403.
+	TeamIds *[]string `form:"team_ids,omitempty" json:"team_ids,omitempty"`
 }
 
 // GetV1ModelsParams defines parameters for GetV1Models.
