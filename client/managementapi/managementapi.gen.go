@@ -67,12 +67,15 @@ func (e AuditLogActorType) Valid() bool {
 
 // Defines values for AuditLogApiKeyRevocationReason.
 const (
-	AuditLogApiKeyRevocationReason_INACTIVITY AuditLogApiKeyRevocationReason = "INACTIVITY"
+	AuditLogApiKeyRevocationReason_CREDENTIAL_EXPOSURE AuditLogApiKeyRevocationReason = "CREDENTIAL_EXPOSURE"
+	AuditLogApiKeyRevocationReason_INACTIVITY          AuditLogApiKeyRevocationReason = "INACTIVITY"
 )
 
 // Valid indicates whether the value is a known member of the AuditLogApiKeyRevocationReason enum.
 func (e AuditLogApiKeyRevocationReason) Valid() bool {
 	switch e {
+	case AuditLogApiKeyRevocationReason_CREDENTIAL_EXPOSURE:
+		return true
 	case AuditLogApiKeyRevocationReason_INACTIVITY:
 		return true
 	default:
@@ -2018,6 +2021,27 @@ func (e UpdateAutoscalingSettingsStatus) Valid() bool {
 	}
 }
 
+// Defines values for UpsertGridRouteTargetIntelligentTradeoff.
+const (
+	UpsertGridRouteTargetIntelligentTradeoff_balanced     UpsertGridRouteTargetIntelligentTradeoff = "balanced"
+	UpsertGridRouteTargetIntelligentTradeoff_cost         UpsertGridRouteTargetIntelligentTradeoff = "cost"
+	UpsertGridRouteTargetIntelligentTradeoff_intelligence UpsertGridRouteTargetIntelligentTradeoff = "intelligence"
+)
+
+// Valid indicates whether the value is a known member of the UpsertGridRouteTargetIntelligentTradeoff enum.
+func (e UpsertGridRouteTargetIntelligentTradeoff) Valid() bool {
+	switch e {
+	case UpsertGridRouteTargetIntelligentTradeoff_balanced:
+		return true
+	case UpsertGridRouteTargetIntelligentTradeoff_cost:
+		return true
+	case UpsertGridRouteTargetIntelligentTradeoff_intelligence:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for UsageDimension.
 const (
 	UsageDimension_api_key UsageDimension = "api_key"
@@ -3784,17 +3808,17 @@ type CreateGridRouteRequest struct {
 	// Description Short description of the route. Omit for no description; null is not accepted.
 	Description *string `json:"description,omitempty"`
 
-	// DisplayName Display label. Omit to use the route name; null is not accepted.
+	// DisplayName Display label. Omit to use the route name; required for INTELLIGENT targets. Null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
 
-	// Target Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team.
+	// Target Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team. INTELLIGENT targets need at least one of the route classifier's models, and one of its fallback models, servable by the team.
 	Target CreateGridRouteRequest_Target `json:"target"`
 
 	// TeamId Identifier of the team that owns the route.
 	TeamId *string `json:"team_id,omitempty"`
 }
 
-// CreateGridRouteRequest_Target Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team.
+// CreateGridRouteRequest_Target Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team. INTELLIGENT targets need at least one of the route classifier's models, and one of its fallback models, servable by the team.
 type CreateGridRouteRequest_Target struct {
 	union json.RawMessage
 }
@@ -4724,7 +4748,7 @@ type DedicatedUsage struct {
 	// Minutes Total minutes used
 	Minutes int `json:"minutes"`
 
-	// Subtotal Subtotal cost in dollars after applying credits used
+	// Subtotal Usage charges in dollars before applying credits
 	Subtotal DedicatedUsage_Subtotal `json:"subtotal"`
 
 	// Total Total cost in dollars
@@ -4748,7 +4772,7 @@ type DedicatedUsageSubtotal0 = float32
 // DedicatedUsageSubtotal1 defines model for .
 type DedicatedUsageSubtotal1 = string
 
-// DedicatedUsage_Subtotal Subtotal cost in dollars after applying credits used
+// DedicatedUsage_Subtotal Usage charges in dollars before applying credits
 type DedicatedUsage_Subtotal struct {
 	union json.RawMessage
 }
@@ -4762,6 +4786,15 @@ type DedicatedUsageTotal1 = string
 // DedicatedUsage_Total Total cost in dollars
 type DedicatedUsage_Total struct {
 	union json.RawMessage
+}
+
+// DeleteLoopsRunResponse A Loops run whose delete was accepted.
+type DeleteLoopsRunResponse struct {
+	// Id The deleted Loops run ID.
+	Id string `json:"id"`
+
+	// KeptCheckpoints The run's checkpoints that were not deleted because something still uses them, such as a deployment. They stay usable until that stops.
+	KeptCheckpoints []LoopsCheckpoint `json:"kept_checkpoints"`
 }
 
 // DeleteVolumeRequest defines model for DeleteVolumeRequest.
@@ -5955,22 +5988,6 @@ type GitInfo struct {
 	LatestTag             *string `json:"latest_tag"`
 }
 
-// GridClassifier defines model for GridClassifier.
-type GridClassifier struct {
-	// Id Stable classifier identifier.
-	Id string `json:"id"`
-
-	// Name Display name of the classifier.
-	Name string `json:"name"`
-}
-
-// GridClassifiersResponse defines model for GridClassifiersResponse.
-type GridClassifiersResponse struct {
-	// Items Items in this page.
-	Items      []GridClassifier   `json:"items"`
-	Pagination PaginationResponse `json:"pagination"`
-}
-
 // GridConnection defines model for GridConnection.
 type GridConnection struct {
 	// Config Provider the connection authenticates with, and the team secret holding its API key.
@@ -6185,7 +6202,7 @@ type GridRoute struct {
 	// InvokeUrl Base URL for inference requests using this route.
 	InvokeUrl string `json:"invoke_url"`
 
-	// Metadata Resolved model metadata; for a router, the envelope of its allowed routes' metadata. Null when nothing is linked.
+	// Metadata Resolved model metadata; for an intelligent route, the envelope of its servable models' metadata. Null when nothing is linked.
 	Metadata *ExploreMetadata `json:"metadata"`
 
 	// Name Name to send in the inference request's model field.
@@ -6231,34 +6248,12 @@ type GridRouteClassifiersResponse struct {
 	Pagination PaginationResponse    `json:"pagination"`
 }
 
-// GridRouteRef defines model for GridRouteRef.
-type GridRouteRef struct {
-	// Id Stable route identifier.
-	Id string `json:"id"`
-
-	// Slug Name of the route to send in the inference request's model field.
-	Slug string `json:"slug"`
-}
-
 // GridRouteTargetBasetenModelAPI defines model for GridRouteTargetBasetenModelAPI.
 type GridRouteTargetBasetenModelAPI struct {
 	// Model Name of the target Model API.
 	Model string `json:"model"`
 
 	// Type Target kind for a Baseten Model API.
-	Type string `json:"type"`
-}
-
-// GridRouteTargetClassifier defines model for GridRouteTargetClassifier.
-type GridRouteTargetClassifier struct {
-	// AllowedRoutes Routes the classifier may pick, in creation order.
-	AllowedRoutes []GridRouteRef `json:"allowed_routes"`
-
-	// Classifier Classifier that picks a route for each request. Null for routers created before classifiers could be selected.
-	Classifier   *GridClassifier `json:"classifier"`
-	DefaultRoute GridRouteRef    `json:"default_route"`
-
-	// Type Target kind for a classifier-based route.
 	Type string `json:"type"`
 }
 
@@ -7082,6 +7077,29 @@ type LoopsCheckpointSourceResponse_Source struct {
 	union json.RawMessage
 }
 
+// LoopsCheckpointTombstone A Loops checkpoint whose delete was accepted.
+type LoopsCheckpointTombstone struct {
+	// CheckpointId The name the checkpoint was saved under.
+	CheckpointId string `json:"checkpoint_id"`
+
+	// Id The deleted checkpoint ID.
+	Id string `json:"id"`
+
+	// Path The checkpoint's bt:// path.
+	Path string `json:"path"`
+
+	// RunId The ID of the run that produced the checkpoint.
+	RunId string `json:"run_id"`
+
+	// Target Whether a TrainerServerCheckpoint is loadable by the sampler or the trainer.
+	//
+	// SAMPLER checkpoints are consumed by the sampling server for inference;
+	// TRAINER checkpoints capture full trainer state for resuming training.
+	// Mirrored in the bt:// URI as
+	// ``bt://loops:<trainer_id>/(sampler_weights|weights)/<name>``.
+	Target TrainerCheckpointTarget `json:"target"`
+}
+
 // LoopsCheckpointVolumeSource The checkpoint's files are pulled from a Baseten volume.
 type LoopsCheckpointVolumeSource struct {
 	Kind *string `json:"kind,omitempty"`
@@ -7718,6 +7736,12 @@ type ModelApiItem struct {
 
 	// Subtotal Subtotal cost in dollars for this model
 	Subtotal ModelApiItem_Subtotal `json:"subtotal"`
+
+	// TeamId Team ID for multi-team organizations; otherwise null
+	TeamId *string `json:"team_id,omitempty"`
+
+	// TeamName Team name, including historical teams; null if unavailable
+	TeamName *string `json:"team_name,omitempty"`
 }
 
 // ModelApiItemSubtotal0 defines model for .
@@ -7772,16 +7796,16 @@ type ModelApisCostsResponse struct {
 
 // ModelApisUsage defines model for ModelApisUsage.
 type ModelApisUsage struct {
-	// Breakdown Per-model usage breakdown
+	// Breakdown Per-model usage breakdown, split by team for multi-team organizations
 	Breakdown *[]ModelApiItem `json:"breakdown,omitempty"`
 
 	// CreditsUsed Credits applied in dollars
 	CreditsUsed ModelApisUsage_CreditsUsed `json:"credits_used"`
 
-	// Subtotal Subtotal cost in dollars after applying credits used
+	// Subtotal Usage charges in dollars before applying credits
 	Subtotal ModelApisUsage_Subtotal `json:"subtotal"`
 
-	// Total Total cost in dollars
+	// Total Usage charges in dollars after applying credits, floored at zero
 	Total ModelApisUsage_Total `json:"total"`
 }
 
@@ -7802,7 +7826,7 @@ type ModelApisUsageSubtotal0 = float32
 // ModelApisUsageSubtotal1 defines model for .
 type ModelApisUsageSubtotal1 = string
 
-// ModelApisUsage_Subtotal Subtotal cost in dollars after applying credits used
+// ModelApisUsage_Subtotal Usage charges in dollars before applying credits
 type ModelApisUsage_Subtotal struct {
 	union json.RawMessage
 }
@@ -7813,7 +7837,7 @@ type ModelApisUsageTotal0 = float32
 // ModelApisUsageTotal1 defines model for .
 type ModelApisUsageTotal1 = string
 
-// ModelApisUsage_Total Total cost in dollars
+// ModelApisUsage_Total Usage charges in dollars after applying credits, floored at zero
 type ModelApisUsage_Total struct {
 	union json.RawMessage
 }
@@ -9802,7 +9826,7 @@ type TrainingUsage struct {
 	// Minutes Total minutes used
 	Minutes int `json:"minutes"`
 
-	// Subtotal Subtotal cost in dollars after applying credits used
+	// Subtotal Usage charges in dollars before applying credits
 	Subtotal TrainingUsage_Subtotal `json:"subtotal"`
 
 	// Total Total cost in dollars
@@ -9826,7 +9850,7 @@ type TrainingUsageSubtotal0 = float32
 // TrainingUsageSubtotal1 defines model for .
 type TrainingUsageSubtotal1 = string
 
-// TrainingUsage_Subtotal Subtotal cost in dollars after applying credits used
+// TrainingUsage_Subtotal Usage charges in dollars before applying credits
 type TrainingUsage_Subtotal struct {
 	union json.RawMessage
 }
@@ -10087,14 +10111,6 @@ type UpdateGridRouteRequest struct {
 
 	// DisplayName New display label. Omit to keep the current label; null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
-
-	// Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER configuration of a router route is mutable.
-	Target Optional[UpdateGridRouteRequest_Target] `json:"target,omitzero"`
-}
-
-// UpdateGridRouteRequest_Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER configuration of a router route is mutable.
-type UpdateGridRouteRequest_Target struct {
-	union json.RawMessage
 }
 
 // UpdateGridSpendLimitSetting defines model for UpdateGridSpendLimitSetting.
@@ -10417,21 +10433,6 @@ type UpsertGridRouteTargetBasetenModelAPI struct {
 	Type string `json:"type"`
 }
 
-// UpsertGridRouteTargetClassifier defines model for UpsertGridRouteTargetClassifier.
-type UpsertGridRouteTargetClassifier struct {
-	// AllowedRouteIds IDs of the routes the classifier may pick. All must belong to the route's team and must not be routers themselves.
-	AllowedRouteIds []string `json:"allowed_route_ids"`
-
-	// ClassifierId ID of the classifier that picks a route for each request.
-	ClassifierId string `json:"classifier_id"`
-
-	// DefaultRouteId ID of the allowed route used when the classifier picks none.
-	DefaultRouteId string `json:"default_route_id"`
-
-	// Type Target kind for a classifier-based route.
-	Type string `json:"type"`
-}
-
 // UpsertGridRouteTargetConnection defines model for UpsertGridRouteTargetConnection.
 type UpsertGridRouteTargetConnection struct {
 	// ConnectionId Identifier of a connection owned by the route's team. Its provider serves the route.
@@ -10443,6 +10444,21 @@ type UpsertGridRouteTargetConnection struct {
 	// Type Target kind for a provider reached through a team connection.
 	Type string `json:"type"`
 }
+
+// UpsertGridRouteTargetIntelligent defines model for UpsertGridRouteTargetIntelligent.
+type UpsertGridRouteTargetIntelligent struct {
+	// RouteClassifierId Identifier of the route classifier that picks the model. List them with GET /v1/grid/route_classifiers.
+	RouteClassifierId string `json:"route_classifier_id"`
+
+	// Tradeoff How the classifier weighs cost against quality. Must be one of the classifier's supported tradeoffs.
+	Tradeoff UpsertGridRouteTargetIntelligentTradeoff `json:"tradeoff"`
+
+	// Type Target kind for an intelligent route: Baseten picks the model per request.
+	Type string `json:"type"`
+}
+
+// UpsertGridRouteTargetIntelligentTradeoff How the classifier weighs cost against quality. Must be one of the classifier's supported tradeoffs.
+type UpsertGridRouteTargetIntelligentTradeoff string
 
 // UpsertSecretRequest A request to create or update a Baseten secret by name.
 type UpsertSecretRequest struct {
@@ -11196,15 +11212,6 @@ type GetV1GatewayEventsParams struct {
 
 	// Cursor Next-page cursor. Other parameters are ignored.
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
-}
-
-// GetV1GridClassifiersParams defines parameters for GetV1GridClassifiers.
-type GetV1GridClassifiersParams struct {
-	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
-
-	// Limit Maximum number of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // GetV1GridConnectionsParams defines parameters for GetV1GridConnections.
@@ -13737,16 +13744,16 @@ func (t *CreateGridRouteRequest_Target) FromUpsertGridRouteTargetConnection(v Up
 	return err
 }
 
-// AsUpsertGridRouteTargetClassifier returns the union data inside the CreateGridRouteRequest_Target as a UpsertGridRouteTargetClassifier
-func (t CreateGridRouteRequest_Target) AsUpsertGridRouteTargetClassifier() (UpsertGridRouteTargetClassifier, error) {
-	var body UpsertGridRouteTargetClassifier
+// AsUpsertGridRouteTargetIntelligent returns the union data inside the CreateGridRouteRequest_Target as a UpsertGridRouteTargetIntelligent
+func (t CreateGridRouteRequest_Target) AsUpsertGridRouteTargetIntelligent() (UpsertGridRouteTargetIntelligent, error) {
+	var body UpsertGridRouteTargetIntelligent
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromUpsertGridRouteTargetClassifier overwrites any union data inside the CreateGridRouteRequest_Target as the provided UpsertGridRouteTargetClassifier
-func (t *CreateGridRouteRequest_Target) FromUpsertGridRouteTargetClassifier(v UpsertGridRouteTargetClassifier) error {
-	v.Type = "CLASSIFIER"
+// FromUpsertGridRouteTargetIntelligent overwrites any union data inside the CreateGridRouteRequest_Target as the provided UpsertGridRouteTargetIntelligent
+func (t *CreateGridRouteRequest_Target) FromUpsertGridRouteTargetIntelligent(v UpsertGridRouteTargetIntelligent) error {
+	v.Type = "INTELLIGENT"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -13768,10 +13775,10 @@ func (t CreateGridRouteRequest_Target) ValueByDiscriminator() (interface{}, erro
 	switch discriminator {
 	case "BASETEN_MODEL_API":
 		return t.AsUpsertGridRouteTargetBasetenModelAPI()
-	case "CLASSIFIER":
-		return t.AsUpsertGridRouteTargetClassifier()
 	case "CONNECTION":
 		return t.AsUpsertGridRouteTargetConnection()
+	case "INTELLIGENT":
+		return t.AsUpsertGridRouteTargetIntelligent()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -14848,21 +14855,6 @@ func (t *GridRoute_Target) FromGridRouteTargetConnection(v GridRouteTargetConnec
 	return err
 }
 
-// AsGridRouteTargetClassifier returns the union data inside the GridRoute_Target as a GridRouteTargetClassifier
-func (t GridRoute_Target) AsGridRouteTargetClassifier() (GridRouteTargetClassifier, error) {
-	var body GridRouteTargetClassifier
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromGridRouteTargetClassifier overwrites any union data inside the GridRoute_Target as the provided GridRouteTargetClassifier
-func (t *GridRoute_Target) FromGridRouteTargetClassifier(v GridRouteTargetClassifier) error {
-	v.Type = "CLASSIFIER"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
 // AsGridRouteTargetIntelligent returns the union data inside the GridRoute_Target as a GridRouteTargetIntelligent
 func (t GridRoute_Target) AsGridRouteTargetIntelligent() (GridRouteTargetIntelligent, error) {
 	var body GridRouteTargetIntelligent
@@ -14894,8 +14886,6 @@ func (t GridRoute_Target) ValueByDiscriminator() (interface{}, error) {
 	switch discriminator {
 	case "BASETEN_MODEL_API":
 		return t.AsGridRouteTargetBasetenModelAPI()
-	case "CLASSIFIER":
-		return t.AsGridRouteTargetClassifier()
 	case "CONNECTION":
 		return t.AsGridRouteTargetConnection()
 	case "INTELLIGENT":
@@ -16113,86 +16103,6 @@ func (t UpdateGridConnectionRequest_Config) MarshalJSON() ([]byte, error) {
 }
 
 func (t *UpdateGridConnectionRequest_Config) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsUpsertGridRouteTargetBasetenModelAPI returns the union data inside the UpdateGridRouteRequest_Target as a UpsertGridRouteTargetBasetenModelAPI
-func (t UpdateGridRouteRequest_Target) AsUpsertGridRouteTargetBasetenModelAPI() (UpsertGridRouteTargetBasetenModelAPI, error) {
-	var body UpsertGridRouteTargetBasetenModelAPI
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromUpsertGridRouteTargetBasetenModelAPI overwrites any union data inside the UpdateGridRouteRequest_Target as the provided UpsertGridRouteTargetBasetenModelAPI
-func (t *UpdateGridRouteRequest_Target) FromUpsertGridRouteTargetBasetenModelAPI(v UpsertGridRouteTargetBasetenModelAPI) error {
-	v.Type = "BASETEN_MODEL_API"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsUpsertGridRouteTargetConnection returns the union data inside the UpdateGridRouteRequest_Target as a UpsertGridRouteTargetConnection
-func (t UpdateGridRouteRequest_Target) AsUpsertGridRouteTargetConnection() (UpsertGridRouteTargetConnection, error) {
-	var body UpsertGridRouteTargetConnection
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromUpsertGridRouteTargetConnection overwrites any union data inside the UpdateGridRouteRequest_Target as the provided UpsertGridRouteTargetConnection
-func (t *UpdateGridRouteRequest_Target) FromUpsertGridRouteTargetConnection(v UpsertGridRouteTargetConnection) error {
-	v.Type = "CONNECTION"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsUpsertGridRouteTargetClassifier returns the union data inside the UpdateGridRouteRequest_Target as a UpsertGridRouteTargetClassifier
-func (t UpdateGridRouteRequest_Target) AsUpsertGridRouteTargetClassifier() (UpsertGridRouteTargetClassifier, error) {
-	var body UpsertGridRouteTargetClassifier
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromUpsertGridRouteTargetClassifier overwrites any union data inside the UpdateGridRouteRequest_Target as the provided UpsertGridRouteTargetClassifier
-func (t *UpdateGridRouteRequest_Target) FromUpsertGridRouteTargetClassifier(v UpsertGridRouteTargetClassifier) error {
-	v.Type = "CLASSIFIER"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-func (t UpdateGridRouteRequest_Target) Discriminator() (string, error) {
-	var discriminator struct {
-		Discriminator string `json:"type"`
-	}
-	err := json.Unmarshal(t.union, &discriminator)
-	return discriminator.Discriminator, err
-}
-
-func (t UpdateGridRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
-	discriminator, err := t.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch discriminator {
-	case "BASETEN_MODEL_API":
-		return t.AsUpsertGridRouteTargetBasetenModelAPI()
-	case "CLASSIFIER":
-		return t.AsUpsertGridRouteTargetClassifier()
-	case "CONNECTION":
-		return t.AsUpsertGridRouteTargetConnection()
-	default:
-		return nil, errors.New("unknown discriminator value: " + discriminator)
-	}
-}
-
-func (t UpdateGridRouteRequest_Target) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *UpdateGridRouteRequest_Target) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
