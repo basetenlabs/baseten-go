@@ -845,27 +845,6 @@ func (e GridProvider) Valid() bool {
 	}
 }
 
-// Defines values for GridRoutePreferredApiFormat.
-const (
-	GridRoutePreferredApiFormat_chat_completions GridRoutePreferredApiFormat = "chat_completions"
-	GridRoutePreferredApiFormat_messages         GridRoutePreferredApiFormat = "messages"
-	GridRoutePreferredApiFormat_responses        GridRoutePreferredApiFormat = "responses"
-)
-
-// Valid indicates whether the value is a known member of the GridRoutePreferredApiFormat enum.
-func (e GridRoutePreferredApiFormat) Valid() bool {
-	switch e {
-	case GridRoutePreferredApiFormat_chat_completions:
-		return true
-	case GridRoutePreferredApiFormat_messages:
-		return true
-	case GridRoutePreferredApiFormat_responses:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for GridRouteClassifierSupportedTradeoffs.
 const (
 	GridRouteClassifierSupportedTradeoffs_balanced     GridRouteClassifierSupportedTradeoffs = "balanced"
@@ -881,6 +860,27 @@ func (e GridRouteClassifierSupportedTradeoffs) Valid() bool {
 	case GridRouteClassifierSupportedTradeoffs_cost:
 		return true
 	case GridRouteClassifierSupportedTradeoffs_intelligence:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GridRouteMetadataApiFormats.
+const (
+	GridRouteMetadataApiFormats_chat_completions GridRouteMetadataApiFormats = "chat_completions"
+	GridRouteMetadataApiFormats_messages         GridRouteMetadataApiFormats = "messages"
+	GridRouteMetadataApiFormats_responses        GridRouteMetadataApiFormats = "responses"
+)
+
+// Valid indicates whether the value is a known member of the GridRouteMetadataApiFormats enum.
+func (e GridRouteMetadataApiFormats) Valid() bool {
+	switch e {
+	case GridRouteMetadataApiFormats_chat_completions:
+		return true
+	case GridRouteMetadataApiFormats_messages:
+		return true
+	case GridRouteMetadataApiFormats_responses:
 		return true
 	default:
 		return false
@@ -6206,14 +6206,11 @@ type GridRoute struct {
 	// InvokeUrl Base URL for inference requests using this route.
 	InvokeUrl string `json:"invoke_url"`
 
-	// Metadata Resolved model metadata; for a router, the envelope of its allowed routes' metadata. Null when nothing is linked.
-	Metadata *ExploreMetadata `json:"metadata"`
+	// Metadata Resolved model metadata; for an intelligent route, the envelope of its servable models' metadata. Null when nothing is linked or the metadata has no supported API formats.
+	Metadata *GridRouteMetadata `json:"metadata"`
 
 	// Name Name to send in the inference request's model field.
 	Name string `json:"name"`
-
-	// PreferredApiFormat API format to call the route with: the first format `metadata.supported_api_formats` advertises, in the order `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target. Null when the route has no metadata or its metadata has no `supported_api_formats`.
-	PreferredApiFormat *GridRoutePreferredApiFormat `json:"preferred_api_format"`
 
 	// Target Configured upstream target.
 	Target GridRoute_Target `json:"target"`
@@ -6224,9 +6221,6 @@ type GridRoute struct {
 	// TeamName Name of the owning team.
 	TeamName string `json:"team_name"`
 }
-
-// GridRoutePreferredApiFormat API format to call the route with: the first format `metadata.supported_api_formats` advertises, in the order `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target. Null when the route has no metadata or its metadata has no `supported_api_formats`.
-type GridRoutePreferredApiFormat string
 
 // GridRoute_Target Configured upstream target.
 type GridRoute_Target struct {
@@ -6257,6 +6251,51 @@ type GridRouteClassifiersResponse struct {
 	Items      []GridRouteClassifier `json:"items"`
 	Pagination PaginationResponse    `json:"pagination"`
 }
+
+// GridRouteMetadata defines model for GridRouteMetadata.
+type GridRouteMetadata struct {
+	// ApiFormats API formats the route supports, most preferred first: `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target, keeping only the formats the route supports. Never empty.
+	ApiFormats []GridRouteMetadataApiFormats `json:"api_formats"`
+
+	// ContextWindow Total context window in tokens.
+	ContextWindow *int `json:"context_window"`
+
+	// Cost Provider list prices in USD per 1M tokens, when available.
+	Cost *ExploreCost `json:"cost"`
+
+	// DisplayName Model display name, when available.
+	DisplayName *string `json:"display_name"`
+
+	// InputModalities Accepted input modalities.
+	InputModalities []string `json:"input_modalities"`
+
+	// MaxOutputTokens Maximum output tokens per response.
+	MaxOutputTokens *int `json:"max_output_tokens"`
+
+	// ParallelToolCalls Whether the model supports parallel tool calls.
+	ParallelToolCalls *bool `json:"parallel_tool_calls"`
+
+	// Provider Provider key derived from the slug prefix, e.g. 'anthropic'; null for unprefixed slugs.
+	Provider *string `json:"provider"`
+
+	// ReasoningEffortLevels Reasoning effort levels the model supports.
+	ReasoningEffortLevels *[]string `json:"reasoning_effort_levels"`
+
+	// ReleaseDate Model release date. Month-only source dates use the first day of that month.
+	ReleaseDate *string `json:"release_date"`
+
+	// Slug Metadata slug, e.g. 'anthropic/claude-opus-4'; null for rows without one.
+	Slug *string `json:"slug"`
+
+	// SupportedApiFormats API formats the model supports.
+	SupportedApiFormats *ExploreMetadataAPIFormats `json:"supported_api_formats"`
+
+	// Tools Whether the model supports tool calling.
+	Tools *bool `json:"tools"`
+}
+
+// GridRouteMetadataApiFormats defines model for GridRouteMetadata.ApiFormats.
+type GridRouteMetadataApiFormats string
 
 // GridRouteRef defines model for GridRouteRef.
 type GridRouteRef struct {

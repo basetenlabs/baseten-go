@@ -38485,6 +38485,184 @@
                 "title": "GridRouteClassifierV1",
                 "type": "object"
             },
+            "GridRouteMetadataV1": {
+                "properties": {
+                    "slug": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Metadata slug, e.g. 'anthropic/claude-opus-4'; null for rows without one.",
+                        "title": "Slug"
+                    },
+                    "display_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Model display name, when available.",
+                        "title": "Display Name"
+                    },
+                    "release_date": {
+                        "anyOf": [
+                            {
+                                "format": "date",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Model release date. Month-only source dates use the first day of that month.",
+                        "title": "Release Date"
+                    },
+                    "provider": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Provider key derived from the slug prefix, e.g. 'anthropic'; null for unprefixed slugs.",
+                        "title": "Provider"
+                    },
+                    "context_window": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Total context window in tokens.",
+                        "title": "Context Window"
+                    },
+                    "max_output_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Maximum output tokens per response.",
+                        "title": "Max Output Tokens"
+                    },
+                    "input_modalities": {
+                        "description": "Accepted input modalities.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Input Modalities",
+                        "type": "array"
+                    },
+                    "tools": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Whether the model supports tool calling.",
+                        "title": "Tools"
+                    },
+                    "reasoning_effort_levels": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Reasoning effort levels the model supports.",
+                        "title": "Reasoning Effort Levels"
+                    },
+                    "parallel_tool_calls": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Whether the model supports parallel tool calls.",
+                        "title": "Parallel Tool Calls"
+                    },
+                    "supported_api_formats": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ExploreMetadataAPIFormatsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "API formats the model supports."
+                    },
+                    "cost": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ExploreCostV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Provider list prices in USD per 1M tokens, when available."
+                    },
+                    "api_formats": {
+                        "description": "API formats the route supports, most preferred first: `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target, keeping only the formats the route supports. Never empty.",
+                        "items": {
+                            "enum": [
+                                "messages",
+                                "responses",
+                                "chat_completions"
+                            ],
+                            "title": "GridRouteAPIFormatV1",
+                            "type": "string"
+                        },
+                        "minItems": 1,
+                        "title": "Api Formats",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "slug",
+                    "display_name",
+                    "release_date",
+                    "provider",
+                    "context_window",
+                    "max_output_tokens",
+                    "input_modalities",
+                    "tools",
+                    "reasoning_effort_levels",
+                    "parallel_tool_calls",
+                    "supported_api_formats",
+                    "cost",
+                    "api_formats"
+                ],
+                "title": "GridRouteMetadataV1",
+                "type": "object"
+            },
             "GridRouteRefV1": {
                 "properties": {
                     "id": {
@@ -38689,30 +38867,13 @@
                     "metadata": {
                         "anyOf": [
                             {
-                                "$ref": "#/components/schemas/ExploreMetadataV1"
+                                "$ref": "#/components/schemas/GridRouteMetadataV1"
                             },
                             {
                                 "type": "null"
                             }
                         ],
-                        "description": "Resolved model metadata; for a router, the envelope of its allowed routes' metadata. Null when nothing is linked."
-                    },
-                    "preferred_api_format": {
-                        "anyOf": [
-                            {
-                                "enum": [
-                                    "messages",
-                                    "responses",
-                                    "chat_completions"
-                                ],
-                                "title": "GridRouteAPIFormatV1",
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "API format to call the route with: the first format `metadata.supported_api_formats` advertises, in the order `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target. Null when the route has no metadata or its metadata has no `supported_api_formats`."
+                        "description": "Resolved model metadata; for an intelligent route, the envelope of its servable models' metadata. Null when nothing is linked or the metadata has no supported API formats."
                     },
                     "invoke_url": {
                         "description": "Base URL for inference requests using this route.",
@@ -38735,7 +38896,6 @@
                     "description",
                     "target",
                     "metadata",
-                    "preferred_api_format",
                     "invoke_url",
                     "created_at"
                 ],
