@@ -869,6 +869,27 @@ func (e GridRouteClassifierSupportedTradeoffs) Valid() bool {
 	}
 }
 
+// Defines values for GridRouteMetadataApiFormats.
+const (
+	GridRouteMetadataApiFormats_chat_completions GridRouteMetadataApiFormats = "chat_completions"
+	GridRouteMetadataApiFormats_messages         GridRouteMetadataApiFormats = "messages"
+	GridRouteMetadataApiFormats_responses        GridRouteMetadataApiFormats = "responses"
+)
+
+// Valid indicates whether the value is a known member of the GridRouteMetadataApiFormats enum.
+func (e GridRouteMetadataApiFormats) Valid() bool {
+	switch e {
+	case GridRouteMetadataApiFormats_chat_completions:
+		return true
+	case GridRouteMetadataApiFormats_messages:
+		return true
+	case GridRouteMetadataApiFormats_responses:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for GridRouteTargetIntelligentTradeoff.
 const (
 	GridRouteTargetIntelligentTradeoff_balanced     GridRouteTargetIntelligentTradeoff = "balanced"
@@ -6211,8 +6232,8 @@ type GridRoute struct {
 	// InvokeUrl Base URL for inference requests using this route.
 	InvokeUrl string `json:"invoke_url"`
 
-	// Metadata Resolved model metadata; for an intelligent route, the envelope of its servable models' metadata. Null when nothing is linked.
-	Metadata *ExploreMetadata `json:"metadata"`
+	// Metadata Resolved model metadata; for an intelligent route, the envelope of its servable models' metadata. Null when nothing is linked or the metadata has no supported API formats.
+	Metadata *GridRouteMetadata `json:"metadata"`
 
 	// Name Name to send in the inference request's model field.
 	Name string `json:"name"`
@@ -6256,6 +6277,51 @@ type GridRouteClassifiersResponse struct {
 	Items      []GridRouteClassifier `json:"items"`
 	Pagination PaginationResponse    `json:"pagination"`
 }
+
+// GridRouteMetadata defines model for GridRouteMetadata.
+type GridRouteMetadata struct {
+	// ApiFormats API formats the route supports, most preferred first: `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target, keeping only the formats the route supports. Never empty.
+	ApiFormats []GridRouteMetadataApiFormats `json:"api_formats"`
+
+	// ContextWindow Total context window in tokens.
+	ContextWindow *int `json:"context_window"`
+
+	// Cost Provider list prices in USD per 1M tokens, when available.
+	Cost *ExploreCost `json:"cost"`
+
+	// DisplayName Model display name, when available.
+	DisplayName *string `json:"display_name"`
+
+	// InputModalities Accepted input modalities.
+	InputModalities []string `json:"input_modalities"`
+
+	// MaxOutputTokens Maximum output tokens per response.
+	MaxOutputTokens *int `json:"max_output_tokens"`
+
+	// ParallelToolCalls Whether the model supports parallel tool calls.
+	ParallelToolCalls *bool `json:"parallel_tool_calls"`
+
+	// Provider Provider key derived from the slug prefix, e.g. 'anthropic'; null for unprefixed slugs.
+	Provider *string `json:"provider"`
+
+	// ReasoningEffortLevels Reasoning effort levels the model supports.
+	ReasoningEffortLevels *[]string `json:"reasoning_effort_levels"`
+
+	// ReleaseDate Model release date. Month-only source dates use the first day of that month.
+	ReleaseDate *string `json:"release_date"`
+
+	// Slug Metadata slug, e.g. 'anthropic/claude-opus-4'; null for rows without one.
+	Slug *string `json:"slug"`
+
+	// SupportedApiFormats API formats the model supports.
+	SupportedApiFormats *ExploreMetadataAPIFormats `json:"supported_api_formats"`
+
+	// Tools Whether the model supports tool calling.
+	Tools *bool `json:"tools"`
+}
+
+// GridRouteMetadataApiFormats defines model for GridRouteMetadata.ApiFormats.
+type GridRouteMetadataApiFormats string
 
 // GridRouteTargetBasetenModelAPI defines model for GridRouteTargetBasetenModelAPI.
 type GridRouteTargetBasetenModelAPI struct {
