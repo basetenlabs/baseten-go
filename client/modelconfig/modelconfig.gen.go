@@ -105,6 +105,48 @@ type BDNVolumeMount struct {
 	AdditionalProperties interface{} `mapstructure:",remain"`
 }
 
+type BEIConfiguration struct {
+	// Backend corresponds to the JSON schema field "backend".
+	Backend BEIConfigurationBackend `json:"backend" yaml:"backend"`
+
+	// Configuration corresponds to the JSON schema field "configuration".
+	Configuration []BEIModelConfiguration `json:"configuration" yaml:"configuration"`
+
+	// VersionOverride corresponds to the JSON schema field "version_override".
+	VersionOverride *string `json:"version_override,omitempty,omitzero" yaml:"version_override,omitempty"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
+type BEIConfigurationBackend string
+
+const BEIConfigurationBackendNvidia BEIConfigurationBackend = "nvidia"
+const BEIConfigurationBackendTpu BEIConfigurationBackend = "tpu"
+
+type BEIModelConfiguration struct {
+	// Hugging Face repository to download through weights, or an absolute path to
+	// manually mounted weights.
+	Checkpoint string `json:"checkpoint" yaml:"checkpoint"`
+
+	// Quantization corresponds to the JSON schema field "quantization".
+	Quantization BEIModelConfigurationQuantization `json:"quantization,omitempty,omitzero" yaml:"quantization,omitempty"`
+
+	// Revision corresponds to the JSON schema field "revision".
+	Revision *string `json:"revision,omitempty,omitzero" yaml:"revision,omitempty"`
+
+	// ServedModelName corresponds to the JSON schema field "served_model_name".
+	ServedModelName *string `json:"served_model_name,omitempty,omitzero" yaml:"served_model_name,omitempty"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
+type BEIModelConfigurationQuantization string
+
+const BEIModelConfigurationQuantizationFp8 BEIModelConfigurationQuantization = "fp8"
+const BEIModelConfigurationQuantizationMxfp8 BEIModelConfigurationQuantization = "mxfp8"
+const BEIModelConfigurationQuantizationNone BEIModelConfigurationQuantization = "none"
+const BEIModelConfigurationQuantizationNvfp4 BEIModelConfigurationQuantization = "nvfp4"
+
 // Configuration options for BIS LLM deployments.
 type BISLLM struct {
 	// Additional autoscaling configuration
@@ -277,8 +319,8 @@ type DockerServer struct {
 	// containers).
 	RunAsUserId *int `json:"run_as_user_id,omitempty,omitzero" yaml:"run_as_user_id,omitempty"`
 
-	// The port where the server runs. Port 8080 is reserved by Baseten's internal
-	// reverse proxy and cannot be used.
+	// The port where the server runs. Port 8080 is reserved when Truss installs its
+	// internal reverse proxy; no_build deployments can use 8080.
 	ServerPort int `json:"server_port" yaml:"server_port"`
 
 	// The command to start the server. Required when no_build is not true.
@@ -364,7 +406,8 @@ type HealthChecks struct {
 	// platform-determined value when not set.
 	RestartCheckDelaySeconds *int `json:"restart_check_delay_seconds,omitempty,omitzero" yaml:"restart_check_delay_seconds,omitempty"`
 
-	// The time in seconds after which an unhealthy instance is restarted. Defaults to
+	// The time in seconds after which an unhealthy instance is restarted. With
+	// trt_llm, defaults to 60 and must be <= 60. Otherwise defaults to
 	// platform-determined value when not set.
 	RestartThresholdSeconds *int `json:"restart_threshold_seconds,omitempty,omitzero" yaml:"restart_threshold_seconds,omitempty"`
 
@@ -373,7 +416,8 @@ type HealthChecks struct {
 	StartupThresholdSeconds *int `json:"startup_threshold_seconds,omitempty,omitzero" yaml:"startup_threshold_seconds,omitempty"`
 
 	// The time in seconds after which traffic is stopped to an unhealthy instance.
-	// Defaults to platform-determined value when not set.
+	// With trt_llm, defaults to 30 and must be <= 30. Otherwise defaults to
+	// platform-determined value when not set.
 	StopTrafficThresholdSeconds *int `json:"stop_traffic_threshold_seconds,omitempty,omitzero" yaml:"stop_traffic_threshold_seconds,omitempty"`
 
 	AdditionalProperties interface{} `mapstructure:",remain"`
@@ -393,6 +437,11 @@ type ModelConfig struct {
 
 	// Configure BDN volume mounts, access grants, and hot-loading.
 	Bdn *BDNConfig `json:"bdn,omitempty,omitzero" yaml:"bdn,omitempty"`
+
+	// BEIv3 encoder serving without an engine-build job. Hugging Face checkpoints use
+	// runtime weights mounts. Requires explicit restart and stop-traffic health
+	// thresholds of 1–60 seconds.
+	Bei *BEIConfiguration `json:"bei,omitempty,omitzero" yaml:"bei,omitempty"`
 
 	// Configuration options for BIS LLM deployments. This field may change in the
 	// future.
@@ -872,8 +921,8 @@ type RemoteSSH struct {
 // Compute resources that your model needs, including CPU, memory, and GPU
 // resources.
 type Resources struct {
-	// The GPU type for your instance. To request multiple GPUs, use the ':' operator
-	// (e.g. L4:4).
+	// The accelerator type for your instance. To request multiple accelerators, use
+	// the ':' operator (e.g. L4:4).
 	Accelerator *AcceleratorSpec `json:"accelerator,omitempty,omitzero" yaml:"accelerator,omitempty"`
 
 	// CPU resources needed, expressed as either a raw number or millicpus. For
@@ -1080,6 +1129,9 @@ type WeightsAuth struct {
 	// GCP workload identity provider for OIDC authentication.
 	GcpOidcWorkloadIdProvider *string `json:"gcp_oidc_workload_id_provider,omitempty,omitzero" yaml:"gcp_oidc_workload_id_provider,omitempty"`
 
+	// Hugging Face repository (namespace/name) or username for OIDC token exchange.
+	HfOidcResource *string `json:"hf_oidc_resource,omitempty,omitzero" yaml:"hf_oidc_resource,omitempty"`
+
 	AdditionalProperties interface{} `mapstructure:",remain"`
 }
 
@@ -1089,6 +1141,7 @@ const WeightsAuthMethodAWSASSUMEROLE WeightsAuthMethod = "AWS_ASSUME_ROLE"
 const WeightsAuthMethodAWSOIDC WeightsAuthMethod = "AWS_OIDC"
 const WeightsAuthMethodCUSTOMSECRET WeightsAuthMethod = "CUSTOM_SECRET"
 const WeightsAuthMethodGCPOIDC WeightsAuthMethod = "GCP_OIDC"
+const WeightsAuthMethodHFOIDC WeightsAuthMethod = "HF_OIDC"
 
 // Configuration for a weights source in the new weights API.
 //
