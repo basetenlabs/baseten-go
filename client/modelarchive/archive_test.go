@@ -93,6 +93,7 @@ func TestBuildModelArchiveBasicWalk(t *testing.T) {
 }
 
 func TestBuildModelArchiveSymlinkedDir(t *testing.T) {
+	skipWithoutSymlinks(t)
 	root := t.TempDir()
 	writeFile(t, filepath.Join(root, "real", "config.yaml"), "model_name: foo\n")
 	writeFile(t, filepath.Join(root, "real", "model", "model.py"), "M\n")
