@@ -266,28 +266,6 @@ func (c *Client) DeleteLibraryListingsVersions(ctx context.Context, userDefinedL
 	})
 }
 
-// DeleteLoopsCheckpoints: Deletes a Loops checkpoint
-func (c *Client) DeleteLoopsCheckpoints(ctx context.Context, checkpointId string) (*LoopsCheckpointTombstone, error) {
-	return doJSON[LoopsCheckpointTombstone](c, ctx, apiRequest{
-		method:       "DELETE",
-		pathFmt:      "/v1/loops/checkpoints/%s",
-		pathArgs:     []any{checkpointId},
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// DeleteLoopsRuns: Deletes a Loops run
-func (c *Client) DeleteLoopsRuns(ctx context.Context, runId string) (*DeleteLoopsRunResponse, error) {
-	return doJSON[DeleteLoopsRunResponse](c, ctx, apiRequest{
-		method:       "DELETE",
-		pathFmt:      "/v1/loops/runs/%s",
-		pathArgs:     []any{runId},
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
 // DeleteModels: Deletes a model by ID
 func (c *Client) DeleteModels(ctx context.Context, modelId string) (*ModelTombstone, error) {
 	return doJSON[ModelTombstone](c, ctx, apiRequest{
@@ -807,6 +785,29 @@ func (c *Client) GetGatewayGroupsGroupId(ctx context.Context, groupId string) (*
 		method:       "GET",
 		pathFmt:      "/v1/gateway/groups/%s",
 		pathArgs:     []any{groupId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridClassifiers: Lists classifiers available for intelligent routes
+func (c *Client) GetGridClassifiers(ctx context.Context, params GetV1GridClassifiersParams) (*GridClassifiersResponse, error) {
+	return doJSON[GridClassifiersResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/classifiers",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetGridClassifiersClassifierId: Gets a classifier available for intelligent routes
+func (c *Client) GetGridClassifiersClassifierId(ctx context.Context, classifierId string) (*GridClassifier, error) {
+	return doJSON[GridClassifier](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/grid/classifiers/%s",
+		pathArgs:     []any{classifierId},
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
