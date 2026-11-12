@@ -14,8 +14,11 @@ import (
 	"time"
 )
 
-// jwtBearerGrantType is the RFC 7523 grant the token exchange accepts.
-const jwtBearerGrantType = "urn:ietf:params:oauth:grant-type:jwt-bearer"
+// The token exchange takes an RFC 8693 request naming the trust rule as its audience.
+const (
+	tokenExchangeGrantType = "urn:ietf:params:oauth:grant-type:token-exchange"
+	jwtTokenType           = "urn:ietf:params:oauth:token-type:jwt"
+)
 
 // defaultWorkloadIdentityRefreshLeeway is how long before expiry a cached
 // access token is replaced. Capped at half the token's lifetime so a
@@ -179,9 +182,10 @@ func (c *WorkloadIdentityCredentials) identityToken(ctx context.Context) (string
 }
 
 type tokenExchangeRequest struct {
-	GrantType   string `json:"grant_type"`
-	Assertion   string `json:"assertion"`
-	TrustRuleID string `json:"trust_rule_id"`
+	GrantType        string `json:"grant_type"`
+	SubjectToken     string `json:"subject_token"`
+	SubjectTokenType string `json:"subject_token_type"`
+	Audience         string `json:"audience"`
 }
 
 type tokenExchangeResponse struct {
@@ -198,9 +202,10 @@ func (c *WorkloadIdentityCredentials) exchange(ctx context.Context) (AccessToken
 		return AccessToken{}, 0, err
 	}
 	body, err := json.Marshal(tokenExchangeRequest{
-		GrantType:   jwtBearerGrantType,
-		Assertion:   assertion,
-		TrustRuleID: c.opts.TrustRuleID,
+		GrantType:        tokenExchangeGrantType,
+		SubjectToken:     assertion,
+		SubjectTokenType: jwtTokenType,
+		Audience:         c.opts.TrustRuleID,
 	})
 	if err != nil {
 		return AccessToken{}, 0, err

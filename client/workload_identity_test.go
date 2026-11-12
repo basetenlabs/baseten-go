@@ -47,11 +47,12 @@ func (s *fakeTokenServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		s.t.Errorf("decoding body: %v", err)
 	}
-	if len(body) != 3 || body["grant_type"] != jwtBearerGrantType || body["trust_rule_id"] != "rule-1" {
+	if len(body) != 4 || body["grant_type"] != tokenExchangeGrantType ||
+		body["subject_token_type"] != jwtTokenType || body["audience"] != "rule-1" {
 		s.t.Errorf("unexpected body %v", body)
 	}
 	s.mu.Lock()
-	s.assertions = append(s.assertions, body["assertion"])
+	s.assertions = append(s.assertions, body["subject_token"])
 	s.mu.Unlock()
 	n := s.exchanges.Add(1)
 	if s.respond != nil {
