@@ -463,6 +463,19 @@ func walkDir(
 	includeDirs bool,
 	fn func(File) error,
 ) error {
+	// A root reached through a symlink is a normal arrangement, but WalkDir
+	// visits only the link itself, so walk the directory it names.
+	link, err := os.Lstat(root)
+	if err != nil {
+		return fmt.Errorf("modelarchive: stat %s: %w", root, err)
+	}
+	if link.Mode()&fs.ModeSymlink != 0 {
+		resolved, err := filepath.EvalSymlinks(root)
+		if err != nil {
+			return fmt.Errorf("modelarchive: resolve %s: %w", root, err)
+		}
+		root = resolved
+	}
 	return filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
