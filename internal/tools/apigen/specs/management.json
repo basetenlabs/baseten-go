@@ -4,11 +4,7 @@
         "title": "Baseten management API",
         "version": "1.0.0"
     },
-    "servers": [
-        {
-            "url": "https://api.baseten.co"
-        }
-    ],
+    "servers": [],
     "security": [
         {
             "BearerAuth": []
@@ -1494,7 +1490,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/audit_logs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'direction': 'DESC', 'search': None, 'start_epoch_millis': None, 'end_epoch_millis': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns audit-log entries across the workspace, newest first, covering models, chains, and workspace-level actions. Use the filters to narrow by event type, actor, resource, environment, source, or time window, and the cursor to page. In workspaces with multiple teams, only organization admins can read the workspace audit log.",
+                "description": "Returns audit-log entries across the workspace, newest first, covering models, chains, and workspace-level actions. Use the filters to narrow by event type, actor, resource, environment, source, or time window, and the cursor to page. Requires a personal API key; team API keys can't read the workspace audit log. In workspaces with multiple teams, only organization admins can read the workspace audit log.",
                 "parameters": [
                     {
                         "name": "cursor",
@@ -7305,11 +7301,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null,\n  \"sampler_num_replicas\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null,\n  \"base_checkpoint_auth\": {\n    \"auth_method\": \"CUSTOM_SECRET\",\n    \"auth_secret_name\": \"hf_read_my_checkpoint\"\n  },\n  \"sampler_num_replicas\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None, 'sampler_num_replicas': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None, 'base_checkpoint_auth': {'auth_method': 'CUSTOM_SECRET', 'auth_secret_name': 'hf_read_my_checkpoint'}, 'sampler_num_replicas': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a Loops run with an associated sampler in the given session.",
@@ -7371,6 +7367,37 @@
             ]
         },
         "/v1/loops/runs/{run_id}": {
+            "delete": {
+                "summary": "Deletes a Loops run",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/loops/runs/{run_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/runs/{run_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Deletes a Loops run by ID, deactivating it first if it is active, and deletes its checkpoints. Checkpoints still in use, such as deployed ones, are kept and listed in the response; they stay usable until that use stops. Deletion is permanent, and storage for some checkpoints is reclaimed later.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeleteLoopsRunResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/run_id"
+                }
+            ],
             "get": {
                 "summary": "Gets a Loops run",
                 "x-codeSamples": [
@@ -7396,12 +7423,7 @@
                         }
                     }
                 }
-            },
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/run_id"
-                }
-            ]
+            }
         },
         "/v1/loops/trainers": {
             "post": {
@@ -7409,11 +7431,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null,\n  \"scope\": \"default\"\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null,\n  \"base_checkpoint_auth\": {\n    \"auth_method\": \"CUSTOM_SECRET\",\n    \"auth_secret_name\": \"hf_read_my_checkpoint\"\n  },\n  \"scope\": \"default\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None, 'scope': 'default'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None, 'base_checkpoint_auth': {'auth_method': 'CUSTOM_SECRET', 'auth_secret_name': 'hf_read_my_checkpoint'}, 'scope': 'default'}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a trainer-only Loops run in the given session, without a sampler. To sample from it, create a sampler with POST /v1/loops/samplers and pass this run's ID as run_id to pair the two. List and read the trainer through the /v1/loops/runs endpoints.",
@@ -7783,6 +7805,39 @@
                     }
                 }
             }
+        },
+        "/v1/loops/checkpoints/{checkpoint_id}": {
+            "delete": {
+                "summary": "Deletes a Loops checkpoint",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/loops/checkpoints/{checkpoint_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/checkpoints/{checkpoint_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Deletes a Loops checkpoint by ID and returns its tombstone. The checkpoint disappears from listings and can't be loaded, sampled, or deployed. Deletion is permanent, and storage for some checkpoints is reclaimed later. A checkpoint that is deployed, read by an unfinished LoRA merge, served by an active sampler, or the start of an active run can't be deleted, and the error says which. Deleting an already-deleted checkpoint returns the same tombstone.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoopsCheckpointTombstoneV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/checkpoint_id"
+                }
+            ]
         },
         "/v1/loops/checkpoints/{checkpoint_id}/files": {
             "get": {
@@ -8383,11 +8438,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null,\n  \"sampler_num_replicas\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/runs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null,\n  \"base_checkpoint_auth\": {\n    \"auth_method\": \"CUSTOM_SECRET\",\n    \"auth_secret_name\": \"hf_read_my_checkpoint\"\n  },\n  \"sampler_num_replicas\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None, 'sampler_num_replicas': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/runs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None, 'base_checkpoint_auth': {'auth_method': 'CUSTOM_SECRET', 'auth_secret_name': 'hf_read_my_checkpoint'}, 'sampler_num_replicas': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a Loops run with an associated sampler in the given session; the run's infrastructure belongs to the given team.",
@@ -8421,11 +8476,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null,\n  \"scope\": \"default\"\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/teams/{team_id}/loops/trainers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"session_id\": null,\n  \"base_model\": null,\n  \"name\": null,\n  \"max_seq_len\": null,\n  \"seed\": null,\n  \"availability_model\": \"spot\",\n  \"path\": \"bt://loops:k4q95w5/weights/step-100\",\n  \"reuse_from_run_id\": null,\n  \"reuse_from_session_id\": null,\n  \"base_checkpoint\": null,\n  \"base_checkpoint_auth\": {\n    \"auth_method\": \"CUSTOM_SECRET\",\n    \"auth_secret_name\": \"hf_read_my_checkpoint\"\n  },\n  \"scope\": \"default\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None, 'scope': 'default'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/teams/{team_id}/loops/trainers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'session_id': None, 'base_model': None, 'name': None, 'max_seq_len': None, 'seed': None, 'availability_model': 'spot', 'path': 'bt://loops:k4q95w5/weights/step-100', 'reuse_from_run_id': None, 'reuse_from_session_id': None, 'base_checkpoint': None, 'base_checkpoint_auth': {'auth_method': 'CUSTOM_SECRET', 'auth_secret_name': 'hf_read_my_checkpoint'}, 'scope': 'default'}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a trainer-only Loops run in the given session, without a sampler. To sample from it, create a sampler with POST /v1/loops/samplers and pass this run's ID as run_id to pair the two. List and read the trainer through the /v1/loops/runs endpoints.",
@@ -9170,7 +9225,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/model_apis/{model_api_name}/metrics\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'mode': 'CURRENT', 'start_epoch_millis': None, 'end_epoch_millis': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Gets the metrics for a Model API in the given time range.",
+                "description": "Gets the metrics for a Model API in the given time range for the teams you can manage, with each series labeled by team_id. Organization admins receive organization-wide metrics by default. For a Model API your lab organization lists, other organizations' consumption is included regardless of team_ids.",
                 "parameters": [
                     {
                         "name": "mode",
@@ -9228,6 +9283,19 @@
                                 "type": "string"
                             },
                             "title": "Metrics",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "team_ids",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only metrics for these teams, repeated once per team. Defaults to all teams you can manage. Any unauthorized team causes a 403.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Team Ids",
                             "type": "array"
                         }
                     }
@@ -9937,7 +10005,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/billing/usage_summary\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_date': None, 'end_date': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns billing usage within [start_date, end_date): the start date is inclusive and the end date is exclusive. Both dates are normalized to midnight UTC. Includes dedicated model serving, training, and model APIs usage. The date range must not exceed 31 days.",
+                "description": "Returns billing usage within [start_date, end_date): the start date is inclusive and the end date is exclusive. Both dates are normalized to midnight UTC. Includes dedicated model serving, training, and model APIs usage. For multi-team organizations, Model APIs usage is split by team. Historical usage without a recorded team is assigned to Default Team. Usage subtotals are before credits; credits are deducted only at the product summary level. The date range must not exceed 31 days.",
                 "parameters": [
                     {
                         "name": "start_date",
@@ -10245,7 +10313,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/organizations/me\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'allow_personal_api_keys': None, 'allow_service_account_api_keys': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Updates settings of the organization of the user making the request. Only organization admins can call it. Omitted or null fields are unchanged.",
+                "description": "Updates settings of the organization of the user making the request. Only organization admins can call it. Omitted fields are unchanged.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -10365,7 +10433,8 @@
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             },
             "post": {
                 "summary": "Creates a service account",
@@ -10401,7 +10470,8 @@
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             }
         },
         "/v1/service_accounts/{service_account_id}": {
@@ -10429,7 +10499,8 @@
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             },
             "parameters": [
                 {
@@ -10459,7 +10530,8 @@
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             },
             "patch": {
                 "summary": "Updates a service account",
@@ -10495,7 +10567,8 @@
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             }
         },
         "/v1/access/predefined_identity_providers": {
@@ -10511,7 +10584,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/predefined_identity_providers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists the identity providers Baseten predefines, which you can add to your organization without further configuration.",
+                "description": "Lists the identity providers Baseten supports, with the issuer format for those where each account, tenant, or cluster has its own issuer.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -10523,7 +10596,8 @@
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             }
         },
         "/v1/access/identity_providers": {
@@ -10536,7 +10610,7 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'type': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'predefined_kind': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Lists the organization's identity providers. Organization and team admins can list them.",
@@ -10573,25 +10647,20 @@
                         }
                     },
                     {
-                        "name": "type",
+                        "name": "predefined_kind",
                         "in": "query",
                         "required": false,
-                        "description": "Only predefined or only custom providers",
+                        "description": "Only this predefined provider's issuers",
                         "schema": {
                             "anyOf": [
                                 {
-                                    "enum": [
-                                        "PREDEFINED",
-                                        "CUSTOM"
-                                    ],
-                                    "type": "string"
+                                    "$ref": "#/components/schemas/PredefinedIdentityProviderKindV1"
                                 },
                                 {
                                     "type": "null"
                                 }
                             ],
-                            "default": null,
-                            "title": "Type"
+                            "default": null
                         }
                     }
                 ],
@@ -10606,21 +10675,22 @@
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             },
             "post": {
                 "summary": "Adds an identity provider",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/identity_providers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"type\": \"PREDEFINED\",\n  \"predefined\": \"GITHUB_ACTIONS\"\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/identity_providers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"prod-eks\",\n  \"predefined\": {\n    \"kind\": \"AWS_EKS\",\n    \"issuer_url\": \"https://oidc.eks.us-west-2.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE\"\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'type': 'PREDEFINED', 'predefined': 'GITHUB_ACTIONS'}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'prod-eks', 'predefined': {'kind': 'AWS_EKS', 'issuer_url': 'https://oidc.eks.us-west-2.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE'}}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Adds a predefined identity provider to the organization, or registers a custom one. A custom provider's issuer is fetched and its keys are parsed before it's saved; a failure returns 422 with the reason. Each predefined provider can be added once. Only organization admins can call this endpoint.",
+                "description": "Adds an identity provider to the organization. For a provider with a per-customer issuer, the issuer must match the provider's format, and its signing keys are fetched before it's saved; a failure returns 422 with the reason. Each provider with a fixed issuer can be added once. Only organization admins can call this endpoint.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -10642,45 +10712,8 @@
                             }
                         }
                     }
-                }
-            }
-        },
-        "/v1/access/identity_providers/verify": {
-            "post": {
-                "summary": "Checks a custom identity provider's configuration",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/identity_providers/verify \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"issuer_url\": \"https://oidc.eks.us-west-2.amazonaws.com/id/EXAMPLE\",\n  \"jwks\": {\n    \"type\": \"DISCOVERY\"\n  }\n}'"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers/verify\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'issuer_url': 'https://oidc.eks.us-west-2.amazonaws.com/id/EXAMPLE', 'jwks': {'type': 'DISCOVERY'}}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Runs the checks adding a custom identity provider runs, without saving anything: fetches the issuer's discovery document and key set and parses the keys. A failed check still returns 200, with `ok` false and the reason in `error`. Only organization admins can call this endpoint.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/VerifyIdentityProviderRequestV1"
-                            }
-                        }
-                    },
-                    "required": true
                 },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/VerifyIdentityProviderResponseV1"
-                                }
-                            }
-                        }
-                    }
-                }
+                "x-stability": "unstable"
             }
         },
         "/v1/access/identity_providers/{identity_provider_id}": {
@@ -10708,7 +10741,8 @@
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             },
             "parameters": [
                 {
@@ -10738,7 +10772,8 @@
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             },
             "patch": {
                 "summary": "Updates an identity provider",
@@ -10752,7 +10787,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers/{identity_provider_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'name': 'prod-eks'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Updates the fields you send. A custom provider's new key source is checked before it's saved; a failure returns 422. The type and issuer can't change. Only organization admins can call this endpoint.",
+                "description": "Updates the fields you send. The provider and issuer can't change. Only organization admins can call this endpoint.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -10774,7 +10809,8 @@
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             }
         },
         "/v1/access/trust_rules": {
@@ -10884,31 +10920,32 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/TrustRulesV1"
+                                    "$ref": "#/components/schemas/AccessTrustRulesV1"
                                 }
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             },
             "post": {
                 "summary": "Creates a trust rule",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/trust_rules \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"models-main-deploy\",\n  \"identity_provider_id\": \"abcd1234\",\n  \"service_account_id\": \"wxyz5678\",\n  \"match\": {\n    \"subject_glob\": \"repo:acme/models:ref:refs/heads/main\",\n    \"claims\": {\n      \"repository_owner_id\": \"12345\"\n    }\n  }\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/trust_rules \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": \"models-main-deploy\",\n  \"identity_provider_id\": \"abcd1234\",\n  \"service_account_id\": \"wxyz5678\",\n  \"condition\": \"claims.repository_owner_id == '12345' && claims.sub == 'repo:acme/models:ref:refs/heads/main'\",\n  \"audience\": \"https://api.baseten.co\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/trust_rules\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'models-main-deploy', 'identity_provider_id': 'abcd1234', 'service_account_id': 'wxyz5678', 'match': {'subject_glob': 'repo:acme/models:ref:refs/heads/main', 'claims': {'repository_owner_id': '12345'}}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/trust_rules\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': 'models-main-deploy', 'identity_provider_id': 'abcd1234', 'service_account_id': 'wxyz5678', 'condition': \"claims.repository_owner_id == '12345' && claims.sub == 'repo:acme/models:ref:refs/heads/main'\", 'audience': 'https://api.baseten.co'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Creates a rule that lets tokens from an identity provider act as a service account. A workload names the rule's ID when it exchanges a token. A team admin can create rules for their own team's service accounts. A rule on a predefined provider must pin your own account, because anyone can get a token from GitHub or Google. API keys can't call this endpoint.",
+                "description": "Creates a rule that lets tokens from an identity provider act as a service account. Organization admins can create rules for any service account, team admins for their own team's. An organization API key manager key can't target organization accounts.",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/CreateTrustRuleRequestV1"
+                                "$ref": "#/components/schemas/CreateAccessTrustRuleRequestV1"
                             }
                         }
                     },
@@ -10920,12 +10957,13 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/TrustRuleV1"
+                                    "$ref": "#/components/schemas/AccessTrustRuleV1"
                                 }
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             }
         },
         "/v1/access/trust_rules/{trust_rule_id}": {
@@ -10941,19 +10979,20 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/trust_rules/{trust_rule_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "New exchanges through the rule fail at once; tokens it already issued keep working until they expire. To cut a workload off at once, disable its service account. API keys can't call this endpoint.",
+                "description": "New exchanges through the rule fail at once; tokens already issued keep working until they expire.",
                 "responses": {
                     "200": {
                         "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/DeletedTrustRuleV1"
+                                    "$ref": "#/components/schemas/DeletedAccessTrustRuleV1"
                                 }
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             },
             "parameters": [
                 {
@@ -10978,12 +11017,13 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/TrustRuleV1"
+                                    "$ref": "#/components/schemas/AccessTrustRuleV1"
                                 }
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             },
             "patch": {
                 "summary": "Updates a trust rule",
@@ -10997,12 +11037,12 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/trust_rules/{trust_rule_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'name': 'models-release-deploy'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Updates the fields you send. New exchanges use the change at once; tokens already issued keep working until they expire. Moving the rule needs admin rights on both service accounts. The identity provider and token lifetime can't change.",
+                "description": "Updates the fields you send. Changes apply to new exchanges only. The identity provider can't change.",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/UpdateTrustRuleRequestV1"
+                                "$ref": "#/components/schemas/UpdateAccessTrustRuleRequestV1"
                             }
                         }
                     },
@@ -11014,12 +11054,13 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/TrustRuleV1"
+                                    "$ref": "#/components/schemas/AccessTrustRuleV1"
                                 }
                             }
                         }
                     }
-                }
+                },
+                "x-stability": "unstable"
             }
         },
         "/v1/gateway/events": {
@@ -11410,7 +11451,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/routes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'team_id': 'abc1234', 'display_name': 'Assistant', 'target': {'model': 'zai-org/GLM-5.3', 'type': 'BASETEN_MODEL_API'}, 'description': 'Assistant for code review and debugging.'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Creates and derives a name for the provided route configuration. CONNECTION targets reference a connection owned by the route's team; create the connection first.",
+                "description": "Creates and derives a name for the provided route configuration. CONNECTION targets reference a connection owned by the route's team; create the connection first. INTELLIGENT targets reference a route classifier from GET /v1/grid/route_classifiers.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -11542,7 +11583,7 @@
                         "name": "group_by",
                         "in": "query",
                         "required": false,
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, or HARNESS. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, HARNESS, or API_KEY. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. API_KEY includes usage without an API key, such as requests authenticated by a signed-in session, as a null group. Defaults to MODEL.",
                         "schema": {
                             "items": {
                                 "$ref": "#/components/schemas/GridRouteUsageDimensionV1"
@@ -11600,6 +11641,19 @@
                                 "$ref": "#/components/schemas/GridRouteUsageHarnessV1"
                             },
                             "title": "Harnesses",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "api_key_prefixes",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage made with these API keys, repeated once per key prefix. Omit to include all usage, including usage without an API key.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Api Key Prefixes",
                             "type": "array"
                         }
                     }
@@ -11682,14 +11736,14 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/grid/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"description\": \"Assistant for code review and debugging.\",\n  \"display_name\": \"Assistant\",\n  \"target\": null\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/grid/routes/{route_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"description\": \"Assistant for code review and debugging.\",\n  \"display_name\": \"Assistant\"\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'description': 'Assistant for code review and debugging.', 'display_name': 'Assistant', 'target': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/routes/{route_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'description': 'Assistant for code review and debugging.', 'display_name': 'Assistant'}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "The route name, target type, and owning team are immutable.",
+                "description": "The route name, target, and owning team are immutable.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -12197,101 +12251,6 @@
                 },
                 "x-stability": "unstable"
             }
-        },
-        "/v1/grid/classifiers": {
-            "get": {
-                "summary": "Lists classifiers available for intelligent routes",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/classifiers \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/classifiers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Returns Baseten-managed classifiers available to your organization, ordered by identifier. Classifiers cannot be created or modified through this API.",
-                "parameters": [
-                    {
-                        "name": "cursor",
-                        "in": "query",
-                        "required": false,
-                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
-                        "schema": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "null"
-                                }
-                            ],
-                            "default": null,
-                            "title": "Cursor"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "required": false,
-                        "description": "Maximum number of items to return.",
-                        "schema": {
-                            "default": 100,
-                            "maximum": 1000,
-                            "minimum": 1,
-                            "title": "Limit",
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/GridClassifiersResponseV1"
-                                }
-                            }
-                        }
-                    }
-                },
-                "x-stability": "unstable"
-            }
-        },
-        "/v1/grid/classifiers/{classifier_id}": {
-            "get": {
-                "summary": "Gets a classifier available for intelligent routes",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/grid/classifiers/{classifier_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/grid/classifiers/{classifier_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/GridClassifierV1"
-                                }
-                            }
-                        }
-                    }
-                },
-                "x-stability": "unstable"
-            },
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/classifier_id"
-                }
-            ]
         },
         "/v1/grid/route_classifiers": {
             "get": {
@@ -18958,7 +18917,8 @@
             "AuditLogApiKeyRevocationReasonV1": {
                 "description": "Reason an API key was revoked.",
                 "enum": [
-                    "INACTIVITY"
+                    "INACTIVITY",
+                    "CREDENTIAL_EXPOSURE"
                 ],
                 "title": "AuditLogApiKeyRevocationReasonV1",
                 "type": "string"
@@ -24155,6 +24115,19 @@
                     "request_backpressure_settings": {
                         "$ref": "#/components/schemas/RequestBackpressureSettingsV1",
                         "description": "Effective request backpressure settings for the deployment."
+                    },
+                    "failure_reason": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Why the deployment failed. Set only when the status is DEPLOY_FAILED; null otherwise.",
+                        "title": "Failure Reason"
                     }
                 },
                 "required": [
@@ -32296,8 +32269,26 @@
                             }
                         ],
                         "default": null,
-                        "description": "Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in the team secret hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.",
+                        "description": "Optional checkpoint to start training from instead of the base model's weights: a Hugging Face repo (hf://<org>/<repo>[@<revision>]), an object store path (s3://, gs://, r2://, cw://, or azure://), or a full Baseten Training checkpoint in the run's team (bt://<project>@<job_id>/<checkpoint>, with the checkpoint named). It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include tokenizer files: the run's sampler loads the tokenizer and chat template from the checkpoint. A Hugging Face revision is pinned to a commit when the run is created, and its files are checked then. Any other source is read again by each sampler and resumed run, so do not change it while the run is in use. Checkpoints from a run on a source outside Hugging Face cannot be deployed yet. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.",
                         "title": "Base Checkpoint"
+                    },
+                    "base_checkpoint_auth": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/TrainingWeightAuthV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token for a Hugging Face repo, or the credentials for an object store. A Baseten Training checkpoint takes no auth. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, a Hugging Face repo is read with the team secret hf_access_token if it exists. Requires base_checkpoint.",
+                        "examples": [
+                            {
+                                "auth_method": "CUSTOM_SECRET",
+                                "auth_secret_name": "hf_read_my_checkpoint"
+                            }
+                        ]
                     },
                     "sampler_num_replicas": {
                         "anyOf": [
@@ -32357,6 +32348,184 @@
                     "user"
                 ],
                 "title": "DeactivateLoopsRunResponseV1",
+                "type": "object"
+            },
+            "LoopsCheckpointV1": {
+                "description": "A checkpoint saved by a Loops run.",
+                "properties": {
+                    "checkpoint_id": {
+                        "description": "The ID of the checkpoint.",
+                        "title": "Checkpoint Id",
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "description": "The timestamp of the checkpoint in ISO 8601 format.",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    },
+                    "checkpoint_type": {
+                        "description": "The type of checkpoint.",
+                        "title": "Checkpoint Type",
+                        "type": "string"
+                    },
+                    "base_model": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The base model of the checkpoint.",
+                        "title": "Base Model"
+                    },
+                    "lora_adapter_config": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The adapter config of the checkpoint.",
+                        "title": "Lora Adapter Config"
+                    },
+                    "size_bytes": {
+                        "description": "The size of the checkpoint in bytes.",
+                        "title": "Size Bytes",
+                        "type": "integer"
+                    },
+                    "sync_status": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Sync state of the checkpoint: SYNCING or COMPLETE.",
+                        "title": "Sync Status"
+                    },
+                    "id": {
+                        "description": "The checkpoint ID.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "lora_config": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LoopsLoRAConfigV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The immutable LoRA config used to save this checkpoint. Null means the checkpoint is unsupported and cannot be loaded."
+                    },
+                    "run_id": {
+                        "description": "The ID of the run that produced the checkpoint.",
+                        "title": "Run Id",
+                        "type": "string"
+                    },
+                    "target": {
+                        "$ref": "#/components/schemas/TrainerCheckpointTarget",
+                        "description": "Whether this checkpoint is loadable by the sampler or by the run."
+                    }
+                },
+                "required": [
+                    "checkpoint_id",
+                    "created_at",
+                    "checkpoint_type",
+                    "base_model",
+                    "lora_adapter_config",
+                    "size_bytes",
+                    "id",
+                    "lora_config",
+                    "run_id",
+                    "target"
+                ],
+                "title": "LoopsCheckpointV1",
+                "type": "object"
+            },
+            "LoopsLoRAConfigV1": {
+                "description": "A published LoRA config: which modules the adapter targets and how experts are laid out.",
+                "properties": {
+                    "config_version": {
+                        "description": "The config version, like v1.",
+                        "title": "Config Version",
+                        "type": "string"
+                    },
+                    "targets": {
+                        "description": "The module names the LoRA adapter targets.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Targets",
+                        "type": "array"
+                    },
+                    "expert_layout": {
+                        "anyOf": [
+                            {
+                                "enum": [
+                                    "per_expert",
+                                    "shared_outer",
+                                    "shared_adapter"
+                                ],
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "How routed-expert LoRA weights are laid out. Null when no experts are targeted.",
+                        "title": "Expert Layout"
+                    }
+                },
+                "required": [
+                    "config_version",
+                    "targets"
+                ],
+                "title": "LoopsLoRAConfigV1",
+                "type": "object"
+            },
+            "TrainerCheckpointTarget": {
+                "description": "Whether a TrainerServerCheckpoint is loadable by the sampler or the trainer.\n\nSAMPLER checkpoints are consumed by the sampling server for inference;\nTRAINER checkpoints capture full trainer state for resuming training.\nMirrored in the bt:// URI as\n``bt://loops:<trainer_id>/(sampler_weights|weights)/<name>``.",
+                "enum": [
+                    "sampler",
+                    "trainer"
+                ],
+                "title": "TrainerCheckpointTarget",
+                "type": "string"
+            },
+            "DeleteLoopsRunResponseV1": {
+                "description": "A Loops run whose delete was accepted.",
+                "properties": {
+                    "id": {
+                        "description": "The deleted Loops run ID.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "kept_checkpoints": {
+                        "description": "The run's checkpoints that were not deleted because something still uses them, such as a deployment. They stay usable until that stops.",
+                        "items": {
+                            "$ref": "#/components/schemas/LoopsCheckpointV1"
+                        },
+                        "title": "Kept Checkpoints",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "id",
+                    "kept_checkpoints"
+                ],
+                "title": "DeleteLoopsRunResponseV1",
                 "type": "object"
             },
             "GetLoopsRunResponseV1": {
@@ -32518,8 +32687,26 @@
                             }
                         ],
                         "default": null,
-                        "description": "Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in the team secret hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.",
+                        "description": "Optional checkpoint to start training from instead of the base model's weights: a Hugging Face repo (hf://<org>/<repo>[@<revision>]), an object store path (s3://, gs://, r2://, cw://, or azure://), or a full Baseten Training checkpoint in the run's team (bt://<project>@<job_id>/<checkpoint>, with the checkpoint named). It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include tokenizer files: the run's sampler loads the tokenizer and chat template from the checkpoint. A Hugging Face revision is pinned to a commit when the run is created, and its files are checked then. Any other source is read again by each sampler and resumed run, so do not change it while the run is in use. Checkpoints from a run on a source outside Hugging Face cannot be deployed yet. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.",
                         "title": "Base Checkpoint"
+                    },
+                    "base_checkpoint_auth": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/TrainingWeightAuthV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token for a Hugging Face repo, or the credentials for an object store. A Baseten Training checkpoint takes no auth. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, a Hugging Face repo is read with the team secret hf_access_token if it exists. Requires base_checkpoint.",
+                        "examples": [
+                            {
+                                "auth_method": "CUSTOM_SECRET",
+                                "auth_secret_name": "hf_read_my_checkpoint"
+                            }
+                        ]
                     },
                     "scope": {
                         "$ref": "#/components/schemas/LoopsPlacementScopeV1",
@@ -32756,160 +32943,6 @@
                 "title": "GetLoopsSamplerResponseV1",
                 "type": "object"
             },
-            "LoopsCheckpointV1": {
-                "description": "A checkpoint saved by a Loops run.",
-                "properties": {
-                    "checkpoint_id": {
-                        "description": "The ID of the checkpoint.",
-                        "title": "Checkpoint Id",
-                        "type": "string"
-                    },
-                    "created_at": {
-                        "description": "The timestamp of the checkpoint in ISO 8601 format.",
-                        "format": "date-time",
-                        "title": "Created At",
-                        "type": "string"
-                    },
-                    "checkpoint_type": {
-                        "description": "The type of checkpoint.",
-                        "title": "Checkpoint Type",
-                        "type": "string"
-                    },
-                    "base_model": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The base model of the checkpoint.",
-                        "title": "Base Model"
-                    },
-                    "lora_adapter_config": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The adapter config of the checkpoint.",
-                        "title": "Lora Adapter Config"
-                    },
-                    "size_bytes": {
-                        "description": "The size of the checkpoint in bytes.",
-                        "title": "Size Bytes",
-                        "type": "integer"
-                    },
-                    "sync_status": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Sync state of the checkpoint: SYNCING or COMPLETE.",
-                        "title": "Sync Status"
-                    },
-                    "id": {
-                        "description": "The checkpoint ID.",
-                        "title": "Id",
-                        "type": "string"
-                    },
-                    "lora_config": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/LoopsLoRAConfigV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The immutable LoRA config used to save this checkpoint. Null means the checkpoint is unsupported and cannot be loaded."
-                    },
-                    "run_id": {
-                        "description": "The ID of the run that produced the checkpoint.",
-                        "title": "Run Id",
-                        "type": "string"
-                    },
-                    "target": {
-                        "$ref": "#/components/schemas/TrainerCheckpointTarget",
-                        "description": "Whether this checkpoint is loadable by the sampler or by the run."
-                    }
-                },
-                "required": [
-                    "checkpoint_id",
-                    "created_at",
-                    "checkpoint_type",
-                    "base_model",
-                    "lora_adapter_config",
-                    "size_bytes",
-                    "id",
-                    "lora_config",
-                    "run_id",
-                    "target"
-                ],
-                "title": "LoopsCheckpointV1",
-                "type": "object"
-            },
-            "LoopsLoRAConfigV1": {
-                "description": "A published LoRA config: which modules the adapter targets and how experts are laid out.",
-                "properties": {
-                    "config_version": {
-                        "description": "The config version, like v1.",
-                        "title": "Config Version",
-                        "type": "string"
-                    },
-                    "targets": {
-                        "description": "The module names the LoRA adapter targets.",
-                        "items": {
-                            "type": "string"
-                        },
-                        "title": "Targets",
-                        "type": "array"
-                    },
-                    "expert_layout": {
-                        "anyOf": [
-                            {
-                                "enum": [
-                                    "per_expert",
-                                    "shared_outer",
-                                    "shared_adapter"
-                                ],
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "How routed-expert LoRA weights are laid out. Null when no experts are targeted.",
-                        "title": "Expert Layout"
-                    }
-                },
-                "required": [
-                    "config_version",
-                    "targets"
-                ],
-                "title": "LoopsLoRAConfigV1",
-                "type": "object"
-            },
-            "TrainerCheckpointTarget": {
-                "description": "Whether a TrainerServerCheckpoint is loadable by the sampler or the trainer.\n\nSAMPLER checkpoints are consumed by the sampling server for inference;\nTRAINER checkpoints capture full trainer state for resuming training.\nMirrored in the bt:// URI as\n``bt://loops:<trainer_id>/(sampler_weights|weights)/<name>``.",
-                "enum": [
-                    "sampler",
-                    "trainer"
-                ],
-                "title": "TrainerCheckpointTarget",
-                "type": "string"
-            },
             "ListLoopsCheckpointsResponseV1": {
                 "description": "Checkpoints matching the query filter.",
                 "properties": {
@@ -33079,6 +33112,44 @@
                     "deployment_id"
                 ],
                 "title": "DeployLoopsCheckpointResponseV1",
+                "type": "object"
+            },
+            "LoopsCheckpointTombstoneV1": {
+                "description": "A Loops checkpoint whose delete was accepted.",
+                "properties": {
+                    "id": {
+                        "description": "The deleted checkpoint ID.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "run_id": {
+                        "description": "The ID of the run that produced the checkpoint.",
+                        "title": "Run Id",
+                        "type": "string"
+                    },
+                    "checkpoint_id": {
+                        "description": "The name the checkpoint was saved under.",
+                        "title": "Checkpoint Id",
+                        "type": "string"
+                    },
+                    "target": {
+                        "$ref": "#/components/schemas/TrainerCheckpointTarget",
+                        "description": "Whether the checkpoint was loadable by the sampler or by the run."
+                    },
+                    "path": {
+                        "description": "The checkpoint's bt:// path.",
+                        "title": "Path",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "run_id",
+                    "checkpoint_id",
+                    "target",
+                    "path"
+                ],
+                "title": "LoopsCheckpointTombstoneV1",
                 "type": "object"
             },
             "LoopsCheckpointFilesResponseV1": {
@@ -35535,6 +35606,14 @@
                         },
                         "title": "Metrics",
                         "type": "array"
+                    },
+                    "team_ids": {
+                        "description": "Return only metrics for these teams, repeated once per team. Defaults to all teams you can manage. Any unauthorized team causes a 403.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Team Ids",
+                        "type": "array"
                     }
                 },
                 "title": "GetModelAPIMetricsRequestV1",
@@ -37673,7 +37752,7 @@
                                 "type": "string"
                             }
                         ],
-                        "description": "Subtotal cost in dollars after applying credits used",
+                        "description": "Usage charges in dollars before applying credits",
                         "title": "Subtotal"
                     },
                     "credits_used": {
@@ -37963,6 +38042,32 @@
                         "description": "Subtotal cost in dollars for this model",
                         "title": "Subtotal"
                     },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Team ID for multi-team organizations; otherwise null",
+                        "title": "Team Id"
+                    },
+                    "team_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Team name, including historical teams; null if unavailable",
+                        "title": "Team Name"
+                    },
                     "input_tokens": {
                         "description": "Total input tokens for this model",
                         "title": "Input Tokens",
@@ -38009,7 +38114,7 @@
                                 "type": "string"
                             }
                         ],
-                        "description": "Subtotal cost in dollars after applying credits used",
+                        "description": "Usage charges in dollars before applying credits",
                         "title": "Subtotal"
                     },
                     "credits_used": {
@@ -38035,11 +38140,11 @@
                                 "type": "string"
                             }
                         ],
-                        "description": "Total cost in dollars",
+                        "description": "Usage charges in dollars after applying credits, floored at zero",
                         "title": "Total"
                     },
                     "breakdown": {
-                        "description": "Per-model usage breakdown",
+                        "description": "Per-model usage breakdown, split by team for multi-team organizations",
                         "items": {
                             "$ref": "#/components/schemas/ModelApiItemV1"
                         },
@@ -38120,7 +38225,7 @@
                                 "type": "string"
                             }
                         ],
-                        "description": "Subtotal cost in dollars after applying credits used",
+                        "description": "Usage charges in dollars before applying credits",
                         "title": "Subtotal"
                     },
                     "credits_used": {
@@ -38573,7 +38678,7 @@
                 "type": "object"
             },
             "ServiceAccountPresetPermissionsV1": {
-                "description": "A service account's access: one of the access types API keys have.",
+                "description": "A service account's access: one of the access types API keys have.\n\nTemporary: mirrors API key access until fine-grained access control is available, and may be removed.",
                 "properties": {
                     "type": {
                         "$ref": "#/components/schemas/ServiceAccountPresetTypeV1",
@@ -38653,7 +38758,7 @@
                 "type": "object"
             },
             "ServiceAccountPresetTypeV1": {
-                "description": "What a service account may do: the workspace API key categories, plus Model APIs.",
+                "description": "What a service account may do: the workspace API key categories, plus Model APIs.\n\nTemporary: mirrors API key access until fine-grained access control is available, and may be removed.",
                 "enum": [
                     "WORKSPACE_MANAGE_ALL",
                     "WORKSPACE_INVOKE",
@@ -38705,7 +38810,7 @@
                     },
                     "preset_permissions": {
                         "$ref": "#/components/schemas/ServiceAccountPresetPermissionsV1",
-                        "description": "What the service account may do"
+                        "description": "What the service account may do. Temporary; may be removed once fine-grained access control is available."
                     },
                     "disabled": {
                         "description": "Whether the account is disabled. A disabled account can't be used.",
@@ -38951,7 +39056,7 @@
                     },
                     "preset_permissions": {
                         "$ref": "#/components/schemas/ServiceAccountPresetPermissionsRequestV1",
-                        "description": "What the service account may do. Can be changed later."
+                        "description": "What the service account may do. Can be changed later. Temporary; may be removed once fine-grained access control is available."
                     }
                 },
                 "required": [
@@ -39037,22 +39142,32 @@
                             }
                         ],
                         "default": null,
-                        "description": "Replaces the account's access as a whole"
+                        "description": "Replaces the account's access as a whole. Temporary; may be removed once fine-grained access control is available."
                     }
                 },
                 "title": "UpdateServiceAccountRequestV1",
                 "type": "object"
             },
-            "PredefinedIdentityProviderInfoV1": {
+            "PredefinedIdentityProviderKindV1": {
+                "description": "An identity provider Baseten supports.",
+                "enum": [
+                    "GITHUB_ACTIONS",
+                    "GCP",
+                    "BASETEN",
+                    "AWS_IAM",
+                    "AWS_EKS",
+                    "AZURE_MANAGED_IDENTITY_V1",
+                    "AZURE_MANAGED_IDENTITY_V2",
+                    "AZURE_AKS"
+                ],
+                "title": "PredefinedIdentityProviderKindV1",
+                "type": "string"
+            },
+            "PredefinedIdentityProviderV1": {
                 "properties": {
-                    "predefined": {
-                        "description": "Pass as `predefined` when adding the provider",
-                        "enum": [
-                            "GITHUB_ACTIONS",
-                            "GCP"
-                        ],
-                        "title": "Predefined",
-                        "type": "string"
+                    "kind": {
+                        "$ref": "#/components/schemas/PredefinedIdentityProviderKindV1",
+                        "description": "Pass as `kind` when adding the provider"
                     },
                     "name": {
                         "description": "Display name",
@@ -39060,25 +39175,45 @@
                         "type": "string"
                     },
                     "issuer_url": {
-                        "description": "The `iss` claim its tokens carry",
-                        "title": "Issuer Url",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The `iss` claim its tokens carry. Null when each account, tenant, or cluster has its own issuer, which you pass as `issuer_url` when adding the provider.",
+                        "title": "Issuer Url"
+                    },
+                    "issuer_url_example": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "An example of the `issuer_url` to pass. Null when the issuer is fixed.",
+                        "title": "Issuer Url Example"
                     }
                 },
                 "required": [
-                    "predefined",
-                    "name",
-                    "issuer_url"
+                    "kind",
+                    "name"
                 ],
-                "title": "PredefinedIdentityProviderInfoV1",
+                "title": "PredefinedIdentityProviderV1",
                 "type": "object"
             },
             "PredefinedIdentityProvidersV1": {
                 "properties": {
                     "items": {
-                        "description": "Identity providers Baseten predefines",
+                        "description": "Identity providers Baseten supports",
                         "items": {
-                            "$ref": "#/components/schemas/PredefinedIdentityProviderInfoV1"
+                            "$ref": "#/components/schemas/PredefinedIdentityProviderV1"
                         },
                         "title": "Items",
                         "type": "array"
@@ -39090,59 +39225,6 @@
                 "title": "PredefinedIdentityProvidersV1",
                 "type": "object"
             },
-            "IdentityProviderJwksV1": {
-                "description": "How Baseten gets a custom identity provider's public signing keys.",
-                "properties": {
-                    "type": {
-                        "description": "`DISCOVERY` reads the keys from the issuer's `/.well-known/openid-configuration`. `EXPLICIT_URL` and `INLINE` aren't supported yet.",
-                        "enum": [
-                            "DISCOVERY",
-                            "EXPLICIT_URL",
-                            "INLINE"
-                        ],
-                        "examples": [
-                            "DISCOVERY"
-                        ],
-                        "title": "Type",
-                        "type": "string"
-                    },
-                    "url": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The key set URL, for `EXPLICIT_URL`",
-                        "title": "Url"
-                    },
-                    "keys": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "additionalProperties": true,
-                                    "type": "object"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "A JWK Set's keys, for `INLINE`",
-                        "title": "Keys"
-                    }
-                },
-                "required": [
-                    "type"
-                ],
-                "title": "IdentityProviderJwksV1",
-                "type": "object"
-            },
             "IdentityProviderV1": {
                 "description": "An OIDC issuer whose tokens the organization accepts for workload identity federation.",
                 "properties": {
@@ -39150,32 +39232,6 @@
                         "description": "Identity provider ID",
                         "title": "Id",
                         "type": "string"
-                    },
-                    "type": {
-                        "description": "Whether Baseten predefines the provider",
-                        "enum": [
-                            "PREDEFINED",
-                            "CUSTOM"
-                        ],
-                        "title": "Type",
-                        "type": "string"
-                    },
-                    "predefined": {
-                        "anyOf": [
-                            {
-                                "enum": [
-                                    "GITHUB_ACTIONS",
-                                    "GCP"
-                                ],
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Which predefined provider this is. Null for a custom provider.",
-                        "title": "Predefined"
                     },
                     "name": {
                         "description": "Name, unique in the organization",
@@ -39195,22 +39251,9 @@
                         "description": "Description",
                         "title": "Description"
                     },
-                    "issuer_url": {
-                        "description": "The `iss` claim the provider's tokens carry",
-                        "title": "Issuer Url",
-                        "type": "string"
-                    },
-                    "jwks": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/IdentityProviderJwksV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Where the keys come from. Null for a predefined provider."
+                    "predefined": {
+                        "$ref": "#/components/schemas/PredefinedIdentityProviderConfigV1",
+                        "description": "Settings of the predefined provider"
                     },
                     "created_by": {
                         "description": "ID of the user who added the provider",
@@ -39232,14 +39275,41 @@
                 },
                 "required": [
                     "id",
-                    "type",
                     "name",
-                    "issuer_url",
+                    "predefined",
                     "created_by",
                     "created_at",
                     "updated_at"
                 ],
                 "title": "IdentityProviderV1",
+                "type": "object"
+            },
+            "PredefinedIdentityProviderConfigV1": {
+                "description": "Settings of an identity provider that Baseten defines.",
+                "properties": {
+                    "kind": {
+                        "$ref": "#/components/schemas/PredefinedIdentityProviderKindV1",
+                        "description": "Which predefined provider. Can't be changed."
+                    },
+                    "issuer_url": {
+                        "anyOf": [
+                            {
+                                "maxLength": 1024,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The `iss` claim of the provider's tokens. When adding AWS IAM, Amazon EKS, Azure managed identity, or Azure Kubernetes Service, pass your issuer in the format the predefined identity providers endpoint shows; it's unique in the organization. Can't be passed for other providers, or changed. Always set in responses.",
+                        "title": "Issuer Url"
+                    }
+                },
+                "required": [
+                    "kind"
+                ],
+                "title": "PredefinedIdentityProviderConfigV1",
                 "type": "object"
             },
             "IdentityProvidersV1": {
@@ -39288,138 +39358,29 @@
                         "title": "Limit",
                         "type": "integer"
                     },
-                    "type": {
+                    "predefined_kind": {
                         "anyOf": [
                             {
-                                "enum": [
-                                    "PREDEFINED",
-                                    "CUSTOM"
-                                ],
-                                "type": "string"
+                                "$ref": "#/components/schemas/PredefinedIdentityProviderKindV1"
                             },
                             {
                                 "type": "null"
                             }
                         ],
                         "default": null,
-                        "description": "Only predefined or only custom providers",
-                        "title": "Type"
+                        "description": "Only this predefined provider's issuers"
                     }
                 },
                 "title": "IdentityProvidersRequestV1",
                 "type": "object"
             },
-            "IdentityProviderJwksRequestV1": {
+            "CreatePredefinedIdentityProviderConfigV1": {
                 "additionalProperties": false,
-                "description": "A key source as sent.",
+                "description": "Settings of the predefined identity provider to add.",
                 "properties": {
-                    "type": {
-                        "description": "`DISCOVERY` reads the keys from the issuer's `/.well-known/openid-configuration`. `EXPLICIT_URL` and `INLINE` aren't supported yet.",
-                        "enum": [
-                            "DISCOVERY",
-                            "EXPLICIT_URL",
-                            "INLINE"
-                        ],
-                        "examples": [
-                            "DISCOVERY"
-                        ],
-                        "title": "Type",
-                        "type": "string"
-                    },
-                    "url": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The key set URL, for `EXPLICIT_URL`",
-                        "title": "Url"
-                    },
-                    "keys": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "additionalProperties": true,
-                                    "type": "object"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "A JWK Set's keys, for `INLINE`",
-                        "title": "Keys"
-                    }
-                },
-                "required": [
-                    "type"
-                ],
-                "title": "IdentityProviderJwksRequestV1",
-                "type": "object"
-            },
-            "CreateIdentityProviderRequestV1": {
-                "additionalProperties": false,
-                "description": "Request to add a predefined identity provider or register a custom one.",
-                "properties": {
-                    "type": {
-                        "description": "Predefined or custom. Can't be changed.",
-                        "enum": [
-                            "PREDEFINED",
-                            "CUSTOM"
-                        ],
-                        "title": "Type",
-                        "type": "string"
-                    },
-                    "predefined": {
-                        "anyOf": [
-                            {
-                                "enum": [
-                                    "GITHUB_ACTIONS",
-                                    "GCP"
-                                ],
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Which predefined provider, when `type` is predefined",
-                        "title": "Predefined"
-                    },
-                    "name": {
-                        "anyOf": [
-                            {
-                                "maxLength": 255,
-                                "minLength": 1,
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Name, unique in the organization. Required for a custom provider; defaults to the provider's display name for a predefined one.",
-                        "title": "Name"
-                    },
-                    "description": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Optional description",
-                        "title": "Description"
+                    "kind": {
+                        "$ref": "#/components/schemas/PredefinedIdentityProviderKindV1",
+                        "description": "Which predefined provider. Can't be changed."
                     },
                     "issuer_url": {
                         "anyOf": [
@@ -39432,68 +39393,25 @@
                             }
                         ],
                         "default": null,
-                        "description": "For a custom provider: the exact `iss` claim of its tokens, an https URL. Unique in the organization. Can't be changed.",
+                        "description": "The `iss` claim of the provider's tokens. When adding AWS IAM, Amazon EKS, Azure managed identity, or Azure Kubernetes Service, pass your issuer in the format the predefined identity providers endpoint shows; it's unique in the organization. Can't be passed for other providers, or changed. Always set in responses.",
                         "title": "Issuer Url"
-                    },
-                    "jwks": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/IdentityProviderJwksRequestV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "For a custom provider: where its keys come from"
                     }
                 },
                 "required": [
-                    "type"
+                    "kind"
                 ],
-                "title": "CreateIdentityProviderRequestV1",
+                "title": "CreatePredefinedIdentityProviderConfigV1",
                 "type": "object"
             },
-            "VerifyIdentityProviderRequestV1": {
+            "CreateIdentityProviderRequestV1": {
                 "additionalProperties": false,
-                "description": "A custom identity provider configuration to check.",
+                "description": "Request to add an identity provider.",
                 "properties": {
-                    "issuer_url": {
-                        "description": "The provider's issuer, an https URL",
-                        "maxLength": 1024,
-                        "title": "Issuer Url",
-                        "type": "string"
-                    },
-                    "jwks": {
-                        "$ref": "#/components/schemas/IdentityProviderJwksRequestV1",
-                        "description": "Where the provider's keys come from"
-                    }
-                },
-                "required": [
-                    "issuer_url",
-                    "jwks"
-                ],
-                "title": "VerifyIdentityProviderRequestV1",
-                "type": "object"
-            },
-            "VerifyIdentityProviderResponseV1": {
-                "properties": {
-                    "ok": {
-                        "description": "Whether the keys could be fetched and parsed",
-                        "title": "Ok",
-                        "type": "boolean"
-                    },
-                    "key_ids": {
-                        "description": "The `kid` of each key found. Empty when not `ok`.",
-                        "items": {
-                            "type": "string"
-                        },
-                        "title": "Key Ids",
-                        "type": "array"
-                    },
-                    "error": {
+                    "name": {
                         "anyOf": [
                             {
+                                "maxLength": 255,
+                                "minLength": 1,
                                 "type": "string"
                             },
                             {
@@ -39501,15 +39419,32 @@
                             }
                         ],
                         "default": null,
-                        "description": "Why the check failed. Null when `ok`.",
-                        "title": "Error"
+                        "description": "Name, unique in the organization. Defaults to the provider's display name, so pass one when adding a second issuer of the same provider.",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "maxLength": 1024,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional description",
+                        "title": "Description"
+                    },
+                    "predefined": {
+                        "$ref": "#/components/schemas/CreatePredefinedIdentityProviderConfigV1",
+                        "description": "The predefined provider to add"
                     }
                 },
                 "required": [
-                    "ok",
-                    "key_ids"
+                    "predefined"
                 ],
-                "title": "VerifyIdentityProviderResponseV1",
+                "title": "CreateIdentityProviderRequestV1",
                 "type": "object"
             },
             "DeletedIdentityProviderV1": {
@@ -39554,6 +39489,7 @@
                     "description": {
                         "anyOf": [
                             {
+                                "maxLength": 1024,
                                 "type": "string"
                             },
                             {
@@ -39563,82 +39499,12 @@
                         "default": null,
                         "description": "Description; null clears it",
                         "title": "Description"
-                    },
-                    "jwks": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/IdentityProviderJwksRequestV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Custom providers only. Replaces the key source and is checked again."
                     }
                 },
                 "title": "UpdateIdentityProviderRequestV1",
                 "type": "object"
             },
-            "TrustRuleMatchV1": {
-                "description": "Which tokens the rule accepts. Every field that is set must pass.",
-                "properties": {
-                    "subject_glob": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Glob on the token's `sub` claim. `*` matches any run of characters, including `:`; nothing else is special. Up to 1,024 characters, and more than wildcards.",
-                        "examples": [
-                            "repo:acme/models:ref:refs/heads/main"
-                        ],
-                        "title": "Subject Glob"
-                    },
-                    "claims": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": {
-                                    "type": "string"
-                                },
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Top-level string claims that must equal these values, for example `{\"repository_owner_id\": \"12345\"}`. Up to 32 claims.",
-                        "title": "Claims"
-                    },
-                    "condition": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "A CEL expression over the token's claims, available as `claims`, that must evaluate to true, for example `claims.ref == 'refs/heads/main' && claims.event_name in ['push', 'release']`. Up to 4,096 characters. It can compare values, combine them with `&&`, `||`, `!` and `? :`, test membership with `in`, index with `[]`, and call `has`, `size`, `startsWith`, `endsWith`, `contains` and `int`. Other functions, including `matches()` and list macros such as `all()`, arithmetic, map and object literals, and backslash escapes aren't allowed.",
-                        "title": "Condition"
-                    },
-                    "audience": {
-                        "default": "https://api.baseten.co",
-                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Defaults to `https://api.baseten.co`.",
-                        "title": "Audience",
-                        "type": "string"
-                    }
-                },
-                "title": "TrustRuleMatchV1",
-                "type": "object"
-            },
-            "TrustRuleV1": {
+            "AccessTrustRuleV1": {
                 "description": "Which tokens from an identity provider may act as a service account.",
                 "properties": {
                     "id": {
@@ -39669,9 +39535,19 @@
                         "title": "Identity Provider Id",
                         "type": "string"
                     },
+                    "identity_provider_name": {
+                        "description": "Name of the identity provider",
+                        "title": "Identity Provider Name",
+                        "type": "string"
+                    },
                     "service_account_id": {
                         "description": "The service account its tokens act as",
                         "title": "Service Account Id",
+                        "type": "string"
+                    },
+                    "service_account_name": {
+                        "description": "Name of the service account",
+                        "title": "Service Account Name",
                         "type": "string"
                     },
                     "team_id": {
@@ -39687,9 +39563,31 @@
                         "description": "The service account's team. Null for an organization service account.",
                         "title": "Team Id"
                     },
-                    "match": {
-                        "$ref": "#/components/schemas/TrustRuleMatchV1",
-                        "description": "Which tokens the rule accepts"
+                    "team_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name of the service account's team. Null for an organization service account.",
+                        "title": "Team Name"
+                    },
+                    "condition": {
+                        "description": "A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters.",
+                        "examples": [
+                            "claims.repository_owner_id == '12345' && claims.sub.startsWith('repo:acme/models:') && claims.ref == 'refs/heads/main'"
+                        ],
+                        "title": "Condition",
+                        "type": "string"
+                    },
+                    "audience": {
+                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters.",
+                        "title": "Audience",
+                        "type": "string"
                     },
                     "max_access_token_lifetime_seconds": {
                         "description": "Longest lifetime of a token the rule issues, in seconds",
@@ -39732,23 +39630,26 @@
                     "id",
                     "name",
                     "identity_provider_id",
+                    "identity_provider_name",
                     "service_account_id",
-                    "match",
+                    "service_account_name",
+                    "condition",
+                    "audience",
                     "max_access_token_lifetime_seconds",
                     "created_by",
                     "created_at",
                     "updated_at"
                 ],
-                "title": "TrustRuleV1",
+                "title": "AccessTrustRuleV1",
                 "type": "object"
             },
-            "TrustRulesV1": {
+            "AccessTrustRulesV1": {
                 "description": "A page of trust rules.",
                 "properties": {
                     "items": {
                         "description": "Items in this page.",
                         "items": {
-                            "$ref": "#/components/schemas/TrustRuleV1"
+                            "$ref": "#/components/schemas/AccessTrustRuleV1"
                         },
                         "title": "Items",
                         "type": "array"
@@ -39762,10 +39663,10 @@
                     "items",
                     "pagination"
                 ],
-                "title": "TrustRulesV1",
+                "title": "AccessTrustRulesV1",
                 "type": "object"
             },
-            "TrustRulesRequestV1": {
+            "AccessTrustRulesRequestV1": {
                 "properties": {
                     "cursor": {
                         "anyOf": [
@@ -39828,69 +39729,10 @@
                         "title": "Team Id"
                     }
                 },
-                "title": "TrustRulesRequestV1",
+                "title": "AccessTrustRulesRequestV1",
                 "type": "object"
             },
-            "TrustRuleMatchRequestV1": {
-                "additionalProperties": false,
-                "description": "A match as sent. A misspelled criterion must fail rather than be dropped, widening the rule.",
-                "properties": {
-                    "subject_glob": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Glob on the token's `sub` claim. `*` matches any run of characters, including `:`; nothing else is special. Up to 1,024 characters, and more than wildcards.",
-                        "examples": [
-                            "repo:acme/models:ref:refs/heads/main"
-                        ],
-                        "title": "Subject Glob"
-                    },
-                    "claims": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": {
-                                    "type": "string"
-                                },
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Top-level string claims that must equal these values, for example `{\"repository_owner_id\": \"12345\"}`. Up to 32 claims.",
-                        "title": "Claims"
-                    },
-                    "condition": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "A CEL expression over the token's claims, available as `claims`, that must evaluate to true, for example `claims.ref == 'refs/heads/main' && claims.event_name in ['push', 'release']`. Up to 4,096 characters. It can compare values, combine them with `&&`, `||`, `!` and `? :`, test membership with `in`, index with `[]`, and call `has`, `size`, `startsWith`, `endsWith`, `contains` and `int`. Other functions, including `matches()` and list macros such as `all()`, arithmetic, map and object literals, and backslash escapes aren't allowed.",
-                        "title": "Condition"
-                    },
-                    "audience": {
-                        "default": "https://api.baseten.co",
-                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Defaults to `https://api.baseten.co`.",
-                        "title": "Audience",
-                        "type": "string"
-                    }
-                },
-                "title": "TrustRuleMatchRequestV1",
-                "type": "object"
-            },
-            "CreateTrustRuleRequestV1": {
+            "CreateAccessTrustRuleRequestV1": {
                 "additionalProperties": false,
                 "description": "Request to create a trust rule.",
                 "properties": {
@@ -39915,7 +39757,7 @@
                         "title": "Description"
                     },
                     "identity_provider_id": {
-                        "description": "Whose tokens the rule accepts. Can't be changed. Custom identity providers aren't supported yet.",
+                        "description": "Whose tokens the rule accepts. Can't be changed.",
                         "title": "Identity Provider Id",
                         "type": "string"
                     },
@@ -39924,13 +39766,22 @@
                         "title": "Service Account Id",
                         "type": "string"
                     },
-                    "match": {
-                        "$ref": "#/components/schemas/TrustRuleMatchRequestV1",
-                        "description": "Which tokens the rule accepts. A GitHub Actions rule must set `claims.repository_owner_id`; a Google Cloud rule must set `subject_glob` to the exact service account ID."
+                    "condition": {
+                        "description": "A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters. Can be changed later.",
+                        "examples": [
+                            "claims.repository_owner_id == '12345' && claims.sub.startsWith('repo:acme/models:') && claims.ref == 'refs/heads/main'"
+                        ],
+                        "title": "Condition",
+                        "type": "string"
+                    },
+                    "audience": {
+                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters. Can be changed later.",
+                        "title": "Audience",
+                        "type": "string"
                     },
                     "max_access_token_lifetime_seconds": {
                         "default": 3600,
-                        "description": "Longest lifetime of a token the rule issues, 60 to 3600 seconds. Can't be changed.",
+                        "description": "Longest lifetime of a token the rule issues, 60 to 3600 seconds. Can be changed later.",
                         "maximum": 3600,
                         "minimum": 60,
                         "title": "Max Access Token Lifetime Seconds",
@@ -39941,12 +39792,13 @@
                     "name",
                     "identity_provider_id",
                     "service_account_id",
-                    "match"
+                    "condition",
+                    "audience"
                 ],
-                "title": "CreateTrustRuleRequestV1",
+                "title": "CreateAccessTrustRuleRequestV1",
                 "type": "object"
             },
-            "DeletedTrustRuleV1": {
+            "DeletedAccessTrustRuleV1": {
                 "properties": {
                     "id": {
                         "description": "ID of the deleted trust rule",
@@ -39963,10 +39815,10 @@
                     "id",
                     "deleted"
                 ],
-                "title": "DeletedTrustRuleV1",
+                "title": "DeletedAccessTrustRuleV1",
                 "type": "object"
             },
-            "UpdateTrustRuleRequestV1": {
+            "UpdateAccessTrustRuleRequestV1": {
                 "additionalProperties": false,
                 "description": "Request to update a trust rule. Only the fields sent change.",
                 "properties": {
@@ -39998,17 +39850,46 @@
                         "description": "Description; null clears it",
                         "title": "Description"
                     },
-                    "match": {
+                    "condition": {
                         "anyOf": [
                             {
-                                "$ref": "#/components/schemas/TrustRuleMatchRequestV1"
+                                "type": "string"
                             },
                             {
                                 "type": "null"
                             }
                         ],
                         "default": null,
-                        "description": "Replaces the match as a whole"
+                        "description": "A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters.",
+                        "title": "Condition"
+                    },
+                    "audience": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters.",
+                        "title": "Audience"
+                    },
+                    "max_access_token_lifetime_seconds": {
+                        "anyOf": [
+                            {
+                                "maximum": 3600,
+                                "minimum": 60,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Longest lifetime of a token the rule issues, 60 to 3600 seconds. Tokens already issued keep their lifetime.",
+                        "title": "Max Access Token Lifetime Seconds"
                     },
                     "service_account_id": {
                         "anyOf": [
@@ -40024,7 +39905,7 @@
                         "title": "Service Account Id"
                     }
                 },
-                "title": "UpdateTrustRuleRequestV1",
+                "title": "UpdateAccessTrustRuleRequestV1",
                 "type": "object"
             },
             "GatewayEventTokensV1": {
@@ -40658,32 +40539,6 @@
                 "title": "GridTokenV1",
                 "type": "object"
             },
-            "GridClassifierV1": {
-                "properties": {
-                    "id": {
-                        "description": "Stable classifier identifier.",
-                        "examples": [
-                            "general-v1"
-                        ],
-                        "title": "Id",
-                        "type": "string"
-                    },
-                    "name": {
-                        "description": "Display name of the classifier.",
-                        "examples": [
-                            "General"
-                        ],
-                        "title": "Name",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "id",
-                    "name"
-                ],
-                "title": "GridClassifierV1",
-                "type": "object"
-            },
             "GridRouteClassifierV1": {
                 "properties": {
                     "id": {
@@ -40740,24 +40595,182 @@
                 "title": "GridRouteClassifierV1",
                 "type": "object"
             },
-            "GridRouteRefV1": {
+            "GridRouteMetadataV1": {
                 "properties": {
-                    "id": {
-                        "description": "Stable route identifier.",
-                        "title": "Id",
-                        "type": "string"
-                    },
                     "slug": {
-                        "description": "Name of the route to send in the inference request's model field.",
-                        "title": "Slug",
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Metadata slug, e.g. 'anthropic/claude-opus-4'; null for rows without one.",
+                        "title": "Slug"
+                    },
+                    "display_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Model display name, when available.",
+                        "title": "Display Name"
+                    },
+                    "release_date": {
+                        "anyOf": [
+                            {
+                                "format": "date",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Model release date. Month-only source dates use the first day of that month.",
+                        "title": "Release Date"
+                    },
+                    "provider": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Provider key derived from the slug prefix, e.g. 'anthropic'; null for unprefixed slugs.",
+                        "title": "Provider"
+                    },
+                    "context_window": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Total context window in tokens.",
+                        "title": "Context Window"
+                    },
+                    "max_output_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Maximum output tokens per response.",
+                        "title": "Max Output Tokens"
+                    },
+                    "input_modalities": {
+                        "description": "Accepted input modalities.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Input Modalities",
+                        "type": "array"
+                    },
+                    "tools": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Whether the model supports tool calling.",
+                        "title": "Tools"
+                    },
+                    "reasoning_effort_levels": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Reasoning effort levels the model supports.",
+                        "title": "Reasoning Effort Levels"
+                    },
+                    "parallel_tool_calls": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Whether the model supports parallel tool calls.",
+                        "title": "Parallel Tool Calls"
+                    },
+                    "supported_api_formats": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ExploreMetadataAPIFormatsV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "API formats the model supports."
+                    },
+                    "cost": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ExploreCostV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Provider list prices in USD per 1M tokens, when available."
+                    },
+                    "api_formats": {
+                        "description": "API formats the route supports, most preferred first: `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target, keeping only the formats the route supports. Never empty.",
+                        "items": {
+                            "enum": [
+                                "messages",
+                                "responses",
+                                "chat_completions"
+                            ],
+                            "title": "GridRouteAPIFormatV1",
+                            "type": "string"
+                        },
+                        "minItems": 1,
+                        "title": "Api Formats",
+                        "type": "array"
                     }
                 },
                 "required": [
-                    "id",
-                    "slug"
+                    "slug",
+                    "display_name",
+                    "release_date",
+                    "provider",
+                    "context_window",
+                    "max_output_tokens",
+                    "input_modalities",
+                    "tools",
+                    "reasoning_effort_levels",
+                    "parallel_tool_calls",
+                    "supported_api_formats",
+                    "cost",
+                    "api_formats"
                 ],
-                "title": "GridRouteRefV1",
+                "title": "GridRouteMetadataV1",
                 "type": "object"
             },
             "GridRouteTargetBasetenModelAPIV1": {
@@ -40780,47 +40793,6 @@
                     "model"
                 ],
                 "title": "GridRouteTargetBasetenModelAPIV1",
-                "type": "object"
-            },
-            "GridRouteTargetClassifierV1": {
-                "properties": {
-                    "type": {
-                        "const": "CLASSIFIER",
-                        "description": "Target kind for a classifier-based route.",
-                        "title": "Type",
-                        "type": "string"
-                    },
-                    "classifier": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/GridClassifierV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Classifier that picks a route for each request. Null for routers created before classifiers could be selected."
-                    },
-                    "default_route": {
-                        "$ref": "#/components/schemas/GridRouteRefV1",
-                        "description": "Route used when the classifier picks none."
-                    },
-                    "allowed_routes": {
-                        "description": "Routes the classifier may pick, in creation order.",
-                        "items": {
-                            "$ref": "#/components/schemas/GridRouteRefV1"
-                        },
-                        "title": "Allowed Routes",
-                        "type": "array"
-                    }
-                },
-                "required": [
-                    "type",
-                    "classifier",
-                    "default_route",
-                    "allowed_routes"
-                ],
-                "title": "GridRouteTargetClassifierV1",
                 "type": "object"
             },
             "GridRouteTargetConnectionV1": {
@@ -40919,7 +40891,6 @@
                         "discriminator": {
                             "mapping": {
                                 "BASETEN_MODEL_API": "#/components/schemas/GridRouteTargetBasetenModelAPIV1",
-                                "CLASSIFIER": "#/components/schemas/GridRouteTargetClassifierV1",
                                 "CONNECTION": "#/components/schemas/GridRouteTargetConnectionV1",
                                 "INTELLIGENT": "#/components/schemas/GridRouteTargetIntelligentV1"
                             },
@@ -40933,9 +40904,6 @@
                                 "$ref": "#/components/schemas/GridRouteTargetConnectionV1"
                             },
                             {
-                                "$ref": "#/components/schemas/GridRouteTargetClassifierV1"
-                            },
-                            {
                                 "$ref": "#/components/schemas/GridRouteTargetIntelligentV1"
                             }
                         ],
@@ -40944,13 +40912,13 @@
                     "metadata": {
                         "anyOf": [
                             {
-                                "$ref": "#/components/schemas/ExploreMetadataV1"
+                                "$ref": "#/components/schemas/GridRouteMetadataV1"
                             },
                             {
                                 "type": "null"
                             }
                         ],
-                        "description": "Resolved model metadata; for a router, the envelope of its allowed routes' metadata. Null when nothing is linked."
+                        "description": "Resolved model metadata; for an intelligent route, the envelope of its servable models' metadata. Null when nothing is linked or the metadata has no supported API formats."
                     },
                     "invoke_url": {
                         "description": "Base URL for inference requests using this route.",
@@ -41083,56 +41051,6 @@
                 "title": "UpsertGridRouteTargetBasetenModelAPIV1",
                 "type": "object"
             },
-            "UpsertGridRouteTargetClassifierV1": {
-                "additionalProperties": false,
-                "properties": {
-                    "type": {
-                        "const": "CLASSIFIER",
-                        "description": "Target kind for a classifier-based route.",
-                        "title": "Type",
-                        "type": "string"
-                    },
-                    "classifier_id": {
-                        "description": "ID of the classifier that picks a route for each request.",
-                        "examples": [
-                            "general-v1"
-                        ],
-                        "minLength": 1,
-                        "title": "Classifier Id",
-                        "type": "string"
-                    },
-                    "allowed_route_ids": {
-                        "description": "IDs of the routes the classifier may pick. All must belong to the route's team and must not be routers themselves.",
-                        "examples": [
-                            [
-                                "abc1234",
-                                "def5678"
-                            ]
-                        ],
-                        "items": {
-                            "type": "string"
-                        },
-                        "title": "Allowed Route Ids",
-                        "type": "array"
-                    },
-                    "default_route_id": {
-                        "description": "ID of the allowed route used when the classifier picks none.",
-                        "examples": [
-                            "abc1234"
-                        ],
-                        "title": "Default Route Id",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "type",
-                    "classifier_id",
-                    "allowed_route_ids",
-                    "default_route_id"
-                ],
-                "title": "UpsertGridRouteTargetClassifierV1",
-                "type": "object"
-            },
             "UpsertGridRouteTargetConnectionV1": {
                 "additionalProperties": false,
                 "properties": {
@@ -41164,6 +41082,43 @@
                     "connection_id"
                 ],
                 "title": "UpsertGridRouteTargetConnectionV1",
+                "type": "object"
+            },
+            "UpsertGridRouteTargetIntelligentV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "type": {
+                        "const": "INTELLIGENT",
+                        "description": "Target kind for an intelligent route: Baseten picks the model per request.",
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "route_classifier_id": {
+                        "description": "Identifier of the route classifier that picks the model. List them with GET /v1/grid/route_classifiers.",
+                        "examples": [
+                            "general-v1"
+                        ],
+                        "minLength": 1,
+                        "title": "Route Classifier Id",
+                        "type": "string"
+                    },
+                    "tradeoff": {
+                        "description": "How the classifier weighs cost against quality. Must be one of the classifier's supported tradeoffs.",
+                        "enum": [
+                            "cost",
+                            "balanced",
+                            "intelligence"
+                        ],
+                        "title": "GridRouteTradeoffV1",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "route_classifier_id",
+                    "tradeoff"
+                ],
+                "title": "UpsertGridRouteTargetIntelligentV1",
                 "type": "object"
             },
             "CreateGridRouteRequestV1": {
@@ -41198,19 +41153,19 @@
                             }
                         ],
                         "default": null,
-                        "description": "Display label. Omit to use the route name; null is not accepted.",
+                        "description": "Display label. Omit to use the route name; required for INTELLIGENT targets. Null is not accepted.",
                         "examples": [
                             "Assistant"
                         ],
                         "title": "Display Name"
                     },
                     "target": {
-                        "description": "Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team.",
+                        "description": "Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team. INTELLIGENT targets need at least one of the route classifier's models, and one of its fallback models, servable by the team.",
                         "discriminator": {
                             "mapping": {
                                 "BASETEN_MODEL_API": "#/components/schemas/UpsertGridRouteTargetBasetenModelAPIV1",
-                                "CLASSIFIER": "#/components/schemas/UpsertGridRouteTargetClassifierV1",
-                                "CONNECTION": "#/components/schemas/UpsertGridRouteTargetConnectionV1"
+                                "CONNECTION": "#/components/schemas/UpsertGridRouteTargetConnectionV1",
+                                "INTELLIGENT": "#/components/schemas/UpsertGridRouteTargetIntelligentV1"
                             },
                             "propertyName": "type"
                         },
@@ -41228,7 +41183,7 @@
                                 "$ref": "#/components/schemas/UpsertGridRouteTargetConnectionV1"
                             },
                             {
-                                "$ref": "#/components/schemas/UpsertGridRouteTargetClassifierV1"
+                                "$ref": "#/components/schemas/UpsertGridRouteTargetIntelligentV1"
                             }
                         ],
                         "title": "Target"
@@ -41396,6 +41351,32 @@
                         "default": null,
                         "description": "Coding harness. Null when not grouping by HARNESS, when no harness was recorded (including usage from before harness tracking), or when the recorded harness is not recognized by this API version."
                     },
+                    "api_key_prefix": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Prefix of the API key that made the requests, matching `GET /v1/api_keys`. Null when not grouping by API_KEY, for usage without an API key, and for usage recorded before API key tracking.",
+                        "title": "Api Key Prefix"
+                    },
+                    "api_key_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name of the API key. Null when `api_key_prefix` is null or the key has no name.",
+                        "title": "Api Key Name"
+                    },
                     "cost_usd": {
                         "description": "Estimated cost in USD, returned as an exact decimal string. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.",
                         "examples": [
@@ -41470,7 +41451,8 @@
                     "MODEL",
                     "PROVIDER",
                     "INTELLIGENT_ROUTE",
-                    "HARNESS"
+                    "HARNESS",
+                    "API_KEY"
                 ],
                 "title": "GridRouteUsageDimensionV1",
                 "type": "string"
@@ -41540,7 +41522,7 @@
                         "title": "End Date"
                     },
                     "group_by": {
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, or HARNESS. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, HARNESS, or API_KEY. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. API_KEY includes usage without an API key, such as requests authenticated by a signed-in session, as a null group. Defaults to MODEL.",
                         "items": {
                             "$ref": "#/components/schemas/GridRouteUsageDimensionV1"
                         },
@@ -41577,6 +41559,14 @@
                             "$ref": "#/components/schemas/GridRouteUsageHarnessV1"
                         },
                         "title": "Harnesses",
+                        "type": "array"
+                    },
+                    "api_key_prefixes": {
+                        "description": "Return only usage made with these API keys, repeated once per key prefix. Omit to include all usage, including usage without an API key.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Api Key Prefixes",
                         "type": "array"
                     }
                 },
@@ -41641,37 +41631,6 @@
                             "Assistant"
                         ],
                         "title": "Display Name"
-                    },
-                    "target": {
-                        "anyOf": [
-                            {
-                                "discriminator": {
-                                    "mapping": {
-                                        "BASETEN_MODEL_API": "#/components/schemas/UpsertGridRouteTargetBasetenModelAPIV1",
-                                        "CLASSIFIER": "#/components/schemas/UpsertGridRouteTargetClassifierV1",
-                                        "CONNECTION": "#/components/schemas/UpsertGridRouteTargetConnectionV1"
-                                    },
-                                    "propertyName": "type"
-                                },
-                                "oneOf": [
-                                    {
-                                        "$ref": "#/components/schemas/UpsertGridRouteTargetBasetenModelAPIV1"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/UpsertGridRouteTargetConnectionV1"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/UpsertGridRouteTargetClassifierV1"
-                                    }
-                                ]
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER configuration of a router route is mutable.",
-                        "title": "Target",
-                        "x-null-distinct": true
                     }
                 },
                 "title": "UpdateGridRouteRequestV1",
@@ -43110,55 +43069,6 @@
                     "config"
                 ],
                 "title": "UpdateGridConnectionRequestV1",
-                "type": "object"
-            },
-            "GridClassifiersResponseV1": {
-                "properties": {
-                    "items": {
-                        "description": "Items in this page.",
-                        "items": {
-                            "$ref": "#/components/schemas/GridClassifierV1"
-                        },
-                        "title": "Items",
-                        "type": "array"
-                    },
-                    "pagination": {
-                        "$ref": "#/components/schemas/PaginationResponseV1",
-                        "description": "Pagination metadata for the page."
-                    }
-                },
-                "required": [
-                    "items",
-                    "pagination"
-                ],
-                "title": "GridClassifiersResponseV1",
-                "type": "object"
-            },
-            "GridClassifiersRequestV1": {
-                "properties": {
-                    "cursor": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
-                        "title": "Cursor"
-                    },
-                    "limit": {
-                        "default": 100,
-                        "description": "Maximum number of items to return.",
-                        "maximum": 1000,
-                        "minimum": 1,
-                        "title": "Limit",
-                        "type": "integer"
-                    }
-                },
-                "title": "GridClassifiersRequestV1",
                 "type": "object"
             },
             "GridRouteClassifiersResponseV1": {
@@ -46974,7 +46884,7 @@
             },
             "UpdateOrganizationRequestV1": {
                 "additionalProperties": false,
-                "description": "Partial update of the caller's organization settings. Omitted or null fields are unchanged.",
+                "description": "Partial update of the caller's organization settings. Omitted fields are unchanged.",
                 "properties": {
                     "allow_personal_api_keys": {
                         "anyOf": [
@@ -46986,7 +46896,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Whether members can create new personal API keys",
+                        "description": "Whether members can create new personal API keys. Null is not accepted.",
                         "title": "Allow Personal Api Keys"
                     },
                     "allow_service_account_api_keys": {
@@ -46999,7 +46909,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Whether new team and organization API keys can be created",
+                        "description": "Whether new team and organization API keys can be created. Null is not accepted.",
                         "title": "Allow Service Account Api Keys"
                     }
                 },
@@ -47245,14 +47155,6 @@
                     "type": "string"
                 },
                 "name": "connection_id",
-                "in": "path",
-                "required": true
-            },
-            "classifier_id": {
-                "schema": {
-                    "type": "string"
-                },
-                "name": "classifier_id",
                 "in": "path",
                 "required": true
             },

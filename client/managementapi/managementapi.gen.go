@@ -67,12 +67,15 @@ func (e AuditLogActorType) Valid() bool {
 
 // Defines values for AuditLogApiKeyRevocationReason.
 const (
-	AuditLogApiKeyRevocationReason_INACTIVITY AuditLogApiKeyRevocationReason = "INACTIVITY"
+	AuditLogApiKeyRevocationReason_CREDENTIAL_EXPOSURE AuditLogApiKeyRevocationReason = "CREDENTIAL_EXPOSURE"
+	AuditLogApiKeyRevocationReason_INACTIVITY          AuditLogApiKeyRevocationReason = "INACTIVITY"
 )
 
 // Valid indicates whether the value is a known member of the AuditLogApiKeyRevocationReason enum.
 func (e AuditLogApiKeyRevocationReason) Valid() bool {
 	switch e {
+	case AuditLogApiKeyRevocationReason_CREDENTIAL_EXPOSURE:
+		return true
 	case AuditLogApiKeyRevocationReason_INACTIVITY:
 		return true
 	default:
@@ -653,42 +656,6 @@ func (e CheckpointSyncStatus) Valid() bool {
 	}
 }
 
-// Defines values for CreateIdentityProviderRequestPredefined.
-const (
-	CreateIdentityProviderRequestPredefined_GCP            CreateIdentityProviderRequestPredefined = "GCP"
-	CreateIdentityProviderRequestPredefined_GITHUB_ACTIONS CreateIdentityProviderRequestPredefined = "GITHUB_ACTIONS"
-)
-
-// Valid indicates whether the value is a known member of the CreateIdentityProviderRequestPredefined enum.
-func (e CreateIdentityProviderRequestPredefined) Valid() bool {
-	switch e {
-	case CreateIdentityProviderRequestPredefined_GCP:
-		return true
-	case CreateIdentityProviderRequestPredefined_GITHUB_ACTIONS:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for CreateIdentityProviderRequestType.
-const (
-	CreateIdentityProviderRequestType_CUSTOM     CreateIdentityProviderRequestType = "CUSTOM"
-	CreateIdentityProviderRequestType_PREDEFINED CreateIdentityProviderRequestType = "PREDEFINED"
-)
-
-// Valid indicates whether the value is a known member of the CreateIdentityProviderRequestType enum.
-func (e CreateIdentityProviderRequestType) Valid() bool {
-	switch e {
-	case CreateIdentityProviderRequestType_CUSTOM:
-		return true
-	case CreateIdentityProviderRequestType_PREDEFINED:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for DeploymentConfigOutputFormat.
 const (
 	DeploymentConfigOutputFormat_both   DeploymentConfigOutputFormat = "both"
@@ -902,6 +869,27 @@ func (e GridRouteClassifierSupportedTradeoffs) Valid() bool {
 	}
 }
 
+// Defines values for GridRouteMetadataApiFormats.
+const (
+	GridRouteMetadataApiFormats_chat_completions GridRouteMetadataApiFormats = "chat_completions"
+	GridRouteMetadataApiFormats_messages         GridRouteMetadataApiFormats = "messages"
+	GridRouteMetadataApiFormats_responses        GridRouteMetadataApiFormats = "responses"
+)
+
+// Valid indicates whether the value is a known member of the GridRouteMetadataApiFormats enum.
+func (e GridRouteMetadataApiFormats) Valid() bool {
+	switch e {
+	case GridRouteMetadataApiFormats_chat_completions:
+		return true
+	case GridRouteMetadataApiFormats_messages:
+		return true
+	case GridRouteMetadataApiFormats_responses:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for GridRouteTargetIntelligentTradeoff.
 const (
 	GridRouteTargetIntelligentTradeoff_balanced     GridRouteTargetIntelligentTradeoff = "balanced"
@@ -925,6 +913,7 @@ func (e GridRouteTargetIntelligentTradeoff) Valid() bool {
 
 // Defines values for GridRouteUsageDimension.
 const (
+	GridRouteUsageDimension_API_KEY           GridRouteUsageDimension = "API_KEY"
 	GridRouteUsageDimension_HARNESS           GridRouteUsageDimension = "HARNESS"
 	GridRouteUsageDimension_INTELLIGENT_ROUTE GridRouteUsageDimension = "INTELLIGENT_ROUTE"
 	GridRouteUsageDimension_MODEL             GridRouteUsageDimension = "MODEL"
@@ -936,6 +925,8 @@ const (
 // Valid indicates whether the value is a known member of the GridRouteUsageDimension enum.
 func (e GridRouteUsageDimension) Valid() bool {
 	switch e {
+	case GridRouteUsageDimension_API_KEY:
+		return true
 	case GridRouteUsageDimension_HARNESS:
 		return true
 	case GridRouteUsageDimension_INTELLIGENT_ROUTE:
@@ -1007,84 +998,6 @@ func (e GridSpendBlockedBy) Valid() bool {
 	case GridSpendBlockedBy_member:
 		return true
 	case GridSpendBlockedBy_team:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for IdentityProviderPredefined.
-const (
-	IdentityProviderPredefined_GCP            IdentityProviderPredefined = "GCP"
-	IdentityProviderPredefined_GITHUB_ACTIONS IdentityProviderPredefined = "GITHUB_ACTIONS"
-)
-
-// Valid indicates whether the value is a known member of the IdentityProviderPredefined enum.
-func (e IdentityProviderPredefined) Valid() bool {
-	switch e {
-	case IdentityProviderPredefined_GCP:
-		return true
-	case IdentityProviderPredefined_GITHUB_ACTIONS:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for IdentityProviderType.
-const (
-	IdentityProviderType_CUSTOM     IdentityProviderType = "CUSTOM"
-	IdentityProviderType_PREDEFINED IdentityProviderType = "PREDEFINED"
-)
-
-// Valid indicates whether the value is a known member of the IdentityProviderType enum.
-func (e IdentityProviderType) Valid() bool {
-	switch e {
-	case IdentityProviderType_CUSTOM:
-		return true
-	case IdentityProviderType_PREDEFINED:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for IdentityProviderJwksType.
-const (
-	IdentityProviderJwksType_DISCOVERY    IdentityProviderJwksType = "DISCOVERY"
-	IdentityProviderJwksType_EXPLICIT_URL IdentityProviderJwksType = "EXPLICIT_URL"
-	IdentityProviderJwksType_INLINE       IdentityProviderJwksType = "INLINE"
-)
-
-// Valid indicates whether the value is a known member of the IdentityProviderJwksType enum.
-func (e IdentityProviderJwksType) Valid() bool {
-	switch e {
-	case IdentityProviderJwksType_DISCOVERY:
-		return true
-	case IdentityProviderJwksType_EXPLICIT_URL:
-		return true
-	case IdentityProviderJwksType_INLINE:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for IdentityProviderJwksRequestType.
-const (
-	IdentityProviderJwksRequestType_DISCOVERY    IdentityProviderJwksRequestType = "DISCOVERY"
-	IdentityProviderJwksRequestType_EXPLICIT_URL IdentityProviderJwksRequestType = "EXPLICIT_URL"
-	IdentityProviderJwksRequestType_INLINE       IdentityProviderJwksRequestType = "INLINE"
-)
-
-// Valid indicates whether the value is a known member of the IdentityProviderJwksRequestType enum.
-func (e IdentityProviderJwksRequestType) Valid() bool {
-	switch e {
-	case IdentityProviderJwksRequestType_DISCOVERY:
-		return true
-	case IdentityProviderJwksRequestType_EXPLICIT_URL:
-		return true
-	case IdentityProviderJwksRequestType_INLINE:
 		return true
 	default:
 		return false
@@ -1481,18 +1394,36 @@ func (e Name) Valid() bool {
 	}
 }
 
-// Defines values for PredefinedIdentityProviderInfoPredefined.
+// Defines values for PredefinedIdentityProviderKind.
 const (
-	PredefinedIdentityProviderInfoPredefined_GCP            PredefinedIdentityProviderInfoPredefined = "GCP"
-	PredefinedIdentityProviderInfoPredefined_GITHUB_ACTIONS PredefinedIdentityProviderInfoPredefined = "GITHUB_ACTIONS"
+	PredefinedIdentityProviderKind_AWS_EKS                   PredefinedIdentityProviderKind = "AWS_EKS"
+	PredefinedIdentityProviderKind_AWS_IAM                   PredefinedIdentityProviderKind = "AWS_IAM"
+	PredefinedIdentityProviderKind_AZURE_AKS                 PredefinedIdentityProviderKind = "AZURE_AKS"
+	PredefinedIdentityProviderKind_AZURE_MANAGED_IDENTITY_V1 PredefinedIdentityProviderKind = "AZURE_MANAGED_IDENTITY_V1"
+	PredefinedIdentityProviderKind_AZURE_MANAGED_IDENTITY_V2 PredefinedIdentityProviderKind = "AZURE_MANAGED_IDENTITY_V2"
+	PredefinedIdentityProviderKind_BASETEN                   PredefinedIdentityProviderKind = "BASETEN"
+	PredefinedIdentityProviderKind_GCP                       PredefinedIdentityProviderKind = "GCP"
+	PredefinedIdentityProviderKind_GITHUB_ACTIONS            PredefinedIdentityProviderKind = "GITHUB_ACTIONS"
 )
 
-// Valid indicates whether the value is a known member of the PredefinedIdentityProviderInfoPredefined enum.
-func (e PredefinedIdentityProviderInfoPredefined) Valid() bool {
+// Valid indicates whether the value is a known member of the PredefinedIdentityProviderKind enum.
+func (e PredefinedIdentityProviderKind) Valid() bool {
 	switch e {
-	case PredefinedIdentityProviderInfoPredefined_GCP:
+	case PredefinedIdentityProviderKind_AWS_EKS:
 		return true
-	case PredefinedIdentityProviderInfoPredefined_GITHUB_ACTIONS:
+	case PredefinedIdentityProviderKind_AWS_IAM:
+		return true
+	case PredefinedIdentityProviderKind_AZURE_AKS:
+		return true
+	case PredefinedIdentityProviderKind_AZURE_MANAGED_IDENTITY_V1:
+		return true
+	case PredefinedIdentityProviderKind_AZURE_MANAGED_IDENTITY_V2:
+		return true
+	case PredefinedIdentityProviderKind_BASETEN:
+		return true
+	case PredefinedIdentityProviderKind_GCP:
+		return true
+	case PredefinedIdentityProviderKind_GITHUB_ACTIONS:
 		return true
 	default:
 		return false
@@ -2177,6 +2108,27 @@ func (e UpdateAutoscalingSettingsStatus) Valid() bool {
 	}
 }
 
+// Defines values for UpsertGridRouteTargetIntelligentTradeoff.
+const (
+	UpsertGridRouteTargetIntelligentTradeoff_balanced     UpsertGridRouteTargetIntelligentTradeoff = "balanced"
+	UpsertGridRouteTargetIntelligentTradeoff_cost         UpsertGridRouteTargetIntelligentTradeoff = "cost"
+	UpsertGridRouteTargetIntelligentTradeoff_intelligence UpsertGridRouteTargetIntelligentTradeoff = "intelligence"
+)
+
+// Valid indicates whether the value is a known member of the UpsertGridRouteTargetIntelligentTradeoff enum.
+func (e UpsertGridRouteTargetIntelligentTradeoff) Valid() bool {
+	switch e {
+	case UpsertGridRouteTargetIntelligentTradeoff_balanced:
+		return true
+	case UpsertGridRouteTargetIntelligentTradeoff_cost:
+		return true
+	case UpsertGridRouteTargetIntelligentTradeoff_intelligence:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for UsageDimension.
 const (
 	UsageDimension_api_key UsageDimension = "api_key"
@@ -2327,24 +2279,6 @@ func (e VolumeTokenScope) Valid() bool {
 	}
 }
 
-// Defines values for GetV1AccessIdentityProvidersParamsType.
-const (
-	GetV1AccessIdentityProvidersParamsType_CUSTOM     GetV1AccessIdentityProvidersParamsType = "CUSTOM"
-	GetV1AccessIdentityProvidersParamsType_PREDEFINED GetV1AccessIdentityProvidersParamsType = "PREDEFINED"
-)
-
-// Valid indicates whether the value is a known member of the GetV1AccessIdentityProvidersParamsType enum.
-func (e GetV1AccessIdentityProvidersParamsType) Valid() bool {
-	switch e {
-	case GetV1AccessIdentityProvidersParamsType_CUSTOM:
-		return true
-	case GetV1AccessIdentityProvidersParamsType_PREDEFINED:
-		return true
-	default:
-		return false
-	}
-}
-
 // APIKey Represents an API key.
 type APIKey struct {
 	// ApiKey The API key string
@@ -2418,6 +2352,64 @@ type AWSCredentials struct {
 
 	// AwsSessionToken The AWS session token
 	AwsSessionToken string `json:"aws_session_token"`
+}
+
+// AccessTrustRule Which tokens from an identity provider may act as a service account.
+type AccessTrustRule struct {
+	// Audience The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters.
+	Audience string `json:"audience"`
+
+	// Condition A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters.
+	Condition string `json:"condition"`
+
+	// CreatedAt Time the rule was created
+	CreatedAt time.Time `json:"created_at"`
+
+	// CreatedBy ID of the user who created the rule
+	CreatedBy string `json:"created_by"`
+
+	// Description Description
+	Description *string `json:"description,omitempty"`
+
+	// Id Trust rule ID. Workloads pass it when they exchange a token.
+	Id string `json:"id"`
+
+	// IdentityProviderId The identity provider whose tokens it accepts
+	IdentityProviderId string `json:"identity_provider_id"`
+
+	// IdentityProviderName Name of the identity provider
+	IdentityProviderName string `json:"identity_provider_name"`
+
+	// LastUsedAt Last token exchange through the rule. Null until the first.
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+
+	// MaxAccessTokenLifetimeSeconds Longest lifetime of a token the rule issues, in seconds
+	MaxAccessTokenLifetimeSeconds int `json:"max_access_token_lifetime_seconds"`
+
+	// Name Name, unique in the organization
+	Name string `json:"name"`
+
+	// ServiceAccountId The service account its tokens act as
+	ServiceAccountId string `json:"service_account_id"`
+
+	// ServiceAccountName Name of the service account
+	ServiceAccountName string `json:"service_account_name"`
+
+	// TeamId The service account's team. Null for an organization service account.
+	TeamId *string `json:"team_id,omitempty"`
+
+	// TeamName Name of the service account's team. Null for an organization service account.
+	TeamName *string `json:"team_name,omitempty"`
+
+	// UpdatedAt Time the rule was last updated
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// AccessTrustRules A page of trust rules.
+type AccessTrustRules struct {
+	// Items Items in this page.
+	Items      []AccessTrustRule  `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 // ActivateResponse The response to a request to activate a deployment.
@@ -3832,6 +3824,30 @@ type CreateAPIKeyRequest struct {
 	Type APIKeyCategory `json:"type"`
 }
 
+// CreateAccessTrustRuleRequest Request to create a trust rule.
+type CreateAccessTrustRuleRequest struct {
+	// Audience The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters. Can be changed later.
+	Audience string `json:"audience"`
+
+	// Condition A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters. Can be changed later.
+	Condition string `json:"condition"`
+
+	// Description Optional description
+	Description *string `json:"description,omitempty"`
+
+	// IdentityProviderId Whose tokens the rule accepts. Can't be changed.
+	IdentityProviderId string `json:"identity_provider_id"`
+
+	// MaxAccessTokenLifetimeSeconds Longest lifetime of a token the rule issues, 60 to 3600 seconds. Can be changed later.
+	MaxAccessTokenLifetimeSeconds *int `json:"max_access_token_lifetime_seconds,omitempty"`
+
+	// Name Name, unique in the organization. Can be changed later.
+	Name string `json:"name"`
+
+	// ServiceAccountId The service account its tokens act as. Can be changed later.
+	ServiceAccountId string `json:"service_account_id"`
+}
+
 // CreateApiKeyForGroupRequest defines model for CreateApiKeyForGroupRequest.
 type CreateApiKeyForGroupRequest struct {
 	// Name Optional display name for the new key.
@@ -3961,17 +3977,17 @@ type CreateGridRouteRequest struct {
 	// Description Short description of the route. Omit for no description; null is not accepted.
 	Description *string `json:"description,omitempty"`
 
-	// DisplayName Display label. Omit to use the route name; null is not accepted.
+	// DisplayName Display label. Omit to use the route name; required for INTELLIGENT targets. Null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
 
-	// Target Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team.
+	// Target Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team. INTELLIGENT targets need at least one of the route classifier's models, and one of its fallback models, servable by the team.
 	Target CreateGridRouteRequest_Target `json:"target"`
 
 	// TeamId Identifier of the team that owns the route.
 	TeamId *string `json:"team_id,omitempty"`
 }
 
-// CreateGridRouteRequest_Target Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team.
+// CreateGridRouteRequest_Target Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team. INTELLIGENT targets need at least one of the route classifier's models, and one of its fallback models, servable by the team.
 type CreateGridRouteRequest_Target struct {
 	union json.RawMessage
 }
@@ -3998,32 +4014,17 @@ type CreateGroupRequest struct {
 	Models []ModelConfig `json:"models"`
 }
 
-// CreateIdentityProviderRequest Request to add a predefined identity provider or register a custom one.
+// CreateIdentityProviderRequest Request to add an identity provider.
 type CreateIdentityProviderRequest struct {
 	// Description Optional description
 	Description *string `json:"description,omitempty"`
 
-	// IssuerUrl For a custom provider: the exact `iss` claim of its tokens, an https URL. Unique in the organization. Can't be changed.
-	IssuerUrl *string `json:"issuer_url,omitempty"`
-
-	// Jwks For a custom provider: where its keys come from
-	Jwks *IdentityProviderJwksRequest `json:"jwks,omitempty"`
-
-	// Name Name, unique in the organization. Required for a custom provider; defaults to the provider's display name for a predefined one.
+	// Name Name, unique in the organization. Defaults to the provider's display name, so pass one when adding a second issuer of the same provider.
 	Name *string `json:"name,omitempty"`
 
-	// Predefined Which predefined provider, when `type` is predefined
-	Predefined *CreateIdentityProviderRequestPredefined `json:"predefined,omitempty"`
-
-	// Type Predefined or custom. Can't be changed.
-	Type CreateIdentityProviderRequestType `json:"type"`
+	// Predefined Settings of the predefined identity provider to add.
+	Predefined CreatePredefinedIdentityProviderConfig `json:"predefined"`
 }
-
-// CreateIdentityProviderRequestPredefined Which predefined provider, when `type` is predefined
-type CreateIdentityProviderRequestPredefined string
-
-// CreateIdentityProviderRequestType Predefined or custom. Can't be changed.
-type CreateIdentityProviderRequestType string
 
 // CreateJobWeightConfig Weight source configuration for MDN (Model Distribution Network).
 //
@@ -4193,8 +4194,11 @@ type CreateLoopsRunRequest struct {
 	// AvailabilityModel Capacity a training job or Loops trainer runs on.
 	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
 
-	// BaseCheckpoint Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in the team secret hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
+	// BaseCheckpoint Optional checkpoint to start training from instead of the base model's weights: a Hugging Face repo (hf://<org>/<repo>[@<revision>]), an object store path (s3://, gs://, r2://, cw://, or azure://), or a full Baseten Training checkpoint in the run's team (bt://<project>@<job_id>/<checkpoint>, with the checkpoint named). It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include tokenizer files: the run's sampler loads the tokenizer and chat template from the checkpoint. A Hugging Face revision is pinned to a commit when the run is created, and its files are checked then. Any other source is read again by each sampler and resumed run, so do not change it while the run is in use. Checkpoints from a run on a source outside Hugging Face cannot be deployed yet. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
 	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
+
+	// BaseCheckpointAuth Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token for a Hugging Face repo, or the credentials for an object store. A Baseten Training checkpoint takes no auth. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, a Hugging Face repo is read with the team secret hf_access_token if it exists. Requires base_checkpoint.
+	BaseCheckpointAuth *TrainingWeightAuth `json:"base_checkpoint_auth,omitempty"`
 
 	// BaseModel Base model ID (e.g. 'Qwen/Qwen3-8B').
 	BaseModel string `json:"base_model"`
@@ -4283,8 +4287,11 @@ type CreateLoopsTrainerRequest struct {
 	// AvailabilityModel Capacity a training job or Loops trainer runs on.
 	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
 
-	// BaseCheckpoint Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in the team secret hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
+	// BaseCheckpoint Optional checkpoint to start training from instead of the base model's weights: a Hugging Face repo (hf://<org>/<repo>[@<revision>]), an object store path (s3://, gs://, r2://, cw://, or azure://), or a full Baseten Training checkpoint in the run's team (bt://<project>@<job_id>/<checkpoint>, with the checkpoint named). It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include tokenizer files: the run's sampler loads the tokenizer and chat template from the checkpoint. A Hugging Face revision is pinned to a commit when the run is created, and its files are checked then. Any other source is read again by each sampler and resumed run, so do not change it while the run is in use. Checkpoints from a run on a source outside Hugging Face cannot be deployed yet. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
 	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
+
+	// BaseCheckpointAuth Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token for a Hugging Face repo, or the credentials for an object store. A Baseten Training checkpoint takes no auth. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, a Hugging Face repo is read with the team secret hf_access_token if it exists. Requires base_checkpoint.
+	BaseCheckpointAuth *TrainingWeightAuth `json:"base_checkpoint_auth,omitempty"`
 
 	// BaseModel Base model ID (e.g. 'Qwen/Qwen3-8B').
 	BaseModel string `json:"base_model"`
@@ -4344,6 +4351,15 @@ type CreateModelRequest struct {
 // CreateModelRequest_Source Where the new model is created from.
 type CreateModelRequest_Source struct {
 	union json.RawMessage
+}
+
+// CreatePredefinedIdentityProviderConfig Settings of the predefined identity provider to add.
+type CreatePredefinedIdentityProviderConfig struct {
+	// IssuerUrl The `iss` claim of the provider's tokens. When adding AWS IAM, Amazon EKS, Azure managed identity, or Azure Kubernetes Service, pass your issuer in the format the predefined identity providers endpoint shows; it's unique in the organization. Can't be passed for other providers, or changed. Always set in responses.
+	IssuerUrl *string `json:"issuer_url,omitempty"`
+
+	// Kind An identity provider Baseten supports.
+	Kind PredefinedIdentityProviderKind `json:"kind"`
 }
 
 // CreateSandboxPreviewRequest defines model for CreateSandboxPreviewRequest.
@@ -4615,27 +4631,6 @@ type CreateTrainingJobS3Artifact struct {
 
 	// S3Key S3 key for the uploaded runtime artifact.
 	S3Key string `json:"s3_key"`
-}
-
-// CreateTrustRuleRequest Request to create a trust rule.
-type CreateTrustRuleRequest struct {
-	// Description Optional description
-	Description *string `json:"description,omitempty"`
-
-	// IdentityProviderId Whose tokens the rule accepts. Can't be changed. Custom identity providers aren't supported yet.
-	IdentityProviderId string `json:"identity_provider_id"`
-
-	// Match A match as sent. A misspelled criterion must fail rather than be dropped, widening the rule.
-	Match TrustRuleMatchRequest `json:"match"`
-
-	// MaxAccessTokenLifetimeSeconds Longest lifetime of a token the rule issues, 60 to 3600 seconds. Can't be changed.
-	MaxAccessTokenLifetimeSeconds *int `json:"max_access_token_lifetime_seconds,omitempty"`
-
-	// Name Name, unique in the organization. Can be changed later.
-	Name string `json:"name"`
-
-	// ServiceAccountId The service account its tokens act as. Can be changed later.
-	ServiceAccountId string `json:"service_account_id"`
 }
 
 // CreateVolumeSyncRequest Request to start an asynchronous volume sync.
@@ -4964,7 +4959,7 @@ type DedicatedUsage struct {
 	// Minutes Total minutes used
 	Minutes int `json:"minutes"`
 
-	// Subtotal Subtotal cost in dollars after applying credits used
+	// Subtotal Usage charges in dollars before applying credits
 	Subtotal DedicatedUsage_Subtotal `json:"subtotal"`
 
 	// Total Total cost in dollars
@@ -4988,7 +4983,7 @@ type DedicatedUsageSubtotal0 = float32
 // DedicatedUsageSubtotal1 defines model for .
 type DedicatedUsageSubtotal1 = string
 
-// DedicatedUsage_Subtotal Subtotal cost in dollars after applying credits used
+// DedicatedUsage_Subtotal Usage charges in dollars before applying credits
 type DedicatedUsage_Subtotal struct {
 	union json.RawMessage
 }
@@ -5002,6 +4997,15 @@ type DedicatedUsageTotal1 = string
 // DedicatedUsage_Total Total cost in dollars
 type DedicatedUsage_Total struct {
 	union json.RawMessage
+}
+
+// DeleteLoopsRunResponse A Loops run whose delete was accepted.
+type DeleteLoopsRunResponse struct {
+	// Id The deleted Loops run ID.
+	Id string `json:"id"`
+
+	// KeptCheckpoints The run's checkpoints that were not deleted because something still uses them, such as a deployment. They stay usable until that stops.
+	KeptCheckpoints []LoopsCheckpoint `json:"kept_checkpoints"`
 }
 
 // DeleteVolumeRequest defines model for DeleteVolumeRequest.
@@ -5079,6 +5083,15 @@ type DeleteVolumeVersionResponse struct {
 	VolumeSequence int `json:"volume_sequence"`
 }
 
+// DeletedAccessTrustRule defines model for DeletedAccessTrustRule.
+type DeletedAccessTrustRule struct {
+	// Deleted Always true
+	Deleted bool `json:"deleted"`
+
+	// Id ID of the deleted trust rule
+	Id string `json:"id"`
+}
+
 // DeletedIdentityProvider defines model for DeletedIdentityProvider.
 type DeletedIdentityProvider struct {
 	// Deleted Always true
@@ -5094,15 +5107,6 @@ type DeletedServiceAccount struct {
 	Deleted bool `json:"deleted"`
 
 	// Id ID of the deleted service account
-	Id string `json:"id"`
-}
-
-// DeletedTrustRule defines model for DeletedTrustRule.
-type DeletedTrustRule struct {
-	// Deleted Always true
-	Deleted bool `json:"deleted"`
-
-	// Id ID of the deleted trust rule
 	Id string `json:"id"`
 }
 
@@ -5143,6 +5147,9 @@ type Deployment struct {
 
 	// Environment The environment associated with the deployment
 	Environment *string `json:"environment"`
+
+	// FailureReason Why the deployment failed. Set only when the status is DEPLOY_FAILED; null otherwise.
+	FailureReason *string `json:"failure_reason,omitempty"`
 
 	// Id Unique identifier of the deployment
 	Id string `json:"id"`
@@ -6222,22 +6229,6 @@ type GitInfo struct {
 	LatestTag             *string `json:"latest_tag"`
 }
 
-// GridClassifier defines model for GridClassifier.
-type GridClassifier struct {
-	// Id Stable classifier identifier.
-	Id string `json:"id"`
-
-	// Name Display name of the classifier.
-	Name string `json:"name"`
-}
-
-// GridClassifiersResponse defines model for GridClassifiersResponse.
-type GridClassifiersResponse struct {
-	// Items Items in this page.
-	Items      []GridClassifier   `json:"items"`
-	Pagination PaginationResponse `json:"pagination"`
-}
-
 // GridConnection defines model for GridConnection.
 type GridConnection struct {
 	// Config Provider the connection authenticates with, and the team secret holding its API key.
@@ -6452,8 +6443,8 @@ type GridRoute struct {
 	// InvokeUrl Base URL for inference requests using this route.
 	InvokeUrl string `json:"invoke_url"`
 
-	// Metadata Resolved model metadata; for a router, the envelope of its allowed routes' metadata. Null when nothing is linked.
-	Metadata *ExploreMetadata `json:"metadata"`
+	// Metadata Resolved model metadata; for an intelligent route, the envelope of its servable models' metadata. Null when nothing is linked or the metadata has no supported API formats.
+	Metadata *GridRouteMetadata `json:"metadata"`
 
 	// Name Name to send in the inference request's model field.
 	Name string `json:"name"`
@@ -6498,14 +6489,50 @@ type GridRouteClassifiersResponse struct {
 	Pagination PaginationResponse    `json:"pagination"`
 }
 
-// GridRouteRef defines model for GridRouteRef.
-type GridRouteRef struct {
-	// Id Stable route identifier.
-	Id string `json:"id"`
+// GridRouteMetadata defines model for GridRouteMetadata.
+type GridRouteMetadata struct {
+	// ApiFormats API formats the route supports, most preferred first: `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target, keeping only the formats the route supports. Never empty.
+	ApiFormats []GridRouteMetadataApiFormats `json:"api_formats"`
 
-	// Slug Name of the route to send in the inference request's model field.
-	Slug string `json:"slug"`
+	// ContextWindow Total context window in tokens.
+	ContextWindow *int `json:"context_window"`
+
+	// Cost Provider list prices in USD per 1M tokens, when available.
+	Cost *ExploreCost `json:"cost"`
+
+	// DisplayName Model display name, when available.
+	DisplayName *string `json:"display_name"`
+
+	// InputModalities Accepted input modalities.
+	InputModalities []string `json:"input_modalities"`
+
+	// MaxOutputTokens Maximum output tokens per response.
+	MaxOutputTokens *int `json:"max_output_tokens"`
+
+	// ParallelToolCalls Whether the model supports parallel tool calls.
+	ParallelToolCalls *bool `json:"parallel_tool_calls"`
+
+	// Provider Provider key derived from the slug prefix, e.g. 'anthropic'; null for unprefixed slugs.
+	Provider *string `json:"provider"`
+
+	// ReasoningEffortLevels Reasoning effort levels the model supports.
+	ReasoningEffortLevels *[]string `json:"reasoning_effort_levels"`
+
+	// ReleaseDate Model release date. Month-only source dates use the first day of that month.
+	ReleaseDate *string `json:"release_date"`
+
+	// Slug Metadata slug, e.g. 'anthropic/claude-opus-4'; null for rows without one.
+	Slug *string `json:"slug"`
+
+	// SupportedApiFormats API formats the model supports.
+	SupportedApiFormats *ExploreMetadataAPIFormats `json:"supported_api_formats"`
+
+	// Tools Whether the model supports tool calling.
+	Tools *bool `json:"tools"`
 }
+
+// GridRouteMetadataApiFormats defines model for GridRouteMetadata.ApiFormats.
+type GridRouteMetadataApiFormats string
 
 // GridRouteTargetBasetenModelAPI defines model for GridRouteTargetBasetenModelAPI.
 type GridRouteTargetBasetenModelAPI struct {
@@ -6513,19 +6540,6 @@ type GridRouteTargetBasetenModelAPI struct {
 	Model string `json:"model"`
 
 	// Type Target kind for a Baseten Model API.
-	Type string `json:"type"`
-}
-
-// GridRouteTargetClassifier defines model for GridRouteTargetClassifier.
-type GridRouteTargetClassifier struct {
-	// AllowedRoutes Routes the classifier may pick, in creation order.
-	AllowedRoutes []GridRouteRef `json:"allowed_routes"`
-
-	// Classifier Classifier that picks a route for each request. Null for routers created before classifiers could be selected.
-	Classifier   *GridClassifier `json:"classifier"`
-	DefaultRoute GridRouteRef    `json:"default_route"`
-
-	// Type Target kind for a classifier-based route.
 	Type string `json:"type"`
 }
 
@@ -6588,6 +6602,12 @@ type GridRouteUsageResponse struct {
 
 // GridRouteUsageResult defines model for GridRouteUsageResult.
 type GridRouteUsageResult struct {
+	// ApiKeyName Name of the API key. Null when `api_key_prefix` is null or the key has no name.
+	ApiKeyName *string `json:"api_key_name,omitempty"`
+
+	// ApiKeyPrefix Prefix of the API key that made the requests, matching `GET /v1/api_keys`. Null when not grouping by API_KEY, for usage without an API key, and for usage recorded before API key tracking.
+	ApiKeyPrefix *string `json:"api_key_prefix,omitempty"`
+
 	// CachedInputTokens Input tokens read from the prompt cache.
 	CachedInputTokens int `json:"cached_input_tokens"`
 
@@ -6787,60 +6807,15 @@ type IdentityProvider struct {
 	// Id Identity provider ID
 	Id string `json:"id"`
 
-	// IssuerUrl The `iss` claim the provider's tokens carry
-	IssuerUrl string `json:"issuer_url"`
-
-	// Jwks Where the keys come from. Null for a predefined provider.
-	Jwks *IdentityProviderJwks `json:"jwks,omitempty"`
-
 	// Name Name, unique in the organization
 	Name string `json:"name"`
 
-	// Predefined Which predefined provider this is. Null for a custom provider.
-	Predefined *IdentityProviderPredefined `json:"predefined,omitempty"`
-
-	// Type Whether Baseten predefines the provider
-	Type IdentityProviderType `json:"type"`
+	// Predefined Settings of an identity provider that Baseten defines.
+	Predefined PredefinedIdentityProviderConfig `json:"predefined"`
 
 	// UpdatedAt Time the provider was last updated
 	UpdatedAt time.Time `json:"updated_at"`
 }
-
-// IdentityProviderPredefined Which predefined provider this is. Null for a custom provider.
-type IdentityProviderPredefined string
-
-// IdentityProviderType Whether Baseten predefines the provider
-type IdentityProviderType string
-
-// IdentityProviderJwks How Baseten gets a custom identity provider's public signing keys.
-type IdentityProviderJwks struct {
-	// Keys A JWK Set's keys, for `INLINE`
-	Keys *[]map[string]interface{} `json:"keys,omitempty"`
-
-	// Type `DISCOVERY` reads the keys from the issuer's `/.well-known/openid-configuration`. `EXPLICIT_URL` and `INLINE` aren't supported yet.
-	Type IdentityProviderJwksType `json:"type"`
-
-	// Url The key set URL, for `EXPLICIT_URL`
-	Url *string `json:"url,omitempty"`
-}
-
-// IdentityProviderJwksType `DISCOVERY` reads the keys from the issuer's `/.well-known/openid-configuration`. `EXPLICIT_URL` and `INLINE` aren't supported yet.
-type IdentityProviderJwksType string
-
-// IdentityProviderJwksRequest A key source as sent.
-type IdentityProviderJwksRequest struct {
-	// Keys A JWK Set's keys, for `INLINE`
-	Keys *[]map[string]interface{} `json:"keys,omitempty"`
-
-	// Type `DISCOVERY` reads the keys from the issuer's `/.well-known/openid-configuration`. `EXPLICIT_URL` and `INLINE` aren't supported yet.
-	Type IdentityProviderJwksRequestType `json:"type"`
-
-	// Url The key set URL, for `EXPLICIT_URL`
-	Url *string `json:"url,omitempty"`
-}
-
-// IdentityProviderJwksRequestType `DISCOVERY` reads the keys from the issuer's `/.well-known/openid-configuration`. `EXPLICIT_URL` and `INLINE` aren't supported yet.
-type IdentityProviderJwksRequestType string
 
 // IdentityProviders A page of identity providers.
 type IdentityProviders struct {
@@ -7423,6 +7398,29 @@ type LoopsCheckpointSourceResponse struct {
 // LoopsCheckpointSourceResponse_Source `s3` means the files endpoint serves presigned URLs for this checkpoint; `volume` carries the ref to pull instead.
 type LoopsCheckpointSourceResponse_Source struct {
 	union json.RawMessage
+}
+
+// LoopsCheckpointTombstone A Loops checkpoint whose delete was accepted.
+type LoopsCheckpointTombstone struct {
+	// CheckpointId The name the checkpoint was saved under.
+	CheckpointId string `json:"checkpoint_id"`
+
+	// Id The deleted checkpoint ID.
+	Id string `json:"id"`
+
+	// Path The checkpoint's bt:// path.
+	Path string `json:"path"`
+
+	// RunId The ID of the run that produced the checkpoint.
+	RunId string `json:"run_id"`
+
+	// Target Whether a TrainerServerCheckpoint is loadable by the sampler or the trainer.
+	//
+	// SAMPLER checkpoints are consumed by the sampling server for inference;
+	// TRAINER checkpoints capture full trainer state for resuming training.
+	// Mirrored in the bt:// URI as
+	// ``bt://loops:<trainer_id>/(sampler_weights|weights)/<name>``.
+	Target TrainerCheckpointTarget `json:"target"`
 }
 
 // LoopsCheckpointVolumeSource The checkpoint's files are pulled from a Baseten volume.
@@ -8061,6 +8059,12 @@ type ModelApiItem struct {
 
 	// Subtotal Subtotal cost in dollars for this model
 	Subtotal ModelApiItem_Subtotal `json:"subtotal"`
+
+	// TeamId Team ID for multi-team organizations; otherwise null
+	TeamId *string `json:"team_id,omitempty"`
+
+	// TeamName Team name, including historical teams; null if unavailable
+	TeamName *string `json:"team_name,omitempty"`
 }
 
 // ModelApiItemSubtotal0 defines model for .
@@ -8115,16 +8119,16 @@ type ModelApisCostsResponse struct {
 
 // ModelApisUsage defines model for ModelApisUsage.
 type ModelApisUsage struct {
-	// Breakdown Per-model usage breakdown
+	// Breakdown Per-model usage breakdown, split by team for multi-team organizations
 	Breakdown *[]ModelApiItem `json:"breakdown,omitempty"`
 
 	// CreditsUsed Credits applied in dollars
 	CreditsUsed ModelApisUsage_CreditsUsed `json:"credits_used"`
 
-	// Subtotal Subtotal cost in dollars after applying credits used
+	// Subtotal Usage charges in dollars before applying credits
 	Subtotal ModelApisUsage_Subtotal `json:"subtotal"`
 
-	// Total Total cost in dollars
+	// Total Usage charges in dollars after applying credits, floored at zero
 	Total ModelApisUsage_Total `json:"total"`
 }
 
@@ -8145,7 +8149,7 @@ type ModelApisUsageSubtotal0 = float32
 // ModelApisUsageSubtotal1 defines model for .
 type ModelApisUsageSubtotal1 = string
 
-// ModelApisUsage_Subtotal Subtotal cost in dollars after applying credits used
+// ModelApisUsage_Subtotal Usage charges in dollars before applying credits
 type ModelApisUsage_Subtotal struct {
 	union json.RawMessage
 }
@@ -8156,7 +8160,7 @@ type ModelApisUsageTotal0 = float32
 // ModelApisUsageTotal1 defines model for .
 type ModelApisUsageTotal1 = string
 
-// ModelApisUsage_Total Total cost in dollars
+// ModelApisUsage_Total Usage charges in dollars after applying credits, floored at zero
 type ModelApisUsage_Total struct {
 	union json.RawMessage
 }
@@ -8475,25 +8479,37 @@ type PendingJobAheadAtSubmit struct {
 	TrainingJobName *string `json:"training_job_name,omitempty"`
 }
 
-// PredefinedIdentityProviderInfo defines model for PredefinedIdentityProviderInfo.
-type PredefinedIdentityProviderInfo struct {
-	// IssuerUrl The `iss` claim its tokens carry
-	IssuerUrl string `json:"issuer_url"`
+// PredefinedIdentityProvider defines model for PredefinedIdentityProvider.
+type PredefinedIdentityProvider struct {
+	// IssuerUrl The `iss` claim its tokens carry. Null when each account, tenant, or cluster has its own issuer, which you pass as `issuer_url` when adding the provider.
+	IssuerUrl *string `json:"issuer_url,omitempty"`
+
+	// IssuerUrlExample An example of the `issuer_url` to pass. Null when the issuer is fixed.
+	IssuerUrlExample *string `json:"issuer_url_example,omitempty"`
+
+	// Kind An identity provider Baseten supports.
+	Kind PredefinedIdentityProviderKind `json:"kind"`
 
 	// Name Display name
 	Name string `json:"name"`
-
-	// Predefined Pass as `predefined` when adding the provider
-	Predefined PredefinedIdentityProviderInfoPredefined `json:"predefined"`
 }
 
-// PredefinedIdentityProviderInfoPredefined Pass as `predefined` when adding the provider
-type PredefinedIdentityProviderInfoPredefined string
+// PredefinedIdentityProviderConfig Settings of an identity provider that Baseten defines.
+type PredefinedIdentityProviderConfig struct {
+	// IssuerUrl The `iss` claim of the provider's tokens. When adding AWS IAM, Amazon EKS, Azure managed identity, or Azure Kubernetes Service, pass your issuer in the format the predefined identity providers endpoint shows; it's unique in the organization. Can't be passed for other providers, or changed. Always set in responses.
+	IssuerUrl *string `json:"issuer_url,omitempty"`
+
+	// Kind An identity provider Baseten supports.
+	Kind PredefinedIdentityProviderKind `json:"kind"`
+}
+
+// PredefinedIdentityProviderKind An identity provider Baseten supports.
+type PredefinedIdentityProviderKind string
 
 // PredefinedIdentityProviders defines model for PredefinedIdentityProviders.
 type PredefinedIdentityProviders struct {
-	// Items Identity providers Baseten predefines
-	Items []PredefinedIdentityProviderInfo `json:"items"`
+	// Items Identity providers Baseten supports
+	Items []PredefinedIdentityProvider `json:"items"`
 }
 
 // PrepareModelUploadRequest Body for `POST /v1/prepare_model_upload`.
@@ -9495,6 +9511,8 @@ type ServiceAccount struct {
 	Name string `json:"name"`
 
 	// PresetPermissions A service account's access: one of the access types API keys have.
+	//
+	// Temporary: mirrors API key access until fine-grained access control is available, and may be removed.
 	PresetPermissions ServiceAccountPresetPermissions `json:"preset_permissions"`
 
 	// TeamId The team that owns the account. Null for an organization account.
@@ -9505,6 +9523,8 @@ type ServiceAccount struct {
 }
 
 // ServiceAccountPresetPermissions A service account's access: one of the access types API keys have.
+//
+// Temporary: mirrors API key access until fine-grained access control is available, and may be removed.
 type ServiceAccountPresetPermissions struct {
 	// EnvironmentNames WORKSPACE_INVOKE: environments the account may call; omit for all. With model_ids, each model must have each environment. WORKSPACE_MANAGE_ALL: restricted environments the account may also manage.
 	EnvironmentNames *[]string `json:"environment_names,omitempty"`
@@ -9516,6 +9536,8 @@ type ServiceAccountPresetPermissions struct {
 	ModelIds *[]string `json:"model_ids,omitempty"`
 
 	// Type What a service account may do: the workspace API key categories, plus Model APIs.
+	//
+	// Temporary: mirrors API key access until fine-grained access control is available, and may be removed.
 	Type ServiceAccountPresetType `json:"type"`
 }
 
@@ -9531,10 +9553,14 @@ type ServiceAccountPresetPermissionsRequest struct {
 	ModelIds *[]string `json:"model_ids,omitempty"`
 
 	// Type What a service account may do: the workspace API key categories, plus Model APIs.
+	//
+	// Temporary: mirrors API key access until fine-grained access control is available, and may be removed.
 	Type ServiceAccountPresetType `json:"type"`
 }
 
 // ServiceAccountPresetType What a service account may do: the workspace API key categories, plus Model APIs.
+//
+// Temporary: mirrors API key access until fine-grained access control is available, and may be removed.
 type ServiceAccountPresetType string
 
 // ServiceAccounts A page of service accounts.
@@ -10242,7 +10268,7 @@ type TrainingUsage struct {
 	// Minutes Total minutes used
 	Minutes int `json:"minutes"`
 
-	// Subtotal Subtotal cost in dollars after applying credits used
+	// Subtotal Usage charges in dollars before applying credits
 	Subtotal TrainingUsage_Subtotal `json:"subtotal"`
 
 	// Total Total cost in dollars
@@ -10266,7 +10292,7 @@ type TrainingUsageSubtotal0 = float32
 // TrainingUsageSubtotal1 defines model for .
 type TrainingUsageSubtotal1 = string
 
-// TrainingUsage_Subtotal Subtotal cost in dollars after applying credits used
+// TrainingUsage_Subtotal Usage charges in dollars before applying credits
 type TrainingUsage_Subtotal struct {
 	union json.RawMessage
 }
@@ -10323,80 +10349,25 @@ type TrussUserEnv struct {
 	TrussClientVersion   *string  `json:"truss_client_version,omitempty"`
 }
 
-// TrustRule Which tokens from an identity provider may act as a service account.
-type TrustRule struct {
-	// CreatedAt Time the rule was created
-	CreatedAt time.Time `json:"created_at"`
+// UpdateAccessTrustRuleRequest Request to update a trust rule. Only the fields sent change.
+type UpdateAccessTrustRuleRequest struct {
+	// Audience The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters.
+	Audience *string `json:"audience,omitempty"`
 
-	// CreatedBy ID of the user who created the rule
-	CreatedBy string `json:"created_by"`
+	// Condition A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters.
+	Condition *string `json:"condition,omitempty"`
 
-	// Description Description
+	// Description Description; null clears it
 	Description *string `json:"description,omitempty"`
 
-	// Id Trust rule ID. Workloads pass it when they exchange a token.
-	Id string `json:"id"`
-
-	// IdentityProviderId The identity provider whose tokens it accepts
-	IdentityProviderId string `json:"identity_provider_id"`
-
-	// LastUsedAt Last token exchange through the rule. Null until the first.
-	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
-
-	// Match Which tokens the rule accepts. Every field that is set must pass.
-	Match TrustRuleMatch `json:"match"`
-
-	// MaxAccessTokenLifetimeSeconds Longest lifetime of a token the rule issues, in seconds
-	MaxAccessTokenLifetimeSeconds int `json:"max_access_token_lifetime_seconds"`
+	// MaxAccessTokenLifetimeSeconds Longest lifetime of a token the rule issues, 60 to 3600 seconds. Tokens already issued keep their lifetime.
+	MaxAccessTokenLifetimeSeconds *int `json:"max_access_token_lifetime_seconds,omitempty"`
 
 	// Name Name, unique in the organization
-	Name string `json:"name"`
+	Name *string `json:"name,omitempty"`
 
-	// ServiceAccountId The service account its tokens act as
-	ServiceAccountId string `json:"service_account_id"`
-
-	// TeamId The service account's team. Null for an organization service account.
-	TeamId *string `json:"team_id,omitempty"`
-
-	// UpdatedAt Time the rule was last updated
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-// TrustRuleMatch Which tokens the rule accepts. Every field that is set must pass.
-type TrustRuleMatch struct {
-	// Audience The token's `aud` must equal this, or contain it when `aud` is a list. Defaults to `https://api.baseten.co`.
-	Audience *string `json:"audience,omitempty"`
-
-	// Claims Top-level string claims that must equal these values, for example `{"repository_owner_id": "12345"}`. Up to 32 claims.
-	Claims *map[string]string `json:"claims,omitempty"`
-
-	// Condition A CEL expression over the token's claims, available as `claims`, that must evaluate to true, for example `claims.ref == 'refs/heads/main' && claims.event_name in ['push', 'release']`. Up to 4,096 characters. It can compare values, combine them with `&&`, `||`, `!` and `? :`, test membership with `in`, index with `[]`, and call `has`, `size`, `startsWith`, `endsWith`, `contains` and `int`. Other functions, including `matches()` and list macros such as `all()`, arithmetic, map and object literals, and backslash escapes aren't allowed.
-	Condition *string `json:"condition,omitempty"`
-
-	// SubjectGlob Glob on the token's `sub` claim. `*` matches any run of characters, including `:`; nothing else is special. Up to 1,024 characters, and more than wildcards.
-	SubjectGlob *string `json:"subject_glob,omitempty"`
-}
-
-// TrustRuleMatchRequest A match as sent. A misspelled criterion must fail rather than be dropped, widening the rule.
-type TrustRuleMatchRequest struct {
-	// Audience The token's `aud` must equal this, or contain it when `aud` is a list. Defaults to `https://api.baseten.co`.
-	Audience *string `json:"audience,omitempty"`
-
-	// Claims Top-level string claims that must equal these values, for example `{"repository_owner_id": "12345"}`. Up to 32 claims.
-	Claims *map[string]string `json:"claims,omitempty"`
-
-	// Condition A CEL expression over the token's claims, available as `claims`, that must evaluate to true, for example `claims.ref == 'refs/heads/main' && claims.event_name in ['push', 'release']`. Up to 4,096 characters. It can compare values, combine them with `&&`, `||`, `!` and `? :`, test membership with `in`, index with `[]`, and call `has`, `size`, `startsWith`, `endsWith`, `contains` and `int`. Other functions, including `matches()` and list macros such as `all()`, arithmetic, map and object literals, and backslash escapes aren't allowed.
-	Condition *string `json:"condition,omitempty"`
-
-	// SubjectGlob Glob on the token's `sub` claim. `*` matches any run of characters, including `:`; nothing else is special. Up to 1,024 characters, and more than wildcards.
-	SubjectGlob *string `json:"subject_glob,omitempty"`
-}
-
-// TrustRules A page of trust rules.
-type TrustRules struct {
-	// Items Items in this page.
-	Items      []TrustRule        `json:"items"`
-	Pagination PaginationResponse `json:"pagination"`
+	// ServiceAccountId Moves the rule to another service account. Tokens already issued keep the old account until they expire.
+	ServiceAccountId *string `json:"service_account_id,omitempty"`
 }
 
 // UpdateAutoscalingScheduleSettings Partial mutation of an environment's autoscaling schedule collection.
@@ -10603,14 +10574,6 @@ type UpdateGridRouteRequest struct {
 
 	// DisplayName New display label. Omit to keep the current label; null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
-
-	// Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER configuration of a router route is mutable.
-	Target Optional[UpdateGridRouteRequest_Target] `json:"target,omitzero"`
-}
-
-// UpdateGridRouteRequest_Target Complete new target configuration. Omit to keep the current configuration; null is not accepted. Only the CLASSIFIER configuration of a router route is mutable.
-type UpdateGridRouteRequest_Target struct {
-	union json.RawMessage
 }
 
 // UpdateGridSpendLimitSetting defines model for UpdateGridSpendLimitSetting.
@@ -10671,9 +10634,6 @@ type UpdateGroupRequest struct {
 type UpdateIdentityProviderRequest struct {
 	// Description Description; null clears it
 	Description *string `json:"description,omitempty"`
-
-	// Jwks Custom providers only. Replaces the key source and is checked again.
-	Jwks *IdentityProviderJwksRequest `json:"jwks,omitempty"`
 
 	// Name Name, unique in the organization
 	Name *string `json:"name,omitempty"`
@@ -10738,12 +10698,12 @@ type UpdateModelRequest struct {
 	Name *string `json:"name,omitempty"`
 }
 
-// UpdateOrganizationRequest Partial update of the caller's organization settings. Omitted or null fields are unchanged.
+// UpdateOrganizationRequest Partial update of the caller's organization settings. Omitted fields are unchanged.
 type UpdateOrganizationRequest struct {
-	// AllowPersonalApiKeys Whether members can create new personal API keys
+	// AllowPersonalApiKeys Whether members can create new personal API keys. Null is not accepted.
 	AllowPersonalApiKeys *bool `json:"allow_personal_api_keys,omitempty"`
 
-	// AllowServiceAccountApiKeys Whether new team and organization API keys can be created
+	// AllowServiceAccountApiKeys Whether new team and organization API keys can be created. Null is not accepted.
 	AllowServiceAccountApiKeys *bool `json:"allow_service_account_api_keys,omitempty"`
 }
 
@@ -10856,7 +10816,7 @@ type UpdateServiceAccountRequest struct {
 	// Name Name, unique in the organization
 	Name *string `json:"name,omitempty"`
 
-	// PresetPermissions Replaces the account's access as a whole
+	// PresetPermissions Replaces the account's access as a whole. Temporary; may be removed once fine-grained access control is available.
 	PresetPermissions *ServiceAccountPresetPermissionsRequest `json:"preset_permissions,omitempty"`
 }
 
@@ -10884,21 +10844,6 @@ type UpdateTrainingJobRequest struct {
 // UpdateTrainingJobResponse A response to updating a training job.
 type UpdateTrainingJobResponse struct {
 	TrainingJob TrainingJob `json:"training_job"`
-}
-
-// UpdateTrustRuleRequest Request to update a trust rule. Only the fields sent change.
-type UpdateTrustRuleRequest struct {
-	// Description Description; null clears it
-	Description *string `json:"description,omitempty"`
-
-	// Match Replaces the match as a whole
-	Match *TrustRuleMatchRequest `json:"match,omitempty"`
-
-	// Name Name, unique in the organization
-	Name *string `json:"name,omitempty"`
-
-	// ServiceAccountId Moves the rule to another service account. Tokens already issued keep the old account until they expire.
-	ServiceAccountId *string `json:"service_account_id,omitempty"`
 }
 
 // UpsertGridConnectionBedrockAccessKeysAuth defines model for UpsertGridConnectionBedrockAccessKeysAuth.
@@ -10984,21 +10929,6 @@ type UpsertGridRouteTargetBasetenModelAPI struct {
 	Type string `json:"type"`
 }
 
-// UpsertGridRouteTargetClassifier defines model for UpsertGridRouteTargetClassifier.
-type UpsertGridRouteTargetClassifier struct {
-	// AllowedRouteIds IDs of the routes the classifier may pick. All must belong to the route's team and must not be routers themselves.
-	AllowedRouteIds []string `json:"allowed_route_ids"`
-
-	// ClassifierId ID of the classifier that picks a route for each request.
-	ClassifierId string `json:"classifier_id"`
-
-	// DefaultRouteId ID of the allowed route used when the classifier picks none.
-	DefaultRouteId string `json:"default_route_id"`
-
-	// Type Target kind for a classifier-based route.
-	Type string `json:"type"`
-}
-
 // UpsertGridRouteTargetConnection defines model for UpsertGridRouteTargetConnection.
 type UpsertGridRouteTargetConnection struct {
 	// ConnectionId Identifier of a connection owned by the route's team. Its provider serves the route.
@@ -11010,6 +10940,21 @@ type UpsertGridRouteTargetConnection struct {
 	// Type Target kind for a provider reached through a team connection.
 	Type string `json:"type"`
 }
+
+// UpsertGridRouteTargetIntelligent defines model for UpsertGridRouteTargetIntelligent.
+type UpsertGridRouteTargetIntelligent struct {
+	// RouteClassifierId Identifier of the route classifier that picks the model. List them with GET /v1/grid/route_classifiers.
+	RouteClassifierId string `json:"route_classifier_id"`
+
+	// Tradeoff How the classifier weighs cost against quality. Must be one of the classifier's supported tradeoffs.
+	Tradeoff UpsertGridRouteTargetIntelligentTradeoff `json:"tradeoff"`
+
+	// Type Target kind for an intelligent route: Baseten picks the model per request.
+	Type string `json:"type"`
+}
+
+// UpsertGridRouteTargetIntelligentTradeoff How the classifier weighs cost against quality. Must be one of the classifier's supported tradeoffs.
+type UpsertGridRouteTargetIntelligentTradeoff string
 
 // UpsertSecretRequest A request to create or update a Baseten secret by name.
 type UpsertSecretRequest struct {
@@ -11119,27 +11064,6 @@ type ValidateLoopsCheckpointRequest struct {
 // inaccessible or malformed paths, and checkpoints of another LoRA config than
 // “run_id“'s, raise 400.
 type ValidateLoopsCheckpointResponse = map[string]interface{}
-
-// VerifyIdentityProviderRequest A custom identity provider configuration to check.
-type VerifyIdentityProviderRequest struct {
-	// IssuerUrl The provider's issuer, an https URL
-	IssuerUrl string `json:"issuer_url"`
-
-	// Jwks A key source as sent.
-	Jwks IdentityProviderJwksRequest `json:"jwks"`
-}
-
-// VerifyIdentityProviderResponse defines model for VerifyIdentityProviderResponse.
-type VerifyIdentityProviderResponse struct {
-	// Error Why the check failed. Null when `ok`.
-	Error *string `json:"error,omitempty"`
-
-	// KeyIds The `kid` of each key found. Empty when not `ok`.
-	KeyIds []string `json:"key_ids"`
-
-	// Ok Whether the keys could be fetched and parsed
-	Ok bool `json:"ok"`
-}
 
 // VertexTargetConfig defines model for VertexTargetConfig.
 type VertexTargetConfig struct {
@@ -11578,12 +11502,9 @@ type GetV1AccessIdentityProvidersParams struct {
 	// Limit Maximum number of items to return.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// Type Only predefined or only custom providers
-	Type *GetV1AccessIdentityProvidersParamsType `form:"type,omitempty" json:"type,omitempty"`
+	// PredefinedKind Only this predefined provider's issuers
+	PredefinedKind *PredefinedIdentityProviderKind `form:"predefined_kind,omitempty" json:"predefined_kind,omitempty"`
 }
-
-// GetV1AccessIdentityProvidersParamsType defines parameters for GetV1AccessIdentityProviders.
-type GetV1AccessIdentityProvidersParamsType string
 
 // GetV1AccessTrustRulesParams defines parameters for GetV1AccessTrustRules.
 type GetV1AccessTrustRulesParams struct {
@@ -11819,15 +11740,6 @@ type GetV1GatewayEventsParams struct {
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
 
-// GetV1GridClassifiersParams defines parameters for GetV1GridClassifiers.
-type GetV1GridClassifiersParams struct {
-	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
-
-	// Limit Maximum number of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
-}
-
 // GetV1GridConnectionsParams defines parameters for GetV1GridConnections.
 type GetV1GridConnectionsParams struct {
 	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
@@ -11896,7 +11808,7 @@ type GetV1GridRoutesUsageParams struct {
 	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included.
 	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
 
-	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, or HARNESS. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. Defaults to MODEL.
+	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, HARNESS, or API_KEY. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. API_KEY includes usage without an API key, such as requests authenticated by a signed-in session, as a null group. Defaults to MODEL.
 	GroupBy *[]GridRouteUsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
 
 	// UserIds Return only usage from Routes keys created by these user IDs, repeated once per ID.
@@ -11910,6 +11822,9 @@ type GetV1GridRoutesUsageParams struct {
 
 	// Harnesses Return only usage for these harnesses, repeated once per harness. Omit to include all usage, including usage with no recorded harness.
 	Harnesses *[]GridRouteUsageHarness `form:"harnesses,omitempty" json:"harnesses,omitempty"`
+
+	// ApiKeyPrefixes Return only usage made with these API keys, repeated once per key prefix. Omit to include all usage, including usage without an API key.
+	ApiKeyPrefixes *[]string `form:"api_key_prefixes,omitempty" json:"api_key_prefixes,omitempty"`
 }
 
 // GetV1GridTeamSettingsParams defines parameters for GetV1GridTeamSettings.
@@ -12096,6 +12011,9 @@ type GetV1ModelApisModelApiNameMetricsParams struct {
 
 	// Metrics Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_model_api_inference_requests_total, baseten_model_api_incoming_inference_requests_total, and baseten_model_api_tokens_total. Unknown names are rejected; valid names that are not enabled for your organization are omitted from the response.
 	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
+
+	// TeamIds Return only metrics for these teams, repeated once per team. Defaults to all teams you can manage. Any unauthorized team causes a 403.
+	TeamIds *[]string `form:"team_ids,omitempty" json:"team_ids,omitempty"`
 }
 
 // GetV1ModelsParams defines parameters for GetV1Models.
@@ -12773,17 +12691,14 @@ type GetV1VolumesVolumeNamespaceVolumeNameVersionsParams struct {
 // PostV1AccessIdentityProvidersJSONRequestBody defines body for PostV1AccessIdentityProviders for application/json ContentType.
 type PostV1AccessIdentityProvidersJSONRequestBody = CreateIdentityProviderRequest
 
-// PostV1AccessIdentityProvidersVerifyJSONRequestBody defines body for PostV1AccessIdentityProvidersVerify for application/json ContentType.
-type PostV1AccessIdentityProvidersVerifyJSONRequestBody = VerifyIdentityProviderRequest
-
 // PatchV1AccessIdentityProvidersIdentityProviderIdJSONRequestBody defines body for PatchV1AccessIdentityProvidersIdentityProviderId for application/json ContentType.
 type PatchV1AccessIdentityProvidersIdentityProviderIdJSONRequestBody = UpdateIdentityProviderRequest
 
 // PostV1AccessTrustRulesJSONRequestBody defines body for PostV1AccessTrustRules for application/json ContentType.
-type PostV1AccessTrustRulesJSONRequestBody = CreateTrustRuleRequest
+type PostV1AccessTrustRulesJSONRequestBody = CreateAccessTrustRuleRequest
 
 // PatchV1AccessTrustRulesTrustRuleIdJSONRequestBody defines body for PatchV1AccessTrustRulesTrustRuleId for application/json ContentType.
-type PatchV1AccessTrustRulesTrustRuleIdJSONRequestBody = UpdateTrustRuleRequest
+type PatchV1AccessTrustRulesTrustRuleIdJSONRequestBody = UpdateAccessTrustRuleRequest
 
 // PostV1ApiKeysJSONRequestBody defines body for PostV1ApiKeys for application/json ContentType.
 type PostV1ApiKeysJSONRequestBody = CreateAPIKeyRequest
@@ -14397,16 +14312,16 @@ func (t *CreateGridRouteRequest_Target) FromUpsertGridRouteTargetConnection(v Up
 	return err
 }
 
-// AsUpsertGridRouteTargetClassifier returns the union data inside the CreateGridRouteRequest_Target as a UpsertGridRouteTargetClassifier
-func (t CreateGridRouteRequest_Target) AsUpsertGridRouteTargetClassifier() (UpsertGridRouteTargetClassifier, error) {
-	var body UpsertGridRouteTargetClassifier
+// AsUpsertGridRouteTargetIntelligent returns the union data inside the CreateGridRouteRequest_Target as a UpsertGridRouteTargetIntelligent
+func (t CreateGridRouteRequest_Target) AsUpsertGridRouteTargetIntelligent() (UpsertGridRouteTargetIntelligent, error) {
+	var body UpsertGridRouteTargetIntelligent
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromUpsertGridRouteTargetClassifier overwrites any union data inside the CreateGridRouteRequest_Target as the provided UpsertGridRouteTargetClassifier
-func (t *CreateGridRouteRequest_Target) FromUpsertGridRouteTargetClassifier(v UpsertGridRouteTargetClassifier) error {
-	v.Type = "CLASSIFIER"
+// FromUpsertGridRouteTargetIntelligent overwrites any union data inside the CreateGridRouteRequest_Target as the provided UpsertGridRouteTargetIntelligent
+func (t *CreateGridRouteRequest_Target) FromUpsertGridRouteTargetIntelligent(v UpsertGridRouteTargetIntelligent) error {
+	v.Type = "INTELLIGENT"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -14428,10 +14343,10 @@ func (t CreateGridRouteRequest_Target) ValueByDiscriminator() (interface{}, erro
 	switch discriminator {
 	case "BASETEN_MODEL_API":
 		return t.AsUpsertGridRouteTargetBasetenModelAPI()
-	case "CLASSIFIER":
-		return t.AsUpsertGridRouteTargetClassifier()
 	case "CONNECTION":
 		return t.AsUpsertGridRouteTargetConnection()
+	case "INTELLIGENT":
+		return t.AsUpsertGridRouteTargetIntelligent()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -15508,21 +15423,6 @@ func (t *GridRoute_Target) FromGridRouteTargetConnection(v GridRouteTargetConnec
 	return err
 }
 
-// AsGridRouteTargetClassifier returns the union data inside the GridRoute_Target as a GridRouteTargetClassifier
-func (t GridRoute_Target) AsGridRouteTargetClassifier() (GridRouteTargetClassifier, error) {
-	var body GridRouteTargetClassifier
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromGridRouteTargetClassifier overwrites any union data inside the GridRoute_Target as the provided GridRouteTargetClassifier
-func (t *GridRoute_Target) FromGridRouteTargetClassifier(v GridRouteTargetClassifier) error {
-	v.Type = "CLASSIFIER"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
 // AsGridRouteTargetIntelligent returns the union data inside the GridRoute_Target as a GridRouteTargetIntelligent
 func (t GridRoute_Target) AsGridRouteTargetIntelligent() (GridRouteTargetIntelligent, error) {
 	var body GridRouteTargetIntelligent
@@ -15554,8 +15454,6 @@ func (t GridRoute_Target) ValueByDiscriminator() (interface{}, error) {
 	switch discriminator {
 	case "BASETEN_MODEL_API":
 		return t.AsGridRouteTargetBasetenModelAPI()
-	case "CLASSIFIER":
-		return t.AsGridRouteTargetClassifier()
 	case "CONNECTION":
 		return t.AsGridRouteTargetConnection()
 	case "INTELLIGENT":
@@ -16773,86 +16671,6 @@ func (t UpdateGridConnectionRequest_Config) MarshalJSON() ([]byte, error) {
 }
 
 func (t *UpdateGridConnectionRequest_Config) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsUpsertGridRouteTargetBasetenModelAPI returns the union data inside the UpdateGridRouteRequest_Target as a UpsertGridRouteTargetBasetenModelAPI
-func (t UpdateGridRouteRequest_Target) AsUpsertGridRouteTargetBasetenModelAPI() (UpsertGridRouteTargetBasetenModelAPI, error) {
-	var body UpsertGridRouteTargetBasetenModelAPI
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromUpsertGridRouteTargetBasetenModelAPI overwrites any union data inside the UpdateGridRouteRequest_Target as the provided UpsertGridRouteTargetBasetenModelAPI
-func (t *UpdateGridRouteRequest_Target) FromUpsertGridRouteTargetBasetenModelAPI(v UpsertGridRouteTargetBasetenModelAPI) error {
-	v.Type = "BASETEN_MODEL_API"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsUpsertGridRouteTargetConnection returns the union data inside the UpdateGridRouteRequest_Target as a UpsertGridRouteTargetConnection
-func (t UpdateGridRouteRequest_Target) AsUpsertGridRouteTargetConnection() (UpsertGridRouteTargetConnection, error) {
-	var body UpsertGridRouteTargetConnection
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromUpsertGridRouteTargetConnection overwrites any union data inside the UpdateGridRouteRequest_Target as the provided UpsertGridRouteTargetConnection
-func (t *UpdateGridRouteRequest_Target) FromUpsertGridRouteTargetConnection(v UpsertGridRouteTargetConnection) error {
-	v.Type = "CONNECTION"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// AsUpsertGridRouteTargetClassifier returns the union data inside the UpdateGridRouteRequest_Target as a UpsertGridRouteTargetClassifier
-func (t UpdateGridRouteRequest_Target) AsUpsertGridRouteTargetClassifier() (UpsertGridRouteTargetClassifier, error) {
-	var body UpsertGridRouteTargetClassifier
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromUpsertGridRouteTargetClassifier overwrites any union data inside the UpdateGridRouteRequest_Target as the provided UpsertGridRouteTargetClassifier
-func (t *UpdateGridRouteRequest_Target) FromUpsertGridRouteTargetClassifier(v UpsertGridRouteTargetClassifier) error {
-	v.Type = "CLASSIFIER"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-func (t UpdateGridRouteRequest_Target) Discriminator() (string, error) {
-	var discriminator struct {
-		Discriminator string `json:"type"`
-	}
-	err := json.Unmarshal(t.union, &discriminator)
-	return discriminator.Discriminator, err
-}
-
-func (t UpdateGridRouteRequest_Target) ValueByDiscriminator() (interface{}, error) {
-	discriminator, err := t.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch discriminator {
-	case "BASETEN_MODEL_API":
-		return t.AsUpsertGridRouteTargetBasetenModelAPI()
-	case "CLASSIFIER":
-		return t.AsUpsertGridRouteTargetClassifier()
-	case "CONNECTION":
-		return t.AsUpsertGridRouteTargetConnection()
-	default:
-		return nil, errors.New("unknown discriminator value: " + discriminator)
-	}
-}
-
-func (t UpdateGridRouteRequest_Target) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *UpdateGridRouteRequest_Target) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

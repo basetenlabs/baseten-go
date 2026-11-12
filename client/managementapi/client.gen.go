@@ -122,8 +122,8 @@ func (c *Client) DeleteAccessIdentityProviders(ctx context.Context, identityProv
 }
 
 // DeleteAccessTrustRules: Deletes a trust rule
-func (c *Client) DeleteAccessTrustRules(ctx context.Context, trustRuleId string) (*DeletedTrustRule, error) {
-	return doJSON[DeletedTrustRule](c, ctx, apiRequest{
+func (c *Client) DeleteAccessTrustRules(ctx context.Context, trustRuleId string) (*DeletedAccessTrustRule, error) {
+	return doJSON[DeletedAccessTrustRule](c, ctx, apiRequest{
 		method:       "DELETE",
 		pathFmt:      "/v1/access/trust_rules/%s",
 		pathArgs:     []any{trustRuleId},
@@ -261,6 +261,28 @@ func (c *Client) DeleteLibraryListingsVersions(ctx context.Context, userDefinedL
 		method:       "DELETE",
 		pathFmt:      "/v1/library_listings/%s/versions/%s",
 		pathArgs:     []any{userDefinedListingId, versionTag},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// DeleteLoopsCheckpoints: Deletes a Loops checkpoint
+func (c *Client) DeleteLoopsCheckpoints(ctx context.Context, checkpointId string) (*LoopsCheckpointTombstone, error) {
+	return doJSON[LoopsCheckpointTombstone](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/loops/checkpoints/%s",
+		pathArgs:     []any{checkpointId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// DeleteLoopsRuns: Deletes a Loops run
+func (c *Client) DeleteLoopsRuns(ctx context.Context, runId string) (*DeleteLoopsRunResponse, error) {
+	return doJSON[DeleteLoopsRunResponse](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/loops/runs/%s",
+		pathArgs:     []any{runId},
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -484,8 +506,8 @@ func (c *Client) GetAccessPredefinedIdentityProviders(ctx context.Context) (*Pre
 }
 
 // GetAccessTrustRules: Lists trust rules
-func (c *Client) GetAccessTrustRules(ctx context.Context, params GetV1AccessTrustRulesParams) (*TrustRules, error) {
-	return doJSON[TrustRules](c, ctx, apiRequest{
+func (c *Client) GetAccessTrustRules(ctx context.Context, params GetV1AccessTrustRulesParams) (*AccessTrustRules, error) {
+	return doJSON[AccessTrustRules](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/access/trust_rules",
 		pathArgs:     nil,
@@ -496,8 +518,8 @@ func (c *Client) GetAccessTrustRules(ctx context.Context, params GetV1AccessTrus
 }
 
 // GetAccessTrustRulesTrustRuleId: Gets a trust rule
-func (c *Client) GetAccessTrustRulesTrustRuleId(ctx context.Context, trustRuleId string) (*TrustRule, error) {
-	return doJSON[TrustRule](c, ctx, apiRequest{
+func (c *Client) GetAccessTrustRulesTrustRuleId(ctx context.Context, trustRuleId string) (*AccessTrustRule, error) {
+	return doJSON[AccessTrustRule](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/access/trust_rules/%s",
 		pathArgs:     []any{trustRuleId},
@@ -785,29 +807,6 @@ func (c *Client) GetGatewayGroupsGroupId(ctx context.Context, groupId string) (*
 		method:       "GET",
 		pathFmt:      "/v1/gateway/groups/%s",
 		pathArgs:     []any{groupId},
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// GetGridClassifiers: Lists classifiers available for intelligent routes
-func (c *Client) GetGridClassifiers(ctx context.Context, params GetV1GridClassifiersParams) (*GridClassifiersResponse, error) {
-	return doJSON[GridClassifiersResponse](c, ctx, apiRequest{
-		method:       "GET",
-		pathFmt:      "/v1/grid/classifiers",
-		pathArgs:     nil,
-		queryParams:  params,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
-// GetGridClassifiersClassifierId: Gets a classifier available for intelligent routes
-func (c *Client) GetGridClassifiersClassifierId(ctx context.Context, classifierId string) (*GridClassifier, error) {
-	return doJSON[GridClassifier](c, ctx, apiRequest{
-		method:       "GET",
-		pathFmt:      "/v1/grid/classifiers/%s",
-		pathArgs:     []any{classifierId},
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -2084,8 +2083,8 @@ func (c *Client) PatchAccessIdentityProviders(ctx context.Context, identityProvi
 }
 
 // PatchAccessTrustRules: Updates a trust rule
-func (c *Client) PatchAccessTrustRules(ctx context.Context, trustRuleId string, body UpdateTrustRuleRequest) (*TrustRule, error) {
-	return doJSON[TrustRule](c, ctx, apiRequest{
+func (c *Client) PatchAccessTrustRules(ctx context.Context, trustRuleId string, body UpdateAccessTrustRuleRequest) (*AccessTrustRule, error) {
+	return doJSON[AccessTrustRule](c, ctx, apiRequest{
 		method:       "PATCH",
 		pathFmt:      "/v1/access/trust_rules/%s",
 		pathArgs:     []any{trustRuleId},
@@ -2431,21 +2430,9 @@ func (c *Client) PostAccessIdentityProviders(ctx context.Context, body CreateIde
 	})
 }
 
-// PostAccessIdentityProvidersVerify: Checks a custom identity provider's configuration
-func (c *Client) PostAccessIdentityProvidersVerify(ctx context.Context, body VerifyIdentityProviderRequest) (*VerifyIdentityProviderResponse, error) {
-	return doJSON[VerifyIdentityProviderResponse](c, ctx, apiRequest{
-		method:       "POST",
-		pathFmt:      "/v1/access/identity_providers/verify",
-		pathArgs:     nil,
-		body:         body,
-		successCodes: []int{200},
-		errorCodes:   nil,
-	})
-}
-
 // PostAccessTrustRules: Creates a trust rule
-func (c *Client) PostAccessTrustRules(ctx context.Context, body CreateTrustRuleRequest) (*TrustRule, error) {
-	return doJSON[TrustRule](c, ctx, apiRequest{
+func (c *Client) PostAccessTrustRules(ctx context.Context, body CreateAccessTrustRuleRequest) (*AccessTrustRule, error) {
+	return doJSON[AccessTrustRule](c, ctx, apiRequest{
 		method:       "POST",
 		pathFmt:      "/v1/access/trust_rules",
 		pathArgs:     nil,
