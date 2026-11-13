@@ -54,8 +54,8 @@ type Info struct {
 	Region string
 
 	// Envs are the environment variables injected into the sandbox, by name.
-	// Values come back masked, so sending them back in an update overwrites
-	// the real values with the mask.
+	// Secret values come back masked, so sending them back in an update
+	// overwrites the real values with the mask.
 	Envs map[string]EnvValue
 
 	// Labels are the key-value pairs for organizing and filtering.
