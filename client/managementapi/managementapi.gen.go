@@ -1391,6 +1391,42 @@ func (e Name) Valid() bool {
 	}
 }
 
+// Defines values for PredefinedIdentityProviderKind.
+const (
+	PredefinedIdentityProviderKind_AWS_EKS                   PredefinedIdentityProviderKind = "AWS_EKS"
+	PredefinedIdentityProviderKind_AWS_IAM                   PredefinedIdentityProviderKind = "AWS_IAM"
+	PredefinedIdentityProviderKind_AZURE_AKS                 PredefinedIdentityProviderKind = "AZURE_AKS"
+	PredefinedIdentityProviderKind_AZURE_MANAGED_IDENTITY_V1 PredefinedIdentityProviderKind = "AZURE_MANAGED_IDENTITY_V1"
+	PredefinedIdentityProviderKind_AZURE_MANAGED_IDENTITY_V2 PredefinedIdentityProviderKind = "AZURE_MANAGED_IDENTITY_V2"
+	PredefinedIdentityProviderKind_BASETEN                   PredefinedIdentityProviderKind = "BASETEN"
+	PredefinedIdentityProviderKind_GCP                       PredefinedIdentityProviderKind = "GCP"
+	PredefinedIdentityProviderKind_GITHUB_ACTIONS            PredefinedIdentityProviderKind = "GITHUB_ACTIONS"
+)
+
+// Valid indicates whether the value is a known member of the PredefinedIdentityProviderKind enum.
+func (e PredefinedIdentityProviderKind) Valid() bool {
+	switch e {
+	case PredefinedIdentityProviderKind_AWS_EKS:
+		return true
+	case PredefinedIdentityProviderKind_AWS_IAM:
+		return true
+	case PredefinedIdentityProviderKind_AZURE_AKS:
+		return true
+	case PredefinedIdentityProviderKind_AZURE_MANAGED_IDENTITY_V1:
+		return true
+	case PredefinedIdentityProviderKind_AZURE_MANAGED_IDENTITY_V2:
+		return true
+	case PredefinedIdentityProviderKind_BASETEN:
+		return true
+	case PredefinedIdentityProviderKind_GCP:
+		return true
+	case PredefinedIdentityProviderKind_GITHUB_ACTIONS:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PromotionCleanupStrategy.
 const (
 	PromotionCleanupStrategy_DEACTIVATE    PromotionCleanupStrategy = "DEACTIVATE"
@@ -1820,6 +1856,33 @@ func (e SandboxVolumeStatus) Valid() bool {
 	case SandboxVolumeStatus_DEPLOYING:
 		return true
 	case SandboxVolumeStatus_FAILED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ServiceAccountPresetType.
+const (
+	ServiceAccountPresetType_WORKSPACE_EXPORT_METRICS    ServiceAccountPresetType = "WORKSPACE_EXPORT_METRICS"
+	ServiceAccountPresetType_WORKSPACE_INVOKE            ServiceAccountPresetType = "WORKSPACE_INVOKE"
+	ServiceAccountPresetType_WORKSPACE_INVOKE_MODEL_APIS ServiceAccountPresetType = "WORKSPACE_INVOKE_MODEL_APIS"
+	ServiceAccountPresetType_WORKSPACE_MANAGE_ALL        ServiceAccountPresetType = "WORKSPACE_MANAGE_ALL"
+	ServiceAccountPresetType_WORKSPACE_MANAGE_API_KEYS   ServiceAccountPresetType = "WORKSPACE_MANAGE_API_KEYS"
+)
+
+// Valid indicates whether the value is a known member of the ServiceAccountPresetType enum.
+func (e ServiceAccountPresetType) Valid() bool {
+	switch e {
+	case ServiceAccountPresetType_WORKSPACE_EXPORT_METRICS:
+		return true
+	case ServiceAccountPresetType_WORKSPACE_INVOKE:
+		return true
+	case ServiceAccountPresetType_WORKSPACE_INVOKE_MODEL_APIS:
+		return true
+	case ServiceAccountPresetType_WORKSPACE_MANAGE_ALL:
+		return true
+	case ServiceAccountPresetType_WORKSPACE_MANAGE_API_KEYS:
 		return true
 	default:
 		return false
@@ -2286,6 +2349,64 @@ type AWSCredentials struct {
 
 	// AwsSessionToken The AWS session token
 	AwsSessionToken string `json:"aws_session_token"`
+}
+
+// AccessTrustRule Which tokens from an identity provider may act as a service account.
+type AccessTrustRule struct {
+	// Audience The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters.
+	Audience string `json:"audience"`
+
+	// Condition A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters.
+	Condition string `json:"condition"`
+
+	// CreatedAt Time the rule was created
+	CreatedAt time.Time `json:"created_at"`
+
+	// CreatedBy ID of the user who created the rule
+	CreatedBy string `json:"created_by"`
+
+	// Description Description
+	Description *string `json:"description,omitempty"`
+
+	// Id Trust rule ID. Workloads pass it when they exchange a token.
+	Id string `json:"id"`
+
+	// IdentityProviderId The identity provider whose tokens it accepts
+	IdentityProviderId string `json:"identity_provider_id"`
+
+	// IdentityProviderName Name of the identity provider
+	IdentityProviderName string `json:"identity_provider_name"`
+
+	// LastUsedAt Last token exchange through the rule. Null until the first.
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+
+	// MaxAccessTokenLifetimeSeconds Longest lifetime of a token the rule issues, in seconds
+	MaxAccessTokenLifetimeSeconds int `json:"max_access_token_lifetime_seconds"`
+
+	// Name Name, unique in the organization
+	Name string `json:"name"`
+
+	// ServiceAccountId The service account its tokens act as
+	ServiceAccountId string `json:"service_account_id"`
+
+	// ServiceAccountName Name of the service account
+	ServiceAccountName string `json:"service_account_name"`
+
+	// TeamId The service account's team. Null for an organization service account.
+	TeamId *string `json:"team_id,omitempty"`
+
+	// TeamName Name of the service account's team. Null for an organization service account.
+	TeamName *string `json:"team_name,omitempty"`
+
+	// UpdatedAt Time the rule was last updated
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// AccessTrustRules A page of trust rules.
+type AccessTrustRules struct {
+	// Items Items in this page.
+	Items      []AccessTrustRule  `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 // ActivateResponse The response to a request to activate a deployment.
@@ -3700,6 +3821,30 @@ type CreateAPIKeyRequest struct {
 	Type APIKeyCategory `json:"type"`
 }
 
+// CreateAccessTrustRuleRequest Request to create a trust rule.
+type CreateAccessTrustRuleRequest struct {
+	// Audience The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters. Can be changed later.
+	Audience string `json:"audience"`
+
+	// Condition A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters. Can be changed later.
+	Condition string `json:"condition"`
+
+	// Description Optional description
+	Description *string `json:"description,omitempty"`
+
+	// IdentityProviderId Whose tokens the rule accepts. Can't be changed.
+	IdentityProviderId string `json:"identity_provider_id"`
+
+	// MaxAccessTokenLifetimeSeconds Longest lifetime of a token the rule issues, 60 to 3600 seconds. Can be changed later.
+	MaxAccessTokenLifetimeSeconds *int `json:"max_access_token_lifetime_seconds,omitempty"`
+
+	// Name Name, unique in the organization. Can be changed later.
+	Name string `json:"name"`
+
+	// ServiceAccountId The service account its tokens act as. Can be changed later.
+	ServiceAccountId string `json:"service_account_id"`
+}
+
 // CreateApiKeyForGroupRequest defines model for CreateApiKeyForGroupRequest.
 type CreateApiKeyForGroupRequest struct {
 	// Name Optional display name for the new key.
@@ -3864,6 +4009,18 @@ type CreateGroupRequest struct {
 
 	// Models Per-model rate and usage limit configuration. Defines the group's complete model set. Must be non-empty.
 	Models []ModelConfig `json:"models"`
+}
+
+// CreateIdentityProviderRequest Request to add an identity provider.
+type CreateIdentityProviderRequest struct {
+	// Description Optional description
+	Description *string `json:"description,omitempty"`
+
+	// Name Name, unique in the organization. Defaults to the provider's display name, so pass one when adding a second issuer of the same provider.
+	Name *string `json:"name,omitempty"`
+
+	// Predefined Settings of the predefined identity provider to add.
+	Predefined CreatePredefinedIdentityProviderConfig `json:"predefined"`
 }
 
 // CreateJobWeightConfig Weight source configuration for MDN (Model Distribution Network).
@@ -4193,6 +4350,15 @@ type CreateModelRequest_Source struct {
 	union json.RawMessage
 }
 
+// CreatePredefinedIdentityProviderConfig Settings of the predefined identity provider to add.
+type CreatePredefinedIdentityProviderConfig struct {
+	// IssuerUrl The `iss` claim of the provider's tokens. When adding AWS IAM, Amazon EKS, Azure managed identity, or Azure Kubernetes Service, pass your issuer in the format the predefined identity providers endpoint shows; it's unique in the organization. Can't be passed for other providers, or changed. Always set in responses.
+	IssuerUrl *string `json:"issuer_url,omitempty"`
+
+	// Kind An identity provider Baseten supports.
+	Kind PredefinedIdentityProviderKind `json:"kind"`
+}
+
 // CreateSandboxPreviewRequest defines model for CreateSandboxPreviewRequest.
 type CreateSandboxPreviewRequest struct {
 	// CreateIfNotExists When true, return the existing preview with this name instead of failing with a conflict. Without name, the name is public-<port> or private-<port>, so the same port and visibility return the same preview. Existing configuration is preserved. Defaults to false when omitted.
@@ -4295,6 +4461,21 @@ type CreateSandboxVolumeRequestSize1 = int
 // CreateSandboxVolumeRequest_Size Capacity, as a size (e.g. "10Gi", "512Mi") or a number of Mi (e.g. 1024). Can grow later, never shrink.
 type CreateSandboxVolumeRequest_Size struct {
 	union json.RawMessage
+}
+
+// CreateServiceAccountRequest Request to create a service account.
+type CreateServiceAccountRequest struct {
+	// Description Optional description, up to 1,024 characters
+	Description *string `json:"description,omitempty"`
+
+	// Name Name, unique in the organization. Can be changed later.
+	Name string `json:"name"`
+
+	// PresetPermissions A service account's access, as sent. Omit a list for no restriction; never send it empty.
+	PresetPermissions ServiceAccountPresetPermissionsRequest `json:"preset_permissions"`
+
+	// TeamId The team that owns the account. Omit for an organization account. Can't be changed.
+	TeamId *string `json:"team_id,omitempty"`
 }
 
 // CreateTokenRequest defines model for CreateTokenRequest.
@@ -4897,6 +5078,33 @@ type DeleteVolumeVersionResponse struct {
 
 	// VolumeSequence Revision of the volume after the delete.
 	VolumeSequence int `json:"volume_sequence"`
+}
+
+// DeletedAccessTrustRule defines model for DeletedAccessTrustRule.
+type DeletedAccessTrustRule struct {
+	// Deleted Always true
+	Deleted bool `json:"deleted"`
+
+	// Id ID of the deleted trust rule
+	Id string `json:"id"`
+}
+
+// DeletedIdentityProvider defines model for DeletedIdentityProvider.
+type DeletedIdentityProvider struct {
+	// Deleted Always true
+	Deleted bool `json:"deleted"`
+
+	// Id ID of the deleted identity provider
+	Id string `json:"id"`
+}
+
+// DeletedServiceAccount defines model for DeletedServiceAccount.
+type DeletedServiceAccount struct {
+	// Deleted Always true
+	Deleted bool `json:"deleted"`
+
+	// Id ID of the deleted service account
+	Id string `json:"id"`
 }
 
 // DeployLoopsCheckpointRequest defines model for DeployLoopsCheckpointRequest.
@@ -6576,6 +6784,37 @@ type GroupsResponse struct {
 	Pagination PaginationResponse `json:"pagination"`
 }
 
+// IdentityProvider An OIDC issuer whose tokens the organization accepts for workload identity federation.
+type IdentityProvider struct {
+	// CreatedAt Time the provider was added
+	CreatedAt time.Time `json:"created_at"`
+
+	// CreatedBy ID of the user who added the provider
+	CreatedBy string `json:"created_by"`
+
+	// Description Description
+	Description *string `json:"description,omitempty"`
+
+	// Id Identity provider ID
+	Id string `json:"id"`
+
+	// Name Name, unique in the organization
+	Name string `json:"name"`
+
+	// Predefined Settings of an identity provider that Baseten defines.
+	Predefined PredefinedIdentityProviderConfig `json:"predefined"`
+
+	// UpdatedAt Time the provider was last updated
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// IdentityProviders A page of identity providers.
+type IdentityProviders struct {
+	// Items Items in this page.
+	Items      []IdentityProvider `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
 // InProgressPromotion Details of an in-progress promotion.
 type InProgressPromotion struct {
 	// ErrorMessage Error message if promotion failed
@@ -8094,6 +8333,12 @@ type OrderBy struct {
 
 // OrganizationInfo The caller's organization.
 type OrganizationInfo struct {
+	// AllowPersonalApiKeys Whether members can create new personal API keys. Existing keys keep working.
+	AllowPersonalApiKeys bool `json:"allow_personal_api_keys"`
+
+	// AllowServiceAccountApiKeys Whether new team and organization API keys can be created. Existing keys keep working.
+	AllowServiceAccountApiKeys bool `json:"allow_service_account_api_keys"`
+
 	// AwsAssumeRole AWS AssumeRole trust-policy inputs; null while the method is not enabled for the organization
 	AwsAssumeRole *AwsAssumeRole `json:"aws_assume_role,omitempty"`
 
@@ -8223,6 +8468,39 @@ type PendingJobAheadAtSubmit struct {
 
 	// TrainingJobName Other job's name
 	TrainingJobName *string `json:"training_job_name,omitempty"`
+}
+
+// PredefinedIdentityProvider defines model for PredefinedIdentityProvider.
+type PredefinedIdentityProvider struct {
+	// IssuerUrl The `iss` claim its tokens carry. Null when each account, tenant, or cluster has its own issuer, which you pass as `issuer_url` when adding the provider.
+	IssuerUrl *string `json:"issuer_url,omitempty"`
+
+	// IssuerUrlExample An example of the `issuer_url` to pass. Null when the issuer is fixed.
+	IssuerUrlExample *string `json:"issuer_url_example,omitempty"`
+
+	// Kind An identity provider Baseten supports.
+	Kind PredefinedIdentityProviderKind `json:"kind"`
+
+	// Name Display name
+	Name string `json:"name"`
+}
+
+// PredefinedIdentityProviderConfig Settings of an identity provider that Baseten defines.
+type PredefinedIdentityProviderConfig struct {
+	// IssuerUrl The `iss` claim of the provider's tokens. When adding AWS IAM, Amazon EKS, Azure managed identity, or Azure Kubernetes Service, pass your issuer in the format the predefined identity providers endpoint shows; it's unique in the organization. Can't be passed for other providers, or changed. Always set in responses.
+	IssuerUrl *string `json:"issuer_url,omitempty"`
+
+	// Kind An identity provider Baseten supports.
+	Kind PredefinedIdentityProviderKind `json:"kind"`
+}
+
+// PredefinedIdentityProviderKind An identity provider Baseten supports.
+type PredefinedIdentityProviderKind string
+
+// PredefinedIdentityProviders defines model for PredefinedIdentityProviders.
+type PredefinedIdentityProviders struct {
+	// Items Identity providers Baseten supports
+	Items []PredefinedIdentityProvider `json:"items"`
 }
 
 // PrepareModelUploadRequest Body for `POST /v1/prepare_model_upload`.
@@ -9203,6 +9481,86 @@ type Secrets struct {
 	Secrets []Secret `json:"secrets"`
 }
 
+// ServiceAccount A named service account that workload identity federation tokens act as.
+type ServiceAccount struct {
+	// CreatedAt Time the account was created
+	CreatedAt time.Time `json:"created_at"`
+
+	// Description Description
+	Description *string `json:"description,omitempty"`
+
+	// Disabled Whether the account is disabled. A disabled account can't be used.
+	Disabled bool `json:"disabled"`
+
+	// Id Service account ID
+	Id string `json:"id"`
+
+	// LastUsedAt Last time a token was exchanged for this account. Null until the first.
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+
+	// Name Name, unique in the organization
+	Name string `json:"name"`
+
+	// PresetPermissions A service account's access: one of the access types API keys have.
+	//
+	// Temporary: mirrors API key access until fine-grained access control is available, and may be removed.
+	PresetPermissions ServiceAccountPresetPermissions `json:"preset_permissions"`
+
+	// TeamId The team that owns the account. Null for an organization account.
+	TeamId *string `json:"team_id,omitempty"`
+
+	// UpdatedAt Time the account was last updated
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// ServiceAccountPresetPermissions A service account's access: one of the access types API keys have.
+//
+// Temporary: mirrors API key access until fine-grained access control is available, and may be removed.
+type ServiceAccountPresetPermissions struct {
+	// EnvironmentNames WORKSPACE_INVOKE: environments the account may call; omit for all. With model_ids, each model must have each environment. WORKSPACE_MANAGE_ALL: restricted environments the account may also manage.
+	EnvironmentNames *[]string `json:"environment_names,omitempty"`
+
+	// ModelApiSlugs WORKSPACE_INVOKE_MODEL_APIS only. Model APIs the account may call; omit for all.
+	ModelApiSlugs *[]string `json:"model_api_slugs,omitempty"`
+
+	// ModelIds WORKSPACE_INVOKE and WORKSPACE_EXPORT_METRICS only. Models the account covers. Omit for every model in the team, including models added later.
+	ModelIds *[]string `json:"model_ids,omitempty"`
+
+	// Type What a service account may do: the workspace API key categories, plus Model APIs.
+	//
+	// Temporary: mirrors API key access until fine-grained access control is available, and may be removed.
+	Type ServiceAccountPresetType `json:"type"`
+}
+
+// ServiceAccountPresetPermissionsRequest A service account's access, as sent. Omit a list for no restriction; never send it empty.
+type ServiceAccountPresetPermissionsRequest struct {
+	// EnvironmentNames WORKSPACE_INVOKE: environments the account may call; omit for all. With model_ids, each model must have each environment. WORKSPACE_MANAGE_ALL: restricted environments the account may also manage.
+	EnvironmentNames *[]string `json:"environment_names,omitempty"`
+
+	// ModelApiSlugs WORKSPACE_INVOKE_MODEL_APIS only. Model APIs the account may call; omit for all.
+	ModelApiSlugs *[]string `json:"model_api_slugs,omitempty"`
+
+	// ModelIds WORKSPACE_INVOKE and WORKSPACE_EXPORT_METRICS only. Models the account covers. Omit for every model in the team, including models added later.
+	ModelIds *[]string `json:"model_ids,omitempty"`
+
+	// Type What a service account may do: the workspace API key categories, plus Model APIs.
+	//
+	// Temporary: mirrors API key access until fine-grained access control is available, and may be removed.
+	Type ServiceAccountPresetType `json:"type"`
+}
+
+// ServiceAccountPresetType What a service account may do: the workspace API key categories, plus Model APIs.
+//
+// Temporary: mirrors API key access until fine-grained access control is available, and may be removed.
+type ServiceAccountPresetType string
+
+// ServiceAccounts A page of service accounts.
+type ServiceAccounts struct {
+	// Items Items in this page.
+	Items      []ServiceAccount   `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
 // SetVolumeTagRequest defines model for SetVolumeTagRequest.
 type SetVolumeTagRequest struct {
 	// ExpectedSequence Revision the volume is expected to be at. When set, the request fails with a conflict if the volume has changed since. Take the value from volume_sequence.
@@ -9982,6 +10340,27 @@ type TrussUserEnv struct {
 	TrussClientVersion   *string  `json:"truss_client_version,omitempty"`
 }
 
+// UpdateAccessTrustRuleRequest Request to update a trust rule. Only the fields sent change.
+type UpdateAccessTrustRuleRequest struct {
+	// Audience The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters.
+	Audience *string `json:"audience,omitempty"`
+
+	// Condition A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters.
+	Condition *string `json:"condition,omitempty"`
+
+	// Description Description; null clears it
+	Description *string `json:"description,omitempty"`
+
+	// MaxAccessTokenLifetimeSeconds Longest lifetime of a token the rule issues, 60 to 3600 seconds. Tokens already issued keep their lifetime.
+	MaxAccessTokenLifetimeSeconds *int `json:"max_access_token_lifetime_seconds,omitempty"`
+
+	// Name Name, unique in the organization
+	Name *string `json:"name,omitempty"`
+
+	// ServiceAccountId Moves the rule to another service account. Tokens already issued keep the old account until they expire.
+	ServiceAccountId *string `json:"service_account_id,omitempty"`
+}
+
 // UpdateAutoscalingScheduleSettings Partial mutation of an environment's autoscaling schedule collection.
 type UpdateAutoscalingScheduleSettings struct {
 	// DeleteSchedules Stable identifiers of schedules to delete. To clear all schedules, include every existing schedule identifier.
@@ -10242,6 +10621,15 @@ type UpdateGroupRequest struct {
 	Models *[]ModelConfig `json:"models,omitempty"`
 }
 
+// UpdateIdentityProviderRequest Request to update an identity provider. Only the fields sent change.
+type UpdateIdentityProviderRequest struct {
+	// Description Description; null clears it
+	Description *string `json:"description,omitempty"`
+
+	// Name Name, unique in the organization
+	Name *string `json:"name,omitempty"`
+}
+
 // UpdateLibraryListingRequest Request to update a library listing.
 type UpdateLibraryListingRequest struct {
 	// DisplayName New display name for the library listing
@@ -10299,6 +10687,15 @@ type UpdateModelPromotionSettings struct {
 type UpdateModelRequest struct {
 	// Name New name for the model, unique within its team. Renaming does not change the model ID, endpoints, or deployments. Pushes that still use the old model_name create another model or target a model that now uses that name, so update config.yaml after renaming.
 	Name *string `json:"name,omitempty"`
+}
+
+// UpdateOrganizationRequest Partial update of the caller's organization settings. Omitted fields are unchanged.
+type UpdateOrganizationRequest struct {
+	// AllowPersonalApiKeys Whether members can create new personal API keys. Null is not accepted.
+	AllowPersonalApiKeys *bool `json:"allow_personal_api_keys,omitempty"`
+
+	// AllowServiceAccountApiKeys Whether new team and organization API keys can be created. Null is not accepted.
+	AllowServiceAccountApiKeys *bool `json:"allow_service_account_api_keys,omitempty"`
 }
 
 // UpdatePromotionSettings Promotion settings for model promotion
@@ -10397,6 +10794,21 @@ type UpdateSandboxVolumeRequestSize1 = int
 // UpdateSandboxVolumeRequest_Size New capacity, as a size (e.g. "20Gi") or a number of Mi, greater than or equal to the current size.
 type UpdateSandboxVolumeRequest_Size struct {
 	union json.RawMessage
+}
+
+// UpdateServiceAccountRequest Request to update a service account. Only the fields sent change.
+type UpdateServiceAccountRequest struct {
+	// Description Description, up to 1,024 characters; null clears it
+	Description *string `json:"description,omitempty"`
+
+	// Disabled Disable the account to stop it being used, or enable it again
+	Disabled *bool `json:"disabled,omitempty"`
+
+	// Name Name, unique in the organization
+	Name *string `json:"name,omitempty"`
+
+	// PresetPermissions Replaces the account's access as a whole. Temporary; may be removed once fine-grained access control is available.
+	PresetPermissions *ServiceAccountPresetPermissionsRequest `json:"preset_permissions,omitempty"`
 }
 
 // UpdateTrafficRoutingSettings Partial update of an environment's traffic routing rules.
@@ -11072,6 +11484,36 @@ type SandboxError429 interface{}
 
 // SandboxError500 defines model for SandboxError500.
 type SandboxError500 interface{}
+
+// GetV1AccessIdentityProvidersParams defines parameters for GetV1AccessIdentityProviders.
+type GetV1AccessIdentityProvidersParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// PredefinedKind Only this predefined provider's issuers
+	PredefinedKind *PredefinedIdentityProviderKind `form:"predefined_kind,omitempty" json:"predefined_kind,omitempty"`
+}
+
+// GetV1AccessTrustRulesParams defines parameters for GetV1AccessTrustRules.
+type GetV1AccessTrustRulesParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// IdentityProviderId Only this provider's rules
+	IdentityProviderId *string `form:"identity_provider_id,omitempty" json:"identity_provider_id,omitempty"`
+
+	// ServiceAccountId Only rules for this service account
+	ServiceAccountId *string `form:"service_account_id,omitempty" json:"service_account_id,omitempty"`
+
+	// TeamId Only rules for this team's service accounts
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
 
 // GetV1ApiKeysParams defines parameters for GetV1ApiKeys.
 type GetV1ApiKeysParams struct {
@@ -12081,6 +12523,21 @@ type UpdateSandboxVolumeParams struct {
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
+// GetV1ServiceAccountsParams defines parameters for GetV1ServiceAccounts.
+type GetV1ServiceAccountsParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// TeamId Only this team's accounts
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Disabled Only disabled or enabled accounts
+	Disabled *bool `form:"disabled,omitempty" json:"disabled,omitempty"`
+}
+
 // GetV1TeamsParams defines parameters for GetV1Teams.
 type GetV1TeamsParams struct {
 	// Name When set, returns only the team with this exact name, if any.
@@ -12218,6 +12675,18 @@ type GetV1VolumesVolumeNamespaceVolumeNameVersionsParams struct {
 	// IncludeTombstoned Whether to include deleted and expired versions. Such a version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.
 	IncludeTombstoned *bool `form:"include_tombstoned,omitempty" json:"include_tombstoned,omitempty"`
 }
+
+// PostV1AccessIdentityProvidersJSONRequestBody defines body for PostV1AccessIdentityProviders for application/json ContentType.
+type PostV1AccessIdentityProvidersJSONRequestBody = CreateIdentityProviderRequest
+
+// PatchV1AccessIdentityProvidersIdentityProviderIdJSONRequestBody defines body for PatchV1AccessIdentityProvidersIdentityProviderId for application/json ContentType.
+type PatchV1AccessIdentityProvidersIdentityProviderIdJSONRequestBody = UpdateIdentityProviderRequest
+
+// PostV1AccessTrustRulesJSONRequestBody defines body for PostV1AccessTrustRules for application/json ContentType.
+type PostV1AccessTrustRulesJSONRequestBody = CreateAccessTrustRuleRequest
+
+// PatchV1AccessTrustRulesTrustRuleIdJSONRequestBody defines body for PatchV1AccessTrustRulesTrustRuleId for application/json ContentType.
+type PatchV1AccessTrustRulesTrustRuleIdJSONRequestBody = UpdateAccessTrustRuleRequest
 
 // PostV1ApiKeysJSONRequestBody defines body for PostV1ApiKeys for application/json ContentType.
 type PostV1ApiKeysJSONRequestBody = CreateAPIKeyRequest
@@ -12378,6 +12847,9 @@ type PatchV1ModelsModelIdEnvironmentsEnvNameJSONRequestBody = UpdateEnvironmentR
 // PostV1ModelsModelIdEnvironmentsEnvNamePromoteJSONRequestBody defines body for PostV1ModelsModelIdEnvironmentsEnvNamePromote for application/json ContentType.
 type PostV1ModelsModelIdEnvironmentsEnvNamePromoteJSONRequestBody = PromoteToEnvironmentRequest
 
+// PatchV1OrganizationsMeJSONRequestBody defines body for PatchV1OrganizationsMe for application/json ContentType.
+type PatchV1OrganizationsMeJSONRequestBody = UpdateOrganizationRequest
+
 // PostV1PrepareModelUploadJSONRequestBody defines body for PostV1PrepareModelUpload for application/json ContentType.
 type PostV1PrepareModelUploadJSONRequestBody = PrepareModelUploadRequest
 
@@ -12407,6 +12879,12 @@ type UpdateSandboxVolumeJSONRequestBody = UpdateSandboxVolumeRequest
 
 // PostV1SecretsJSONRequestBody defines body for PostV1Secrets for application/json ContentType.
 type PostV1SecretsJSONRequestBody = UpsertSecretRequest
+
+// PostV1ServiceAccountsJSONRequestBody defines body for PostV1ServiceAccounts for application/json ContentType.
+type PostV1ServiceAccountsJSONRequestBody = CreateServiceAccountRequest
+
+// PatchV1ServiceAccountsServiceAccountIdJSONRequestBody defines body for PatchV1ServiceAccountsServiceAccountId for application/json ContentType.
+type PatchV1ServiceAccountsServiceAccountIdJSONRequestBody = UpdateServiceAccountRequest
 
 // PostV1TeamsTeamIdApiKeysJSONRequestBody defines body for PostV1TeamsTeamIdApiKeys for application/json ContentType.
 type PostV1TeamsTeamIdApiKeysJSONRequestBody = CreateAPIKeyRequest
