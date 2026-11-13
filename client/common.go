@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"net/http"
 	"runtime"
 	"runtime/debug"
@@ -91,4 +92,30 @@ func sdkVersion() string {
 
 func goVersion() string {
 	return strings.TrimPrefix(runtime.Version(), "go")
+}
+
+// validateAuthOptions checks that a client is given exactly one way to
+// authenticate.
+func validateAuthOptions(apiKey string, credentials AccessTokenSource, deferAuth bool, headers http.Header) error {
+	set := 0
+	for _, ok := range []bool{apiKey != "", credentials != nil, deferAuth} {
+		if ok {
+			set++
+		}
+	}
+	if set > 1 {
+		return errors.New("APIKey, Credentials, and DeferAuth are mutually exclusive")
+	}
+	if set == 0 {
+		return errors.New("one of APIKey, Credentials, or DeferAuth is required")
+	}
+	if credentials != nil {
+		// Checked by name rather than Header.Get, which misses non-canonical keys.
+		for name := range headers {
+			if strings.EqualFold(name, "Authorization") {
+				return errors.New("Headers must not set Authorization when Credentials is set")
+			}
+		}
+	}
+	return nil
 }
