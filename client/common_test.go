@@ -2,6 +2,8 @@ package client_test
 
 import (
 	"net/http"
+	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 
 	"github.com/basetenlabs/baseten-go/client"
@@ -52,4 +54,24 @@ func TestApplyUserAgentHeaderDisabled(t *testing.T) {
 	h := http.Header{}
 	client.ApplyUserAgentHeader(h)
 	require.Equal(t, "", h.Get("User-Agent"))
+}
+
+func TestNewDefaultHTTPClientDoesNotFollowRedirects(t *testing.T) {
+	var followed atomic.Bool
+	mux := http.NewServeMux()
+	mux.HandleFunc("/start", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/target", http.StatusFound)
+	})
+	mux.HandleFunc("/target", func(w http.ResponseWriter, r *http.Request) {
+		followed.Store(true)
+	})
+	server := httptest.NewServer(mux)
+	t.Cleanup(server.Close)
+
+	resp, err := client.NewDefaultHTTPClient().Get(server.URL + "/start")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = resp.Body.Close() })
+	require.Equal(t, http.StatusFound, resp.StatusCode)
+	require.Equal(t, "/target", resp.Header.Get("Location"))
+	require.False(t, followed.Load(), "redirect was followed")
 }
