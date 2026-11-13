@@ -54,8 +54,7 @@ type Info struct {
 	Region string
 
 	// Envs are the environment variables injected into the sandbox, by name.
-	// Values come back masked unless revealed with
-	// [GetInfoOptions.ShowSecrets], so sending them back in an update
+	// Secret values come back masked, so sending them back in an update
 	// overwrites the real values with the mask.
 	Envs map[string]EnvValue
 

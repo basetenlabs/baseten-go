@@ -219,10 +219,9 @@ func TestCreate(t *testing.T) {
 func TestGetInfo(t *testing.T) {
 	cp := newControlPlane(t)
 	cp.respond("GET", "/v1/sandboxes/instances/sb", 200, sandboxRecord)
-	info, err := cp.client(t, ClientOptions{}).GetInfo(t.Context(), GetInfoOptions{Name: "sb", ShowSecrets: true})
+	info, err := cp.client(t, ClientOptions{}).GetInfo(t.Context(), GetInfoOptions{Name: "sb"})
 	require.NoError(t, err)
 	require.Equal(t, "sb", info.Name)
-	require.Equal(t, "show_secrets=true", cp.lastRequest(t).query)
 }
 
 func TestGet(t *testing.T) {
