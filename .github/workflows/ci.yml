@@ -17,9 +17,9 @@ jobs:
             test-flags: -race
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: chainguard-actions/actions-checkout@59b7218bfc2eaabc464f1254f6e1dac5bda91d94 # v4.4.0
 
-      - uses: actions/setup-go@v5
+      - uses: chainguard-actions/actions-setup-go@320f6f2294d8e82641a27424fb8def0a2a1e80e6 # v5.6.0
         with:
           go-version-file: go.mod
 
