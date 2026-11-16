@@ -16,7 +16,7 @@ import (
 
 // newTestCache returns a cache whose mints issue "token-<n>" valid for
 // lifetime, and a clock the test moves by hand.
-func newTestCache(lifetime, refreshBefore time.Duration) (*Cache, *time.Time, *atomic.Int32) {
+func newTestCache(lifetime, refreshLeeway time.Duration) (*Cache, *time.Time, *atomic.Int32) {
 	now := time.Now()
 	var mints atomic.Int32
 	cache := NewCache(CacheOptions{
@@ -24,7 +24,7 @@ func newTestCache(lifetime, refreshBefore time.Duration) (*Cache, *time.Time, *a
 			n := mints.Add(1)
 			return Token{Value: fmt.Sprintf("token-%d", n), ExpiresAt: now.Add(lifetime)}, nil
 		},
-		RefreshBefore: refreshBefore,
+		RefreshLeeway: refreshLeeway,
 		MintTimeout:   time.Second,
 		Now:           func() time.Time { return now },
 	})
@@ -32,7 +32,7 @@ func newTestCache(lifetime, refreshBefore time.Duration) (*Cache, *time.Time, *a
 }
 
 func TestCacheRefresh(t *testing.T) {
-	t.Run("RefreshBeforeExpiry", func(t *testing.T) {
+	t.Run("RefreshLeewayExpiry", func(t *testing.T) {
 		cache, now, mints := newTestCache(time.Hour, 5*time.Minute)
 		_, err := cache.Token(t.Context())
 		require.NoError(t, err)
@@ -112,7 +112,7 @@ func TestCacheMintFailure(t *testing.T) {
 				}
 				return Token{Value: "token-1", ExpiresAt: now.Add(time.Hour)}, nil
 			},
-			RefreshBefore: 5 * time.Minute,
+			RefreshLeeway: 5 * time.Minute,
 			MintTimeout:   time.Second,
 			Now:           func() time.Time { return now },
 		})
@@ -140,7 +140,7 @@ func TestCacheMintFailure(t *testing.T) {
 				}
 				return Token{Value: "token-1", ExpiresAt: now.Add(time.Hour)}, nil
 			},
-			RefreshBefore: 5 * time.Minute,
+			RefreshLeeway: 5 * time.Minute,
 			MintTimeout:   time.Second,
 			Now:           func() time.Time { return now },
 		})

@@ -3,7 +3,6 @@ package sandbox
 import (
 	"context"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/basetenlabs/baseten-go/client"
@@ -58,9 +57,20 @@ var tokenMintTimeout = 30 * time.Second
 type tokenSource struct {
 	provider   TokenProvider
 	management *client.ManagementClient
+	// cache is set when tokens are minted through management.
+	cache *tokenauth.Cache
+}
 
-	cacheOnce sync.Once
-	cache     *tokenauth.Cache
+func newTokenSource(provider TokenProvider, management *client.ManagementClient) *tokenSource {
+	s := &tokenSource{provider: provider, management: management}
+	if provider == nil && management != nil {
+		s.cache = tokenauth.NewCache(tokenauth.CacheOptions{
+			Mint:          s.mint,
+			RefreshLeeway: tokenExpiryLeeway,
+			MintTimeout:   tokenMintTimeout,
+		})
+	}
+	return s
 }
 
 // token returns the token for a request, or the empty string when no
@@ -70,25 +80,11 @@ func (s *tokenSource) token(ctx context.Context, revokedToken string) (string, e
 	if s.provider != nil {
 		return s.provider(ctx, TokenProviderOptions{RevokedToken: revokedToken})
 	}
-	if s.management == nil {
+	if s.cache == nil {
 		return "", nil
 	}
-	if revokedToken != "" {
-		s.invalidate(revokedToken)
-	}
-	token, err := s.tokenCache().Token(ctx)
+	token, err := s.cache.Token(ctx)
 	return token.Value, err
-}
-
-func (s *tokenSource) tokenCache() *tokenauth.Cache {
-	s.cacheOnce.Do(func() {
-		s.cache = tokenauth.NewCache(tokenauth.CacheOptions{
-			Mint:          s.mint,
-			RefreshBefore: tokenExpiryLeeway,
-			MintTimeout:   tokenMintTimeout,
-		})
-	})
-	return s.cache
 }
 
 func (s *tokenSource) mint(ctx context.Context) (tokenauth.Token, error) {
@@ -104,8 +100,8 @@ func (s *tokenSource) mint(ctx context.Context) (tokenauth.Token, error) {
 // invalidate drops a token the server rejected, so the next request gets a
 // new one.
 func (s *tokenSource) invalidate(token string) {
-	if s.provider == nil && s.management != nil {
-		s.tokenCache().Invalidate(token)
+	if s.cache != nil {
+		s.cache.Invalidate(token)
 	}
 }
 

@@ -97,9 +97,10 @@ func NewClient(opts ClientOptions) (*Client, error) {
 	}
 	client.ApplyUserAgentHeader(headers)
 
-	tokens := &tokenSource{provider: opts.TokenProvider, management: opts.ManagementClient}
+	management := opts.ManagementClient
 	if opts.APIKey != "" {
-		management, err := client.NewManagementClient(client.ManagementClientOptions{
+		var err error
+		management, err = client.NewManagementClient(client.ManagementClientOptions{
 			APIKey:     opts.APIKey,
 			BaseURL:    baseURL,
 			HTTPClient: httpClient,
@@ -108,8 +109,8 @@ func NewClient(opts ClientOptions) (*Client, error) {
 		if err != nil {
 			return nil, err
 		}
-		tokens.management = management
 	}
+	tokens := newTokenSource(opts.TokenProvider, management)
 
 	c := &Client{
 		options:    opts,

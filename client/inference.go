@@ -17,7 +17,7 @@ type InferenceClientOptions struct {
 	// Credentials supplies short-lived access tokens instead of an API key,
 	// for example [WorkloadIdentityCredentials]. A token is fetched for every
 	// request, so long-running operations survive token refresh.
-	Credentials AccessTokenSource
+	Credentials Credentials
 
 	// ModelID is the model to target. Mutually exclusive with ChainID.
 	ModelID string

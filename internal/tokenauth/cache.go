@@ -21,9 +21,9 @@ type CacheOptions struct {
 	// only MintTimeout.
 	Mint func(ctx context.Context) (Token, error)
 
-	// RefreshBefore is how long before expiry a token is replaced, capped at
+	// RefreshLeeway is how long before expiry a token is replaced, capped at
 	// half the token's lifetime so a short-lived token is still reused.
-	RefreshBefore time.Duration
+	RefreshLeeway time.Duration
 
 	// MintTimeout bounds one mint, which every waiting caller shares.
 	MintTimeout time.Duration
@@ -127,7 +127,7 @@ func (c *Cache) startMint(ctx context.Context) *mint {
 			c.previous = Token{}
 			c.mu.Unlock()
 			lifetime := max(m.token.ExpiresAt.Sub(startedAt), 0)
-			m.refreshAt = m.token.ExpiresAt.Add(-min(c.opts.RefreshBefore, lifetime/2))
+			m.refreshAt = m.token.ExpiresAt.Add(-min(c.opts.RefreshLeeway, lifetime/2))
 		} else {
 			// A failed mint is not cached, so the next caller tries again.
 			c.mu.Lock()

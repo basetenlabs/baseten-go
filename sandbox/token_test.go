@@ -97,7 +97,7 @@ func (s *tokenServer) tokens(t *testing.T) *tokenSource {
 	t.Helper()
 	management, err := client.NewManagementClient(client.ManagementClientOptions{APIKey: "key", BaseURL: s.URL})
 	require.NoError(t, err)
-	return &tokenSource{management: management}
+	return newTokenSource(nil, management)
 }
 
 // echo sends a request through the authenticated client and returns its
@@ -297,7 +297,7 @@ func TestAuthenticatedClient(t *testing.T) {
 			}
 			return "provided-1", nil
 		}
-		c := &authenticatedClient{inner: http.DefaultClient, tokens: &tokenSource{provider: provider}}
+		c := &authenticatedClient{inner: http.DefaultClient, tokens: newTokenSource(provider, nil)}
 		status, seen := echo(t, c, srv.URL, nil)
 		require.Equal(t, http.StatusOK, status)
 		require.Equal(t, "provided-2", seen)
@@ -316,7 +316,7 @@ func TestAuthenticatedClient(t *testing.T) {
 			calls++
 			return "token", nil
 		}
-		c := &authenticatedClient{inner: http.DefaultClient, tokens: &tokenSource{provider: provider}}
+		c := &authenticatedClient{inner: http.DefaultClient, tokens: newTokenSource(provider, nil)}
 		status, _ := echo(t, c, srv.URL, nil)
 		require.Equal(t, http.StatusUnauthorized, status)
 		require.Equal(t, 1, calls)

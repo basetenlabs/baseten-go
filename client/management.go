@@ -16,7 +16,7 @@ type ManagementClientOptions struct {
 	// Credentials supplies short-lived access tokens instead of an API key,
 	// for example [WorkloadIdentityCredentials]. A token is fetched for every
 	// request, so long-running operations survive token refresh.
-	Credentials AccessTokenSource
+	Credentials Credentials
 
 	// BaseURL overrides the default management API base URL. If empty,
 	// "https://api.baseten.co" is used.

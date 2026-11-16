@@ -105,7 +105,7 @@ func goVersion() string {
 
 // validateAuthOptions checks that a client is given exactly one way to
 // authenticate.
-func validateAuthOptions(apiKey string, credentials AccessTokenSource, deferAuth bool, headers http.Header) error {
+func validateAuthOptions(apiKey string, credentials Credentials, deferAuth bool, headers http.Header) error {
 	set := 0
 	for _, ok := range []bool{apiKey != "", credentials != nil, deferAuth} {
 		if ok {

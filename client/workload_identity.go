@@ -40,14 +40,14 @@ type AccessToken struct {
 	ExpiresAt time.Time
 }
 
-// AccessTokenSource supplies a current Baseten access token. A client
+// Credentials supplies a current Baseten access token. A client
 // configured with one calls it before every request, so the source decides
 // when to refresh.
-type AccessTokenSource interface {
+type Credentials interface {
 	AccessToken(ctx context.Context) (AccessToken, error)
 }
 
-// AccessTokenInvalidator is implemented by an [AccessTokenSource] that caches
+// AccessTokenInvalidator is implemented by a [Credentials] that caches
 // tokens. When Baseten refuses a token before it expires, for example because
 // it was revoked, a client drops it with InvalidateAccessToken, asks the source
 // for a new one, and sends the request again. Clients resend only for sources
@@ -78,10 +78,9 @@ type WorkloadIdentityCredentialsOptions struct {
 	// empty, "https://api.baseten.co" is used.
 	BaseURL string
 
-	// HTTPClient sends the exchange. If nil, http.DefaultClient is used. An
-	// *http.Client is copied so that it never follows a redirect off BaseURL's
-	// origin, since the request body carries the identity token; any other
-	// doer must not follow such redirects either.
+	// HTTPClient sends the exchange. If nil, [NewDefaultHTTPClient] is used,
+	// which does not follow redirects. A custom client should also not follow
+	// redirects, since the request body carries the identity token.
 	HTTPClient interface {
 		Do(*http.Request) (*http.Response, error)
 	}
@@ -108,7 +107,7 @@ type WorkloadIdentityCredentials struct {
 }
 
 var (
-	_ AccessTokenSource      = (*WorkloadIdentityCredentials)(nil)
+	_ Credentials            = (*WorkloadIdentityCredentials)(nil)
 	_ AccessTokenInvalidator = (*WorkloadIdentityCredentials)(nil)
 )
 
@@ -133,14 +132,7 @@ func NewWorkloadIdentityCredentials(opts WorkloadIdentityCredentialsOptions) (*W
 	}
 	var httpClient httpDoer = opts.HTTPClient
 	if httpClient == nil {
-		httpClient = http.DefaultClient
-	}
-	if hc, ok := httpClient.(*http.Client); ok {
-		u, err := url.Parse(baseURL)
-		if err != nil {
-			return nil, fmt.Errorf("parsing BaseURL: %w", err)
-		}
-		httpClient = withSameOriginRedirects(hc, u.Scheme, u.Host)
+		httpClient = NewDefaultHTTPClient()
 	}
 	c := &WorkloadIdentityCredentials{
 		opts:        opts,
@@ -150,7 +142,7 @@ func NewWorkloadIdentityCredentials(opts WorkloadIdentityCredentialsOptions) (*W
 	}
 	c.cache = tokenauth.NewCache(tokenauth.CacheOptions{
 		Mint:          c.exchange,
-		RefreshBefore: opts.RefreshLeeway,
+		RefreshLeeway: opts.RefreshLeeway,
 		MintTimeout:   workloadIdentityExchangeTimeout,
 		Now:           func() time.Time { return c.now() },
 	})
@@ -250,7 +242,7 @@ func (c *WorkloadIdentityCredentials) exchange(ctx context.Context) (tokenauth.T
 	if err := json.Unmarshal(respBody, &decoded); err != nil {
 		return tokenauth.Token{}, fmt.Errorf(
 			"workload identity token exchange: HTTP %d with a non-JSON response: %s",
-			resp.StatusCode, truncateForError(respBody))
+			resp.StatusCode, strings.TrimSpace(string(respBody)))
 	}
 	if resp.StatusCode != http.StatusOK {
 		if decoded.Error == "invalid_grant" {
@@ -261,7 +253,7 @@ func (c *WorkloadIdentityCredentials) exchange(ctx context.Context) (tokenauth.T
 				c.opts.TrustRuleID, ErrInvalidGrant)
 		}
 		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: HTTP %d: %s",
-			resp.StatusCode, truncateForError(respBody))
+			resp.StatusCode, strings.TrimSpace(string(respBody)))
 	}
 	if decoded.AccessToken == "" {
 		return tokenauth.Token{}, errors.New("workload identity token exchange: the response carried no access_token")
@@ -274,15 +266,6 @@ func (c *WorkloadIdentityCredentials) exchange(ctx context.Context) (tokenauth.T
 	}
 	lifetime := time.Duration(decoded.ExpiresIn) * time.Second
 	return tokenauth.Token{Value: decoded.AccessToken, ExpiresAt: issuedAt.Add(lifetime)}, nil
-}
-
-func truncateForError(body []byte) string {
-	const maxLen = 512
-	s := strings.TrimSpace(string(body))
-	if len(s) > maxLen {
-		return s[:maxLen] + "..."
-	}
-	return s
 }
 
 // workloadIdentityExchangeTimeout bounds one identity token exchange, which
@@ -301,18 +284,14 @@ type httpDoer interface {
 // bearerAuthDoer sets "Authorization: Bearer" from source on each request to
 // host, so a long-running operation picks up refreshed tokens. Requests to
 // other hosts (such as pre-signed storage URLs) and requests that already
-// carry an Authorization header are passed through untouched. When next is an
-// *http.Client, redirects to any other host, or from https to http, drop the
-// Authorization header;
-// net/http alone would still send it to subdomains and other ports of host.
-// Any other doer must handle redirects itself.
+// carry an Authorization header are passed through untouched.
 type bearerAuthDoer struct {
 	next   httpDoer
-	source AccessTokenSource
+	source Credentials
 	host   string
 }
 
-func newBearerAuthDoer(next httpDoer, source AccessTokenSource, baseURL string) (*bearerAuthDoer, error) {
+func newBearerAuthDoer(next httpDoer, source Credentials, baseURL string) (*bearerAuthDoer, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("parsing BaseURL: %w", err)
@@ -320,60 +299,7 @@ func newBearerAuthDoer(next httpDoer, source AccessTokenSource, baseURL string) 
 	if u.Host == "" {
 		return nil, fmt.Errorf("BaseURL %q has no host", baseURL)
 	}
-	if hc, ok := next.(*http.Client); ok {
-		next = withExactHostRedirectAuth(hc, u.Scheme, u.Host)
-	}
 	return &bearerAuthDoer{next: next, source: source, host: u.Host}, nil
-}
-
-// withExactHostRedirectAuth returns a copy of hc whose redirects keep the
-// Authorization header only while they stay on host and, from an https base
-// URL, on https. hc is not modified.
-func withExactHostRedirectAuth(hc *http.Client, scheme, host string) *http.Client {
-	clone := *hc
-	checkRedirect := hc.CheckRedirect
-	clone.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		if !sameOrigin(req.URL, scheme, host) {
-			req.Header.Del("Authorization")
-		}
-		return defaultCheckRedirect(checkRedirect, req, via)
-	}
-	return &clone
-}
-
-// withSameOriginRedirects returns a copy of hc that refuses to follow a
-// redirect off host or, from an https base URL, to http. The token exchange
-// uses it: a 307 or 308 redirect resends the request body, which carries the
-// identity token. hc is not modified.
-func withSameOriginRedirects(hc *http.Client, scheme, host string) *http.Client {
-	clone := *hc
-	checkRedirect := hc.CheckRedirect
-	clone.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		if !sameOrigin(req.URL, scheme, host) {
-			return fmt.Errorf("refusing to follow a redirect to %s://%s, off the token endpoint's origin", req.URL.Scheme, req.URL.Host)
-		}
-		return defaultCheckRedirect(checkRedirect, req, via)
-	}
-	return &clone
-}
-
-// sameOrigin reports whether u is on host and, when scheme is https, also on
-// https.
-func sameOrigin(u *url.URL, scheme, host string) bool {
-	downgraded := strings.EqualFold(scheme, "https") && !strings.EqualFold(u.Scheme, "https")
-	return u.Host == host && !downgraded
-}
-
-// defaultCheckRedirect applies checkRedirect, or net/http's default policy
-// when it is nil.
-func defaultCheckRedirect(checkRedirect func(*http.Request, []*http.Request) error, req *http.Request, via []*http.Request) error {
-	if checkRedirect != nil {
-		return checkRedirect(req, via)
-	}
-	if len(via) >= 10 {
-		return errors.New("stopped after 10 redirects")
-	}
-	return nil
 }
 
 func (d *bearerAuthDoer) Do(req *http.Request) (*http.Response, error) {
