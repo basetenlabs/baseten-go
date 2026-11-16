@@ -78,7 +78,10 @@ type WorkloadIdentityCredentialsOptions struct {
 	// empty, "https://api.baseten.co" is used.
 	BaseURL string
 
-	// HTTPClient sends the exchange. If nil, http.DefaultClient is used.
+	// HTTPClient sends the exchange. If nil, http.DefaultClient is used. An
+	// *http.Client is copied so that it never follows a redirect off BaseURL's
+	// origin, since the request body carries the identity token; any other
+	// doer must not follow such redirects either.
 	HTTPClient interface {
 		Do(*http.Request) (*http.Response, error)
 	}
@@ -128,9 +131,16 @@ func NewWorkloadIdentityCredentials(opts WorkloadIdentityCredentialsOptions) (*W
 	if baseURL == "" {
 		baseURL = "https://api.baseten.co"
 	}
-	httpClient := opts.HTTPClient
+	var httpClient httpDoer = opts.HTTPClient
 	if httpClient == nil {
 		httpClient = http.DefaultClient
+	}
+	if hc, ok := httpClient.(*http.Client); ok {
+		u, err := url.Parse(baseURL)
+		if err != nil {
+			return nil, fmt.Errorf("parsing BaseURL: %w", err)
+		}
+		httpClient = withSameOriginRedirects(hc, u.Scheme, u.Host)
 	}
 	c := &WorkloadIdentityCredentials{
 		opts:        opts,
@@ -323,20 +333,47 @@ func withExactHostRedirectAuth(hc *http.Client, scheme, host string) *http.Clien
 	clone := *hc
 	checkRedirect := hc.CheckRedirect
 	clone.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		downgraded := strings.EqualFold(scheme, "https") && !strings.EqualFold(req.URL.Scheme, "https")
-		if req.URL.Host != host || downgraded {
+		if !sameOrigin(req.URL, scheme, host) {
 			req.Header.Del("Authorization")
 		}
-		if checkRedirect != nil {
-			return checkRedirect(req, via)
-		}
-		// net/http's default policy for a nil CheckRedirect.
-		if len(via) >= 10 {
-			return errors.New("stopped after 10 redirects")
-		}
-		return nil
+		return defaultCheckRedirect(checkRedirect, req, via)
 	}
 	return &clone
+}
+
+// withSameOriginRedirects returns a copy of hc that refuses to follow a
+// redirect off host or, from an https base URL, to http. The token exchange
+// uses it: a 307 or 308 redirect resends the request body, which carries the
+// identity token. hc is not modified.
+func withSameOriginRedirects(hc *http.Client, scheme, host string) *http.Client {
+	clone := *hc
+	checkRedirect := hc.CheckRedirect
+	clone.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if !sameOrigin(req.URL, scheme, host) {
+			return fmt.Errorf("refusing to follow a redirect to %s://%s, off the token endpoint's origin", req.URL.Scheme, req.URL.Host)
+		}
+		return defaultCheckRedirect(checkRedirect, req, via)
+	}
+	return &clone
+}
+
+// sameOrigin reports whether u is on host and, when scheme is https, also on
+// https.
+func sameOrigin(u *url.URL, scheme, host string) bool {
+	downgraded := strings.EqualFold(scheme, "https") && !strings.EqualFold(u.Scheme, "https")
+	return u.Host == host && !downgraded
+}
+
+// defaultCheckRedirect applies checkRedirect, or net/http's default policy
+// when it is nil.
+func defaultCheckRedirect(checkRedirect func(*http.Request, []*http.Request) error, req *http.Request, via []*http.Request) error {
+	if checkRedirect != nil {
+		return checkRedirect(req, via)
+	}
+	if len(via) >= 10 {
+		return errors.New("stopped after 10 redirects")
+	}
+	return nil
 }
 
 func (d *bearerAuthDoer) Do(req *http.Request) (*http.Response, error) {

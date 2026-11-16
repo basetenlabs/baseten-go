@@ -576,3 +576,26 @@ func TestBearerAuthDoerDropsAuthorizationOnHTTPSDowngrade(t *testing.T) {
 		require.Equal(t, tc.wantAuth, req.Header.Get("Authorization"))
 	}
 }
+
+func TestExchangeRefusesCrossOriginRedirects(t *testing.T) {
+	var leaked atomic.Bool
+	other := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		leaked.Store(true)
+	}))
+	defer other.Close()
+	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, other.URL+"/v1/auth/token", http.StatusTemporaryRedirect)
+	}))
+	defer api.Close()
+
+	creds, err := NewWorkloadIdentityCredentials(WorkloadIdentityCredentialsOptions{
+		IdentityToken: func(context.Context) (string, error) { return "jwt", nil },
+		TrustRuleID:   "rule",
+		BaseURL:       api.URL,
+		HTTPClient:    api.Client(),
+	})
+	require.NoError(t, err)
+	_, err = creds.AccessToken(t.Context())
+	require.Error(t, err)
+	require.True(t, !leaked.Load(), "the exchange followed a redirect to another origin")
+}
