@@ -19,15 +19,16 @@ type Doer interface {
 const maxResends = 2
 
 // Do sends req through next with "Authorization: Bearer <token>", the token
-// from get. When the server refuses the token (see [Refused]), Do calls get
-// again with the refused token and sends the request again, at most twice,
-// waiting resendDelay before the second resend. An empty token sends the
-// request without Authorization, once.
+// from get. When the server refuses the token (see [Refused]), Do passes it to
+// invalidate, if set, even when the request cannot be sent again, so later
+// requests do not reuse it. It then calls get again with the refused token and
+// sends the request again, at most twice, waiting resendDelay before the
+// second resend. An empty token sends the request without Authorization, once.
 //
 // Revocation refuses every token issued before a cutoff that can fall a moment
 // after the revoking event, so a token minted right after it can be refused
 // too; resendDelay lets the next one be minted past the cutoff.
-func Do(next Doer, req *http.Request, get func(ctx context.Context, refused string) (string, error), resendDelay time.Duration) (*http.Response, error) {
+func Do(next Doer, req *http.Request, get func(ctx context.Context, refused string) (string, error), invalidate func(token string), resendDelay time.Duration) (*http.Response, error) {
 	// A body that cannot be rebuilt can be sent only once, so such a request
 	// is never sent again.
 	replayable := req.Body == nil || req.Body == http.NoBody || req.GetBody != nil
@@ -56,7 +57,13 @@ func Do(next Doer, req *http.Request, get func(ctx context.Context, refused stri
 		if err != nil {
 			return nil, err
 		}
-		if token == "" || !replayable || resend >= maxResends || !Refused(resp) {
+		if token == "" || !Refused(resp) {
+			return resp, nil
+		}
+		if invalidate != nil {
+			invalidate(token)
+		}
+		if !replayable || resend >= maxResends {
 			return resp, nil
 		}
 		io.Copy(io.Discard, resp.Body)

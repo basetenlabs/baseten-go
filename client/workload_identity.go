@@ -292,7 +292,8 @@ type httpDoer interface {
 // host, so a long-running operation picks up refreshed tokens. Requests to
 // other hosts (such as pre-signed storage URLs) and requests that already
 // carry an Authorization header are passed through untouched. When next is an
-// *http.Client, redirects to any other host drop the Authorization header;
+// *http.Client, redirects to any other host, or from https to http, drop the
+// Authorization header;
 // net/http alone would still send it to subdomains and other ports of host.
 // Any other doer must handle redirects itself.
 type bearerAuthDoer struct {
@@ -310,18 +311,20 @@ func newBearerAuthDoer(next httpDoer, source AccessTokenSource, baseURL string) 
 		return nil, fmt.Errorf("BaseURL %q has no host", baseURL)
 	}
 	if hc, ok := next.(*http.Client); ok {
-		next = withExactHostRedirectAuth(hc, u.Host)
+		next = withExactHostRedirectAuth(hc, u.Scheme, u.Host)
 	}
 	return &bearerAuthDoer{next: next, source: source, host: u.Host}, nil
 }
 
 // withExactHostRedirectAuth returns a copy of hc whose redirects keep the
-// Authorization header only while they stay on host. hc is not modified.
-func withExactHostRedirectAuth(hc *http.Client, host string) *http.Client {
+// Authorization header only while they stay on host and, from an https base
+// URL, on https. hc is not modified.
+func withExactHostRedirectAuth(hc *http.Client, scheme, host string) *http.Client {
 	clone := *hc
 	checkRedirect := hc.CheckRedirect
 	clone.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		if req.URL.Host != host {
+		downgraded := strings.EqualFold(scheme, "https") && !strings.EqualFold(req.URL.Scheme, "https")
+		if req.URL.Host != host || downgraded {
 			req.Header.Del("Authorization")
 		}
 		if checkRedirect != nil {
@@ -341,10 +344,7 @@ func (d *bearerAuthDoer) Do(req *http.Request) (*http.Response, error) {
 		return d.next.Do(req)
 	}
 	invalidator, resend := d.source.(AccessTokenInvalidator)
-	get := func(ctx context.Context, refused string) (string, error) {
-		if refused != "" {
-			invalidator.InvalidateAccessToken(refused)
-		}
+	get := func(ctx context.Context, _ string) (string, error) {
 		token, err := d.source.AccessToken(ctx)
 		if err != nil {
 			return "", err
@@ -369,5 +369,5 @@ func (d *bearerAuthDoer) Do(req *http.Request) (*http.Response, error) {
 		req.Header.Set("Authorization", "Bearer "+token)
 		return d.next.Do(req)
 	}
-	return tokenauth.Do(d.next, req, get, accessTokenResendDelay)
+	return tokenauth.Do(d.next, req, get, invalidator.InvalidateAccessToken, accessTokenResendDelay)
 }

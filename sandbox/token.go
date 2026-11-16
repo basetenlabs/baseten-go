@@ -117,5 +117,5 @@ type authenticatedClient struct {
 }
 
 func (c *authenticatedClient) Do(req *http.Request) (*http.Response, error) {
-	return tokenauth.Do(c.inner, req, c.tokens.token, tokenRevokedRetryDelay)
+	return tokenauth.Do(c.inner, req, c.tokens.token, c.tokens.invalidate, tokenRevokedRetryDelay)
 }

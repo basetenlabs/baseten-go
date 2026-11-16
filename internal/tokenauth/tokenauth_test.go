@@ -215,7 +215,7 @@ func TestDo(t *testing.T) {
 		})
 		req, err := http.NewRequest(http.MethodPost, "https://example.com", strings.NewReader("payload"))
 		require.NoError(t, err)
-		resp, err := Do(next, req, get, 0)
+		resp, err := Do(next, req, get, nil, 0)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.Equal(t, "Bearer token-1 payload,Bearer token-2 payload", strings.Join(seen, ","))
@@ -232,7 +232,7 @@ func TestDo(t *testing.T) {
 		})
 		req, err := http.NewRequest(http.MethodGet, "https://example.com", nil)
 		require.NoError(t, err)
-		resp, err := Do(next, req, get, 0)
+		resp, err := Do(next, req, get, nil, 0)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 		require.Equal(t, 3, sends)
@@ -248,10 +248,14 @@ func TestDo(t *testing.T) {
 		req, err := http.NewRequest(http.MethodPost, "https://example.com", io.NopCloser(strings.NewReader("stream")))
 		require.NoError(t, err)
 		require.True(t, req.GetBody == nil, "GetBody is set")
-		resp, err := Do(next, req, get, 0)
+		var invalidated []string
+		resp, err := Do(next, req, get, func(token string) { invalidated = append(invalidated, token) }, 0)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 		require.Equal(t, 1, sends)
+		// Not sent again, but the refused token is still dropped so later
+		// requests do not reuse it.
+		require.Equal(t, "token-1", strings.Join(invalidated, ","))
 	})
 
 	t.Run("OtherUnauthorizedIsNotResent", func(t *testing.T) {
@@ -263,7 +267,7 @@ func TestDo(t *testing.T) {
 		})
 		req, err := http.NewRequest(http.MethodGet, "https://example.com", nil)
 		require.NoError(t, err)
-		_, err = Do(next, req, get, 0)
+		_, err = Do(next, req, get, nil, 0)
 		require.NoError(t, err)
 		require.Equal(t, 1, sends)
 	})

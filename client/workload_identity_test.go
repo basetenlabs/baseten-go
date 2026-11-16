@@ -558,3 +558,21 @@ func TestClientAuthOptionsValidation(t *testing.T) {
 type accessTokenSourceFunc func(context.Context) (AccessToken, error)
 
 func (f accessTokenSourceFunc) AccessToken(ctx context.Context) (AccessToken, error) { return f(ctx) }
+
+func TestBearerAuthDoerDropsAuthorizationOnHTTPSDowngrade(t *testing.T) {
+	hc := withExactHostRedirectAuth(&http.Client{}, "https", "api.example.test")
+	for _, tc := range []struct {
+		url      string
+		wantAuth string
+	}{
+		{"https://api.example.test/next", "Bearer secret"},
+		{"http://api.example.test/next", ""},
+		{"https://other.example.test/next", ""},
+	} {
+		req, err := http.NewRequest(http.MethodGet, tc.url, nil)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer secret")
+		require.NoError(t, hc.CheckRedirect(req, nil))
+		require.Equal(t, tc.wantAuth, req.Header.Get("Authorization"))
+	}
+}
