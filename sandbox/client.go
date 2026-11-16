@@ -27,7 +27,8 @@ type ClientOptions struct {
 	BaseURL string
 
 	// HTTPClient overrides the default HTTP client. If nil,
-	// http.DefaultClient is used.
+	// [client.NewDefaultHTTPClient] is used, which does not follow redirects.
+	// A custom client should also not follow redirects.
 	HTTPClient interface {
 		Do(*http.Request) (*http.Response, error)
 	}
@@ -85,7 +86,7 @@ func NewClient(opts ClientOptions) (*Client, error) {
 		baseURL = "https://api.baseten.co"
 	}
 
-	var httpClient httpDoer = http.DefaultClient
+	var httpClient httpDoer = client.NewDefaultHTTPClient()
 	if opts.HTTPClient != nil {
 		httpClient = opts.HTTPClient
 	}

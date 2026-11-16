@@ -34,8 +34,9 @@ type InferenceClientOptions struct {
 	// with ModelID, ChainID, and Environment.
 	BaseURL string
 
-	// HTTPClient overrides the default HTTP client. If nil, http.DefaultClient
-	// is used.
+	// HTTPClient overrides the default HTTP client. If nil,
+	// [NewDefaultHTTPClient] is used, which does not follow redirects. A
+	// custom client should also not follow redirects.
 	HTTPClient interface {
 		Do(*http.Request) (*http.Response, error)
 	}
@@ -114,7 +115,7 @@ func NewInferenceClient(opts InferenceClientOptions) (*InferenceClient, error) {
 
 	var httpClient httpDoer = opts.HTTPClient
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = NewDefaultHTTPClient()
 	}
 	if opts.Credentials != nil {
 		doer, err := newBearerAuthDoer(httpClient, opts.Credentials, baseURL)

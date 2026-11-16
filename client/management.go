@@ -22,8 +22,9 @@ type ManagementClientOptions struct {
 	// "https://api.baseten.co" is used.
 	BaseURL string
 
-	// HTTPClient overrides the default HTTP client. If nil, http.DefaultClient
-	// is used.
+	// HTTPClient overrides the default HTTP client. If nil,
+	// [NewDefaultHTTPClient] is used, which does not follow redirects. A
+	// custom client should also not follow redirects.
 	//
 	// Volume transfers use this client too, and lean on http.Client's
 	// contract that Do closes the request body even on error: an
@@ -63,7 +64,7 @@ func NewManagementClient(opts ManagementClientOptions) (*ManagementClient, error
 
 	var httpClient httpDoer = opts.HTTPClient
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = NewDefaultHTTPClient()
 	}
 	if opts.Credentials != nil {
 		doer, err := newBearerAuthDoer(httpClient, opts.Credentials, baseURL)
