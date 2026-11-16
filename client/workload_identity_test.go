@@ -398,6 +398,58 @@ func TestClientsWithWorkloadIdentityCredentials(t *testing.T) {
 	require.Equal(t, "Bearer access-2", seenAuth[2])
 }
 
+// TestClientResendsRefusedAccessToken checks that a token Baseten refuses
+// before its expiry is dropped and the request sent again with a new one, and
+// that a source that cannot drop it gets the refusal after one send.
+func TestClientResendsRefusedAccessToken(t *testing.T) {
+	ctx := context.Background()
+	fake := &fakeTokenServer{t: t, expiresIn: 3600}
+	var mu sync.Mutex
+	var seenAuth []string
+	mux := http.NewServeMux()
+	mux.Handle("/v1/auth/token", fake)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		auth := r.Header.Get("Authorization")
+		mu.Lock()
+		seenAuth = append(seenAuth, auth)
+		mu.Unlock()
+		if auth == "Bearer access-1" {
+			w.Header().Set("WWW-Authenticate", `Bearer realm="baseten", error="invalid_token"`)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"org_id":"o","created_at":"2026-01-01T00:00:00Z","allow_personal_api_keys":true,"allow_service_account_api_keys":true}`)
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	t.Run("CachingSource", func(t *testing.T) {
+		creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{})
+		mgmt, err := NewManagementClient(ManagementClientOptions{Credentials: creds, BaseURL: srv.URL, HTTPClient: srv.Client()})
+		require.NoError(t, err)
+		_, err = mgmt.API().GetOrganizationsMe(ctx)
+		require.NoError(t, err)
+		mu.Lock()
+		defer mu.Unlock()
+		require.Equal(t, "Bearer access-1,Bearer access-2", strings.Join(seenAuth, ","))
+		seenAuth = nil
+	})
+
+	t.Run("SourceWithoutInvalidation", func(t *testing.T) {
+		source := accessTokenSourceFunc(func(context.Context) (AccessToken, error) {
+			return AccessToken{Token: "access-1", ExpiresAt: time.Now().Add(time.Hour)}, nil
+		})
+		mgmt, err := NewManagementClient(ManagementClientOptions{Credentials: source, BaseURL: srv.URL, HTTPClient: srv.Client()})
+		require.NoError(t, err)
+		_, err = mgmt.API().GetOrganizationsMe(ctx)
+		require.Error(t, err)
+		mu.Lock()
+		defer mu.Unlock()
+		require.Equal(t, "Bearer access-1", strings.Join(seenAuth, ","))
+	})
+}
+
 func TestBearerAuthDoerLeavesOtherHostsAlone(t *testing.T) {
 	var gotAuth atomic.Value
 	other := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

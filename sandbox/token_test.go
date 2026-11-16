@@ -126,9 +126,10 @@ func TestTokenSource(t *testing.T) {
 		require.Equal(t, int32(1), srv.mints.Load())
 	})
 
-	t.Run("RefreshesNearExpiry", func(t *testing.T) {
+	t.Run("RefreshesAtExpiry", func(t *testing.T) {
 		srv := newTokenServer(t)
-		srv.expiresIn = tokenExpiryLeeway / 2
+		// Refresh timing within the lifetime is covered by the tokenauth tests.
+		srv.expiresIn = 0
 		tokens := srv.tokens(t)
 		first, err := tokens.token(t.Context(), "")
 		require.NoError(t, err)
@@ -271,7 +272,8 @@ func TestAuthenticatedClient(t *testing.T) {
 		c := &authenticatedClient{inner: http.DefaultClient, tokens: srv.tokens(t)}
 		status, _ := echo(t, c, srv.URL, nil)
 		require.Equal(t, http.StatusUnauthorized, status)
-		require.Equal(t, int32(tokenInvalidationMaxRetries+1), srv.mints.Load())
+		// The first send and two resends.
+		require.Equal(t, int32(3), srv.mints.Load())
 	})
 
 	t.Run("NonReplayableBodyNotResent", func(t *testing.T) {
