@@ -238,10 +238,6 @@ func (c *Client) Create(ctx context.Context, opts CreateOptions) (*CreateResult,
 type GetInfoOptions struct {
 	// Name is the sandbox's name. Required.
 	Name string
-
-	// ShowSecrets returns environment variable values unmasked. Requires the
-	// workspace admin role.
-	ShowSecrets bool
 }
 
 // GetInfo gets a sandbox's record.
@@ -250,8 +246,7 @@ func (c *Client) GetInfo(ctx context.Context, opts GetInfoOptions) (*Info, error
 		return nil, errors.New("Name is required")
 	}
 	record, err := c.api.GetSandbox(ctx, opts.Name, managementapi.GetSandboxParams{
-		TeamId:      c.teamID(),
-		ShowSecrets: optional(opts.ShowSecrets),
+		TeamId: c.teamID(),
 	})
 	if err != nil {
 		return nil, controlPlaneError(err)

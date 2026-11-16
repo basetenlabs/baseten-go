@@ -219,15 +219,6 @@ func TestE2EClient(t *testing.T) {
 		require.Equal(t, sandbox.EnvValue{Value: "****"}, info.Envs["E2E_DEFAULT"])
 	})
 
-	t.Run("GetInfoShowSecrets", func(t *testing.T) {
-		// The e2e key is a workspace admin, so secrets are revealed.
-		info, err := client.GetInfo(t.Context(), sandbox.GetInfoOptions{Name: sharedName, ShowSecrets: true})
-		require.NoError(t, err)
-		require.Equal(t, sandbox.EnvValue{Value: "plain-value", NonSecret: true}, info.Envs["E2E_PLAIN"])
-		require.Equal(t, sandbox.EnvValue{Value: "secret-value"}, info.Envs["E2E_SECRET"])
-		require.Equal(t, sandbox.EnvValue{Value: "default-value"}, info.Envs["E2E_DEFAULT"])
-	})
-
 	t.Run("GetByNameAndFromURL", func(t *testing.T) {
 		info, err := client.GetInfo(t.Context(), sandbox.GetInfoOptions{Name: sharedName})
 		require.NoError(t, err)
