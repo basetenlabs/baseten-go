@@ -39,6 +39,9 @@ type Cache struct {
 
 	mu      sync.Mutex
 	current *mint
+	// previous is the token last dropped for being due for refresh. It is
+	// still valid until it expires, so it stands in when a refresh fails.
+	previous Token
 }
 
 // mint is one call to CacheOptions.Mint. Its fields are set before done is
@@ -61,6 +64,7 @@ func NewCache(opts CacheOptions) *Cache {
 // Token returns the cached token, minting a new one when none is cached or the
 // cached one is due for refresh.
 func (c *Cache) Token(ctx context.Context) (Token, error) {
+	joinedFailure := false
 	for {
 		c.mu.Lock()
 		m := c.current
@@ -76,10 +80,20 @@ func (c *Cache) Token(ctx context.Context) (Token, error) {
 			return Token{}, ctx.Err()
 		}
 		if m.err != nil {
-			// Another caller's failed mint gets one more try of this caller's
-			// own; the failed one already left the cache.
-			if !started {
+			// Another caller's failed mint gets one more try, which may be
+			// this caller's own; the failed one already left the cache.
+			if !started && !joinedFailure {
+				joinedFailure = true
 				continue
+			}
+			// A refresh that fails while the replaced token is still valid
+			// falls back to it, so a brief outage of the minting endpoint
+			// does not fail requests the old token can still serve.
+			c.mu.Lock()
+			previous := c.previous
+			c.mu.Unlock()
+			if previous.Value != "" && c.opts.Now().Before(previous.ExpiresAt) {
+				return previous, nil
 			}
 			return Token{}, m.err
 		}
@@ -91,6 +105,7 @@ func (c *Cache) Token(ctx context.Context) (Token, error) {
 		c.mu.Lock()
 		if c.current == m {
 			c.current = nil
+			c.previous = m.token
 		}
 		c.mu.Unlock()
 	}
@@ -108,6 +123,9 @@ func (c *Cache) startMint(ctx context.Context) *mint {
 		startedAt := c.opts.Now()
 		m.token, m.err = c.opts.Mint(mintCtx)
 		if m.err == nil {
+			c.mu.Lock()
+			c.previous = Token{}
+			c.mu.Unlock()
 			lifetime := max(m.token.ExpiresAt.Sub(startedAt), 0)
 			m.refreshAt = m.token.ExpiresAt.Add(-min(c.opts.RefreshBefore, lifetime/2))
 		} else {
@@ -128,6 +146,9 @@ func (c *Cache) startMint(ctx context.Context) *mint {
 func (c *Cache) Invalidate(token string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if c.previous.Value == token {
+		c.previous = Token{}
+	}
 	if c.current == nil {
 		return
 	}
