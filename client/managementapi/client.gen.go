@@ -2370,7 +2370,7 @@ func (c *Client) PatchTeamsEnvironmentGroups(ctx context.Context, teamId string,
 	})
 }
 
-// PatchTrainingCapacity: Sets a team's training GPU capacity
+// PatchTrainingCapacity: Sets a team's training GPU quota
 func (c *Client) PatchTrainingCapacity(ctx context.Context, body PatchTeamTrainingGpuCapacityRequest) (*PatchTeamTrainingGpuCapacityResponse, error) {
 	return doJSON[PatchTeamTrainingGpuCapacityResponse](c, ctx, apiRequest{
 		method:       "PATCH",
@@ -2430,11 +2430,35 @@ func (c *Client) PostAccessIdentityProviders(ctx context.Context, body CreateIde
 	})
 }
 
+// PostAccessIdentityProvidersVerify: Checks an identity provider before adding it
+func (c *Client) PostAccessIdentityProvidersVerify(ctx context.Context, body VerifyIdentityProviderRequest) (*Verification, error) {
+	return doJSON[Verification](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/access/identity_providers/verify",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // PostAccessTrustRules: Creates a trust rule
 func (c *Client) PostAccessTrustRules(ctx context.Context, body CreateAccessTrustRuleRequest) (*AccessTrustRule, error) {
 	return doJSON[AccessTrustRule](c, ctx, apiRequest{
 		method:       "POST",
 		pathFmt:      "/v1/access/trust_rules",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PostAccessTrustRulesVerify: Checks a trust rule's condition and audience
+func (c *Client) PostAccessTrustRulesVerify(ctx context.Context, body VerifyAccessTrustRuleRequest) (*Verification, error) {
+	return doJSON[Verification](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/access/trust_rules/verify",
 		pathArgs:     nil,
 		body:         body,
 		successCodes: []int{200},
@@ -3387,6 +3411,18 @@ func (c *Client) PushImage(ctx context.Context, params PushImageParams, body Pus
 		queryParams:  params,
 		body:         body,
 		successCodes: []int{202},
+		errorCodes:   nil,
+	})
+}
+
+// PutLoopsCheckpointsTtl: Sets a Loops checkpoint's TTL
+func (c *Client) PutLoopsCheckpointsTtl(ctx context.Context, checkpointId string, body SetLoopsCheckpointTtlRequest) (*LoopsCheckpoint, error) {
+	return doJSON[LoopsCheckpoint](c, ctx, apiRequest{
+		method:       "PUT",
+		pathFmt:      "/v1/loops/checkpoints/%s/ttl",
+		pathArgs:     []any{checkpointId},
+		body:         body,
+		successCodes: []int{200},
 		errorCodes:   nil,
 	})
 }
