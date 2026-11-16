@@ -110,6 +110,28 @@ func (c *Client) CreateSandboxVolume(ctx context.Context, params CreateSandboxVo
 	})
 }
 
+// DeleteAccessIdentityProviders: Deletes an identity provider
+func (c *Client) DeleteAccessIdentityProviders(ctx context.Context, identityProviderId string) (*DeletedIdentityProvider, error) {
+	return doJSON[DeletedIdentityProvider](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/access/identity_providers/%s",
+		pathArgs:     []any{identityProviderId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// DeleteAccessTrustRules: Deletes a trust rule
+func (c *Client) DeleteAccessTrustRules(ctx context.Context, trustRuleId string) (*DeletedAccessTrustRule, error) {
+	return doJSON[DeletedAccessTrustRule](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/access/trust_rules/%s",
+		pathArgs:     []any{trustRuleId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // DeleteApiKeys: Deletes an API key by prefix
 func (c *Client) DeleteApiKeys(ctx context.Context, apiKeyPrefix string) (*APIKeyTombstone, error) {
 	return doJSON[APIKeyTombstone](c, ctx, apiRequest{
@@ -369,6 +391,17 @@ func (c *Client) DeleteSecrets(ctx context.Context, secretName string) (*SecretT
 	})
 }
 
+// DeleteServiceAccounts: Deletes a service account
+func (c *Client) DeleteServiceAccounts(ctx context.Context, serviceAccountId string) (*DeletedServiceAccount, error) {
+	return doJSON[DeletedServiceAccount](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/service_accounts/%s",
+		pathArgs:     []any{serviceAccountId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // DeleteTeamsSecrets: Deletes a secret by name
 func (c *Client) DeleteTeamsSecrets(ctx context.Context, teamId string, secretName string) (*SecretTombstone, error) {
 	return doJSON[SecretTombstone](c, ctx, apiRequest{
@@ -433,6 +466,63 @@ func (c *Client) DeleteVolumesVersions(ctx context.Context, volumeNamespace stri
 		pathFmt:      "/v1/volumes/%s/%s/versions/%s",
 		pathArgs:     []any{volumeNamespace, volumeName, volumeVersion},
 		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetAccessIdentityProviders: Lists identity providers
+func (c *Client) GetAccessIdentityProviders(ctx context.Context, params GetV1AccessIdentityProvidersParams) (*IdentityProviders, error) {
+	return doJSON[IdentityProviders](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/access/identity_providers",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetAccessIdentityProvidersIdentityProviderId: Gets an identity provider
+func (c *Client) GetAccessIdentityProvidersIdentityProviderId(ctx context.Context, identityProviderId string) (*IdentityProvider, error) {
+	return doJSON[IdentityProvider](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/access/identity_providers/%s",
+		pathArgs:     []any{identityProviderId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetAccessPredefinedIdentityProviders: Lists predefined identity providers
+func (c *Client) GetAccessPredefinedIdentityProviders(ctx context.Context) (*PredefinedIdentityProviders, error) {
+	return doJSON[PredefinedIdentityProviders](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/access/predefined_identity_providers",
+		pathArgs:     nil,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetAccessTrustRules: Lists trust rules
+func (c *Client) GetAccessTrustRules(ctx context.Context, params GetV1AccessTrustRulesParams) (*AccessTrustRules, error) {
+	return doJSON[AccessTrustRules](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/access/trust_rules",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetAccessTrustRulesTrustRuleId: Gets a trust rule
+func (c *Client) GetAccessTrustRulesTrustRuleId(ctx context.Context, trustRuleId string) (*AccessTrustRule, error) {
+	return doJSON[AccessTrustRule](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/access/trust_rules/%s",
+		pathArgs:     []any{trustRuleId},
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -1509,6 +1599,29 @@ func (c *Client) GetSecrets(ctx context.Context) (*Secrets, error) {
 	})
 }
 
+// GetServiceAccounts: Lists service accounts
+func (c *Client) GetServiceAccounts(ctx context.Context, params GetV1ServiceAccountsParams) (*ServiceAccounts, error) {
+	return doJSON[ServiceAccounts](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/service_accounts",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetServiceAccountsServiceAccountId: Gets a service account
+func (c *Client) GetServiceAccountsServiceAccountId(ctx context.Context, serviceAccountId string) (*ServiceAccount, error) {
+	return doJSON[ServiceAccount](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/service_accounts/%s",
+		pathArgs:     []any{serviceAccountId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // GetTeams: Lists all teams
 func (c *Client) GetTeams(ctx context.Context, params GetV1TeamsParams) (*Teams, error) {
 	return doJSON[Teams](c, ctx, apiRequest{
@@ -1957,6 +2070,30 @@ func (c *Client) ListSandboxes(ctx context.Context, params ListSandboxesParams) 
 	})
 }
 
+// PatchAccessIdentityProviders: Updates an identity provider
+func (c *Client) PatchAccessIdentityProviders(ctx context.Context, identityProviderId string, body UpdateIdentityProviderRequest) (*IdentityProvider, error) {
+	return doJSON[IdentityProvider](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/access/identity_providers/%s",
+		pathArgs:     []any{identityProviderId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PatchAccessTrustRules: Updates a trust rule
+func (c *Client) PatchAccessTrustRules(ctx context.Context, trustRuleId string, body UpdateAccessTrustRuleRequest) (*AccessTrustRule, error) {
+	return doJSON[AccessTrustRule](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/access/trust_rules/%s",
+		pathArgs:     []any{trustRuleId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // PatchChainsEnvironments: Updates a chain environment's settings
 func (c *Client) PatchChainsEnvironments(ctx context.Context, chainId string, envName string, body UpdateChainEnvironmentRequest) (*UpdateChainEnvironmentResponse, error) {
 	return doJSON[UpdateChainEnvironmentResponse](c, ctx, apiRequest{
@@ -2197,6 +2334,30 @@ func (c *Client) PatchModelsEnvironments(ctx context.Context, modelId string, en
 	})
 }
 
+// PatchOrganizationsMe: Updates the authenticated organization
+func (c *Client) PatchOrganizationsMe(ctx context.Context, body UpdateOrganizationRequest) (*OrganizationInfo, error) {
+	return doJSON[OrganizationInfo](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/organizations/me",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PatchServiceAccounts: Updates a service account
+func (c *Client) PatchServiceAccounts(ctx context.Context, serviceAccountId string, body UpdateServiceAccountRequest) (*ServiceAccount, error) {
+	return doJSON[ServiceAccount](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/service_accounts/%s",
+		pathArgs:     []any{serviceAccountId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // PatchTeamsEnvironmentGroups: Updates an environment group's restriction settings
 func (c *Client) PatchTeamsEnvironmentGroups(ctx context.Context, teamId string, envName string, body UpdateEnvironmentGroupRequest) (*EnvironmentGroup, error) {
 	return doJSON[EnvironmentGroup](c, ctx, apiRequest{
@@ -2251,6 +2412,30 @@ func (c *Client) PatchVolumes(ctx context.Context, volumeNamespace string, volum
 		method:       "PATCH",
 		pathFmt:      "/v1/volumes/%s/%s",
 		pathArgs:     []any{volumeNamespace, volumeName},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PostAccessIdentityProviders: Adds an identity provider
+func (c *Client) PostAccessIdentityProviders(ctx context.Context, body CreateIdentityProviderRequest) (*IdentityProvider, error) {
+	return doJSON[IdentityProvider](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/access/identity_providers",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PostAccessTrustRules: Creates a trust rule
+func (c *Client) PostAccessTrustRules(ctx context.Context, body CreateAccessTrustRuleRequest) (*AccessTrustRule, error) {
+	return doJSON[AccessTrustRule](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/access/trust_rules",
+		pathArgs:     nil,
 		body:         body,
 		successCodes: []int{200},
 		errorCodes:   nil,
@@ -2901,6 +3086,18 @@ func (c *Client) PostSecrets(ctx context.Context, body UpsertSecretRequest) (*Se
 	return doJSON[Secret](c, ctx, apiRequest{
 		method:       "POST",
 		pathFmt:      "/v1/secrets",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PostServiceAccounts: Creates a service account
+func (c *Client) PostServiceAccounts(ctx context.Context, body CreateServiceAccountRequest) (*ServiceAccount, error) {
+	return doJSON[ServiceAccount](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/service_accounts",
 		pathArgs:     nil,
 		body:         body,
 		successCodes: []int{200},
