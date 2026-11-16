@@ -15,6 +15,15 @@ var (
 	clientVersion atomic.Pointer[string]
 )
 
+// NewDefaultHTTPClient returns a new instance of the HTTP client used when no
+// HTTPClient is given. It does not follow redirects, so a redirect response is
+// returned as is. Custom clients can start from it to keep that behavior.
+func NewDefaultHTTPClient() *http.Client {
+	return &http.Client{
+		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+	}
+}
+
 func init() {
 	name := "baseten-go"
 	clientName.Store(&name)
