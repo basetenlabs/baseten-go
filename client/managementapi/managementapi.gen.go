@@ -10349,7 +10349,7 @@ type UpdateAccessTrustRuleRequest struct {
 	Condition *string `json:"condition,omitempty"`
 
 	// Description Description; null clears it
-	Description *string `json:"description,omitempty"`
+	Description Optional[string] `json:"description,omitzero"`
 
 	// MaxAccessTokenLifetimeSeconds Longest lifetime of a token the rule issues, 60 to 3600 seconds. Tokens already issued keep their lifetime.
 	MaxAccessTokenLifetimeSeconds *int `json:"max_access_token_lifetime_seconds,omitempty"`
@@ -10624,7 +10624,7 @@ type UpdateGroupRequest struct {
 // UpdateIdentityProviderRequest Request to update an identity provider. Only the fields sent change.
 type UpdateIdentityProviderRequest struct {
 	// Description Description; null clears it
-	Description *string `json:"description,omitempty"`
+	Description Optional[string] `json:"description,omitzero"`
 
 	// Name Name, unique in the organization
 	Name *string `json:"name,omitempty"`
@@ -10799,7 +10799,7 @@ type UpdateSandboxVolumeRequest_Size struct {
 // UpdateServiceAccountRequest Request to update a service account. Only the fields sent change.
 type UpdateServiceAccountRequest struct {
 	// Description Description, up to 1,024 characters; null clears it
-	Description *string `json:"description,omitempty"`
+	Description Optional[string] `json:"description,omitzero"`
 
 	// Disabled Disable the account to stop it being used, or enable it again
 	Disabled *bool `json:"disabled,omitempty"`

@@ -39108,7 +39108,8 @@
                         ],
                         "default": null,
                         "description": "Description, up to 1,024 characters; null clears it",
-                        "title": "Description"
+                        "title": "Description",
+                        "x-null-distinct": true
                     },
                     "disabled": {
                         "anyOf": [
@@ -39377,7 +39378,8 @@
                         ],
                         "default": null,
                         "description": "Description; null clears it",
-                        "title": "Description"
+                        "title": "Description",
+                        "x-null-distinct": true
                     }
                 },
                 "title": "UpdateIdentityProviderRequestV1",
@@ -46817,7 +46819,8 @@
                         ],
                         "default": null,
                         "description": "Description; null clears it",
-                        "title": "Description"
+                        "title": "Description",
+                        "x-null-distinct": true
                     },
                     "condition": {
                         "anyOf": [
