@@ -10390,6 +10390,25 @@
                         }
                     },
                     {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only the account with this name, ignoring case",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "minLength": 1,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Name"
+                        }
+                    },
+                    {
                         "name": "team_id",
                         "in": "query",
                         "required": false,
@@ -10651,6 +10670,25 @@
                         }
                     },
                     {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only the provider with this name, ignoring case",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "minLength": 1,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Name"
+                        }
+                    },
+                    {
                         "name": "predefined_kind",
                         "in": "query",
                         "required": false,
@@ -10861,6 +10899,25 @@
                             "minimum": 1,
                             "title": "Limit",
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only the rule with this name, ignoring case",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "minLength": 1,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Name"
                         }
                     },
                     {
@@ -38892,6 +38949,20 @@
                         "title": "Limit",
                         "type": "integer"
                     },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only the account with this name, ignoring case",
+                        "title": "Name"
+                    },
                     "team_id": {
                         "anyOf": [
                             {
@@ -39261,6 +39332,20 @@
                         "minimum": 1,
                         "title": "Limit",
                         "type": "integer"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only the provider with this name, ignoring case",
+                        "title": "Name"
                     },
                     "type": {
                         "anyOf": [

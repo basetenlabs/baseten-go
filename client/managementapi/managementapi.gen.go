@@ -11493,6 +11493,9 @@ type GetV1AccessIdentityProvidersParams struct {
 	// Limit Maximum number of items to return.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
+	// Name Only the provider with this name, ignoring case
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+
 	// PredefinedKind Only this predefined provider's issuers
 	PredefinedKind *PredefinedIdentityProviderKind `form:"predefined_kind,omitempty" json:"predefined_kind,omitempty"`
 }
@@ -11504,6 +11507,9 @@ type GetV1AccessTrustRulesParams struct {
 
 	// Limit Maximum number of items to return.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Name Only the rule with this name, ignoring case
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
 
 	// IdentityProviderId Only this provider's rules
 	IdentityProviderId *string `form:"identity_provider_id,omitempty" json:"identity_provider_id,omitempty"`
@@ -12530,6 +12536,9 @@ type GetV1ServiceAccountsParams struct {
 
 	// Limit Maximum number of items to return.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Name Only the account with this name, ignoring case
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
 
 	// TeamId Only this team's accounts
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
