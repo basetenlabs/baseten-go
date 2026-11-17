@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -90,14 +89,5 @@ func Refused(resp *http.Response) bool {
 		return false
 	}
 	// Sandboxes, and the control plane for sandbox tokens, send this header.
-	if resp.Header.Get("x-blaxel-error-code") == "TOKEN_REVOKED" {
-		return true
-	}
-	// The RFC 6750 response to a refused access token.
-	for _, challenge := range resp.Header.Values("WWW-Authenticate") {
-		if strings.Contains(challenge, `error="invalid_token"`) {
-			return true
-		}
-	}
-	return false
+	return resp.Header.Get("x-blaxel-error-code") == "TOKEN_REVOKED"
 }

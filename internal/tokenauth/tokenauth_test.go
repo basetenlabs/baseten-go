@@ -86,10 +86,10 @@ func TestRefused(t *testing.T) {
 		want    bool
 	}{
 		{"SandboxRevoked", http.StatusUnauthorized, map[string]string{"x-blaxel-error-code": "TOKEN_REVOKED"}, true},
-		{"InvalidToken", http.StatusUnauthorized, map[string]string{"WWW-Authenticate": `Bearer realm="baseten", error="invalid_token"`}, true},
+		{"InvalidTokenChallenge", http.StatusUnauthorized, map[string]string{"WWW-Authenticate": `Bearer error="invalid_token"`}, false},
 		{"PlainUnauthorized", http.StatusUnauthorized, nil, false},
 		{"OtherChallenge", http.StatusUnauthorized, map[string]string{"WWW-Authenticate": `Bearer realm="baseten"`}, false},
-		{"Forbidden", http.StatusForbidden, map[string]string{"WWW-Authenticate": `Bearer error="invalid_token"`}, false},
+		{"Forbidden", http.StatusForbidden, map[string]string{"x-blaxel-error-code": "TOKEN_REVOKED"}, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			resp := &http.Response{StatusCode: tc.status, Header: http.Header{}}
@@ -187,7 +187,7 @@ func (f doerFunc) Do(req *http.Request) (*http.Response, error) { return f(req) 
 
 func refusal() *http.Response {
 	resp := &http.Response{StatusCode: http.StatusUnauthorized, Header: http.Header{}, Body: io.NopCloser(strings.NewReader(""))}
-	resp.Header.Set("WWW-Authenticate", `Bearer error="invalid_token"`)
+	resp.Header.Set("x-blaxel-error-code", "TOKEN_REVOKED")
 	return resp
 }
 
