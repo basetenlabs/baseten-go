@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -87,12 +86,12 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{})
 
 		before := time.Now()
-		tok, err := creds.AccessToken(ctx)
+		tok, err := creds.AccessToken(ctx, AccessTokenOptions{})
 		require.NoError(t, err)
 		require.Equal(t, "access-1", tok.Token)
 		require.True(t, !tok.ExpiresAt.Before(before.Add(time.Hour)), "ExpiresAt %v too early", tok.ExpiresAt)
 
-		tok, err = creds.AccessToken(ctx)
+		tok, err = creds.AccessToken(ctx, AccessTokenOptions{})
 		require.NoError(t, err)
 		require.Equal(t, "access-1", tok.Token)
 		require.Equal(t, int64(1), fake.exchanges.Load())
@@ -107,16 +106,16 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		now := time.Now()
 		creds.now = func() time.Time { return now }
 
-		_, err := creds.AccessToken(ctx)
+		_, err := creds.AccessToken(ctx, AccessTokenOptions{})
 		require.NoError(t, err)
 
 		now = now.Add(8*time.Minute + 59*time.Second)
-		tok, err := creds.AccessToken(ctx)
+		tok, err := creds.AccessToken(ctx, AccessTokenOptions{})
 		require.NoError(t, err)
 		require.Equal(t, "access-1", tok.Token)
 
 		now = now.Add(time.Second)
-		tok, err = creds.AccessToken(ctx)
+		tok, err = creds.AccessToken(ctx, AccessTokenOptions{})
 		require.NoError(t, err)
 		require.Equal(t, "access-2", tok.Token)
 	})
@@ -131,14 +130,14 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		now := time.Now()
 		creds.now = func() time.Time { return now }
 
-		_, err := creds.AccessToken(ctx)
+		_, err := creds.AccessToken(ctx, AccessTokenOptions{})
 		require.NoError(t, err)
 		now = now.Add(29 * time.Second)
-		_, err = creds.AccessToken(ctx)
+		_, err = creds.AccessToken(ctx, AccessTokenOptions{})
 		require.NoError(t, err)
 		require.Equal(t, int64(1), fake.exchanges.Load())
 		now = now.Add(time.Second)
-		_, err = creds.AccessToken(ctx)
+		_, err = creds.AccessToken(ctx, AccessTokenOptions{})
 		require.NoError(t, err)
 		require.Equal(t, int64(2), fake.exchanges.Load())
 	})
@@ -153,11 +152,11 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		now := time.Now()
 		creds.now = func() time.Time { return now }
 
-		_, err := creds.AccessToken(ctx)
+		_, err := creds.AccessToken(ctx, AccessTokenOptions{})
 		require.NoError(t, err)
 		require.NoError(t, os.WriteFile(path, []byte("jwt-two"), 0o600))
 		now = now.Add(10 * time.Minute)
-		_, err = creds.AccessToken(ctx)
+		_, err = creds.AccessToken(ctx, AccessTokenOptions{})
 		require.NoError(t, err)
 		require.Len(t, fake.assertions, 2)
 		require.Equal(t, "jwt-one", fake.assertions[0])
@@ -171,7 +170,7 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		path := filepath.Join(t.TempDir(), "missing")
 		creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{IdentityTokenFile: path})
 
-		_, err := creds.AccessToken(ctx)
+		_, err := creds.AccessToken(ctx, AccessTokenOptions{})
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "reading identity token file")
 		require.True(t, errors.Is(err, os.ErrNotExist), "want ErrNotExist, got %v", err)
@@ -185,7 +184,7 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		require.NoError(t, os.WriteFile(path, []byte("\n"), 0o600))
 		creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{IdentityTokenFile: path})
 
-		_, err := creds.AccessToken(ctx)
+		_, err := creds.AccessToken(ctx, AccessTokenOptions{})
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "is empty")
 	})
@@ -200,12 +199,12 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		defer srv.Close()
 		creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{})
 
-		_, err := creds.AccessToken(ctx)
+		_, err := creds.AccessToken(ctx, AccessTokenOptions{})
 		require.True(t, errors.Is(err, ErrInvalidGrant), "want ErrInvalidGrant, got %v", err)
 		require.Contains(t, err.Error(), "rule-1")
 
 		// A refusal is not cached: the next call exchanges again.
-		_, err = creds.AccessToken(ctx)
+		_, err = creds.AccessToken(ctx, AccessTokenOptions{})
 		require.True(t, errors.Is(err, ErrInvalidGrant), "want ErrInvalidGrant, got %v", err)
 		require.Equal(t, int64(2), fake.exchanges.Load())
 	})
@@ -218,7 +217,7 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		defer srv.Close()
 		creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{})
 
-		_, err := creds.AccessToken(ctx)
+		_, err := creds.AccessToken(ctx, AccessTokenOptions{})
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "HTTP 502 with a non-JSON response")
 		require.Contains(t, err.Error(), "bad gateway")
@@ -232,7 +231,7 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		defer srv.Close()
 		creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{})
 
-		_, err := creds.AccessToken(ctx)
+		_, err := creds.AccessToken(ctx, AccessTokenOptions{})
 		require.Error(t, err)
 		require.False(t, errors.Is(err, ErrInvalidGrant), "429 is not invalid_grant")
 		require.Contains(t, err.Error(), "HTTP 429")
@@ -249,7 +248,7 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 					fmt.Fprint(w, body)
 				}})
 				defer srv.Close()
-				_, err := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{}).AccessToken(ctx)
+				_, err := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{}).AccessToken(ctx, AccessTokenOptions{})
 				require.Error(t, err)
 			})
 		}
@@ -278,7 +277,7 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				tok, err := creds.AccessToken(ctx)
+				tok, err := creds.AccessToken(ctx, AccessTokenOptions{})
 				if err == nil && tok.Token != "shared" {
 					err = fmt.Errorf("got token %q", tok.Token)
 				}
@@ -309,7 +308,7 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		defer close(release)
 		creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{})
 
-		go creds.AccessToken(ctx) //nolint:errcheck // holds the lock until release
+		go creds.AccessToken(ctx, AccessTokenOptions{}) //nolint:errcheck // holds the lock until release
 		require.Eventually(t, 5*time.Second, 5*time.Millisecond, func(t require.T) {
 			if fake.exchanges.Load() != 1 {
 				t.Fatalf("exchange not started yet")
@@ -317,7 +316,7 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		})
 		waitCtx, cancel := context.WithTimeout(ctx, 20*time.Millisecond)
 		defer cancel()
-		_, err := creds.AccessToken(waitCtx)
+		_, err := creds.AccessToken(waitCtx, AccessTokenOptions{})
 		require.True(t, errors.Is(err, context.DeadlineExceeded), "got %v", err)
 	})
 }
@@ -397,56 +396,32 @@ func TestClientsWithWorkloadIdentityCredentials(t *testing.T) {
 	require.Equal(t, "Bearer access-2", seenAuth[2])
 }
 
-// TestClientResendsRefusedAccessToken checks that a token Baseten refuses
-// before its expiry is dropped and the request sent again with a new one, and
-// that a source that cannot drop it gets the refusal after one send.
-func TestClientResendsRefusedAccessToken(t *testing.T) {
+// TestClientDoesNotResendRefusedAccessToken checks that a 401 is returned as
+// is: on inference it comes from the user's model, which can send any header.
+func TestClientDoesNotResendRefusedAccessToken(t *testing.T) {
 	ctx := context.Background()
 	fake := &fakeTokenServer{t: t, expiresIn: 3600}
-	var mu sync.Mutex
-	var seenAuth []string
+	var requests atomic.Int32
 	mux := http.NewServeMux()
 	mux.Handle("/v1/auth/token", fake)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		auth := r.Header.Get("Authorization")
-		mu.Lock()
-		seenAuth = append(seenAuth, auth)
-		mu.Unlock()
-		if auth == "Bearer access-1" {
-			w.Header().Set("WWW-Authenticate", `Bearer realm="baseten", error="invalid_token"`)
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"org_id":"o","created_at":"2026-01-01T00:00:00Z","allow_personal_api_keys":true,"allow_service_account_api_keys":true}`)
+		requests.Add(1)
+		w.Header().Set("WWW-Authenticate", `Bearer error="invalid_token"`)
+		w.WriteHeader(http.StatusUnauthorized)
 	})
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	t.Run("CachingSource", func(t *testing.T) {
-		creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{})
-		mgmt, err := NewManagementClient(ManagementClientOptions{Credentials: creds, BaseURL: srv.URL, HTTPClient: srv.Client()})
-		require.NoError(t, err)
-		_, err = mgmt.API().GetOrganizationsMe(ctx)
-		require.NoError(t, err)
-		mu.Lock()
-		defer mu.Unlock()
-		require.Equal(t, "Bearer access-1,Bearer access-2", strings.Join(seenAuth, ","))
-		seenAuth = nil
-	})
-
-	t.Run("SourceWithoutInvalidation", func(t *testing.T) {
-		source := accessTokenSourceFunc(func(context.Context) (AccessToken, error) {
-			return AccessToken{Token: "access-1", ExpiresAt: time.Now().Add(time.Hour)}, nil
-		})
-		mgmt, err := NewManagementClient(ManagementClientOptions{Credentials: source, BaseURL: srv.URL, HTTPClient: srv.Client()})
-		require.NoError(t, err)
-		_, err = mgmt.API().GetOrganizationsMe(ctx)
-		require.Error(t, err)
-		mu.Lock()
-		defer mu.Unlock()
-		require.Equal(t, "Bearer access-1", strings.Join(seenAuth, ","))
-	})
+	creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{})
+	inf, err := NewInferenceClient(InferenceClientOptions{Credentials: creds, BaseURL: srv.URL, HTTPClient: srv.Client()})
+	require.NoError(t, err)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, srv.URL+"/predict", nil)
+	require.NoError(t, err)
+	resp, err := inf.API().HTTPClient.Do(req)
+	require.NoError(t, err)
+	resp.Body.Close()
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	require.Equal(t, int32(1), requests.Load())
 }
 
 func TestBearerAuthDoerLeavesOtherHostsAlone(t *testing.T) {
@@ -455,7 +430,7 @@ func TestBearerAuthDoerLeavesOtherHostsAlone(t *testing.T) {
 		gotAuth.Store(r.Header.Get("Authorization"))
 	}))
 	defer other.Close()
-	source := accessTokenSourceFunc(func(context.Context) (AccessToken, error) {
+	source := credentialsFunc(func(context.Context) (AccessToken, error) {
 		t.Error("token fetched for a foreign host")
 		return AccessToken{}, errors.New("unexpected")
 	})
@@ -493,9 +468,11 @@ func TestClientAuthOptionsValidation(t *testing.T) {
 	require.NoError(t, err)
 }
 
-type accessTokenSourceFunc func(context.Context) (AccessToken, error)
+type credentialsFunc func(context.Context) (AccessToken, error)
 
-func (f accessTokenSourceFunc) AccessToken(ctx context.Context) (AccessToken, error) { return f(ctx) }
+func (f credentialsFunc) AccessToken(ctx context.Context, _ AccessTokenOptions) (AccessToken, error) {
+	return f(ctx)
+}
 
 // TestExchangeDoesNotFollowRedirects checks that the default client keeps the
 // identity token in the request body from following a redirect.
@@ -516,7 +493,7 @@ func TestExchangeDoesNotFollowRedirects(t *testing.T) {
 		BaseURL:       api.URL,
 	})
 	require.NoError(t, err)
-	_, err = creds.AccessToken(t.Context())
+	_, err = creds.AccessToken(t.Context(), AccessTokenOptions{})
 	require.Error(t, err)
 	require.True(t, !leaked.Load(), "the exchange followed a redirect")
 }

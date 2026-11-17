@@ -14,9 +14,14 @@ import (
 
 // ClientOptions configures a [Client].
 type ClientOptions struct {
-	// APIKey is the Baseten API key used for authentication. Required unless
-	// one of the advanced ManagementClient or TokenProvider options is set.
+	// APIKey is the Baseten API key used for authentication. Exactly one of
+	// APIKey, Credentials, ManagementClient, and TokenProvider is required.
 	APIKey string
+
+	// Credentials supplies short-lived access tokens instead of an API key,
+	// for example [client.WorkloadIdentityCredentials]. Sandbox tokens are
+	// requested with them.
+	Credentials client.Credentials
 
 	// TeamID is the team to act in. Empty uses the caller's only team, and
 	// is an error for callers in more than one team.
@@ -44,13 +49,12 @@ type ClientOptions struct {
 	// ManagementClient is an advanced alternative to APIKey: the management
 	// client that sandbox tokens are requested through, with its own base
 	// URL and authentication. For callers that authenticate the management
-	// API other than with an API key. APIKey and TokenProvider must then be
-	// empty.
+	// API other than with an API key or Credentials.
 	ManagementClient *client.ManagementClient
 
 	// TokenProvider is an advanced alternative to APIKey: it returns the
 	// bearer token for each request, for callers that obtain sandbox tokens
-	// themselves. APIKey and ManagementClient must then be empty.
+	// themselves.
 	TokenProvider TokenProvider
 }
 
@@ -70,15 +74,15 @@ type Client struct {
 // NewClient creates a Client without making a network request.
 func NewClient(opts ClientOptions) (*Client, error) {
 	credentials := 0
-	for _, set := range []bool{opts.APIKey != "", opts.ManagementClient != nil, opts.TokenProvider != nil} {
+	for _, set := range []bool{opts.APIKey != "", opts.Credentials != nil, opts.ManagementClient != nil, opts.TokenProvider != nil} {
 		if set {
 			credentials++
 		}
 	}
 	if credentials == 0 {
-		return nil, errors.New("APIKey is required")
+		return nil, errors.New("one of APIKey, Credentials, ManagementClient, or TokenProvider is required")
 	} else if credentials > 1 {
-		return nil, errors.New("only one of APIKey, ManagementClient, and TokenProvider may be set")
+		return nil, errors.New("only one of APIKey, Credentials, ManagementClient, and TokenProvider may be set")
 	}
 
 	baseURL := strings.TrimRight(opts.BaseURL, "/")
@@ -98,13 +102,14 @@ func NewClient(opts ClientOptions) (*Client, error) {
 	client.ApplyUserAgentHeader(headers)
 
 	management := opts.ManagementClient
-	if opts.APIKey != "" {
+	if opts.APIKey != "" || opts.Credentials != nil {
 		var err error
 		management, err = client.NewManagementClient(client.ManagementClientOptions{
-			APIKey:     opts.APIKey,
-			BaseURL:    baseURL,
-			HTTPClient: httpClient,
-			Headers:    opts.Headers,
+			APIKey:      opts.APIKey,
+			Credentials: opts.Credentials,
+			BaseURL:     baseURL,
+			HTTPClient:  httpClient,
+			Headers:     opts.Headers,
 		})
 		if err != nil {
 			return nil, err

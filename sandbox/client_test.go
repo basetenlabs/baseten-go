@@ -18,6 +18,9 @@ func TestNewClient(t *testing.T) {
 	provider := func(context.Context, TokenProviderOptions) (string, error) { return "token", nil }
 	management, err := client.NewManagementClient(client.ManagementClientOptions{APIKey: "key"})
 	require.NoError(t, err)
+	credentials := credentialsFunc(func(context.Context) (client.AccessToken, error) {
+		return client.AccessToken{Token: "access", ExpiresAt: time.Now().Add(time.Hour)}, nil
+	})
 
 	t.Run("RequiresCredentials", func(t *testing.T) {
 		_, err := NewClient(ClientOptions{})
@@ -27,6 +30,8 @@ func TestNewClient(t *testing.T) {
 	t.Run("CredentialsMutuallyExclusive", func(t *testing.T) {
 		for _, opts := range []ClientOptions{
 			{APIKey: "key", TokenProvider: provider},
+			{APIKey: "key", Credentials: credentials},
+			{Credentials: credentials, ManagementClient: management},
 			{APIKey: "key", ManagementClient: management},
 			{ManagementClient: management, TokenProvider: provider},
 		} {
@@ -38,6 +43,7 @@ func TestNewClient(t *testing.T) {
 	t.Run("AcceptsEachCredential", func(t *testing.T) {
 		for _, opts := range []ClientOptions{
 			{APIKey: "key"},
+			{Credentials: credentials},
 			{ManagementClient: management},
 			{TokenProvider: provider},
 		} {
@@ -84,6 +90,32 @@ func TestNewClient(t *testing.T) {
 		require.Equal(t, "token-1", seen)
 		require.Equal(t, "Bearer oauth", mintAuth)
 	})
+
+	t.Run("CredentialsMintThroughBaseURL", func(t *testing.T) {
+		srv := newTokenServer(t)
+		var mintAuth string
+		c, err := NewClient(ClientOptions{
+			Credentials: credentials,
+			BaseURL:     srv.URL,
+			HTTPClient: doerFunc(func(req *http.Request) (*http.Response, error) {
+				if req.URL.Path == "/v1/token" {
+					mintAuth = req.Header.Get("Authorization")
+				}
+				return http.DefaultClient.Do(req)
+			}),
+		})
+		require.NoError(t, err)
+		status, seen := echo(t, c.api.HTTPClient.(*authenticatedClient), srv.URL, nil)
+		require.Equal(t, http.StatusOK, status)
+		require.Equal(t, "token-1", seen)
+		require.Equal(t, "Bearer access", mintAuth)
+	})
+}
+
+type credentialsFunc func(context.Context) (client.AccessToken, error)
+
+func (f credentialsFunc) AccessToken(ctx context.Context, _ client.AccessTokenOptions) (client.AccessToken, error) {
+	return f(ctx)
 }
 
 type doerFunc func(*http.Request) (*http.Response, error)

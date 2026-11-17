@@ -41,21 +41,16 @@ type AccessToken struct {
 }
 
 // Credentials supplies a current Baseten access token. A client
-// configured with one calls it before every request, so the source decides
+// configured with one calls it before every request, so the credentials decide
 // when to refresh.
 type Credentials interface {
-	AccessToken(ctx context.Context) (AccessToken, error)
+	AccessToken(ctx context.Context, opts AccessTokenOptions) (AccessToken, error)
 }
 
-// AccessTokenInvalidator is implemented by a [Credentials] that caches
-// tokens. When Baseten refuses a token before it expires, for example because
-// it was revoked, a client drops it with InvalidateAccessToken, asks the source
-// for a new one, and sends the request again. Clients resend only for sources
-// that implement this.
-type AccessTokenInvalidator interface {
-	// InvalidateAccessToken drops token if it is still the cached one.
-	InvalidateAccessToken(token string)
-}
+// AccessTokenOptions is what [Credentials] are told about the token they are
+// asked for. It has no fields yet; it lets fields be added without breaking
+// implementations.
+type AccessTokenOptions struct{}
 
 // WorkloadIdentityCredentialsOptions configures WorkloadIdentityCredentials.
 // Credentials are supplied explicitly; the SDK reads no environment variables.
@@ -106,10 +101,7 @@ type WorkloadIdentityCredentials struct {
 	now func() time.Time
 }
 
-var (
-	_ Credentials            = (*WorkloadIdentityCredentials)(nil)
-	_ AccessTokenInvalidator = (*WorkloadIdentityCredentials)(nil)
-)
+var _ Credentials = (*WorkloadIdentityCredentials)(nil)
 
 // NewWorkloadIdentityCredentials validates opts and returns credentials. It
 // does not contact Baseten; the first exchange happens on first use.
@@ -152,18 +144,12 @@ func NewWorkloadIdentityCredentials(opts WorkloadIdentityCredentialsOptions) (*W
 // AccessToken returns a current access token, exchanging the identity token
 // for a new one when none is cached or the cached one is within the refresh
 // leeway of expiry.
-func (c *WorkloadIdentityCredentials) AccessToken(ctx context.Context) (AccessToken, error) {
+func (c *WorkloadIdentityCredentials) AccessToken(ctx context.Context, _ AccessTokenOptions) (AccessToken, error) {
 	token, err := c.cache.Token(ctx)
 	if err != nil {
 		return AccessToken{}, err
 	}
 	return AccessToken{Token: token.Value, ExpiresAt: token.ExpiresAt}, nil
-}
-
-// InvalidateAccessToken drops token if it is still the cached one, so the next
-// call exchanges the identity token again.
-func (c *WorkloadIdentityCredentials) InvalidateAccessToken(token string) {
-	c.cache.Invalidate(token)
 }
 
 func (c *WorkloadIdentityCredentials) identityToken(ctx context.Context) (string, error) {
@@ -272,11 +258,6 @@ func (c *WorkloadIdentityCredentials) exchange(ctx context.Context) (tokenauth.T
 // every caller waiting for a token shares.
 const workloadIdentityExchangeTimeout = 10 * time.Second
 
-// accessTokenResendDelay is how long a client waits before its second resend
-// of a request whose access token was refused. A variable so tests can shorten
-// it.
-var accessTokenResendDelay = time.Second
-
 type httpDoer interface {
 	Do(*http.Request) (*http.Response, error)
 }
@@ -306,31 +287,19 @@ func (d *bearerAuthDoer) Do(req *http.Request) (*http.Response, error) {
 	if req.URL.Host != d.host || req.Header.Get("Authorization") != "" {
 		return d.next.Do(req)
 	}
-	invalidator, resend := d.source.(AccessTokenInvalidator)
-	get := func(ctx context.Context, _ string) (string, error) {
-		token, err := d.source.AccessToken(ctx)
-		if err != nil {
-			return "", err
-		}
-		if token.Token == "" {
-			return "", errors.New("the access token source returned an empty token")
-		}
-		return token.Token, nil
+	token, err := d.source.AccessToken(req.Context(), AccessTokenOptions{})
+	if err == nil && token.Token == "" {
+		err = errors.New("the credentials returned an empty access token")
 	}
-	if !resend {
-		// Without a way to drop the refused token, the source would return it
-		// again, so the request is sent once.
-		token, err := get(req.Context(), "")
-		if err != nil {
-			if req.Body != nil {
-				req.Body.Close()
-			}
-			return nil, err
+	if err != nil {
+		// Do closes the request body even on error, as http.Client does.
+		if req.Body != nil {
+			req.Body.Close()
 		}
-		// Do must not modify the caller's request.
-		req = req.Clone(req.Context())
-		req.Header.Set("Authorization", "Bearer "+token)
-		return d.next.Do(req)
+		return nil, err
 	}
-	return tokenauth.Do(d.next, req, get, invalidator.InvalidateAccessToken, accessTokenResendDelay)
+	// Do must not modify the caller's request.
+	req = req.Clone(req.Context())
+	req.Header.Set("Authorization", "Bearer "+token.Token)
+	return d.next.Do(req)
 }
