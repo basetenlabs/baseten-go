@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/basetenlabs/baseten-go/client/managementapi"
 	"github.com/basetenlabs/baseten-go/internal/tokenauth"
 )
 
@@ -26,12 +27,6 @@ const (
 // access token is replaced. Capped at half the token's lifetime so a
 // short-lived token is still reused.
 const defaultWorkloadIdentityRefreshLeeway = 5 * time.Minute
-
-// ErrInvalidGrant is returned (wrapped) when Baseten refuses a workload
-// identity token exchange. The server gives no reason: the trust rule may not
-// exist, may not match the identity token's issuer or claims, or the identity
-// token may be expired or have the wrong audience.
-var ErrInvalidGrant = errors.New("invalid_grant")
 
 // AccessToken is a short-lived Baseten access token, sent as
 // "Authorization: Bearer <Token>".
@@ -186,7 +181,6 @@ type tokenExchangeResponse struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
 	ExpiresIn   int64  `json:"expires_in"`
-	Error       string `json:"error"`
 }
 
 // exchange swaps the identity token for a new access token.
@@ -224,22 +218,25 @@ func (c *WorkloadIdentityCredentials) exchange(ctx context.Context) (tokenauth.T
 		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: reading response: %w", err)
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		respErr := &managementapi.ResponseError{StatusCode: resp.StatusCode, Body: strings.TrimSpace(string(respBody))}
+		// The server sends every refusal as the same OAuth invalid_grant, so
+		// the hint covers each possible cause.
+		var oauthErr struct {
+			Error string `json:"error"`
+		}
+		if json.Unmarshal(respBody, &oauthErr) == nil && oauthErr.Error == "invalid_grant" {
+			return tokenauth.Token{}, fmt.Errorf(
+				"workload identity token exchange refused for trust rule %s "+
+					"(the trust rule may not exist or may not match the identity token's issuer, audience, or claims, "+
+					"or the identity token may have expired): %w",
+				c.opts.TrustRuleID, respErr)
+		}
+		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: %w", respErr)
+	}
 	var decoded tokenExchangeResponse
 	if err := json.Unmarshal(respBody, &decoded); err != nil {
-		return tokenauth.Token{}, fmt.Errorf(
-			"workload identity token exchange: HTTP %d with a non-JSON response: %s",
-			resp.StatusCode, strings.TrimSpace(string(respBody)))
-	}
-	if resp.StatusCode != http.StatusOK {
-		if decoded.Error == "invalid_grant" {
-			return tokenauth.Token{}, fmt.Errorf(
-				"workload identity token exchange refused for trust rule %s: %w "+
-					"(the trust rule may not exist or may not match the identity token's issuer, audience, or claims, "+
-					"or the identity token may have expired)",
-				c.opts.TrustRuleID, ErrInvalidGrant)
-		}
-		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: HTTP %d: %s",
-			resp.StatusCode, strings.TrimSpace(string(respBody)))
+		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: decoding response: %w", err)
 	}
 	if decoded.AccessToken == "" {
 		return tokenauth.Token{}, errors.New("workload identity token exchange: the response carried no access_token")

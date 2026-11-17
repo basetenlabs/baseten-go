@@ -9,11 +9,13 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/basetenlabs/baseten-go/client/managementapi"
 	"github.com/basetenlabs/baseten-go/internal/require"
 )
 
@@ -200,12 +202,15 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{})
 
 		_, err := creds.AccessToken(ctx, AccessTokenOptions{})
-		require.True(t, errors.Is(err, ErrInvalidGrant), "want ErrInvalidGrant, got %v", err)
-		require.Contains(t, err.Error(), "rule-1")
+		var respErr *managementapi.ResponseError
+		require.True(t, errors.As(err, &respErr), "want a ResponseError, got %v", err)
+		require.Equal(t, http.StatusBadRequest, respErr.StatusCode)
+		require.Equal(t, `{"error":"invalid_grant"}`, respErr.Body)
+		require.Contains(t, err.Error(), "refused for trust rule rule-1")
 
 		// A refusal is not cached: the next call exchanges again.
 		_, err = creds.AccessToken(ctx, AccessTokenOptions{})
-		require.True(t, errors.Is(err, ErrInvalidGrant), "want ErrInvalidGrant, got %v", err)
+		require.True(t, errors.As(err, &respErr), "want a ResponseError, got %v", err)
 		require.Equal(t, int64(2), fake.exchanges.Load())
 	})
 
@@ -219,8 +224,10 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 
 		_, err := creds.AccessToken(ctx, AccessTokenOptions{})
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "HTTP 502 with a non-JSON response")
-		require.Contains(t, err.Error(), "bad gateway")
+		var respErr *managementapi.ResponseError
+		require.True(t, errors.As(err, &respErr), "want a ResponseError, got %v", err)
+		require.Equal(t, http.StatusBadGateway, respErr.StatusCode)
+		require.Equal(t, "<html>bad gateway</html>", respErr.Body)
 	})
 
 	t.Run("OtherErrorStatus", func(t *testing.T) {
@@ -233,8 +240,10 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 
 		_, err := creds.AccessToken(ctx, AccessTokenOptions{})
 		require.Error(t, err)
-		require.False(t, errors.Is(err, ErrInvalidGrant), "429 is not invalid_grant")
-		require.Contains(t, err.Error(), "HTTP 429")
+		var respErr *managementapi.ResponseError
+		require.True(t, errors.As(err, &respErr), "want a ResponseError, got %v", err)
+		require.Equal(t, http.StatusTooManyRequests, respErr.StatusCode)
+		require.False(t, strings.Contains(err.Error(), "refused for trust rule"), "429 is not a refusal")
 	})
 
 	t.Run("MalformedSuccess", func(t *testing.T) {
