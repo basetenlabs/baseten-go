@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/basetenlabs/baseten-go/client/managementapi"
@@ -43,9 +44,12 @@ type Credentials interface {
 }
 
 // AccessTokenOptions is what [Credentials] are told about the token they are
-// asked for. It has no fields yet; it lets fields be added without breaking
-// implementations.
-type AccessTokenOptions struct{}
+// asked for.
+type AccessTokenOptions struct {
+	// RefusedToken is a token Baseten refused before its stated expiry.
+	// Credentials that cache tokens must not return it again.
+	RefusedToken string
+}
 
 // WorkloadIdentityCredentialsOptions configures WorkloadIdentityCredentials.
 // Credentials are supplied explicitly; the SDK reads no environment variables.
@@ -139,7 +143,10 @@ func NewWorkloadIdentityCredentials(opts WorkloadIdentityCredentialsOptions) (*W
 // AccessToken returns a current access token, exchanging the identity token
 // for a new one when none is cached or the cached one is within the refresh
 // leeway of expiry.
-func (c *WorkloadIdentityCredentials) AccessToken(ctx context.Context, _ AccessTokenOptions) (AccessToken, error) {
+func (c *WorkloadIdentityCredentials) AccessToken(ctx context.Context, opts AccessTokenOptions) (AccessToken, error) {
+	if opts.RefusedToken != "" {
+		c.cache.Invalidate(opts.RefusedToken)
+	}
 	token, err := c.cache.Token(ctx)
 	if err != nil {
 		return AccessToken{}, err
@@ -267,6 +274,9 @@ type bearerAuthDoer struct {
 	next   httpDoer
 	source Credentials
 	host   string
+	// refused is the last token Baseten refused, passed to the next
+	// AccessToken call so the credentials replace it.
+	refused atomic.Pointer[string]
 }
 
 func newBearerAuthDoer(next httpDoer, source Credentials, baseURL string) (*bearerAuthDoer, error) {
@@ -284,7 +294,11 @@ func (d *bearerAuthDoer) Do(req *http.Request) (*http.Response, error) {
 	if req.URL.Host != d.host || req.Header.Get("Authorization") != "" {
 		return d.next.Do(req)
 	}
-	token, err := d.source.AccessToken(req.Context(), AccessTokenOptions{})
+	var opts AccessTokenOptions
+	if refused := d.refused.Swap(nil); refused != nil {
+		opts.RefusedToken = *refused
+	}
+	token, err := d.source.AccessToken(req.Context(), opts)
 	if err == nil && token.Token == "" {
 		err = errors.New("the credentials returned an empty access token")
 	}
@@ -298,5 +312,28 @@ func (d *bearerAuthDoer) Do(req *http.Request) (*http.Response, error) {
 	// Do must not modify the caller's request.
 	req = req.Clone(req.Context())
 	req.Header.Set("Authorization", "Bearer "+token.Token)
-	return d.next.Do(req)
+	resp, err := d.next.Do(req)
+	// The request is not sent again, since it may have side effects; only the
+	// next request gets a new token.
+	if err == nil && refusedByBaseten(resp) {
+		d.refused.Store(&token.Token)
+	}
+	return resp, err
+}
+
+// refusedByBaseten reports whether Baseten's auth layer refused the request's
+// access token, which it signals with this challenge. A model's own error
+// response cannot carry it, since its headers are not forwarded.
+func refusedByBaseten(resp *http.Response) bool {
+	if resp.StatusCode != http.StatusUnauthorized {
+		return false
+	}
+	for _, challenge := range resp.Header.Values("WWW-Authenticate") {
+		if strings.HasPrefix(challenge, "Bearer ") &&
+			strings.Contains(challenge, `realm="baseten"`) &&
+			strings.Contains(challenge, `error="invalid_token"`) {
+			return true
+		}
+	}
+	return false
 }

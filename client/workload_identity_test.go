@@ -405,32 +405,57 @@ func TestClientsWithWorkloadIdentityCredentials(t *testing.T) {
 	require.Equal(t, "Bearer access-2", seenAuth[2])
 }
 
-// TestClientDoesNotResendRefusedAccessToken checks that a 401 is returned as
-// is: on inference it comes from the user's model, which can send any header.
-func TestClientDoesNotResendRefusedAccessToken(t *testing.T) {
-	ctx := context.Background()
-	fake := &fakeTokenServer{t: t, expiresIn: 3600}
-	var requests atomic.Int32
-	mux := http.NewServeMux()
-	mux.Handle("/v1/auth/token", fake)
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		requests.Add(1)
-		w.Header().Set("WWW-Authenticate", `Bearer error="invalid_token"`)
-		w.WriteHeader(http.StatusUnauthorized)
-	})
-	srv := httptest.NewServer(mux)
-	defer srv.Close()
+// TestClientReplacesTokenBasetenRefused checks that a 401 is returned as is,
+// without a resend, and that only Baseten's own refusal challenge makes the
+// next request exchange for a new token.
+func TestClientReplacesTokenBasetenRefused(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		challenge string
+		wantNext  string
+	}{
+		{"BasetenRefusal", `Bearer realm="baseten", error="invalid_token"`, "Bearer access-2"},
+		// Not Baseten's challenge, for example a model's own.
+		{"OtherRealm", `Bearer error="invalid_token"`, "Bearer access-1"},
+		{"AuthenticationRequired", `Bearer realm="baseten"`, "Bearer access-1"},
+		{"NoChallenge", "", "Bearer access-1"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			fake := &fakeTokenServer{t: t, expiresIn: 3600}
+			var mu sync.Mutex
+			var seenAuth []string
+			mux := http.NewServeMux()
+			mux.Handle("/v1/auth/token", fake)
+			mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+				mu.Lock()
+				seenAuth = append(seenAuth, r.Header.Get("Authorization"))
+				mu.Unlock()
+				if tc.challenge != "" {
+					w.Header().Set("WWW-Authenticate", tc.challenge)
+				}
+				w.WriteHeader(http.StatusUnauthorized)
+			})
+			srv := httptest.NewServer(mux)
+			defer srv.Close()
 
-	creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{})
-	inf, err := NewInferenceClient(InferenceClientOptions{Credentials: creds, BaseURL: srv.URL, HTTPClient: srv.Client()})
-	require.NoError(t, err)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, srv.URL+"/predict", nil)
-	require.NoError(t, err)
-	resp, err := inf.API().HTTPClient.Do(req)
-	require.NoError(t, err)
-	resp.Body.Close()
-	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
-	require.Equal(t, int32(1), requests.Load())
+			creds := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{})
+			inf, err := NewInferenceClient(InferenceClientOptions{Credentials: creds, BaseURL: srv.URL, HTTPClient: srv.Client()})
+			require.NoError(t, err)
+			for range 2 {
+				req, err := http.NewRequestWithContext(ctx, http.MethodGet, srv.URL+"/predict", nil)
+				require.NoError(t, err)
+				resp, err := inf.API().HTTPClient.Do(req)
+				require.NoError(t, err)
+				resp.Body.Close()
+				require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+			}
+			// One send per request: the refused one is never sent again.
+			require.Len(t, seenAuth, 2)
+			require.Equal(t, "Bearer access-1", seenAuth[0])
+			require.Equal(t, tc.wantNext, seenAuth[1])
+		})
+	}
 }
 
 func TestBearerAuthDoerLeavesOtherHostsAlone(t *testing.T) {
