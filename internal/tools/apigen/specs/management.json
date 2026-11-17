@@ -3868,7 +3868,33 @@
                 {
                     "$ref": "#/components/parameters/replica_id"
                 }
-            ]
+            ],
+            "get": {
+                "summary": "Gets a replica in a deployment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas/{replica_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas/{replica_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns lifecycle information without metrics, including for terminated replicas. Returns 404 if the replica does not exist in the specified deployment. Returns 400 if multiple replicas match the replica ID.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeploymentReplicaV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         },
         "/v1/models/{model_id}/deployments/{deployment_id}/ssh/sign": {
             "post": {
@@ -15109,6 +15135,235 @@
                     }
                 },
                 "x-stability": "unstable"
+            }
+        },
+        "/v1/models/{model_id}/deployments/{deployment_id}/replicas": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/deployment_id"
+                }
+            ],
+            "get": {
+                "summary": "Lists replicas for a deployment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Includes terminated replicas and lifecycle information without metrics. Replicas are ordered by creation time, oldest first, with replica ID as a tie-breaker. For subsequent pages, pass pagination.cursor as cursor with unchanged filters. Cursors expire after one hour. Replica status may change between requests.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "statuses",
+                        "in": "query",
+                        "required": false,
+                        "description": "Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/DeploymentReplicaStatusV1"
+                            },
+                            "title": "Statuses",
+                            "type": "array"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeploymentReplicasV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/models/{model_id}/environments/{env_name}/replicas": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/env_name"
+                }
+            ],
+            "get": {
+                "summary": "Lists replicas for an environment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Includes retained terminated replicas from deployments active in the preceding hour. Orders replicas oldest first, with replica ID breaking ties. Pass pagination.cursor with unchanged filters for subsequent pages. Cursors pin deployment membership and expire after one hour.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "statuses",
+                        "in": "query",
+                        "required": false,
+                        "description": "Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/DeploymentReplicaStatusV1"
+                            },
+                            "title": "Statuses",
+                            "type": "array"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeploymentReplicasV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id}": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/env_name"
+                },
+                {
+                    "$ref": "#/components/parameters/replica_id"
+                }
+            ],
+            "get": {
+                "summary": "Gets a replica in an environment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Searches deployments active in the environment during the preceding hour. Includes retained terminated replicas. Returns 404 if the replica is outside this scope. Returns 400 if multiple replicas match the replica ID.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeploymentReplicaV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Terminates a replica in an environment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Requests replica termination in the environment's current deployment. Returns 404 if the environment has no current deployment or no replica matches the replica ID. Returns 400 without requesting termination if multiple replicas in the current deployment match the replica ID.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TerminateReplicaResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     },
@@ -46878,6 +47133,111 @@
                     }
                 },
                 "title": "UpdateAccessTrustRuleRequestV1",
+                "type": "object"
+            },
+            "DeploymentReplicaV1": {
+                "properties": {
+                    "id": {
+                        "description": "Pod-name suffix used for replica lookup and termination, usually five characters.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "description": "ID of the replica's deployment.",
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "description": "Name of the replica's deployment.",
+                        "title": "Deployment Name",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/DeploymentReplicaStatusV1",
+                        "description": "Current replica lifecycle status."
+                    },
+                    "created_at": {
+                        "description": "Replica creation time in ISO 8601 format.",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    },
+                    "terminated_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Observed termination completion time in ISO 8601 format, or null if unavailable.",
+                        "title": "Terminated At"
+                    },
+                    "age_seconds": {
+                        "description": "Age in seconds since creation, frozen at termination.",
+                        "title": "Age Seconds",
+                        "type": "number"
+                    },
+                    "restart_count": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Model container lifetime restart count, or null if unavailable.",
+                        "title": "Restart Count"
+                    }
+                },
+                "required": [
+                    "id",
+                    "deployment_id",
+                    "deployment_name",
+                    "status",
+                    "created_at",
+                    "terminated_at",
+                    "age_seconds",
+                    "restart_count"
+                ],
+                "title": "DeploymentReplicaV1",
+                "type": "object"
+            },
+            "DeploymentReplicaStatusV1": {
+                "enum": [
+                    "STARTING",
+                    "ACTIVE",
+                    "UNHEALTHY",
+                    "TERMINATING",
+                    "TERMINATED",
+                    "UNKNOWN"
+                ],
+                "title": "DeploymentReplicaStatusV1",
+                "type": "string"
+            },
+            "DeploymentReplicasV1": {
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentReplicaV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "DeploymentReplicasV1",
                 "type": "object"
             }
         },

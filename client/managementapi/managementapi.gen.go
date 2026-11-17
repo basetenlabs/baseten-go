@@ -698,6 +698,36 @@ func (e DeploymentPatchAction) Valid() bool {
 	}
 }
 
+// Defines values for DeploymentReplicaStatus.
+const (
+	DeploymentReplicaStatus_ACTIVE      DeploymentReplicaStatus = "ACTIVE"
+	DeploymentReplicaStatus_STARTING    DeploymentReplicaStatus = "STARTING"
+	DeploymentReplicaStatus_TERMINATED  DeploymentReplicaStatus = "TERMINATED"
+	DeploymentReplicaStatus_TERMINATING DeploymentReplicaStatus = "TERMINATING"
+	DeploymentReplicaStatus_UNHEALTHY   DeploymentReplicaStatus = "UNHEALTHY"
+	DeploymentReplicaStatus_UNKNOWN     DeploymentReplicaStatus = "UNKNOWN"
+)
+
+// Valid indicates whether the value is a known member of the DeploymentReplicaStatus enum.
+func (e DeploymentReplicaStatus) Valid() bool {
+	switch e {
+	case DeploymentReplicaStatus_ACTIVE:
+		return true
+	case DeploymentReplicaStatus_STARTING:
+		return true
+	case DeploymentReplicaStatus_TERMINATED:
+		return true
+	case DeploymentReplicaStatus_TERMINATING:
+		return true
+	case DeploymentReplicaStatus_UNHEALTHY:
+		return true
+	case DeploymentReplicaStatus_UNKNOWN:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DeploymentStatus.
 const (
 	DeploymentStatus_ACTIVE         DeploymentStatus = "ACTIVE"
@@ -5385,6 +5415,41 @@ type DeploymentPatchPointWithHash struct {
 
 	// Requirements Requirements resolved from the config's requirements file, when it points at one. Empty when requirements are declared inline in the config.
 	Requirements *[]string `json:"requirements,omitempty"`
+}
+
+// DeploymentReplica defines model for DeploymentReplica.
+type DeploymentReplica struct {
+	// AgeSeconds Age in seconds since creation, frozen at termination.
+	AgeSeconds float32 `json:"age_seconds"`
+
+	// CreatedAt Replica creation time in ISO 8601 format.
+	CreatedAt time.Time `json:"created_at"`
+
+	// DeploymentId ID of the replica's deployment.
+	DeploymentId string `json:"deployment_id"`
+
+	// DeploymentName Name of the replica's deployment.
+	DeploymentName string `json:"deployment_name"`
+
+	// Id Pod-name suffix used for replica lookup and termination, usually five characters.
+	Id string `json:"id"`
+
+	// RestartCount Model container lifetime restart count, or null if unavailable.
+	RestartCount *int                    `json:"restart_count"`
+	Status       DeploymentReplicaStatus `json:"status"`
+
+	// TerminatedAt Observed termination completion time in ISO 8601 format, or null if unavailable.
+	TerminatedAt *time.Time `json:"terminated_at"`
+}
+
+// DeploymentReplicaStatus defines model for DeploymentReplicaStatus.
+type DeploymentReplicaStatus string
+
+// DeploymentReplicas defines model for DeploymentReplicas.
+type DeploymentReplicas struct {
+	// Items Items in this page.
+	Items      []DeploymentReplica `json:"items"`
+	Pagination PaginationResponse  `json:"pagination"`
 }
 
 // DeploymentStatus The status of a deployment.
@@ -12112,6 +12177,18 @@ type GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams struct {
 	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
 }
 
+// GetV1ModelsModelIdDeploymentsDeploymentIdReplicasParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdReplicas.
+type GetV1ModelsModelIdDeploymentsDeploymentIdReplicasParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Statuses Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.
+	Statuses *[]DeploymentReplicaStatus `form:"statuses,omitempty" json:"statuses,omitempty"`
+}
+
 // GetV1ModelsModelIdDeploymentsDeploymentIdStartupsParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdStartups.
 type GetV1ModelsModelIdDeploymentsDeploymentIdStartupsParams struct {
 	// StartEpochMillis Start of the query window, in epoch milliseconds.
@@ -12206,6 +12283,18 @@ type GetV1ModelsModelIdEnvironmentsEnvNameMetricsParams struct {
 
 	// Metrics Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply are omitted from the response.
 	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
+}
+
+// GetV1ModelsModelIdEnvironmentsEnvNameReplicasParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameReplicas.
+type GetV1ModelsModelIdEnvironmentsEnvNameReplicasParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Statuses Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.
+	Statuses *[]DeploymentReplicaStatus `form:"statuses,omitempty" json:"statuses,omitempty"`
 }
 
 // GetV1ModelsModelIdEnvironmentsEnvNameStartupsParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameStartups.
