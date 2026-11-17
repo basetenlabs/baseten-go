@@ -3831,6 +3831,88 @@
                 }
             ]
         },
+        "/v1/models/{model_id}/deployments/{deployment_id}/replicas": {
+            "get": {
+                "summary": "Lists replicas for a deployment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Includes terminated replicas and lifecycle information without metrics. Replicas are ordered by creation time, oldest first, with replica ID as a tie-breaker. For subsequent pages, pass pagination.cursor as cursor with unchanged filters. Cursors expire after one hour. Replica status may change between requests.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "statuses",
+                        "in": "query",
+                        "required": false,
+                        "description": "Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/DeploymentReplicaStatusV1"
+                            },
+                            "title": "Statuses",
+                            "type": "array"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeploymentReplicasV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/deployment_id"
+                }
+            ]
+        },
         "/v1/models/{model_id}/deployments/{deployment_id}/replicas/{replica_id}": {
             "delete": {
                 "summary": "Terminates a replica in a deployment",
@@ -3844,7 +3926,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas/{replica_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Terminates a deployment replica and returns the termination status.",
+                "description": "Terminates a deployment replica and returns the termination status. Returns 404 if no replica matches the replica ID. Returns 400 without requesting termination if multiple replicas match the replica ID.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -5005,6 +5087,153 @@
                     "$ref": "#/components/parameters/env_name"
                 }
             ]
+        },
+        "/v1/models/{model_id}/environments/{env_name}/replicas": {
+            "get": {
+                "summary": "Lists replicas for an environment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Includes retained terminated replicas from deployments active in the preceding hour. Orders replicas oldest first, with replica ID breaking ties. Pass pagination.cursor with unchanged filters for subsequent pages. Cursors pin deployment membership and expire after one hour.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "statuses",
+                        "in": "query",
+                        "required": false,
+                        "description": "Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/DeploymentReplicaStatusV1"
+                            },
+                            "title": "Statuses",
+                            "type": "array"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeploymentReplicasV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/env_name"
+                }
+            ]
+        },
+        "/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id}": {
+            "delete": {
+                "summary": "Terminates a replica in an environment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Requests replica termination in the environment's current deployment. Returns 404 if the environment has no current deployment or no replica matches the replica ID. Returns 400 without requesting termination if multiple replicas in the current deployment match the replica ID.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TerminateReplicaResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/env_name"
+                },
+                {
+                    "$ref": "#/components/parameters/replica_id"
+                }
+            ],
+            "get": {
+                "summary": "Gets a replica in an environment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Searches deployments active in the environment during the preceding hour. Includes retained terminated replicas. Returns 404 if the replica is outside this scope. Returns 400 if multiple replicas match the replica ID.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeploymentReplicaV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         },
         "/v1/chains": {
             "get": {
@@ -7961,6 +8190,49 @@
                 }
             ]
         },
+        "/v1/loops/checkpoints/{checkpoint_id}/ttl": {
+            "put": {
+                "summary": "Sets a Loops checkpoint's TTL",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PUT \\\n--url https://api.baseten.co/v1/loops/checkpoints/{checkpoint_id}/ttl \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"ttl_seconds\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/checkpoints/{checkpoint_id}/ttl\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PUT\",\n    url,\n    headers=headers,\n    json={'ttl_seconds': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Sets when a Loops checkpoint expires, counted from now, or removes its TTL so it's kept until you delete it. An expired checkpoint is deleted within 24 hours. If it's in use when it expires, it's deleted within 24 hours after it stops being used.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SetLoopsCheckpointTtlRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoopsCheckpointV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/checkpoint_id"
+                }
+            ]
+        },
         "/v1/loops/deployments": {
             "get": {
                 "summary": "Lists Loops deployments",
@@ -8669,7 +8941,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training/capacity\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns GPU capacity limits (baseline and peak) and current usage for the organization.",
+                "description": "Returns on-demand and spot GPU quotas and current usage for the organization and its teams.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -8684,7 +8956,7 @@
                 }
             },
             "patch": {
-                "summary": "Sets a team's training GPU capacity",
+                "summary": "Sets a team's training GPU quota",
                 "x-codeSamples": [
                     {
                         "lang": "bash",
@@ -8695,7 +8967,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training/capacity\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'team_id': None, 'gpu_type': None, 'max_gpus': 8}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Sets the max concurrent GPUs of a given type a team may use. Creates the limit if one doesn't exist for this (team, gpu_type) pair, otherwise updates it in place. Org-admin only: this is a ceiling the org imposes on the team, not something the team manages for itself.",
+                "description": "Sets a team's GPU quota for a given type. It counts the team's on-demand jobs, plus its spot jobs when the organization has no separate on-demand quota, and on-demand jobs can borrow past it from the organization's shared pool when one exists. Creates the quota if one doesn't exist for this (team, gpu_type) pair, otherwise updates it in place. Org-admin only: this is a quota the org imposes on the team, not something the team manages for itself.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -10379,7 +10651,7 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/service_accounts\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None, 'disabled': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/service_accounts\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'name': None, 'team_id': None, 'disabled': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Lists the service accounts you administer: every account for an organization admin, and your teams' accounts for a team admin. Workload identity federation tokens act as service accounts.",
@@ -10413,6 +10685,25 @@
                             "minimum": 1,
                             "title": "Limit",
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only the account with this name, ignoring case",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "minLength": 1,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Name"
                         }
                     },
                     {
@@ -10640,7 +10931,7 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'predefined_kind': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'name': None, 'predefined_kind': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Lists the organization's identity providers. Organization and team admins can list them.",
@@ -10674,6 +10965,25 @@
                             "minimum": 1,
                             "title": "Limit",
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only the provider with this name, ignoring case",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "minLength": 1,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Name"
                         }
                     },
                     {
@@ -10738,6 +11048,45 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/IdentityProviderV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/access/identity_providers/verify": {
+            "post": {
+                "summary": "Checks an identity provider before adding it",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/identity_providers/verify \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"predefined\": {\n    \"kind\": \"AWS_EKS\",\n    \"issuer_url\": \"https://oidc.eks.us-west-2.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE\"\n  }\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/identity_providers/verify\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'predefined': {'kind': 'AWS_EKS', 'issuer_url': 'https://oidc.eks.us-west-2.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE'}}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Runs the checks that adding the identity provider runs, without adding it: the issuer's format, that the organization doesn't have it yet, and, for a provider with a per-customer issuer, that its signing keys can be fetched. A failed check returns 200 with `valid` false and the reason. Only organization admins can call this endpoint.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VerifyIdentityProviderRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VerificationV1"
                                 }
                             }
                         }
@@ -10853,7 +11202,7 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/trust_rules\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'identity_provider_id': None, 'service_account_id': None, 'team_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/trust_rules\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'name': None, 'identity_provider_id': None, 'service_account_id': None, 'team_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Lists the trust rules you administer: every rule for an organization admin, and rules for your teams' service accounts for a team admin.",
@@ -10887,6 +11236,25 @@
                             "minimum": 1,
                             "title": "Limit",
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "description": "Only the rule with this name, ignoring case",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "minLength": 1,
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Name"
                         }
                     },
                     {
@@ -10988,6 +11356,45 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/AccessTrustRuleV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/access/trust_rules/verify": {
+            "post": {
+                "summary": "Checks a trust rule's condition and audience",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/trust_rules/verify \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"identity_provider_id\": \"abcd1234\",\n  \"condition\": \"claims.repository_owner_id == '12345' && claims.sub == 'repo:acme/models:ref:refs/heads/main'\",\n  \"audience\": \"https://api.baseten.co\"\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/trust_rules/verify\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'identity_provider_id': 'abcd1234', 'condition': \"claims.repository_owner_id == '12345' && claims.sub == 'repo:acme/models:ref:refs/heads/main'\", 'audience': 'https://api.baseten.co'}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Runs the checks that creating or updating a trust rule runs on its condition and audience, without saving anything: that the condition compiles and pins the claims the identity provider requires. A failed check returns 200 with `valid` false and the reason.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VerifyAccessTrustRuleRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VerificationV1"
                                 }
                             }
                         }
@@ -11440,7 +11847,7 @@
                         "name": "name",
                         "in": "query",
                         "required": false,
-                        "description": "Filter by exact route name. Preserved by the cursor; if repeated, must match the original filter.",
+                        "description": "Filter by exact route name, the value to send in the inference request's `model` field. Matches a route's name or any of its aliases. Preserved by the cursor; if repeated, must match the original filter.",
                         "schema": {
                             "anyOf": [
                                 {
@@ -11613,7 +12020,7 @@
                         "name": "group_by",
                         "in": "query",
                         "required": false,
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, or HARNESS. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, HARNESS, or API_KEY. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. API_KEY includes usage without an API key, such as requests authenticated by a signed-in session, as a null group. Defaults to MODEL.",
                         "schema": {
                             "items": {
                                 "$ref": "#/components/schemas/GridRouteUsageDimensionV1"
@@ -11671,6 +12078,19 @@
                                 "$ref": "#/components/schemas/GridRouteUsageHarnessV1"
                             },
                             "title": "Harnesses",
+                            "type": "array"
+                        }
+                    },
+                    {
+                        "name": "api_key_prefixes",
+                        "in": "query",
+                        "required": false,
+                        "description": "Return only usage made with these API keys, repeated once per key prefix. Omit to include all usage, including usage without an API key.",
+                        "schema": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Api Key Prefixes",
                             "type": "array"
                         }
                     }
@@ -15135,235 +15555,6 @@
                     }
                 },
                 "x-stability": "unstable"
-            }
-        },
-        "/v1/models/{model_id}/deployments/{deployment_id}/replicas": {
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/model_id"
-                },
-                {
-                    "$ref": "#/components/parameters/deployment_id"
-                }
-            ],
-            "get": {
-                "summary": "Lists replicas for a deployment",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Includes terminated replicas and lifecycle information without metrics. Replicas are ordered by creation time, oldest first, with replica ID as a tie-breaker. For subsequent pages, pass pagination.cursor as cursor with unchanged filters. Cursors expire after one hour. Replica status may change between requests.",
-                "parameters": [
-                    {
-                        "name": "cursor",
-                        "in": "query",
-                        "required": false,
-                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
-                        "schema": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "null"
-                                }
-                            ],
-                            "default": null,
-                            "title": "Cursor"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "required": false,
-                        "description": "Maximum number of items to return.",
-                        "schema": {
-                            "default": 100,
-                            "maximum": 1000,
-                            "minimum": 1,
-                            "title": "Limit",
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "statuses",
-                        "in": "query",
-                        "required": false,
-                        "description": "Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.",
-                        "schema": {
-                            "items": {
-                                "$ref": "#/components/schemas/DeploymentReplicaStatusV1"
-                            },
-                            "title": "Statuses",
-                            "type": "array"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/DeploymentReplicasV1"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/models/{model_id}/environments/{env_name}/replicas": {
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/model_id"
-                },
-                {
-                    "$ref": "#/components/parameters/env_name"
-                }
-            ],
-            "get": {
-                "summary": "Lists replicas for an environment",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Includes retained terminated replicas from deployments active in the preceding hour. Orders replicas oldest first, with replica ID breaking ties. Pass pagination.cursor with unchanged filters for subsequent pages. Cursors pin deployment membership and expire after one hour.",
-                "parameters": [
-                    {
-                        "name": "cursor",
-                        "in": "query",
-                        "required": false,
-                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
-                        "schema": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "null"
-                                }
-                            ],
-                            "default": null,
-                            "title": "Cursor"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "required": false,
-                        "description": "Maximum number of items to return.",
-                        "schema": {
-                            "default": 100,
-                            "maximum": 1000,
-                            "minimum": 1,
-                            "title": "Limit",
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "statuses",
-                        "in": "query",
-                        "required": false,
-                        "description": "Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.",
-                        "schema": {
-                            "items": {
-                                "$ref": "#/components/schemas/DeploymentReplicaStatusV1"
-                            },
-                            "title": "Statuses",
-                            "type": "array"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/DeploymentReplicasV1"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id}": {
-            "parameters": [
-                {
-                    "$ref": "#/components/parameters/model_id"
-                },
-                {
-                    "$ref": "#/components/parameters/env_name"
-                },
-                {
-                    "$ref": "#/components/parameters/replica_id"
-                }
-            ],
-            "get": {
-                "summary": "Gets a replica in an environment",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Searches deployments active in the environment during the preceding hour. Includes retained terminated replicas. Returns 404 if the replica is outside this scope. Returns 400 if multiple replicas match the replica ID.",
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/DeploymentReplicaV1"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "summary": "Terminates a replica in an environment",
-                "x-codeSamples": [
-                    {
-                        "lang": "bash",
-                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
-                    },
-                    {
-                        "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
-                    }
-                ],
-                "description": "Requests replica termination in the environment's current deployment. Returns 404 if the environment has no current deployment or no replica matches the replica ID. Returns 400 without requesting termination if multiple replicas in the current deployment match the replica ID.",
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/TerminateReplicaResponseV1"
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
     },
@@ -19095,6 +19286,25 @@
                 "title": "PrepareModelUploadResponseV1",
                 "type": "object"
             },
+            "AuditFieldChangeV1": {
+                "description": "A field's value before and after an update.",
+                "properties": {
+                    "old": {
+                        "description": "The value before the update.",
+                        "title": "Old"
+                    },
+                    "new": {
+                        "description": "The value after the update.",
+                        "title": "New"
+                    }
+                },
+                "required": [
+                    "old",
+                    "new"
+                ],
+                "title": "AuditFieldChangeV1",
+                "type": "object"
+            },
             "AuditLogActorTypeV1": {
                 "description": "Kind of actor that performed an audited action.",
                 "enum": [
@@ -19102,7 +19312,8 @@
                     "API_KEY",
                     "BASETEN_USER",
                     "BASETEN_SYSTEM",
-                    "TOMBSTONE_USER"
+                    "TOMBSTONE_USER",
+                    "SERVICE_ACCOUNT"
                 ],
                 "title": "AuditLogActorTypeV1",
                 "type": "string"
@@ -19152,6 +19363,45 @@
                         "default": null,
                         "description": "Display name of the acting API key, when the actor is an API key.",
                         "title": "Api Key Name"
+                    },
+                    "service_account_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of the acting service account, when the actor is a service account.",
+                        "title": "Service Account Id"
+                    },
+                    "service_account_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Current name of the acting service account, when the actor is a service account.",
+                        "title": "Service Account Name"
+                    },
+                    "trust_rule_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of the trust rule the acting workload identity federation token was exchanged through, when the actor is a service account.",
+                        "title": "Trust Rule Id"
                     }
                 },
                 "required": [
@@ -19176,6 +19426,7 @@
                     "CREATOR_SERVICE_ACCOUNT",
                     "MANAGE_API_KEYS_SERVICE_ACCOUNT",
                     "INVOKE_ALL_MODELS_SERVICE_ACCOUNT",
+                    "INVOKE_ALL_DEDICATED_MODELS_SERVICE_ACCOUNT",
                     "INVOKE_ALLOWED_MODELS_SERVICE_ACCOUNT",
                     "INVOKE_SCOPED_ENVS_AND_MODELS_SERVICE_ACCOUNT",
                     "EXPORT_METRICS_ALL_MODELS_SERVICE_ACCOUNT",
@@ -19232,6 +19483,9 @@
                                 "GRID_MACHINE_USER_CREATED": "#/components/schemas/AuditLogEventGridMachineUserCreatedV1",
                                 "GRID_MACHINE_USER_DELETED": "#/components/schemas/AuditLogEventGridMachineUserDeletedV1",
                                 "GRID_MACHINE_USER_UPDATED": "#/components/schemas/AuditLogEventGridMachineUserUpdatedV1",
+                                "IDENTITY_PROVIDER_CREATED": "#/components/schemas/AuditLogEventIdentityProviderCreatedV1",
+                                "IDENTITY_PROVIDER_DELETED": "#/components/schemas/AuditLogEventIdentityProviderDeletedV1",
+                                "IDENTITY_PROVIDER_UPDATED": "#/components/schemas/AuditLogEventIdentityProviderUpdatedV1",
                                 "MODEL_DELETED": "#/components/schemas/AuditLogEventModelDeletedV1",
                                 "MODEL_DEPLOYED": "#/components/schemas/AuditLogEventModelDeployedV1",
                                 "MODEL_DEPLOYMENT_ACTIVATED": "#/components/schemas/AuditLogEventModelDeploymentActivatedV1",
@@ -19244,6 +19498,7 @@
                                 "MODEL_DEPLOYMENT_RETRIED": "#/components/schemas/AuditLogEventModelDeploymentRetriedV1",
                                 "MODEL_PROMOTION_CONTROL_ACTION": "#/components/schemas/AuditLogEventModelPromotionControlActionV1",
                                 "MODEL_RENAMED": "#/components/schemas/AuditLogEventModelRenamedV1",
+                                "ORGANIZATION_API_KEY_SETTINGS_UPDATED": "#/components/schemas/AuditLogEventOrganizationApiKeySettingsUpdatedV1",
                                 "PROVIDER_CONNECTION_CREATED": "#/components/schemas/AuditLogEventProviderConnectionCreatedV1",
                                 "PROVIDER_CONNECTION_DELETED": "#/components/schemas/AuditLogEventProviderConnectionDeletedV1",
                                 "PROVIDER_CONNECTION_UPDATED": "#/components/schemas/AuditLogEventProviderConnectionUpdatedV1",
@@ -19251,10 +19506,16 @@
                                 "REQUIRE_GROUP_BASED_ADMINS_ENABLED": "#/components/schemas/AuditLogEventRequireGroupBasedAdminsEnabledV1",
                                 "SECRET_DELETED": "#/components/schemas/AuditLogEventSecretDeletedV1",
                                 "SECRET_UPDATED": "#/components/schemas/AuditLogEventSecretUpdatedV1",
+                                "SERVICE_ACCOUNT_CREATED": "#/components/schemas/AuditLogEventServiceAccountCreatedV1",
+                                "SERVICE_ACCOUNT_DELETED": "#/components/schemas/AuditLogEventServiceAccountDeletedV1",
+                                "SERVICE_ACCOUNT_UPDATED": "#/components/schemas/AuditLogEventServiceAccountUpdatedV1",
                                 "SSH_CERTIFICATE_SIGNED": "#/components/schemas/AuditLogEventSshCertificateSignedV1",
                                 "TELEMETRY_EXPORT_CREATED": "#/components/schemas/AuditLogEventTelemetryExportCreatedV1",
                                 "TELEMETRY_EXPORT_DELETED": "#/components/schemas/AuditLogEventTelemetryExportDeletedV1",
                                 "TELEMETRY_EXPORT_UPDATED": "#/components/schemas/AuditLogEventTelemetryExportUpdatedV1",
+                                "TRUST_RULE_CREATED": "#/components/schemas/AuditLogEventTrustRuleCreatedV1",
+                                "TRUST_RULE_DELETED": "#/components/schemas/AuditLogEventTrustRuleDeletedV1",
+                                "TRUST_RULE_UPDATED": "#/components/schemas/AuditLogEventTrustRuleUpdatedV1",
                                 "USER_INVITED": "#/components/schemas/AuditLogEventUserInvitedV1",
                                 "USER_JOINED_ORGANIZATION": "#/components/schemas/AuditLogEventUserJoinedOrganizationV1",
                                 "USER_REMOVED": "#/components/schemas/AuditLogEventUserRemovedV1",
@@ -19350,6 +19611,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventApiKeyLifetimeLimitsUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventOrganizationApiKeySettingsUpdatedV1"
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventGatewayEndpointCreatedV1"
@@ -19452,6 +19716,33 @@
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventTelemetryExportDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventServiceAccountCreatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventServiceAccountUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventServiceAccountDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventIdentityProviderCreatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventIdentityProviderUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventIdentityProviderDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventTrustRuleCreatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventTrustRuleUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventTrustRuleDeletedV1"
                             }
                         ],
                         "title": "Event Data"
@@ -22016,6 +22307,108 @@
                 "title": "AuditLogEventGridMachineUserUpdatedV1",
                 "type": "object"
             },
+            "AuditLogEventIdentityProviderCreatedV1": {
+                "description": "An identity provider was added.",
+                "properties": {
+                    "event_type": {
+                        "const": "IDENTITY_PROVIDER_CREATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "identity_provider_id": {
+                        "title": "Identity Provider Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Null when the provider was added without one.",
+                        "title": "Description"
+                    },
+                    "predefined": {
+                        "$ref": "#/components/schemas/AuditLogEventPredefinedIdentityProviderConfigV1",
+                        "description": "The provider's settings, as the identity provider resource returns them."
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "identity_provider_id",
+                    "name",
+                    "predefined"
+                ],
+                "title": "AuditLogEventIdentityProviderCreatedV1",
+                "type": "object"
+            },
+            "AuditLogEventIdentityProviderDeletedV1": {
+                "description": "An identity provider was deleted.",
+                "properties": {
+                    "event_type": {
+                        "const": "IDENTITY_PROVIDER_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "identity_provider_id": {
+                        "title": "Identity Provider Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "identity_provider_id",
+                    "name"
+                ],
+                "title": "AuditLogEventIdentityProviderDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventIdentityProviderUpdatedV1": {
+                "description": "An identity provider was updated.",
+                "properties": {
+                    "event_type": {
+                        "const": "IDENTITY_PROVIDER_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "identity_provider_id": {
+                        "title": "Identity Provider Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "changes": {
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/AuditFieldChangeV1"
+                        },
+                        "description": "The fields the update changed, keyed by field name.",
+                        "title": "Changes",
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "identity_provider_id",
+                    "name",
+                    "changes"
+                ],
+                "title": "AuditLogEventIdentityProviderUpdatedV1",
+                "type": "object"
+            },
             "AuditLogEventModelDeletedV1": {
                 "description": "A model was deleted.",
                 "properties": {
@@ -22783,6 +23176,67 @@
                 "title": "AuditLogEventModelRenamedV1",
                 "type": "object"
             },
+            "AuditLogEventOrganizationApiKeySettingsUpdatedV1": {
+                "description": "An administrator changed which classes of API key the organization allows creating.",
+                "properties": {
+                    "event_type": {
+                        "const": "ORGANIZATION_API_KEY_SETTINGS_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "organization_id": {
+                        "title": "Organization Id",
+                        "type": "string"
+                    },
+                    "previous_allow_personal_api_keys": {
+                        "title": "Previous Allow Personal Api Keys",
+                        "type": "boolean"
+                    },
+                    "new_allow_personal_api_keys": {
+                        "title": "New Allow Personal Api Keys",
+                        "type": "boolean"
+                    },
+                    "previous_allow_service_account_api_keys": {
+                        "title": "Previous Allow Service Account Api Keys",
+                        "type": "boolean"
+                    },
+                    "new_allow_service_account_api_keys": {
+                        "title": "New Allow Service Account Api Keys",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "organization_id",
+                    "previous_allow_personal_api_keys",
+                    "new_allow_personal_api_keys",
+                    "previous_allow_service_account_api_keys",
+                    "new_allow_service_account_api_keys"
+                ],
+                "title": "AuditLogEventOrganizationApiKeySettingsUpdatedV1",
+                "type": "object"
+            },
+            "AuditLogEventPredefinedIdentityProviderConfigV1": {
+                "description": "Settings of a predefined identity provider, as recorded on an identity provider event. Not\nitself an event payload.",
+                "properties": {
+                    "kind": {
+                        "description": "Which predefined provider, for example `AWS_EKS`.",
+                        "title": "Kind",
+                        "type": "string"
+                    },
+                    "issuer_url": {
+                        "description": "The `iss` claim of the provider's tokens.",
+                        "title": "Issuer Url",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "kind",
+                    "issuer_url"
+                ],
+                "title": "AuditLogEventPredefinedIdentityProviderConfigV1",
+                "type": "object"
+            },
             "AuditLogEventPromotionSettingsOverrideV1": {
                 "description": "Promotion settings overridden for one promotion. Null means the environment's value. Not\nitself a payload in the discriminated union.",
                 "properties": {
@@ -23106,6 +23560,162 @@
                 "title": "AuditLogEventSecretUpdatedV1",
                 "type": "object"
             },
+            "AuditLogEventServiceAccountCreatedV1": {
+                "description": "A service account was created.",
+                "properties": {
+                    "event_type": {
+                        "const": "SERVICE_ACCOUNT_CREATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "service_account_id": {
+                        "title": "Service Account Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Null when the account was created without one.",
+                        "title": "Description"
+                    },
+                    "owner_team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The team that owns the account. Null for an organization account.",
+                        "title": "Owner Team Id"
+                    },
+                    "preset_permissions": {
+                        "$ref": "#/components/schemas/AuditLogEventServiceAccountPresetPermissionsV1"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "service_account_id",
+                    "name",
+                    "preset_permissions"
+                ],
+                "title": "AuditLogEventServiceAccountCreatedV1",
+                "type": "object"
+            },
+            "AuditLogEventServiceAccountDeletedV1": {
+                "description": "A service account was deleted.",
+                "properties": {
+                    "event_type": {
+                        "const": "SERVICE_ACCOUNT_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "service_account_id": {
+                        "title": "Service Account Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "service_account_id",
+                    "name"
+                ],
+                "title": "AuditLogEventServiceAccountDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventServiceAccountPresetPermissionsV1": {
+                "description": "A service account's access, as recorded on a service account event. Not itself an event\npayload.",
+                "properties": {
+                    "api_key_type": {
+                        "description": "The API key type whose permissions the account has, as API key events record it.",
+                        "title": "Api Key Type",
+                        "type": "string"
+                    },
+                    "model_ids": {
+                        "description": "Models the access is limited to; empty for all.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Model Ids",
+                        "type": "array"
+                    },
+                    "environment_names": {
+                        "description": "Environments the access is limited to, or may also manage; empty for none.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Environment Names",
+                        "type": "array"
+                    },
+                    "model_api_slugs": {
+                        "description": "Model APIs the access is limited to; empty for all.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Model Api Slugs",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "api_key_type",
+                    "model_ids",
+                    "environment_names",
+                    "model_api_slugs"
+                ],
+                "title": "AuditLogEventServiceAccountPresetPermissionsV1",
+                "type": "object"
+            },
+            "AuditLogEventServiceAccountUpdatedV1": {
+                "description": "A service account was updated. Disabling or enabling it is a change to `disabled`.",
+                "properties": {
+                    "event_type": {
+                        "const": "SERVICE_ACCOUNT_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "service_account_id": {
+                        "title": "Service Account Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "changes": {
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/AuditFieldChangeV1"
+                        },
+                        "description": "The fields the update changed, keyed by field name.",
+                        "title": "Changes",
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "service_account_id",
+                    "name",
+                    "changes"
+                ],
+                "title": "AuditLogEventServiceAccountUpdatedV1",
+                "type": "object"
+            },
             "AuditLogEventSshCertificateSignedV1": {
                 "description": "An SSH certificate was signed for a workload.",
                 "properties": {
@@ -23228,6 +23838,131 @@
                 "title": "AuditLogEventTelemetryExportUpdatedV1",
                 "type": "object"
             },
+            "AuditLogEventTrustRuleCreatedV1": {
+                "description": "A trust rule was created.",
+                "properties": {
+                    "event_type": {
+                        "const": "TRUST_RULE_CREATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "trust_rule_id": {
+                        "title": "Trust Rule Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Null when the rule was created without one.",
+                        "title": "Description"
+                    },
+                    "identity_provider_id": {
+                        "title": "Identity Provider Id",
+                        "type": "string"
+                    },
+                    "service_account_id": {
+                        "title": "Service Account Id",
+                        "type": "string"
+                    },
+                    "condition": {
+                        "description": "The CEL expression a token's claims must satisfy.",
+                        "title": "Condition",
+                        "type": "string"
+                    },
+                    "audience": {
+                        "description": "The `aud` claim a token must carry.",
+                        "title": "Audience",
+                        "type": "string"
+                    },
+                    "max_access_token_lifetime_seconds": {
+                        "description": "The longest lifetime, in seconds, of an access token the rule issues.",
+                        "title": "Max Access Token Lifetime Seconds",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "trust_rule_id",
+                    "name",
+                    "identity_provider_id",
+                    "service_account_id",
+                    "condition",
+                    "audience",
+                    "max_access_token_lifetime_seconds"
+                ],
+                "title": "AuditLogEventTrustRuleCreatedV1",
+                "type": "object"
+            },
+            "AuditLogEventTrustRuleDeletedV1": {
+                "description": "A trust rule was deleted.",
+                "properties": {
+                    "event_type": {
+                        "const": "TRUST_RULE_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "trust_rule_id": {
+                        "title": "Trust Rule Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "trust_rule_id",
+                    "name"
+                ],
+                "title": "AuditLogEventTrustRuleDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventTrustRuleUpdatedV1": {
+                "description": "A trust rule was updated.",
+                "properties": {
+                    "event_type": {
+                        "const": "TRUST_RULE_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "trust_rule_id": {
+                        "title": "Trust Rule Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "changes": {
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/AuditFieldChangeV1"
+                        },
+                        "description": "The fields the update changed, keyed by field name.",
+                        "title": "Changes",
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "trust_rule_id",
+                    "name",
+                    "changes"
+                ],
+                "title": "AuditLogEventTrustRuleUpdatedV1",
+                "type": "object"
+            },
             "AuditLogEventTypeV1": {
                 "description": "Type of action recorded by an audit-log entry.",
                 "enum": [
@@ -23290,7 +24025,17 @@
                     "VOLUME_UPDATED",
                     "TELEMETRY_EXPORT_CREATED",
                     "TELEMETRY_EXPORT_UPDATED",
-                    "TELEMETRY_EXPORT_DELETED"
+                    "TELEMETRY_EXPORT_DELETED",
+                    "SERVICE_ACCOUNT_CREATED",
+                    "SERVICE_ACCOUNT_UPDATED",
+                    "SERVICE_ACCOUNT_DELETED",
+                    "IDENTITY_PROVIDER_CREATED",
+                    "IDENTITY_PROVIDER_UPDATED",
+                    "IDENTITY_PROVIDER_DELETED",
+                    "TRUST_RULE_CREATED",
+                    "TRUST_RULE_UPDATED",
+                    "TRUST_RULE_DELETED",
+                    "ORGANIZATION_API_KEY_SETTINGS_UPDATED"
                 ],
                 "title": "AuditLogEventTypeV1",
                 "type": "string"
@@ -23784,7 +24529,8 @@
                     "USER_MANAGEMENT",
                     "DIRECTORY_GROUP_MANAGEMENT",
                     "SSH",
-                    "TELEMETRY_EXPORT"
+                    "TELEMETRY_EXPORT",
+                    "WORKLOAD_IDENTITY"
                 ],
                 "title": "AuditLogEventTypeGroupV1",
                 "type": "string"
@@ -26334,6 +27080,146 @@
                     "end_epoch_millis"
                 ],
                 "title": "GetStartupSummaryRequestV1",
+                "type": "object"
+            },
+            "DeploymentReplicaStatusV1": {
+                "enum": [
+                    "STARTING",
+                    "ACTIVE",
+                    "UNHEALTHY",
+                    "TERMINATING",
+                    "TERMINATED",
+                    "UNKNOWN"
+                ],
+                "title": "DeploymentReplicaStatusV1",
+                "type": "string"
+            },
+            "DeploymentReplicaV1": {
+                "properties": {
+                    "id": {
+                        "description": "Pod-name suffix used for replica lookup and termination, usually five characters.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "description": "ID of the replica's deployment.",
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "description": "Name of the replica's deployment.",
+                        "title": "Deployment Name",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/DeploymentReplicaStatusV1",
+                        "description": "Current replica lifecycle status."
+                    },
+                    "created_at": {
+                        "description": "Replica creation time in ISO 8601 format.",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    },
+                    "terminated_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Observed termination completion time in ISO 8601 format, or null if unavailable.",
+                        "title": "Terminated At"
+                    },
+                    "age_seconds": {
+                        "description": "Age in seconds since creation, frozen at termination.",
+                        "title": "Age Seconds",
+                        "type": "number"
+                    },
+                    "restart_count": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Model container lifetime restart count, or null if unavailable.",
+                        "title": "Restart Count"
+                    }
+                },
+                "required": [
+                    "id",
+                    "deployment_id",
+                    "deployment_name",
+                    "status",
+                    "created_at",
+                    "terminated_at",
+                    "age_seconds",
+                    "restart_count"
+                ],
+                "title": "DeploymentReplicaV1",
+                "type": "object"
+            },
+            "DeploymentReplicasV1": {
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentReplicaV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "DeploymentReplicasV1",
+                "type": "object"
+            },
+            "DeploymentReplicasRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "statuses": {
+                        "description": "Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.",
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentReplicaStatusV1"
+                        },
+                        "title": "Statuses",
+                        "type": "array"
+                    }
+                },
+                "title": "DeploymentReplicasRequestV1",
                 "type": "object"
             },
             "TerminateReplicaResponseV1": {
@@ -30857,7 +31743,7 @@
                             },
                             "type": "array"
                         },
-                        "description": "A map of GPU rank to memory usage for the training job. For multinode jobs, this is the memory usage of the leader unless specified otherwise.",
+                        "description": "A map of GPU rank to memory usage for the training job. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
                         "title": "Gpu Memory Usage Bytes",
                         "type": "object"
                     },
@@ -30868,12 +31754,56 @@
                             },
                             "type": "array"
                         },
-                        "description": "A map of GPU rank to fractional GPU utilization. For multinode jobs, this is the GPU utilization of the leader unless specified otherwise.",
+                        "description": "A map of GPU rank to the share of time the GPU's streaming multiprocessors have work assigned, from 0 to 1. This counts any GPU work, not only tensor core math; see gpu_tensor_core_utilization for that. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
                         "title": "Gpu Utilization",
                         "type": "object"
                     },
+                    "gpu_temperature_celsius": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/TrainingJobMetricV1"
+                            },
+                            "type": "array"
+                        },
+                        "description": "A map of GPU rank to GPU temperature in degrees Celsius. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
+                        "title": "Gpu Temperature Celsius",
+                        "type": "object"
+                    },
+                    "gpu_power_usage_watts": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/TrainingJobMetricV1"
+                            },
+                            "type": "array"
+                        },
+                        "description": "A map of GPU rank to GPU power draw in watts. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
+                        "title": "Gpu Power Usage Watts",
+                        "type": "object"
+                    },
+                    "gpu_tensor_core_utilization": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/TrainingJobMetricV1"
+                            },
+                            "type": "array"
+                        },
+                        "description": "A map of GPU rank to the share of time the GPU tensor cores are active, from 0 to 1. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
+                        "title": "Gpu Tensor Core Utilization",
+                        "type": "object"
+                    },
+                    "gpu_memory_bandwidth_utilization": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/TrainingJobMetricV1"
+                            },
+                            "type": "array"
+                        },
+                        "description": "A map of GPU rank to the share of cycles GPU memory is actively reading or writing, from 0 to 1. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
+                        "title": "Gpu Memory Bandwidth Utilization",
+                        "type": "object"
+                    },
                     "cpu_usage": {
-                        "description": "The CPU usage measured in cores. For multinode jobs, this is the CPU usage of the leader unless specified otherwise.",
+                        "description": "The CPU usage measured in cores. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
                         "items": {
                             "$ref": "#/components/schemas/TrainingJobMetricV1"
                         },
@@ -30881,7 +31811,7 @@
                         "type": "array"
                     },
                     "cpu_memory_usage_bytes": {
-                        "description": "The CPU memory usage for the training job. For multinode jobs, this is the CPU memory usage of the leader unless specified otherwise.",
+                        "description": "The CPU memory usage for the training job. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
                         "items": {
                             "$ref": "#/components/schemas/TrainingJobMetricV1"
                         },
@@ -30890,12 +31820,16 @@
                     },
                     "ephemeral_storage": {
                         "$ref": "#/components/schemas/StorageMetricsV1",
-                        "description": "The storage usage for the ephemeral storage. For multinode jobs, this is the ephemeral storage usage of the leader unless specified otherwise."
+                        "description": "The storage usage for the ephemeral storage. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node."
                     }
                 },
                 "required": [
                     "gpu_memory_usage_bytes",
                     "gpu_utilization",
+                    "gpu_temperature_celsius",
+                    "gpu_power_usage_watts",
+                    "gpu_tensor_core_utilization",
+                    "gpu_memory_bandwidth_utilization",
                     "cpu_usage",
                     "cpu_memory_usage_bytes",
                     "ephemeral_storage"
@@ -30933,7 +31867,7 @@
                             },
                             "type": "array"
                         },
-                        "description": "A map of GPU rank to memory usage for the training job. For multinode jobs, this is the memory usage of the leader unless specified otherwise.",
+                        "description": "A map of GPU rank to memory usage for the training job. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
                         "title": "Gpu Memory Usage Bytes",
                         "type": "object"
                     },
@@ -30944,12 +31878,56 @@
                             },
                             "type": "array"
                         },
-                        "description": "A map of GPU rank to fractional GPU utilization. For multinode jobs, this is the GPU utilization of the leader unless specified otherwise.",
+                        "description": "A map of GPU rank to the share of time the GPU's streaming multiprocessors have work assigned, from 0 to 1. This counts any GPU work, not only tensor core math; see gpu_tensor_core_utilization for that. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
                         "title": "Gpu Utilization",
                         "type": "object"
                     },
+                    "gpu_temperature_celsius": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/TrainingJobMetricV1"
+                            },
+                            "type": "array"
+                        },
+                        "description": "A map of GPU rank to GPU temperature in degrees Celsius. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
+                        "title": "Gpu Temperature Celsius",
+                        "type": "object"
+                    },
+                    "gpu_power_usage_watts": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/TrainingJobMetricV1"
+                            },
+                            "type": "array"
+                        },
+                        "description": "A map of GPU rank to GPU power draw in watts. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
+                        "title": "Gpu Power Usage Watts",
+                        "type": "object"
+                    },
+                    "gpu_tensor_core_utilization": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/TrainingJobMetricV1"
+                            },
+                            "type": "array"
+                        },
+                        "description": "A map of GPU rank to the share of time the GPU tensor cores are active, from 0 to 1. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
+                        "title": "Gpu Tensor Core Utilization",
+                        "type": "object"
+                    },
+                    "gpu_memory_bandwidth_utilization": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/TrainingJobMetricV1"
+                            },
+                            "type": "array"
+                        },
+                        "description": "A map of GPU rank to the share of cycles GPU memory is actively reading or writing, from 0 to 1. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
+                        "title": "Gpu Memory Bandwidth Utilization",
+                        "type": "object"
+                    },
                     "cpu_usage": {
-                        "description": "The CPU usage measured in cores. For multinode jobs, this is the CPU usage of the leader unless specified otherwise.",
+                        "description": "The CPU usage measured in cores. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
                         "items": {
                             "$ref": "#/components/schemas/TrainingJobMetricV1"
                         },
@@ -30957,7 +31935,7 @@
                         "type": "array"
                     },
                     "cpu_memory_usage_bytes": {
-                        "description": "The CPU memory usage for the training job. For multinode jobs, this is the CPU memory usage of the leader unless specified otherwise.",
+                        "description": "The CPU memory usage for the training job. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.",
                         "items": {
                             "$ref": "#/components/schemas/TrainingJobMetricV1"
                         },
@@ -30966,7 +31944,7 @@
                     },
                     "ephemeral_storage": {
                         "$ref": "#/components/schemas/StorageMetricsV1",
-                        "description": "The storage usage for the ephemeral storage. For multinode jobs, this is the ephemeral storage usage of the leader unless specified otherwise."
+                        "description": "The storage usage for the ephemeral storage. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node."
                     },
                     "training_job": {
                         "$ref": "#/components/schemas/TrainingJobV1",
@@ -30995,6 +31973,10 @@
                 "required": [
                     "gpu_memory_usage_bytes",
                     "gpu_utilization",
+                    "gpu_temperature_celsius",
+                    "gpu_power_usage_watts",
+                    "gpu_tensor_core_utilization",
+                    "gpu_memory_bandwidth_utilization",
                     "cpu_usage",
                     "cpu_memory_usage_bytes",
                     "ephemeral_storage",
@@ -32515,7 +33497,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in a team secret: the one named in base_checkpoint_auth, else hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.",
+                        "description": "Optional checkpoint to start training from instead of the base model's weights: a Hugging Face repo (hf://<org>/<repo>[@<revision>]), an object store path (s3://, gs://, r2://, cw://, or azure://), or a full Baseten Training checkpoint in the run's team (bt://<project>@<job_id>/<checkpoint>, with the checkpoint named). It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include tokenizer files: the run's sampler loads the tokenizer and chat template from the checkpoint. A Hugging Face revision is pinned to a commit when the run is created, and its files are checked then. Any other source is read again by each sampler and resumed run, so do not change it while the run is in use. Checkpoints from a run on a source outside Hugging Face cannot be deployed yet. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.",
                         "title": "Base Checkpoint"
                     },
                     "base_checkpoint_auth": {
@@ -32528,7 +33510,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, the team secret hf_access_token is used if it exists. Requires base_checkpoint.",
+                        "description": "Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token for a Hugging Face repo, or the credentials for an object store. A Baseten Training checkpoint takes no auth. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, a Hugging Face repo is read with the team secret hf_access_token if it exists. Requires base_checkpoint.",
                         "examples": [
                             {
                                 "auth_method": "CUSTOM_SECRET",
@@ -32682,6 +33664,19 @@
                     "target": {
                         "$ref": "#/components/schemas/TrainerCheckpointTarget",
                         "description": "Whether this checkpoint is loadable by the sampler or by the run."
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "When the checkpoint expires and is deleted, set from the TTL it was saved with. Null means it's kept until you delete it. A checkpoint that's still in use when it expires, for example deployed, is deleted once it's released.",
+                        "title": "Expires At"
                     }
                 },
                 "required": [
@@ -32694,7 +33689,8 @@
                     "id",
                     "lora_config",
                     "run_id",
-                    "target"
+                    "target",
+                    "expires_at"
                 ],
                 "title": "LoopsCheckpointV1",
                 "type": "object"
@@ -32933,7 +33929,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in a team secret: the one named in base_checkpoint_auth, else hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.",
+                        "description": "Optional checkpoint to start training from instead of the base model's weights: a Hugging Face repo (hf://<org>/<repo>[@<revision>]), an object store path (s3://, gs://, r2://, cw://, or azure://), or a full Baseten Training checkpoint in the run's team (bt://<project>@<job_id>/<checkpoint>, with the checkpoint named). It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include tokenizer files: the run's sampler loads the tokenizer and chat template from the checkpoint. A Hugging Face revision is pinned to a commit when the run is created, and its files are checked then. Any other source is read again by each sampler and resumed run, so do not change it while the run is in use. Checkpoints from a run on a source outside Hugging Face cannot be deployed yet. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.",
                         "title": "Base Checkpoint"
                     },
                     "base_checkpoint_auth": {
@@ -32946,7 +33942,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, the team secret hf_access_token is used if it exists. Requires base_checkpoint.",
+                        "description": "Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token for a Hugging Face repo, or the credentials for an object store. A Baseten Training checkpoint takes no auth. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, a Hugging Face repo is read with the team secret hf_access_token if it exists. Requires base_checkpoint.",
                         "examples": [
                             {
                                 "auth_method": "CUSTOM_SECRET",
@@ -33523,6 +34519,29 @@
                     "source"
                 ],
                 "title": "LoopsCheckpointSourceResponseV1",
+                "type": "object"
+            },
+            "SetLoopsCheckpointTtlRequestV1": {
+                "properties": {
+                    "ttl_seconds": {
+                        "anyOf": [
+                            {
+                                "maximum": 315360000,
+                                "minimum": 3600,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Seconds from now until the checkpoint expires and is deleted, from 3600 (1 hour) to 315360000 (10 years). Null removes the TTL, so the checkpoint is kept until you delete it.",
+                        "title": "Ttl Seconds"
+                    }
+                },
+                "required": [
+                    "ttl_seconds"
+                ],
+                "title": "SetLoopsCheckpointTtlRequestV1",
                 "type": "object"
             },
             "LoopsDeploymentStatusV1": {
@@ -34223,12 +35242,12 @@
                         "type": "string"
                     },
                     "baseline": {
-                        "description": "Baseline GPU allocation for the team. 0 if not configured.",
+                        "description": "Configured minimum GPU allocation for the team. Not enforced. 0 if not configured.",
                         "title": "Baseline",
                         "type": "integer"
                     },
                     "limit": {
-                        "description": "Maximum concurrent GPUs of this type for this team",
+                        "description": "The team's GPU quota for this type. It counts the team's on-demand jobs, plus its spot jobs when the organization has no separate on-demand quota. On-demand jobs can run past it by borrowing from the organization's shared pool, when one exists.",
                         "title": "Limit",
                         "type": "integer"
                     },
@@ -34239,7 +35258,7 @@
                     },
                     "dedicated_usage_count": {
                         "default": 0,
-                        "description": "Portion of usage_count from standard (non-spot) jobs.",
+                        "description": "Portion of usage_count from on-demand (non-spot) jobs.",
                         "title": "Dedicated Usage Count",
                         "type": "integer"
                     },
@@ -34270,14 +35289,32 @@
                         "type": "string"
                     },
                     "baseline": {
-                        "description": "Baseline GPU allocation; jobs below this threshold are expected to run immediately. 0 if not configured.",
+                        "description": "Configured minimum GPU allocation (`min_gpus`). 0 if not configured. Use `on_demand_quota` for the quota applied to on-demand jobs.",
                         "title": "Baseline",
                         "type": "integer"
                     },
                     "limit": {
-                        "description": "Maximum concurrent GPUs of this type for this org",
+                        "description": "Configured maximum GPU allocation (`max_gpus`). Use `on_demand_quota` and `spot_quota` for the quotas applied to jobs.",
                         "title": "Limit",
                         "type": "integer"
+                    },
+                    "on_demand_quota": {
+                        "description": "GPU quota for this type for on-demand (non-spot) jobs: the most GPUs they can use at once.",
+                        "title": "On Demand Quota",
+                        "type": "integer"
+                    },
+                    "spot_quota": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "GPU quota for this type for spot jobs. Spot shares this quota with on-demand jobs: spot can use up to the quota minus on-demand GPUs in use. Null if spot is not enabled for the organization.",
+                        "title": "Spot Quota"
                     },
                     "usage_count": {
                         "description": "GPUs currently in use by active training jobs",
@@ -34286,13 +35323,13 @@
                     },
                     "dedicated_usage_count": {
                         "default": 0,
-                        "description": "Portion of usage_count from standard (non-spot) jobs, which run against the baseline.",
+                        "description": "Portion of usage_count from on-demand (non-spot) jobs.",
                         "title": "Dedicated Usage Count",
                         "type": "integer"
                     },
                     "spot_usage_count": {
                         "default": 0,
-                        "description": "Portion of usage_count from spot jobs, which burst into the peak and may push usage above the limit.",
+                        "description": "Portion of usage_count from spot jobs.",
                         "title": "Spot Usage Count",
                         "type": "integer"
                     }
@@ -34301,6 +35338,7 @@
                     "gpu_type",
                     "baseline",
                     "limit",
+                    "on_demand_quota",
                     "usage_count"
                 ],
                 "title": "TrainingGpuCapacityItemV1",
@@ -34310,7 +35348,7 @@
                 "description": "Response for the training GPU capacity endpoint.",
                 "properties": {
                     "gpu_capacities": {
-                        "description": "Org-level GPU capacity limits and current usage per GPU type",
+                        "description": "Organization GPU quotas and current usage per GPU type",
                         "items": {
                             "$ref": "#/components/schemas/TrainingGpuCapacityItemV1"
                         },
@@ -34318,12 +35356,18 @@
                         "type": "array"
                     },
                     "team_gpu_capacities": {
-                        "description": "Per-team GPU capacity limits and current usage per GPU type",
+                        "description": "Per-team GPU quotas and current usage per GPU type",
                         "items": {
                             "$ref": "#/components/schemas/TeamTrainingGpuCapacityItemV1"
                         },
                         "title": "Team Gpu Capacities",
                         "type": "array"
+                    },
+                    "spot_enabled": {
+                        "default": false,
+                        "description": "Whether the organization can submit spot training jobs.",
+                        "title": "Spot Enabled",
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -34333,7 +35377,7 @@
                 "type": "object"
             },
             "PatchTeamTrainingGpuCapacityRequestV1": {
-                "description": "A request to set the GPU capacity ceiling for a (team, gpu_type) pair.\n\nCreates the limit if one doesn't already exist for this team and GPU type,\notherwise updates it in place.",
+                "description": "A request to set the GPU quota for a (team, gpu_type) pair.\n\nCreates the quota if one doesn't already exist for this team and GPU type,\notherwise updates it in place.",
                 "properties": {
                     "team_id": {
                         "description": "Team identifier",
@@ -34346,7 +35390,7 @@
                         "type": "string"
                     },
                     "max_gpus": {
-                        "description": "Max concurrent GPUs of this type the team may use",
+                        "description": "The team's GPU quota for this type. It counts the team's on-demand jobs, plus its spot jobs when the organization has no separate on-demand quota. On-demand jobs can run past it by borrowing from the organization's shared pool, when one exists.",
                         "examples": [
                             8,
                             16,
@@ -34365,11 +35409,11 @@
                 "type": "object"
             },
             "PatchTeamTrainingGpuCapacityResponseV1": {
-                "description": "Response for setting a team's GPU capacity ceiling.",
+                "description": "Response for setting a team's GPU quota.",
                 "properties": {
                     "team_gpu_capacity": {
                         "$ref": "#/components/schemas/TeamTrainingGpuCapacityItemV1",
-                        "description": "The updated per-team GPU capacity limit"
+                        "description": "The updated per-team GPU quota"
                     }
                 },
                 "required": [
@@ -38923,6 +39967,40 @@
                 "title": "OrganizationInfoV1",
                 "type": "object"
             },
+            "UpdateOrganizationRequestV1": {
+                "additionalProperties": false,
+                "description": "Partial update of the caller's organization settings. Omitted fields are unchanged.",
+                "properties": {
+                    "allow_personal_api_keys": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Whether members can create new personal API keys. Null is not accepted.",
+                        "title": "Allow Personal Api Keys"
+                    },
+                    "allow_service_account_api_keys": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Whether new team and organization API keys can be created. Null is not accepted.",
+                        "title": "Allow Service Account Api Keys"
+                    }
+                },
+                "title": "UpdateOrganizationRequestV1",
+                "type": "object"
+            },
             "ServiceAccountPresetPermissionsV1": {
                 "description": "A service account's access: one of the access types API keys have.\n\nTemporary: mirrors API key access until fine-grained access control is available, and may be removed.",
                 "properties": {
@@ -39146,6 +40224,20 @@
                         "minimum": 1,
                         "title": "Limit",
                         "type": "integer"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only the account with this name, ignoring case",
+                        "title": "Name"
                     },
                     "team_id": {
                         "anyOf": [
@@ -39395,6 +40487,66 @@
                 "title": "UpdateServiceAccountRequestV1",
                 "type": "object"
             },
+            "PredefinedIdentityProviderKindV1": {
+                "description": "An identity provider Baseten supports.",
+                "enum": [
+                    "GITHUB_ACTIONS",
+                    "GCP",
+                    "BASETEN",
+                    "AWS_IAM",
+                    "AWS_EKS",
+                    "AZURE_MANAGED_IDENTITY_V1",
+                    "AZURE_MANAGED_IDENTITY_V2",
+                    "AZURE_AKS"
+                ],
+                "title": "PredefinedIdentityProviderKindV1",
+                "type": "string"
+            },
+            "PredefinedIdentityProviderV1": {
+                "properties": {
+                    "kind": {
+                        "$ref": "#/components/schemas/PredefinedIdentityProviderKindV1",
+                        "description": "Pass as `kind` when adding the provider"
+                    },
+                    "name": {
+                        "description": "Display name",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "issuer_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The `iss` claim its tokens carry. Null when each account, tenant, or cluster has its own issuer, which you pass as `issuer_url` when adding the provider.",
+                        "title": "Issuer Url"
+                    },
+                    "issuer_url_example": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "An example of the `issuer_url` to pass. Null when the issuer is fixed.",
+                        "title": "Issuer Url Example"
+                    }
+                },
+                "required": [
+                    "kind",
+                    "name"
+                ],
+                "title": "PredefinedIdentityProviderV1",
+                "type": "object"
+            },
             "PredefinedIdentityProvidersV1": {
                 "properties": {
                     "items": {
@@ -39471,6 +40623,34 @@
                 "title": "IdentityProviderV1",
                 "type": "object"
             },
+            "PredefinedIdentityProviderConfigV1": {
+                "description": "Settings of an identity provider that Baseten defines.",
+                "properties": {
+                    "kind": {
+                        "$ref": "#/components/schemas/PredefinedIdentityProviderKindV1",
+                        "description": "Which predefined provider. Can't be changed."
+                    },
+                    "issuer_url": {
+                        "anyOf": [
+                            {
+                                "maxLength": 1024,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The `iss` claim of the provider's tokens. When adding AWS IAM, Amazon EKS, Azure managed identity, or Azure Kubernetes Service, pass your issuer in the format the predefined identity providers endpoint shows; it's unique in the organization. Can't be passed for other providers, or changed. Always set in responses.",
+                        "title": "Issuer Url"
+                    }
+                },
+                "required": [
+                    "kind"
+                ],
+                "title": "PredefinedIdentityProviderConfigV1",
+                "type": "object"
+            },
             "IdentityProvidersV1": {
                 "description": "A page of identity providers.",
                 "properties": {
@@ -39517,13 +40697,10 @@
                         "title": "Limit",
                         "type": "integer"
                     },
-                    "type": {
+                    "name": {
                         "anyOf": [
                             {
-                                "enum": [
-                                    "PREDEFINED",
-                                    "CUSTOM"
-                                ],
+                                "minLength": 1,
                                 "type": "string"
                             },
                             {
@@ -39531,11 +40708,52 @@
                             }
                         ],
                         "default": null,
-                        "description": "Only predefined or only custom providers",
-                        "title": "Type"
+                        "description": "Only the provider with this name, ignoring case",
+                        "title": "Name"
+                    },
+                    "predefined_kind": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/PredefinedIdentityProviderKindV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only this predefined provider's issuers"
                     }
                 },
                 "title": "IdentityProvidersRequestV1",
+                "type": "object"
+            },
+            "CreatePredefinedIdentityProviderConfigV1": {
+                "additionalProperties": false,
+                "description": "Settings of the predefined identity provider to add.",
+                "properties": {
+                    "kind": {
+                        "$ref": "#/components/schemas/PredefinedIdentityProviderKindV1",
+                        "description": "Which predefined provider. Can't be changed."
+                    },
+                    "issuer_url": {
+                        "anyOf": [
+                            {
+                                "maxLength": 1024,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The `iss` claim of the provider's tokens. When adding AWS IAM, Amazon EKS, Azure managed identity, or Azure Kubernetes Service, pass your issuer in the format the predefined identity providers endpoint shows; it's unique in the organization. Can't be passed for other providers, or changed. Always set in responses.",
+                        "title": "Issuer Url"
+                    }
+                },
+                "required": [
+                    "kind"
+                ],
+                "title": "CreatePredefinedIdentityProviderConfigV1",
                 "type": "object"
             },
             "CreateIdentityProviderRequestV1": {
@@ -39580,6 +40798,77 @@
                     "predefined"
                 ],
                 "title": "CreateIdentityProviderRequestV1",
+                "type": "object"
+            },
+            "VerifyPredefinedIdentityProviderConfigV1": {
+                "additionalProperties": false,
+                "description": "Settings of the predefined identity provider to check.",
+                "properties": {
+                    "kind": {
+                        "$ref": "#/components/schemas/PredefinedIdentityProviderKindV1",
+                        "description": "Which predefined provider"
+                    },
+                    "issuer_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The issuer to check, for AWS IAM, Amazon EKS, Azure managed identity, and Azure Kubernetes Service, in the format the predefined identity providers endpoint shows",
+                        "title": "Issuer Url"
+                    }
+                },
+                "required": [
+                    "kind"
+                ],
+                "title": "VerifyPredefinedIdentityProviderConfigV1",
+                "type": "object"
+            },
+            "VerifyIdentityProviderRequestV1": {
+                "additionalProperties": false,
+                "description": "Request to check an identity provider before adding it.",
+                "properties": {
+                    "predefined": {
+                        "$ref": "#/components/schemas/VerifyPredefinedIdentityProviderConfigV1",
+                        "description": "The predefined provider to check, as you'd pass it when adding it"
+                    }
+                },
+                "required": [
+                    "predefined"
+                ],
+                "title": "VerifyIdentityProviderRequestV1",
+                "type": "object"
+            },
+            "VerificationV1": {
+                "description": "Whether a create request would pass the checks the server runs on it.",
+                "properties": {
+                    "valid": {
+                        "description": "Whether the input passes every check",
+                        "title": "Valid",
+                        "type": "boolean"
+                    },
+                    "error": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Why the input fails, as creating it would report. Null when it's valid.",
+                        "title": "Error"
+                    }
+                },
+                "required": [
+                    "valid"
+                ],
+                "title": "VerificationV1",
                 "type": "object"
             },
             "DeletedIdentityProviderV1": {
@@ -39640,7 +40929,169 @@
                 "title": "UpdateIdentityProviderRequestV1",
                 "type": "object"
             },
-            "TrustRulesRequestV1": {
+            "AccessTrustRuleV1": {
+                "description": "Which tokens from an identity provider may act as a service account.",
+                "properties": {
+                    "id": {
+                        "description": "Trust rule ID. Workloads pass it when they exchange a token.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name, unique in the organization",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Description",
+                        "title": "Description"
+                    },
+                    "identity_provider_id": {
+                        "description": "The identity provider whose tokens it accepts",
+                        "title": "Identity Provider Id",
+                        "type": "string"
+                    },
+                    "identity_provider_name": {
+                        "description": "Name of the identity provider",
+                        "title": "Identity Provider Name",
+                        "type": "string"
+                    },
+                    "service_account_id": {
+                        "description": "The service account its tokens act as",
+                        "title": "Service Account Id",
+                        "type": "string"
+                    },
+                    "service_account_name": {
+                        "description": "Name of the service account",
+                        "title": "Service Account Name",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The service account's team. Null for an organization service account.",
+                        "title": "Team Id"
+                    },
+                    "team_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name of the service account's team. Null for an organization service account.",
+                        "title": "Team Name"
+                    },
+                    "condition": {
+                        "description": "A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters.",
+                        "examples": [
+                            "claims.repository_owner_id == '12345' && claims.sub.startsWith('repo:acme/models:') && claims.ref == 'refs/heads/main'"
+                        ],
+                        "title": "Condition",
+                        "type": "string"
+                    },
+                    "audience": {
+                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters.",
+                        "title": "Audience",
+                        "type": "string"
+                    },
+                    "max_access_token_lifetime_seconds": {
+                        "description": "Longest lifetime of a token the rule issues, in seconds",
+                        "title": "Max Access Token Lifetime Seconds",
+                        "type": "integer"
+                    },
+                    "last_used_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Last token exchange through the rule. Null until the first.",
+                        "title": "Last Used At"
+                    },
+                    "created_by": {
+                        "description": "ID of the user who created the rule",
+                        "title": "Created By",
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "description": "Time the rule was created",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "description": "Time the rule was last updated",
+                        "format": "date-time",
+                        "title": "Updated At",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "identity_provider_id",
+                    "identity_provider_name",
+                    "service_account_id",
+                    "service_account_name",
+                    "condition",
+                    "audience",
+                    "max_access_token_lifetime_seconds",
+                    "created_by",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "AccessTrustRuleV1",
+                "type": "object"
+            },
+            "AccessTrustRulesV1": {
+                "description": "A page of trust rules.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessTrustRuleV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "AccessTrustRulesV1",
+                "type": "object"
+            },
+            "AccessTrustRulesRequestV1": {
                 "properties": {
                     "cursor": {
                         "anyOf": [
@@ -39662,6 +41113,20 @@
                         "minimum": 1,
                         "title": "Limit",
                         "type": "integer"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Only the rule with this name, ignoring case",
+                        "title": "Name"
                     },
                     "identity_provider_id": {
                         "anyOf": [
@@ -39703,7 +41168,215 @@
                         "title": "Team Id"
                     }
                 },
-                "title": "TrustRulesRequestV1",
+                "title": "AccessTrustRulesRequestV1",
+                "type": "object"
+            },
+            "CreateAccessTrustRuleRequestV1": {
+                "additionalProperties": false,
+                "description": "Request to create a trust rule.",
+                "properties": {
+                    "name": {
+                        "description": "Name, unique in the organization. Can be changed later.",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional description",
+                        "title": "Description"
+                    },
+                    "identity_provider_id": {
+                        "description": "Whose tokens the rule accepts. Can't be changed.",
+                        "title": "Identity Provider Id",
+                        "type": "string"
+                    },
+                    "service_account_id": {
+                        "description": "The service account its tokens act as. Can be changed later.",
+                        "title": "Service Account Id",
+                        "type": "string"
+                    },
+                    "condition": {
+                        "description": "A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters. Can be changed later.",
+                        "examples": [
+                            "claims.repository_owner_id == '12345' && claims.sub.startsWith('repo:acme/models:') && claims.ref == 'refs/heads/main'"
+                        ],
+                        "title": "Condition",
+                        "type": "string"
+                    },
+                    "audience": {
+                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters. Can be changed later.",
+                        "title": "Audience",
+                        "type": "string"
+                    },
+                    "max_access_token_lifetime_seconds": {
+                        "default": 3600,
+                        "description": "Longest lifetime of a token the rule issues, 60 to 3600 seconds. Can be changed later.",
+                        "maximum": 3600,
+                        "minimum": 60,
+                        "title": "Max Access Token Lifetime Seconds",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "name",
+                    "identity_provider_id",
+                    "service_account_id",
+                    "condition",
+                    "audience"
+                ],
+                "title": "CreateAccessTrustRuleRequestV1",
+                "type": "object"
+            },
+            "VerifyAccessTrustRuleRequestV1": {
+                "additionalProperties": false,
+                "description": "Request to check a trust rule's condition and audience before saving them.",
+                "properties": {
+                    "identity_provider_id": {
+                        "description": "The identity provider the rule is for, which decides the claims it must pin",
+                        "title": "Identity Provider Id",
+                        "type": "string"
+                    },
+                    "condition": {
+                        "description": "A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters.",
+                        "examples": [
+                            "claims.repository_owner_id == '12345' && claims.sub.startsWith('repo:acme/models:') && claims.ref == 'refs/heads/main'"
+                        ],
+                        "title": "Condition",
+                        "type": "string"
+                    },
+                    "audience": {
+                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters.",
+                        "title": "Audience",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "identity_provider_id",
+                    "condition",
+                    "audience"
+                ],
+                "title": "VerifyAccessTrustRuleRequestV1",
+                "type": "object"
+            },
+            "DeletedAccessTrustRuleV1": {
+                "properties": {
+                    "id": {
+                        "description": "ID of the deleted trust rule",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "deleted": {
+                        "description": "Always true",
+                        "title": "Deleted",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "id",
+                    "deleted"
+                ],
+                "title": "DeletedAccessTrustRuleV1",
+                "type": "object"
+            },
+            "UpdateAccessTrustRuleRequestV1": {
+                "additionalProperties": false,
+                "description": "Request to update a trust rule. Only the fields sent change.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "maxLength": 255,
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name, unique in the organization",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Description; null clears it",
+                        "title": "Description",
+                        "x-null-distinct": true
+                    },
+                    "condition": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters.",
+                        "title": "Condition"
+                    },
+                    "audience": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters.",
+                        "title": "Audience"
+                    },
+                    "max_access_token_lifetime_seconds": {
+                        "anyOf": [
+                            {
+                                "maximum": 3600,
+                                "minimum": 60,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Longest lifetime of a token the rule issues, 60 to 3600 seconds. Tokens already issued keep their lifetime.",
+                        "title": "Max Access Token Lifetime Seconds"
+                    },
+                    "service_account_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Moves the rule to another service account. Tokens already issued keep the old account until they expire.",
+                        "title": "Service Account Id"
+                    }
+                },
+                "title": "UpdateAccessTrustRuleRequestV1",
                 "type": "object"
             },
             "GatewayEventTokensV1": {
@@ -40337,22 +42010,48 @@
                 "title": "GridTokenV1",
                 "type": "object"
             },
+            "GridRouteAliasKindV1": {
+                "enum": [
+                    "CLAUDE_DESKTOP"
+                ],
+                "title": "GridRouteAliasKindV1",
+                "type": "string"
+            },
+            "GridRouteAliasV1": {
+                "properties": {
+                    "name": {
+                        "description": "Name to send in the inference request's `model` field instead of the route's `name`.",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "kind": {
+                        "$ref": "#/components/schemas/GridRouteAliasKindV1",
+                        "description": "Purpose of the alias. CLAUDE_DESKTOP is for Claude Code desktop, which rejects model names without a `claude` substring."
+                    }
+                },
+                "required": [
+                    "name",
+                    "kind"
+                ],
+                "title": "GridRouteAliasV1",
+                "type": "object"
+            },
             "GridRouteClassifierV1": {
                 "properties": {
                     "id": {
                         "description": "Stable route classifier identifier.",
                         "examples": [
-                            "general-v1"
+                            "abc1234"
                         ],
                         "title": "Id",
                         "type": "string"
                     },
-                    "name": {
+                    "display_name": {
                         "description": "Display name of the route classifier.",
                         "examples": [
                             "General"
                         ],
-                        "title": "Name",
+                        "title": "Display Name",
                         "type": "string"
                     },
                     "supported_tradeoffs": {
@@ -40386,7 +42085,7 @@
                 },
                 "required": [
                     "id",
-                    "name",
+                    "display_name",
                     "supported_tradeoffs",
                     "decidable_models"
                 ],
@@ -40660,9 +42359,22 @@
                         "type": "string"
                     },
                     "name": {
-                        "description": "Name to send in the inference request's model field.",
+                        "description": "Name to send in the inference request's `model` field. Unique within the team; immutable.",
                         "title": "Name",
                         "type": "string"
+                    },
+                    "display_name": {
+                        "description": "Display label, defaulting to the route's name.",
+                        "title": "Display Name",
+                        "type": "string"
+                    },
+                    "aliases": {
+                        "description": "The route's other names, one per purpose. Empty for routes created before aliases existed.",
+                        "items": {
+                            "$ref": "#/components/schemas/GridRouteAliasV1"
+                        },
+                        "title": "Aliases",
+                        "type": "array"
                     },
                     "team_id": {
                         "description": "Identifier of the owning team.",
@@ -40672,11 +42384,6 @@
                     "team_name": {
                         "description": "Name of the owning team.",
                         "title": "Team Name",
-                        "type": "string"
-                    },
-                    "display_name": {
-                        "description": "Display label, defaulting to the route name.",
-                        "title": "Display Name",
                         "type": "string"
                     },
                     "description": {
@@ -40733,9 +42440,9 @@
                 "required": [
                     "id",
                     "name",
+                    "display_name",
                     "team_id",
                     "team_name",
-                    "display_name",
                     "description",
                     "target",
                     "metadata",
@@ -40819,7 +42526,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Filter by exact route name. Preserved by the cursor; if repeated, must match the original filter.",
+                        "description": "Filter by exact route name, the value to send in the inference request's `model` field. Matches a route's name or any of its aliases. Preserved by the cursor; if repeated, must match the original filter.",
                         "title": "Name"
                     }
                 },
@@ -40894,7 +42601,7 @@
                     "route_classifier_id": {
                         "description": "Identifier of the route classifier that picks the model. List them with GET /v1/grid/route_classifiers.",
                         "examples": [
-                            "general-v1"
+                            "abc1234"
                         ],
                         "minLength": 1,
                         "title": "Route Classifier Id",
@@ -40951,7 +42658,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Display label. Omit to use the route name; required for INTELLIGENT targets. Null is not accepted.",
+                        "description": "Display label. Omit to use the route's name; required for INTELLIGENT targets. Null is not accepted.",
                         "examples": [
                             "Assistant"
                         ],
@@ -41019,7 +42726,8 @@
                     "XAI",
                     "VERTEX",
                     "OPENAI_COMPATIBLE",
-                    "BEDROCK"
+                    "BEDROCK",
+                    "AZURE"
                 ],
                 "title": "GridProviderV1",
                 "type": "string"
@@ -41124,7 +42832,7 @@
                         "default": null,
                         "description": "Provider that served the requests. Null when not grouping by PROVIDER."
                     },
-                    "intelligent_route": {
+                    "intelligent_route_id": {
                         "anyOf": [
                             {
                                 "type": "string"
@@ -41134,8 +42842,21 @@
                             }
                         ],
                         "default": null,
-                        "description": "Name of the intelligent route, as in `GET /v1/grid/routes`. Null when not grouping by INTELLIGENT_ROUTE.",
-                        "title": "Intelligent Route"
+                        "description": "ID of the intelligent route, as `id` in GET /v1/grid/routes. Null when not grouping by INTELLIGENT_ROUTE.",
+                        "title": "Intelligent Route Id"
+                    },
+                    "intelligent_route_display_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Display name of the intelligent route. Null when `intelligent_route_id` is null or the route cannot be resolved.",
+                        "title": "Intelligent Route Display Name"
                     },
                     "harness": {
                         "anyOf": [
@@ -41148,6 +42869,32 @@
                         ],
                         "default": null,
                         "description": "Coding harness. Null when not grouping by HARNESS, when no harness was recorded (including usage from before harness tracking), or when the recorded harness is not recognized by this API version."
+                    },
+                    "api_key_prefix": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Prefix of the API key that made the requests, matching `GET /v1/api_keys`. Null when not grouping by API_KEY, for usage without an API key, and for usage recorded before API key tracking.",
+                        "title": "Api Key Prefix"
+                    },
+                    "api_key_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Name of the API key. Null when `api_key_prefix` is null or the key has no name.",
+                        "title": "Api Key Name"
                     },
                     "cost_usd": {
                         "description": "Estimated cost in USD, returned as an exact decimal string. Costs for OpenAI, Anthropic, and xAI estimate what you pay those providers; they are not Baseten charges.",
@@ -41223,7 +42970,8 @@
                     "MODEL",
                     "PROVIDER",
                     "INTELLIGENT_ROUTE",
-                    "HARNESS"
+                    "HARNESS",
+                    "API_KEY"
                 ],
                 "title": "GridRouteUsageDimensionV1",
                 "type": "string"
@@ -41293,7 +43041,7 @@
                         "title": "End Date"
                     },
                     "group_by": {
-                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, or HARNESS. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. Defaults to MODEL.",
+                        "description": "Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, HARNESS, or API_KEY. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. API_KEY includes usage without an API key, such as requests authenticated by a signed-in session, as a null group. Defaults to MODEL.",
                         "items": {
                             "$ref": "#/components/schemas/GridRouteUsageDimensionV1"
                         },
@@ -41330,6 +43078,14 @@
                             "$ref": "#/components/schemas/GridRouteUsageHarnessV1"
                         },
                         "title": "Harnesses",
+                        "type": "array"
+                    },
+                    "api_key_prefixes": {
+                        "description": "Return only usage made with these API keys, repeated once per key prefix. Omit to include all usage, including usage without an API key.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Api Key Prefixes",
                         "type": "array"
                     }
                 },
@@ -42217,6 +43973,39 @@
                 "title": "GridConnectionConfigAnthropicV1",
                 "type": "object"
             },
+            "GridConnectionConfigAzureV1": {
+                "properties": {
+                    "provider": {
+                        "const": "AZURE",
+                        "description": "Provider kind for Microsoft Azure.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_id": {
+                        "description": "Identifier of the team secret holding the provider API key.",
+                        "title": "Secret Id",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "description": "Name of the team secret holding the provider API key.",
+                        "title": "Secret Name",
+                        "type": "string"
+                    },
+                    "resource_name": {
+                        "description": "Name of the Azure AI Foundry or Azure OpenAI resource.",
+                        "title": "Resource Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "secret_id",
+                    "secret_name",
+                    "resource_name"
+                ],
+                "title": "GridConnectionConfigAzureV1",
+                "type": "object"
+            },
             "GridConnectionConfigBedrockV1": {
                 "properties": {
                     "provider": {
@@ -42385,6 +44174,7 @@
                         "discriminator": {
                             "mapping": {
                                 "ANTHROPIC": "#/components/schemas/GridConnectionConfigAnthropicV1",
+                                "AZURE": "#/components/schemas/GridConnectionConfigAzureV1",
                                 "BEDROCK": "#/components/schemas/GridConnectionConfigBedrockV1",
                                 "OPENAI": "#/components/schemas/GridConnectionConfigOpenAIV1",
                                 "VERTEX": "#/components/schemas/GridConnectionConfigVertexV1",
@@ -42407,6 +44197,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/GridConnectionConfigBedrockV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/GridConnectionConfigAzureV1"
                             }
                         ],
                         "title": "Config"
@@ -42553,6 +44346,42 @@
                     "secret_name"
                 ],
                 "title": "UpsertGridConnectionConfigAnthropicV1",
+                "type": "object"
+            },
+            "UpsertGridConnectionConfigAzureV1": {
+                "additionalProperties": false,
+                "properties": {
+                    "provider": {
+                        "const": "AZURE",
+                        "description": "Provider kind for Microsoft Azure. Route targets name a deployment, which must be named after its Azure model. Claude models (`claude-*`) use the Anthropic Messages API, and other models use the OpenAI-compatible APIs.",
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "secret_name": {
+                        "description": "Name of an existing secret, owned by the same team, that holds the provider API key.",
+                        "examples": [
+                            "anthropic-key"
+                        ],
+                        "minLength": 1,
+                        "title": "Secret Name",
+                        "type": "string"
+                    },
+                    "resource_name": {
+                        "description": "Name of the Azure AI Foundry or Azure OpenAI resource, the subdomain of `<resource_name>.openai.azure.com`.",
+                        "examples": [
+                            "my-foundry-resource"
+                        ],
+                        "minLength": 1,
+                        "title": "Resource Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "secret_name",
+                    "resource_name"
+                ],
+                "title": "UpsertGridConnectionConfigAzureV1",
                 "type": "object"
             },
             "UpsertGridConnectionConfigBedrockV1": {
@@ -42734,6 +44563,7 @@
                         "discriminator": {
                             "mapping": {
                                 "ANTHROPIC": "#/components/schemas/UpsertGridConnectionConfigAnthropicV1",
+                                "AZURE": "#/components/schemas/UpsertGridConnectionConfigAzureV1",
                                 "BEDROCK": "#/components/schemas/UpsertGridConnectionConfigBedrockV1",
                                 "OPENAI": "#/components/schemas/UpsertGridConnectionConfigOpenAIV1",
                                 "VERTEX": "#/components/schemas/UpsertGridConnectionConfigVertexV1",
@@ -42762,6 +44592,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/UpsertGridConnectionConfigBedrockV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UpsertGridConnectionConfigAzureV1"
                             }
                         ],
                         "title": "Config"
@@ -42795,6 +44628,7 @@
                         "discriminator": {
                             "mapping": {
                                 "ANTHROPIC": "#/components/schemas/UpsertGridConnectionConfigAnthropicV1",
+                                "AZURE": "#/components/schemas/UpsertGridConnectionConfigAzureV1",
                                 "BEDROCK": "#/components/schemas/UpsertGridConnectionConfigBedrockV1",
                                 "OPENAI": "#/components/schemas/UpsertGridConnectionConfigOpenAIV1",
                                 "VERTEX": "#/components/schemas/UpsertGridConnectionConfigVertexV1",
@@ -42823,6 +44657,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/UpsertGridConnectionConfigBedrockV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UpsertGridConnectionConfigAzureV1"
                             }
                         ],
                         "title": "Config"
@@ -46644,601 +48481,6 @@
                     "items",
                     "pagination"
                 ]
-            },
-            "UpdateOrganizationRequestV1": {
-                "additionalProperties": false,
-                "description": "Partial update of the caller's organization settings. Omitted fields are unchanged.",
-                "properties": {
-                    "allow_personal_api_keys": {
-                        "anyOf": [
-                            {
-                                "type": "boolean"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Whether members can create new personal API keys. Null is not accepted.",
-                        "title": "Allow Personal Api Keys"
-                    },
-                    "allow_service_account_api_keys": {
-                        "anyOf": [
-                            {
-                                "type": "boolean"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Whether new team and organization API keys can be created. Null is not accepted.",
-                        "title": "Allow Service Account Api Keys"
-                    }
-                },
-                "title": "UpdateOrganizationRequestV1",
-                "type": "object"
-            },
-            "PredefinedIdentityProviderKindV1": {
-                "description": "An identity provider Baseten supports.",
-                "enum": [
-                    "GITHUB_ACTIONS",
-                    "GCP",
-                    "BASETEN",
-                    "AWS_IAM",
-                    "AWS_EKS",
-                    "AZURE_MANAGED_IDENTITY_V1",
-                    "AZURE_MANAGED_IDENTITY_V2",
-                    "AZURE_AKS"
-                ],
-                "title": "PredefinedIdentityProviderKindV1",
-                "type": "string"
-            },
-            "CreatePredefinedIdentityProviderConfigV1": {
-                "additionalProperties": false,
-                "description": "Settings of the predefined identity provider to add.",
-                "properties": {
-                    "kind": {
-                        "$ref": "#/components/schemas/PredefinedIdentityProviderKindV1",
-                        "description": "Which predefined provider. Can't be changed."
-                    },
-                    "issuer_url": {
-                        "anyOf": [
-                            {
-                                "maxLength": 1024,
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The `iss` claim of the provider's tokens. When adding AWS IAM, Amazon EKS, Azure managed identity, or Azure Kubernetes Service, pass your issuer in the format the predefined identity providers endpoint shows; it's unique in the organization. Can't be passed for other providers, or changed. Always set in responses.",
-                        "title": "Issuer Url"
-                    }
-                },
-                "required": [
-                    "kind"
-                ],
-                "title": "CreatePredefinedIdentityProviderConfigV1",
-                "type": "object"
-            },
-            "DeletedAccessTrustRuleV1": {
-                "properties": {
-                    "id": {
-                        "description": "ID of the deleted trust rule",
-                        "title": "Id",
-                        "type": "string"
-                    },
-                    "deleted": {
-                        "description": "Always true",
-                        "title": "Deleted",
-                        "type": "boolean"
-                    }
-                },
-                "required": [
-                    "id",
-                    "deleted"
-                ],
-                "title": "DeletedAccessTrustRuleV1",
-                "type": "object"
-            },
-            "CreateAccessTrustRuleRequestV1": {
-                "additionalProperties": false,
-                "description": "Request to create a trust rule.",
-                "properties": {
-                    "name": {
-                        "description": "Name, unique in the organization. Can be changed later.",
-                        "maxLength": 255,
-                        "minLength": 1,
-                        "title": "Name",
-                        "type": "string"
-                    },
-                    "description": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Optional description",
-                        "title": "Description"
-                    },
-                    "identity_provider_id": {
-                        "description": "Whose tokens the rule accepts. Can't be changed.",
-                        "title": "Identity Provider Id",
-                        "type": "string"
-                    },
-                    "service_account_id": {
-                        "description": "The service account its tokens act as. Can be changed later.",
-                        "title": "Service Account Id",
-                        "type": "string"
-                    },
-                    "condition": {
-                        "description": "A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters. Can be changed later.",
-                        "examples": [
-                            "claims.repository_owner_id == '12345' && claims.sub.startsWith('repo:acme/models:') && claims.ref == 'refs/heads/main'"
-                        ],
-                        "title": "Condition",
-                        "type": "string"
-                    },
-                    "audience": {
-                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters. Can be changed later.",
-                        "title": "Audience",
-                        "type": "string"
-                    },
-                    "max_access_token_lifetime_seconds": {
-                        "default": 3600,
-                        "description": "Longest lifetime of a token the rule issues, 60 to 3600 seconds. Can be changed later.",
-                        "maximum": 3600,
-                        "minimum": 60,
-                        "title": "Max Access Token Lifetime Seconds",
-                        "type": "integer"
-                    }
-                },
-                "required": [
-                    "name",
-                    "identity_provider_id",
-                    "service_account_id",
-                    "condition",
-                    "audience"
-                ],
-                "title": "CreateAccessTrustRuleRequestV1",
-                "type": "object"
-            },
-            "PredefinedIdentityProviderV1": {
-                "properties": {
-                    "kind": {
-                        "$ref": "#/components/schemas/PredefinedIdentityProviderKindV1",
-                        "description": "Pass as `kind` when adding the provider"
-                    },
-                    "name": {
-                        "description": "Display name",
-                        "title": "Name",
-                        "type": "string"
-                    },
-                    "issuer_url": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The `iss` claim its tokens carry. Null when each account, tenant, or cluster has its own issuer, which you pass as `issuer_url` when adding the provider.",
-                        "title": "Issuer Url"
-                    },
-                    "issuer_url_example": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "An example of the `issuer_url` to pass. Null when the issuer is fixed.",
-                        "title": "Issuer Url Example"
-                    }
-                },
-                "required": [
-                    "kind",
-                    "name"
-                ],
-                "title": "PredefinedIdentityProviderV1",
-                "type": "object"
-            },
-            "AccessTrustRulesV1": {
-                "description": "A page of trust rules.",
-                "properties": {
-                    "items": {
-                        "description": "Items in this page.",
-                        "items": {
-                            "$ref": "#/components/schemas/AccessTrustRuleV1"
-                        },
-                        "title": "Items",
-                        "type": "array"
-                    },
-                    "pagination": {
-                        "$ref": "#/components/schemas/PaginationResponseV1",
-                        "description": "Pagination metadata for the page."
-                    }
-                },
-                "required": [
-                    "items",
-                    "pagination"
-                ],
-                "title": "AccessTrustRulesV1",
-                "type": "object"
-            },
-            "PredefinedIdentityProviderConfigV1": {
-                "description": "Settings of an identity provider that Baseten defines.",
-                "properties": {
-                    "kind": {
-                        "$ref": "#/components/schemas/PredefinedIdentityProviderKindV1",
-                        "description": "Which predefined provider. Can't be changed."
-                    },
-                    "issuer_url": {
-                        "anyOf": [
-                            {
-                                "maxLength": 1024,
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The `iss` claim of the provider's tokens. When adding AWS IAM, Amazon EKS, Azure managed identity, or Azure Kubernetes Service, pass your issuer in the format the predefined identity providers endpoint shows; it's unique in the organization. Can't be passed for other providers, or changed. Always set in responses.",
-                        "title": "Issuer Url"
-                    }
-                },
-                "required": [
-                    "kind"
-                ],
-                "title": "PredefinedIdentityProviderConfigV1",
-                "type": "object"
-            },
-            "AccessTrustRuleV1": {
-                "description": "Which tokens from an identity provider may act as a service account.",
-                "properties": {
-                    "id": {
-                        "description": "Trust rule ID. Workloads pass it when they exchange a token.",
-                        "title": "Id",
-                        "type": "string"
-                    },
-                    "name": {
-                        "description": "Name, unique in the organization",
-                        "title": "Name",
-                        "type": "string"
-                    },
-                    "description": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Description",
-                        "title": "Description"
-                    },
-                    "identity_provider_id": {
-                        "description": "The identity provider whose tokens it accepts",
-                        "title": "Identity Provider Id",
-                        "type": "string"
-                    },
-                    "identity_provider_name": {
-                        "description": "Name of the identity provider",
-                        "title": "Identity Provider Name",
-                        "type": "string"
-                    },
-                    "service_account_id": {
-                        "description": "The service account its tokens act as",
-                        "title": "Service Account Id",
-                        "type": "string"
-                    },
-                    "service_account_name": {
-                        "description": "Name of the service account",
-                        "title": "Service Account Name",
-                        "type": "string"
-                    },
-                    "team_id": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The service account's team. Null for an organization service account.",
-                        "title": "Team Id"
-                    },
-                    "team_name": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Name of the service account's team. Null for an organization service account.",
-                        "title": "Team Name"
-                    },
-                    "condition": {
-                        "description": "A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters.",
-                        "examples": [
-                            "claims.repository_owner_id == '12345' && claims.sub.startsWith('repo:acme/models:') && claims.ref == 'refs/heads/main'"
-                        ],
-                        "title": "Condition",
-                        "type": "string"
-                    },
-                    "audience": {
-                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters.",
-                        "title": "Audience",
-                        "type": "string"
-                    },
-                    "max_access_token_lifetime_seconds": {
-                        "description": "Longest lifetime of a token the rule issues, in seconds",
-                        "title": "Max Access Token Lifetime Seconds",
-                        "type": "integer"
-                    },
-                    "last_used_at": {
-                        "anyOf": [
-                            {
-                                "format": "date-time",
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Last token exchange through the rule. Null until the first.",
-                        "title": "Last Used At"
-                    },
-                    "created_by": {
-                        "description": "ID of the user who created the rule",
-                        "title": "Created By",
-                        "type": "string"
-                    },
-                    "created_at": {
-                        "description": "Time the rule was created",
-                        "format": "date-time",
-                        "title": "Created At",
-                        "type": "string"
-                    },
-                    "updated_at": {
-                        "description": "Time the rule was last updated",
-                        "format": "date-time",
-                        "title": "Updated At",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "id",
-                    "name",
-                    "identity_provider_id",
-                    "identity_provider_name",
-                    "service_account_id",
-                    "service_account_name",
-                    "condition",
-                    "audience",
-                    "max_access_token_lifetime_seconds",
-                    "created_by",
-                    "created_at",
-                    "updated_at"
-                ],
-                "title": "AccessTrustRuleV1",
-                "type": "object"
-            },
-            "UpdateAccessTrustRuleRequestV1": {
-                "additionalProperties": false,
-                "description": "Request to update a trust rule. Only the fields sent change.",
-                "properties": {
-                    "name": {
-                        "anyOf": [
-                            {
-                                "maxLength": 255,
-                                "minLength": 1,
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Name, unique in the organization",
-                        "title": "Name"
-                    },
-                    "description": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Description; null clears it",
-                        "title": "Description",
-                        "x-null-distinct": true
-                    },
-                    "condition": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters.",
-                        "title": "Condition"
-                    },
-                    "audience": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters.",
-                        "title": "Audience"
-                    },
-                    "max_access_token_lifetime_seconds": {
-                        "anyOf": [
-                            {
-                                "maximum": 3600,
-                                "minimum": 60,
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Longest lifetime of a token the rule issues, 60 to 3600 seconds. Tokens already issued keep their lifetime.",
-                        "title": "Max Access Token Lifetime Seconds"
-                    },
-                    "service_account_id": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Moves the rule to another service account. Tokens already issued keep the old account until they expire.",
-                        "title": "Service Account Id"
-                    }
-                },
-                "title": "UpdateAccessTrustRuleRequestV1",
-                "type": "object"
-            },
-            "DeploymentReplicaV1": {
-                "properties": {
-                    "id": {
-                        "description": "Pod-name suffix used for replica lookup and termination, usually five characters.",
-                        "title": "Id",
-                        "type": "string"
-                    },
-                    "deployment_id": {
-                        "description": "ID of the replica's deployment.",
-                        "title": "Deployment Id",
-                        "type": "string"
-                    },
-                    "deployment_name": {
-                        "description": "Name of the replica's deployment.",
-                        "title": "Deployment Name",
-                        "type": "string"
-                    },
-                    "status": {
-                        "$ref": "#/components/schemas/DeploymentReplicaStatusV1",
-                        "description": "Current replica lifecycle status."
-                    },
-                    "created_at": {
-                        "description": "Replica creation time in ISO 8601 format.",
-                        "format": "date-time",
-                        "title": "Created At",
-                        "type": "string"
-                    },
-                    "terminated_at": {
-                        "anyOf": [
-                            {
-                                "format": "date-time",
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Observed termination completion time in ISO 8601 format, or null if unavailable.",
-                        "title": "Terminated At"
-                    },
-                    "age_seconds": {
-                        "description": "Age in seconds since creation, frozen at termination.",
-                        "title": "Age Seconds",
-                        "type": "number"
-                    },
-                    "restart_count": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Model container lifetime restart count, or null if unavailable.",
-                        "title": "Restart Count"
-                    }
-                },
-                "required": [
-                    "id",
-                    "deployment_id",
-                    "deployment_name",
-                    "status",
-                    "created_at",
-                    "terminated_at",
-                    "age_seconds",
-                    "restart_count"
-                ],
-                "title": "DeploymentReplicaV1",
-                "type": "object"
-            },
-            "DeploymentReplicaStatusV1": {
-                "enum": [
-                    "STARTING",
-                    "ACTIVE",
-                    "UNHEALTHY",
-                    "TERMINATING",
-                    "TERMINATED",
-                    "UNKNOWN"
-                ],
-                "title": "DeploymentReplicaStatusV1",
-                "type": "string"
-            },
-            "DeploymentReplicasV1": {
-                "properties": {
-                    "items": {
-                        "description": "Items in this page.",
-                        "items": {
-                            "$ref": "#/components/schemas/DeploymentReplicaV1"
-                        },
-                        "title": "Items",
-                        "type": "array"
-                    },
-                    "pagination": {
-                        "$ref": "#/components/schemas/PaginationResponseV1",
-                        "description": "Pagination metadata for the page."
-                    }
-                },
-                "required": [
-                    "items",
-                    "pagination"
-                ],
-                "title": "DeploymentReplicasV1",
-                "type": "object"
             }
         },
         "parameters": {
