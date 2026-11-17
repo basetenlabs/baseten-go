@@ -40,11 +40,12 @@ func (e APIKeyCategory) Valid() bool {
 
 // Defines values for AuditLogActorType.
 const (
-	AuditLogActorType_API_KEY        AuditLogActorType = "API_KEY"
-	AuditLogActorType_BASETEN_SYSTEM AuditLogActorType = "BASETEN_SYSTEM"
-	AuditLogActorType_BASETEN_USER   AuditLogActorType = "BASETEN_USER"
-	AuditLogActorType_TOMBSTONE_USER AuditLogActorType = "TOMBSTONE_USER"
-	AuditLogActorType_USER           AuditLogActorType = "USER"
+	AuditLogActorType_API_KEY         AuditLogActorType = "API_KEY"
+	AuditLogActorType_BASETEN_SYSTEM  AuditLogActorType = "BASETEN_SYSTEM"
+	AuditLogActorType_BASETEN_USER    AuditLogActorType = "BASETEN_USER"
+	AuditLogActorType_SERVICE_ACCOUNT AuditLogActorType = "SERVICE_ACCOUNT"
+	AuditLogActorType_TOMBSTONE_USER  AuditLogActorType = "TOMBSTONE_USER"
+	AuditLogActorType_USER            AuditLogActorType = "USER"
 )
 
 // Valid indicates whether the value is a known member of the AuditLogActorType enum.
@@ -55,6 +56,8 @@ func (e AuditLogActorType) Valid() bool {
 	case AuditLogActorType_BASETEN_SYSTEM:
 		return true
 	case AuditLogActorType_BASETEN_USER:
+		return true
+	case AuditLogActorType_SERVICE_ACCOUNT:
 		return true
 	case AuditLogActorType_TOMBSTONE_USER:
 		return true
@@ -88,6 +91,7 @@ const (
 	AuditLogApiKeyType_CREATOR_SERVICE_ACCOUNT                         AuditLogApiKeyType = "CREATOR_SERVICE_ACCOUNT"
 	AuditLogApiKeyType_EXPORT_METRICS_ALL_MODELS_SERVICE_ACCOUNT       AuditLogApiKeyType = "EXPORT_METRICS_ALL_MODELS_SERVICE_ACCOUNT"
 	AuditLogApiKeyType_EXPORT_METRICS_ALLOWED_MODELS_SERVICE_ACCOUNT   AuditLogApiKeyType = "EXPORT_METRICS_ALLOWED_MODELS_SERVICE_ACCOUNT"
+	AuditLogApiKeyType_INVOKE_ALL_DEDICATED_MODELS_SERVICE_ACCOUNT     AuditLogApiKeyType = "INVOKE_ALL_DEDICATED_MODELS_SERVICE_ACCOUNT"
 	AuditLogApiKeyType_INVOKE_ALL_MODELS_SERVICE_ACCOUNT               AuditLogApiKeyType = "INVOKE_ALL_MODELS_SERVICE_ACCOUNT"
 	AuditLogApiKeyType_INVOKE_ALLOWED_MODELS_SERVICE_ACCOUNT           AuditLogApiKeyType = "INVOKE_ALLOWED_MODELS_SERVICE_ACCOUNT"
 	AuditLogApiKeyType_INVOKE_ALLOWED_SHARED_ENDPOINTS_SERVICE_ACCOUNT AuditLogApiKeyType = "INVOKE_ALLOWED_SHARED_ENDPOINTS_SERVICE_ACCOUNT"
@@ -106,6 +110,8 @@ func (e AuditLogApiKeyType) Valid() bool {
 	case AuditLogApiKeyType_EXPORT_METRICS_ALL_MODELS_SERVICE_ACCOUNT:
 		return true
 	case AuditLogApiKeyType_EXPORT_METRICS_ALLOWED_MODELS_SERVICE_ACCOUNT:
+		return true
+	case AuditLogApiKeyType_INVOKE_ALL_DEDICATED_MODELS_SERVICE_ACCOUNT:
 		return true
 	case AuditLogApiKeyType_INVOKE_ALL_MODELS_SERVICE_ACCOUNT:
 		return true
@@ -177,6 +183,9 @@ const (
 	AuditLogEventType_GRID_MACHINE_USER_CREATED                              AuditLogEventType = "GRID_MACHINE_USER_CREATED"
 	AuditLogEventType_GRID_MACHINE_USER_DELETED                              AuditLogEventType = "GRID_MACHINE_USER_DELETED"
 	AuditLogEventType_GRID_MACHINE_USER_UPDATED                              AuditLogEventType = "GRID_MACHINE_USER_UPDATED"
+	AuditLogEventType_IDENTITY_PROVIDER_CREATED                              AuditLogEventType = "IDENTITY_PROVIDER_CREATED"
+	AuditLogEventType_IDENTITY_PROVIDER_DELETED                              AuditLogEventType = "IDENTITY_PROVIDER_DELETED"
+	AuditLogEventType_IDENTITY_PROVIDER_UPDATED                              AuditLogEventType = "IDENTITY_PROVIDER_UPDATED"
 	AuditLogEventType_MODEL_DELETED                                          AuditLogEventType = "MODEL_DELETED"
 	AuditLogEventType_MODEL_DEPLOYED                                         AuditLogEventType = "MODEL_DEPLOYED"
 	AuditLogEventType_MODEL_DEPLOYMENT_ACTIVATED                             AuditLogEventType = "MODEL_DEPLOYMENT_ACTIVATED"
@@ -189,6 +198,7 @@ const (
 	AuditLogEventType_MODEL_DEPLOYMENT_RETRIED                               AuditLogEventType = "MODEL_DEPLOYMENT_RETRIED"
 	AuditLogEventType_MODEL_PROMOTION_CONTROL_ACTION                         AuditLogEventType = "MODEL_PROMOTION_CONTROL_ACTION"
 	AuditLogEventType_MODEL_RENAMED                                          AuditLogEventType = "MODEL_RENAMED"
+	AuditLogEventType_ORGANIZATION_API_KEY_SETTINGS_UPDATED                  AuditLogEventType = "ORGANIZATION_API_KEY_SETTINGS_UPDATED"
 	AuditLogEventType_PROVIDER_CONNECTION_CREATED                            AuditLogEventType = "PROVIDER_CONNECTION_CREATED"
 	AuditLogEventType_PROVIDER_CONNECTION_DELETED                            AuditLogEventType = "PROVIDER_CONNECTION_DELETED"
 	AuditLogEventType_PROVIDER_CONNECTION_UPDATED                            AuditLogEventType = "PROVIDER_CONNECTION_UPDATED"
@@ -196,10 +206,16 @@ const (
 	AuditLogEventType_REQUIRE_GROUP_BASED_ADMINS_ENABLED                     AuditLogEventType = "REQUIRE_GROUP_BASED_ADMINS_ENABLED"
 	AuditLogEventType_SECRET_DELETED                                         AuditLogEventType = "SECRET_DELETED"
 	AuditLogEventType_SECRET_UPDATED                                         AuditLogEventType = "SECRET_UPDATED"
+	AuditLogEventType_SERVICE_ACCOUNT_CREATED                                AuditLogEventType = "SERVICE_ACCOUNT_CREATED"
+	AuditLogEventType_SERVICE_ACCOUNT_DELETED                                AuditLogEventType = "SERVICE_ACCOUNT_DELETED"
+	AuditLogEventType_SERVICE_ACCOUNT_UPDATED                                AuditLogEventType = "SERVICE_ACCOUNT_UPDATED"
 	AuditLogEventType_SSH_CERTIFICATE_SIGNED                                 AuditLogEventType = "SSH_CERTIFICATE_SIGNED"
 	AuditLogEventType_TELEMETRY_EXPORT_CREATED                               AuditLogEventType = "TELEMETRY_EXPORT_CREATED"
 	AuditLogEventType_TELEMETRY_EXPORT_DELETED                               AuditLogEventType = "TELEMETRY_EXPORT_DELETED"
 	AuditLogEventType_TELEMETRY_EXPORT_UPDATED                               AuditLogEventType = "TELEMETRY_EXPORT_UPDATED"
+	AuditLogEventType_TRUST_RULE_CREATED                                     AuditLogEventType = "TRUST_RULE_CREATED"
+	AuditLogEventType_TRUST_RULE_DELETED                                     AuditLogEventType = "TRUST_RULE_DELETED"
+	AuditLogEventType_TRUST_RULE_UPDATED                                     AuditLogEventType = "TRUST_RULE_UPDATED"
 	AuditLogEventType_USER_INVITED                                           AuditLogEventType = "USER_INVITED"
 	AuditLogEventType_USER_JOINED_ORGANIZATION                               AuditLogEventType = "USER_JOINED_ORGANIZATION"
 	AuditLogEventType_USER_REMOVED                                           AuditLogEventType = "USER_REMOVED"
@@ -265,6 +281,12 @@ func (e AuditLogEventType) Valid() bool {
 		return true
 	case AuditLogEventType_GRID_MACHINE_USER_UPDATED:
 		return true
+	case AuditLogEventType_IDENTITY_PROVIDER_CREATED:
+		return true
+	case AuditLogEventType_IDENTITY_PROVIDER_DELETED:
+		return true
+	case AuditLogEventType_IDENTITY_PROVIDER_UPDATED:
+		return true
 	case AuditLogEventType_MODEL_DELETED:
 		return true
 	case AuditLogEventType_MODEL_DEPLOYED:
@@ -289,6 +311,8 @@ func (e AuditLogEventType) Valid() bool {
 		return true
 	case AuditLogEventType_MODEL_RENAMED:
 		return true
+	case AuditLogEventType_ORGANIZATION_API_KEY_SETTINGS_UPDATED:
+		return true
 	case AuditLogEventType_PROVIDER_CONNECTION_CREATED:
 		return true
 	case AuditLogEventType_PROVIDER_CONNECTION_DELETED:
@@ -303,6 +327,12 @@ func (e AuditLogEventType) Valid() bool {
 		return true
 	case AuditLogEventType_SECRET_UPDATED:
 		return true
+	case AuditLogEventType_SERVICE_ACCOUNT_CREATED:
+		return true
+	case AuditLogEventType_SERVICE_ACCOUNT_DELETED:
+		return true
+	case AuditLogEventType_SERVICE_ACCOUNT_UPDATED:
+		return true
 	case AuditLogEventType_SSH_CERTIFICATE_SIGNED:
 		return true
 	case AuditLogEventType_TELEMETRY_EXPORT_CREATED:
@@ -310,6 +340,12 @@ func (e AuditLogEventType) Valid() bool {
 	case AuditLogEventType_TELEMETRY_EXPORT_DELETED:
 		return true
 	case AuditLogEventType_TELEMETRY_EXPORT_UPDATED:
+		return true
+	case AuditLogEventType_TRUST_RULE_CREATED:
+		return true
+	case AuditLogEventType_TRUST_RULE_DELETED:
+		return true
+	case AuditLogEventType_TRUST_RULE_UPDATED:
 		return true
 	case AuditLogEventType_USER_INVITED:
 		return true
@@ -365,6 +401,7 @@ const (
 	AuditLogEventTypeGroup_TELEMETRY_EXPORT              AuditLogEventTypeGroup = "TELEMETRY_EXPORT"
 	AuditLogEventTypeGroup_USER_MANAGEMENT               AuditLogEventTypeGroup = "USER_MANAGEMENT"
 	AuditLogEventTypeGroup_WEBHOOK_SIGNING_SECRETS       AuditLogEventTypeGroup = "WEBHOOK_SIGNING_SECRETS"
+	AuditLogEventTypeGroup_WORKLOAD_IDENTITY             AuditLogEventTypeGroup = "WORKLOAD_IDENTITY"
 )
 
 // Valid indicates whether the value is a known member of the AuditLogEventTypeGroup enum.
@@ -407,6 +444,8 @@ func (e AuditLogEventTypeGroup) Valid() bool {
 	case AuditLogEventTypeGroup_USER_MANAGEMENT:
 		return true
 	case AuditLogEventTypeGroup_WEBHOOK_SIGNING_SECRETS:
+		return true
+	case AuditLogEventTypeGroup_WORKLOAD_IDENTITY:
 		return true
 	default:
 		return false
@@ -818,6 +857,7 @@ func (e GatewayEndpointProvider) Valid() bool {
 // Defines values for GridProvider.
 const (
 	GridProvider_ANTHROPIC         GridProvider = "ANTHROPIC"
+	GridProvider_AZURE             GridProvider = "AZURE"
 	GridProvider_BASETEN_MODEL_API GridProvider = "BASETEN_MODEL_API"
 	GridProvider_BEDROCK           GridProvider = "BEDROCK"
 	GridProvider_OPENAI            GridProvider = "OPENAI"
@@ -831,6 +871,8 @@ func (e GridProvider) Valid() bool {
 	switch e {
 	case GridProvider_ANTHROPIC:
 		return true
+	case GridProvider_AZURE:
+		return true
 	case GridProvider_BASETEN_MODEL_API:
 		return true
 	case GridProvider_BEDROCK:
@@ -842,6 +884,21 @@ func (e GridProvider) Valid() bool {
 	case GridProvider_VERTEX:
 		return true
 	case GridProvider_XAI:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GridRouteAliasKind.
+const (
+	GridRouteAliasKind_CLAUDE_DESKTOP GridRouteAliasKind = "CLAUDE_DESKTOP"
+)
+
+// Valid indicates whether the value is a known member of the GridRouteAliasKind enum.
+func (e GridRouteAliasKind) Valid() bool {
+	switch e {
+	case GridRouteAliasKind_CLAUDE_DESKTOP:
 		return true
 	default:
 		return false
@@ -913,6 +970,7 @@ func (e GridRouteTargetIntelligentTradeoff) Valid() bool {
 
 // Defines values for GridRouteUsageDimension.
 const (
+	GridRouteUsageDimension_API_KEY           GridRouteUsageDimension = "API_KEY"
 	GridRouteUsageDimension_HARNESS           GridRouteUsageDimension = "HARNESS"
 	GridRouteUsageDimension_INTELLIGENT_ROUTE GridRouteUsageDimension = "INTELLIGENT_ROUTE"
 	GridRouteUsageDimension_MODEL             GridRouteUsageDimension = "MODEL"
@@ -924,6 +982,8 @@ const (
 // Valid indicates whether the value is a known member of the GridRouteUsageDimension enum.
 func (e GridRouteUsageDimension) Valid() bool {
 	switch e {
+	case GridRouteUsageDimension_API_KEY:
+		return true
 	case GridRouteUsageDimension_HARNESS:
 		return true
 	case GridRouteUsageDimension_INTELLIGENT_ROUTE:
@@ -2443,6 +2503,15 @@ type ActiveJobAtSubmit struct {
 	WorkloadPlaneName string `json:"workload_plane_name"`
 }
 
+// AuditFieldChange A field's value before and after an update.
+type AuditFieldChange struct {
+	// New The value after the update.
+	New interface{} `json:"new"`
+
+	// Old The value before the update.
+	Old interface{} `json:"old"`
+}
+
 // AuditLogActor The actor that performed an audited action.
 type AuditLogActor struct {
 	// ApiKeyName Display name of the acting API key, when the actor is an API key.
@@ -2453,6 +2522,15 @@ type AuditLogActor struct {
 
 	// Email Email of the acting user, when the actor is a user.
 	Email *string `json:"email,omitempty"`
+
+	// ServiceAccountId ID of the acting service account, when the actor is a service account.
+	ServiceAccountId *string `json:"service_account_id,omitempty"`
+
+	// ServiceAccountName Current name of the acting service account, when the actor is a service account.
+	ServiceAccountName *string `json:"service_account_name,omitempty"`
+
+	// TrustRuleId ID of the trust rule the acting workload identity federation token was exchanged through, when the actor is a service account.
+	TrustRuleId *string `json:"trust_rule_id,omitempty"`
 
 	// Type Kind of actor that performed an audited action.
 	Type AuditLogActorType `json:"type"`
@@ -2892,6 +2970,35 @@ type AuditLogEventGridMachineUserUpdated struct {
 	TeamName                string `json:"team_name"`
 }
 
+// AuditLogEventIdentityProviderCreated An identity provider was added.
+type AuditLogEventIdentityProviderCreated struct {
+	// Description Null when the provider was added without one.
+	Description        *string `json:"description,omitempty"`
+	EventType          string  `json:"event_type"`
+	IdentityProviderId string  `json:"identity_provider_id"`
+	Name               string  `json:"name"`
+
+	// Predefined Settings of a predefined identity provider, as recorded on an identity provider event. Not
+	// itself an event payload.
+	Predefined AuditLogEventPredefinedIdentityProviderConfig `json:"predefined"`
+}
+
+// AuditLogEventIdentityProviderDeleted An identity provider was deleted.
+type AuditLogEventIdentityProviderDeleted struct {
+	EventType          string `json:"event_type"`
+	IdentityProviderId string `json:"identity_provider_id"`
+	Name               string `json:"name"`
+}
+
+// AuditLogEventIdentityProviderUpdated An identity provider was updated.
+type AuditLogEventIdentityProviderUpdated struct {
+	// Changes The fields the update changed, keyed by field name.
+	Changes            map[string]AuditFieldChange `json:"changes"`
+	EventType          string                      `json:"event_type"`
+	IdentityProviderId string                      `json:"identity_provider_id"`
+	Name               string                      `json:"name"`
+}
+
 // AuditLogEventModelDeleted A model was deleted.
 type AuditLogEventModelDeleted struct {
 	EventType string `json:"event_type"`
@@ -3034,6 +3141,26 @@ type AuditLogEventModelRenamed struct {
 	PreviousName *string `json:"previous_name"`
 }
 
+// AuditLogEventOrganizationApiKeySettingsUpdated An administrator changed which classes of API key the organization allows creating.
+type AuditLogEventOrganizationApiKeySettingsUpdated struct {
+	EventType                          string `json:"event_type"`
+	NewAllowPersonalApiKeys            bool   `json:"new_allow_personal_api_keys"`
+	NewAllowServiceAccountApiKeys      bool   `json:"new_allow_service_account_api_keys"`
+	OrganizationId                     string `json:"organization_id"`
+	PreviousAllowPersonalApiKeys       bool   `json:"previous_allow_personal_api_keys"`
+	PreviousAllowServiceAccountApiKeys bool   `json:"previous_allow_service_account_api_keys"`
+}
+
+// AuditLogEventPredefinedIdentityProviderConfig Settings of a predefined identity provider, as recorded on an identity provider event. Not
+// itself an event payload.
+type AuditLogEventPredefinedIdentityProviderConfig struct {
+	// IssuerUrl The `iss` claim of the provider's tokens.
+	IssuerUrl string `json:"issuer_url"`
+
+	// Kind Which predefined provider, for example `AWS_EKS`.
+	Kind string `json:"kind"`
+}
+
 // AuditLogEventPromotionSettingsOverride Promotion settings overridden for one promotion. Null means the environment's value. Not
 // itself a payload in the discriminated union.
 type AuditLogEventPromotionSettingsOverride struct {
@@ -3107,6 +3234,54 @@ type AuditLogEventSecretUpdated struct {
 	SecretName string `json:"secret_name"`
 }
 
+// AuditLogEventServiceAccountCreated A service account was created.
+type AuditLogEventServiceAccountCreated struct {
+	// Description Null when the account was created without one.
+	Description *string `json:"description,omitempty"`
+	EventType   string  `json:"event_type"`
+	Name        string  `json:"name"`
+
+	// OwnerTeamId The team that owns the account. Null for an organization account.
+	OwnerTeamId *string `json:"owner_team_id,omitempty"`
+
+	// PresetPermissions A service account's access, as recorded on a service account event. Not itself an event
+	// payload.
+	PresetPermissions AuditLogEventServiceAccountPresetPermissions `json:"preset_permissions"`
+	ServiceAccountId  string                                       `json:"service_account_id"`
+}
+
+// AuditLogEventServiceAccountDeleted A service account was deleted.
+type AuditLogEventServiceAccountDeleted struct {
+	EventType        string `json:"event_type"`
+	Name             string `json:"name"`
+	ServiceAccountId string `json:"service_account_id"`
+}
+
+// AuditLogEventServiceAccountPresetPermissions A service account's access, as recorded on a service account event. Not itself an event
+// payload.
+type AuditLogEventServiceAccountPresetPermissions struct {
+	// ApiKeyType The API key type whose permissions the account has, as API key events record it.
+	ApiKeyType string `json:"api_key_type"`
+
+	// EnvironmentNames Environments the access is limited to, or may also manage; empty for none.
+	EnvironmentNames []string `json:"environment_names"`
+
+	// ModelApiSlugs Model APIs the access is limited to; empty for all.
+	ModelApiSlugs []string `json:"model_api_slugs"`
+
+	// ModelIds Models the access is limited to; empty for all.
+	ModelIds []string `json:"model_ids"`
+}
+
+// AuditLogEventServiceAccountUpdated A service account was updated. Disabling or enabling it is a change to `disabled`.
+type AuditLogEventServiceAccountUpdated struct {
+	// Changes The fields the update changed, keyed by field name.
+	Changes          map[string]AuditFieldChange `json:"changes"`
+	EventType        string                      `json:"event_type"`
+	Name             string                      `json:"name"`
+	ServiceAccountId string                      `json:"service_account_id"`
+}
+
 // AuditLogEventSshCertificateSigned An SSH certificate was signed for a workload.
 type AuditLogEventSshCertificateSigned struct {
 	EventType    string `json:"event_type"`
@@ -3138,6 +3313,42 @@ type AuditLogEventTelemetryExportUpdated struct {
 	Enabled                        *bool  `json:"enabled"`
 	EventType                      string `json:"event_type"`
 	TelemetryExportConfigurationId string `json:"telemetry_export_configuration_id"`
+}
+
+// AuditLogEventTrustRuleCreated A trust rule was created.
+type AuditLogEventTrustRuleCreated struct {
+	// Audience The `aud` claim a token must carry.
+	Audience string `json:"audience"`
+
+	// Condition The CEL expression a token's claims must satisfy.
+	Condition string `json:"condition"`
+
+	// Description Null when the rule was created without one.
+	Description        *string `json:"description,omitempty"`
+	EventType          string  `json:"event_type"`
+	IdentityProviderId string  `json:"identity_provider_id"`
+
+	// MaxAccessTokenLifetimeSeconds The longest lifetime, in seconds, of an access token the rule issues.
+	MaxAccessTokenLifetimeSeconds int    `json:"max_access_token_lifetime_seconds"`
+	Name                          string `json:"name"`
+	ServiceAccountId              string `json:"service_account_id"`
+	TrustRuleId                   string `json:"trust_rule_id"`
+}
+
+// AuditLogEventTrustRuleDeleted A trust rule was deleted.
+type AuditLogEventTrustRuleDeleted struct {
+	EventType   string `json:"event_type"`
+	Name        string `json:"name"`
+	TrustRuleId string `json:"trust_rule_id"`
+}
+
+// AuditLogEventTrustRuleUpdated A trust rule was updated.
+type AuditLogEventTrustRuleUpdated struct {
+	// Changes The fields the update changed, keyed by field name.
+	Changes     map[string]AuditFieldChange `json:"changes"`
+	EventType   string                      `json:"event_type"`
+	Name        string                      `json:"name"`
+	TrustRuleId string                      `json:"trust_rule_id"`
 }
 
 // AuditLogEventType Type of action recorded by an audit-log entry.
@@ -3974,7 +4185,7 @@ type CreateGridRouteRequest struct {
 	// Description Short description of the route. Omit for no description; null is not accepted.
 	Description *string `json:"description,omitempty"`
 
-	// DisplayName Display label. Omit to use the route name; required for INTELLIGENT targets. Null is not accepted.
+	// DisplayName Display label. Omit to use the route's name; required for INTELLIGENT targets. Null is not accepted.
 	DisplayName *string `json:"display_name,omitempty"`
 
 	// Target Upstream target for the route. CONNECTION targets use the provider and credentials of a connection owned by the route's team. INTELLIGENT targets need at least one of the route classifier's models, and one of its fallback models, servable by the team.
@@ -4191,10 +4402,10 @@ type CreateLoopsRunRequest struct {
 	// AvailabilityModel Capacity a training job or Loops trainer runs on.
 	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
 
-	// BaseCheckpoint Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in a team secret: the one named in base_checkpoint_auth, else hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
+	// BaseCheckpoint Optional checkpoint to start training from instead of the base model's weights: a Hugging Face repo (hf://<org>/<repo>[@<revision>]), an object store path (s3://, gs://, r2://, cw://, or azure://), or a full Baseten Training checkpoint in the run's team (bt://<project>@<job_id>/<checkpoint>, with the checkpoint named). It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include tokenizer files: the run's sampler loads the tokenizer and chat template from the checkpoint. A Hugging Face revision is pinned to a commit when the run is created, and its files are checked then. Any other source is read again by each sampler and resumed run, so do not change it while the run is in use. Checkpoints from a run on a source outside Hugging Face cannot be deployed yet. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
 	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
 
-	// BaseCheckpointAuth Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, the team secret hf_access_token is used if it exists. Requires base_checkpoint.
+	// BaseCheckpointAuth Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token for a Hugging Face repo, or the credentials for an object store. A Baseten Training checkpoint takes no auth. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, a Hugging Face repo is read with the team secret hf_access_token if it exists. Requires base_checkpoint.
 	BaseCheckpointAuth *TrainingWeightAuth `json:"base_checkpoint_auth,omitempty"`
 
 	// BaseModel Base model ID (e.g. 'Qwen/Qwen3-8B').
@@ -4284,10 +4495,10 @@ type CreateLoopsTrainerRequest struct {
 	// AvailabilityModel Capacity a training job or Loops trainer runs on.
 	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
 
-	// BaseCheckpoint Optional Hugging Face checkpoint to start training from instead of the base model's weights. Form: hf://<org>/<repo>[@<revision>]. It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include its tokenizer files: the run's sampler and the SDK load the tokenizer and chat template from the checkpoint. A private or gated repository needs a Hugging Face token in a team secret: the one named in base_checkpoint_auth, else hf_access_token. The revision is pinned to a commit when the run is created. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
+	// BaseCheckpoint Optional checkpoint to start training from instead of the base model's weights: a Hugging Face repo (hf://<org>/<repo>[@<revision>]), an object store path (s3://, gs://, r2://, cw://, or azure://), or a full Baseten Training checkpoint in the run's team (bt://<project>@<job_id>/<checkpoint>, with the checkpoint named). It must be a complete, merged checkpoint in safetensors format with the same architecture as base_model, which still selects the hardware and training configuration. It must include tokenizer files: the run's sampler loads the tokenizer and chat template from the checkpoint. A Hugging Face revision is pinned to a commit when the run is created, and its files are checked then. Any other source is read again by each sampler and resumed run, so do not change it while the run is in use. Checkpoints from a run on a source outside Hugging Face cannot be deployed yet. Cannot be combined with path, reuse_from_run_id, or reuse_from_session_id.
 	BaseCheckpoint *string `json:"base_checkpoint,omitempty"`
 
-	// BaseCheckpointAuth Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, the team secret hf_access_token is used if it exists. Requires base_checkpoint.
+	// BaseCheckpointAuth Optional credentials that read base_checkpoint. Only CUSTOM_SECRET is supported: set auth_secret_name to the team secret that holds a Hugging Face token for a Hugging Face repo, or the credentials for an object store. A Baseten Training checkpoint takes no auth. The run, its samplers, resumed runs, and checkpoint deployments all use this secret. When omitted, a Hugging Face repo is read with the team secret hf_access_token if it exists. Requires base_checkpoint.
 	BaseCheckpointAuth *TrainingWeightAuth `json:"base_checkpoint_auth,omitempty"`
 
 	// BaseModel Base model ID (e.g. 'Qwen/Qwen3-8B').
@@ -6079,10 +6290,13 @@ type GetSandboxConfigurationResponse struct {
 
 // GetTrainingGpuCapacityResponse Response for the training GPU capacity endpoint.
 type GetTrainingGpuCapacityResponse struct {
-	// GpuCapacities Org-level GPU capacity limits and current usage per GPU type
+	// GpuCapacities Organization GPU quotas and current usage per GPU type
 	GpuCapacities []TrainingGpuCapacityItem `json:"gpu_capacities"`
 
-	// TeamGpuCapacities Per-team GPU capacity limits and current usage per GPU type
+	// SpotEnabled Whether the organization can submit spot training jobs.
+	SpotEnabled *bool `json:"spot_enabled,omitempty"`
+
+	// TeamGpuCapacities Per-team GPU quotas and current usage per GPU type
 	TeamGpuCapacities *[]TeamTrainingGpuCapacityItem `json:"team_gpu_capacities,omitempty"`
 }
 
@@ -6140,19 +6354,31 @@ type GetTrainingJobMetricsResponse struct {
 	// Cache The storage usage for the read-write cache.
 	Cache *StorageMetrics `json:"cache"`
 
-	// CpuMemoryUsageBytes The CPU memory usage for the training job. For multinode jobs, this is the CPU memory usage of the leader unless specified otherwise.
+	// CpuMemoryUsageBytes The CPU memory usage for the training job. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
 	CpuMemoryUsageBytes []TrainingJobMetric `json:"cpu_memory_usage_bytes"`
 
-	// CpuUsage The CPU usage measured in cores. For multinode jobs, this is the CPU usage of the leader unless specified otherwise.
+	// CpuUsage The CPU usage measured in cores. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
 	CpuUsage []TrainingJobMetric `json:"cpu_usage"`
 
 	// EphemeralStorage A metric for a training job.
 	EphemeralStorage StorageMetrics `json:"ephemeral_storage"`
 
-	// GpuMemoryUsageBytes A map of GPU rank to memory usage for the training job. For multinode jobs, this is the memory usage of the leader unless specified otherwise.
+	// GpuMemoryBandwidthUtilization A map of GPU rank to the share of cycles GPU memory is actively reading or writing, from 0 to 1. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
+	GpuMemoryBandwidthUtilization map[string][]TrainingJobMetric `json:"gpu_memory_bandwidth_utilization"`
+
+	// GpuMemoryUsageBytes A map of GPU rank to memory usage for the training job. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
 	GpuMemoryUsageBytes map[string][]TrainingJobMetric `json:"gpu_memory_usage_bytes"`
 
-	// GpuUtilization A map of GPU rank to fractional GPU utilization. For multinode jobs, this is the GPU utilization of the leader unless specified otherwise.
+	// GpuPowerUsageWatts A map of GPU rank to GPU power draw in watts. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
+	GpuPowerUsageWatts map[string][]TrainingJobMetric `json:"gpu_power_usage_watts"`
+
+	// GpuTemperatureCelsius A map of GPU rank to GPU temperature in degrees Celsius. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
+	GpuTemperatureCelsius map[string][]TrainingJobMetric `json:"gpu_temperature_celsius"`
+
+	// GpuTensorCoreUtilization A map of GPU rank to the share of time the GPU tensor cores are active, from 0 to 1. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
+	GpuTensorCoreUtilization map[string][]TrainingJobMetric `json:"gpu_tensor_core_utilization"`
+
+	// GpuUtilization A map of GPU rank to the share of time the GPU's streaming multiprocessors have work assigned, from 0 to 1. This counts any GPU work, not only tensor core math; see gpu_tensor_core_utilization for that. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
 	GpuUtilization map[string][]TrainingJobMetric `json:"gpu_utilization"`
 
 	// PerNodeMetrics The metrics for each node in the training job.
@@ -6268,6 +6494,21 @@ type GridConnectionBedrockApiKeyAuth struct {
 type GridConnectionConfigAnthropic struct {
 	// Provider Provider kind for Anthropic.
 	Provider string `json:"provider"`
+
+	// SecretId Identifier of the team secret holding the provider API key.
+	SecretId string `json:"secret_id"`
+
+	// SecretName Name of the team secret holding the provider API key.
+	SecretName string `json:"secret_name"`
+}
+
+// GridConnectionConfigAzure defines model for GridConnectionConfigAzure.
+type GridConnectionConfigAzure struct {
+	// Provider Provider kind for Microsoft Azure.
+	Provider string `json:"provider"`
+
+	// ResourceName Name of the Azure AI Foundry or Azure OpenAI resource.
+	ResourceName string `json:"resource_name"`
 
 	// SecretId Identifier of the team secret holding the provider API key.
 	SecretId string `json:"secret_id"`
@@ -6425,13 +6666,16 @@ type GridProvider string
 
 // GridRoute defines model for GridRoute.
 type GridRoute struct {
+	// Aliases The route's other names, one per purpose. Empty for routes created before aliases existed.
+	Aliases *[]GridRouteAlias `json:"aliases,omitempty"`
+
 	// CreatedAt Creation time, ISO 8601.
 	CreatedAt time.Time `json:"created_at"`
 
 	// Description Short description of the route, empty when unset.
 	Description string `json:"description"`
 
-	// DisplayName Display label, defaulting to the route name.
+	// DisplayName Display label, defaulting to the route's name.
 	DisplayName string `json:"display_name"`
 
 	// Id Stable route identifier.
@@ -6443,7 +6687,7 @@ type GridRoute struct {
 	// Metadata Resolved model metadata; for an intelligent route, the envelope of its servable models' metadata. Null when nothing is linked or the metadata has no supported API formats.
 	Metadata *GridRouteMetadata `json:"metadata"`
 
-	// Name Name to send in the inference request's model field.
+	// Name Name to send in the inference request's `model` field. Unique within the team; immutable.
 	Name string `json:"name"`
 
 	// Target Configured upstream target.
@@ -6461,16 +6705,27 @@ type GridRoute_Target struct {
 	union json.RawMessage
 }
 
+// GridRouteAlias defines model for GridRouteAlias.
+type GridRouteAlias struct {
+	Kind GridRouteAliasKind `json:"kind"`
+
+	// Name Name to send in the inference request's `model` field instead of the route's `name`.
+	Name string `json:"name"`
+}
+
+// GridRouteAliasKind defines model for GridRouteAliasKind.
+type GridRouteAliasKind string
+
 // GridRouteClassifier defines model for GridRouteClassifier.
 type GridRouteClassifier struct {
 	// DecidableModels Model identities the route classifier picks from.
 	DecidableModels []string `json:"decidable_models"`
 
+	// DisplayName Display name of the route classifier.
+	DisplayName string `json:"display_name"`
+
 	// Id Stable route classifier identifier.
 	Id string `json:"id"`
-
-	// Name Display name of the route classifier.
-	Name string `json:"name"`
 
 	// SupportedTradeoffs Tradeoffs the route classifier supports. Empty when it supports all of them.
 	SupportedTradeoffs []GridRouteClassifierSupportedTradeoffs `json:"supported_tradeoffs"`
@@ -6599,6 +6854,12 @@ type GridRouteUsageResponse struct {
 
 // GridRouteUsageResult defines model for GridRouteUsageResult.
 type GridRouteUsageResult struct {
+	// ApiKeyName Name of the API key. Null when `api_key_prefix` is null or the key has no name.
+	ApiKeyName *string `json:"api_key_name,omitempty"`
+
+	// ApiKeyPrefix Prefix of the API key that made the requests, matching `GET /v1/api_keys`. Null when not grouping by API_KEY, for usage without an API key, and for usage recorded before API key tracking.
+	ApiKeyPrefix *string `json:"api_key_prefix,omitempty"`
+
 	// CachedInputTokens Input tokens read from the prompt cache.
 	CachedInputTokens int `json:"cached_input_tokens"`
 
@@ -6611,8 +6872,11 @@ type GridRouteUsageResult struct {
 	// InputTokens Input tokens, including cached input tokens.
 	InputTokens int `json:"input_tokens"`
 
-	// IntelligentRoute Name of the intelligent route, as in `GET /v1/grid/routes`. Null when not grouping by INTELLIGENT_ROUTE.
-	IntelligentRoute *string `json:"intelligent_route,omitempty"`
+	// IntelligentRouteDisplayName Display name of the intelligent route. Null when `intelligent_route_id` is null or the route cannot be resolved.
+	IntelligentRouteDisplayName *string `json:"intelligent_route_display_name,omitempty"`
+
+	// IntelligentRouteId ID of the intelligent route, as `id` in GET /v1/grid/routes. Null when not grouping by INTELLIGENT_ROUTE.
+	IntelligentRouteId *string `json:"intelligent_route_id,omitempty"`
 
 	// Model Model name. For external providers, the model name sent to the provider. Null when not grouping by MODEL.
 	Model *string `json:"model,omitempty"`
@@ -7319,6 +7583,9 @@ type LoopsCheckpoint struct {
 
 	// CreatedAt The timestamp of the checkpoint in ISO 8601 format.
 	CreatedAt time.Time `json:"created_at"`
+
+	// ExpiresAt When the checkpoint expires and is deleted, set from the TTL it was saved with. Null means it's kept until you delete it. A checkpoint that's still in use when it expires, for example deployed, is deleted once it's released.
+	ExpiresAt *time.Time `json:"expires_at"`
 
 	// Id The checkpoint ID.
 	Id string `json:"id"`
@@ -8402,22 +8669,22 @@ type PatchLoopsUserConfigResponse struct {
 	UserConfig LoopsUserConfig `json:"user_config"`
 }
 
-// PatchTeamTrainingGpuCapacityRequest A request to set the GPU capacity ceiling for a (team, gpu_type) pair.
+// PatchTeamTrainingGpuCapacityRequest A request to set the GPU quota for a (team, gpu_type) pair.
 //
-// Creates the limit if one doesn't already exist for this team and GPU type,
+// Creates the quota if one doesn't already exist for this team and GPU type,
 // otherwise updates it in place.
 type PatchTeamTrainingGpuCapacityRequest struct {
 	// GpuType GPU type identifier (e.g. H100, A100-40GB)
 	GpuType string `json:"gpu_type"`
 
-	// MaxGpus Max concurrent GPUs of this type the team may use
+	// MaxGpus The team's GPU quota for this type. It counts the team's on-demand jobs, plus its spot jobs when the organization has no separate on-demand quota. On-demand jobs can run past it by borrowing from the organization's shared pool, when one exists.
 	MaxGpus int `json:"max_gpus"`
 
 	// TeamId Team identifier
 	TeamId string `json:"team_id"`
 }
 
-// PatchTeamTrainingGpuCapacityResponse Response for setting a team's GPU capacity ceiling.
+// PatchTeamTrainingGpuCapacityResponse Response for setting a team's GPU quota.
 type PatchTeamTrainingGpuCapacityResponse struct {
 	// TeamGpuCapacity Per-team GPU capacity and current usage for one GPU type.
 	TeamGpuCapacity TeamTrainingGpuCapacityItem `json:"team_gpu_capacity"`
@@ -9561,6 +9828,12 @@ type ServiceAccounts struct {
 	Pagination PaginationResponse `json:"pagination"`
 }
 
+// SetLoopsCheckpointTtlRequest defines model for SetLoopsCheckpointTtlRequest.
+type SetLoopsCheckpointTtlRequest struct {
+	// TtlSeconds Seconds from now until the checkpoint expires and is deleted, from 3600 (1 hour) to 315360000 (10 years). Null removes the TTL, so the checkpoint is kept until you delete it.
+	TtlSeconds *int `json:"ttl_seconds"`
+}
+
 // SetVolumeTagRequest defines model for SetVolumeTagRequest.
 type SetVolumeTagRequest struct {
 	// ExpectedSequence Revision the volume is expected to be at. When set, the request fails with a conflict if the volume has changed since. Take the value from volume_sequence.
@@ -9874,16 +10147,16 @@ type Team struct {
 
 // TeamTrainingGpuCapacityItem Per-team GPU capacity and current usage for one GPU type.
 type TeamTrainingGpuCapacityItem struct {
-	// Baseline Baseline GPU allocation for the team. 0 if not configured.
+	// Baseline Configured minimum GPU allocation for the team. Not enforced. 0 if not configured.
 	Baseline int `json:"baseline"`
 
-	// DedicatedUsageCount Portion of usage_count from standard (non-spot) jobs.
+	// DedicatedUsageCount Portion of usage_count from on-demand (non-spot) jobs.
 	DedicatedUsageCount *int `json:"dedicated_usage_count,omitempty"`
 
 	// GpuType GPU type identifier (e.g. H100, A100-40GB)
 	GpuType string `json:"gpu_type"`
 
-	// Limit Maximum concurrent GPUs of this type for this team
+	// Limit The team's GPU quota for this type. It counts the team's on-demand jobs, plus its spot jobs when the organization has no separate on-demand quota. On-demand jobs can run past it by borrowing from the organization's shared pool, when one exists.
 	Limit int `json:"limit"`
 
 	// SpotUsageCount Portion of usage_count from spot jobs.
@@ -10043,19 +10316,25 @@ type TrainerCheckpointTarget string
 
 // TrainingGpuCapacityItem GPU capacity and current usage for one GPU type.
 type TrainingGpuCapacityItem struct {
-	// Baseline Baseline GPU allocation; jobs below this threshold are expected to run immediately. 0 if not configured.
+	// Baseline Configured minimum GPU allocation (`min_gpus`). 0 if not configured. Use `on_demand_quota` for the quota applied to on-demand jobs.
 	Baseline int `json:"baseline"`
 
-	// DedicatedUsageCount Portion of usage_count from standard (non-spot) jobs, which run against the baseline.
+	// DedicatedUsageCount Portion of usage_count from on-demand (non-spot) jobs.
 	DedicatedUsageCount *int `json:"dedicated_usage_count,omitempty"`
 
 	// GpuType GPU type identifier (e.g. H100, A100-40GB)
 	GpuType string `json:"gpu_type"`
 
-	// Limit Maximum concurrent GPUs of this type for this org
+	// Limit Configured maximum GPU allocation (`max_gpus`). Use `on_demand_quota` and `spot_quota` for the quotas applied to jobs.
 	Limit int `json:"limit"`
 
-	// SpotUsageCount Portion of usage_count from spot jobs, which burst into the peak and may push usage above the limit.
+	// OnDemandQuota GPU quota for this type for on-demand (non-spot) jobs: the most GPUs they can use at once.
+	OnDemandQuota int `json:"on_demand_quota"`
+
+	// SpotQuota GPU quota for this type for spot jobs. Spot shares this quota with on-demand jobs: spot can use up to the quota minus on-demand GPUs in use. Null if spot is not enabled for the organization.
+	SpotQuota *int `json:"spot_quota,omitempty"`
+
+	// SpotUsageCount Portion of usage_count from spot jobs.
 	SpotUsageCount *int `json:"spot_usage_count,omitempty"`
 
 	// UsageCount GPUs currently in use by active training jobs
@@ -10170,19 +10449,31 @@ type TrainingJobMetric struct {
 
 // TrainingJobMetrics defines model for TrainingJobMetrics.
 type TrainingJobMetrics struct {
-	// CpuMemoryUsageBytes The CPU memory usage for the training job. For multinode jobs, this is the CPU memory usage of the leader unless specified otherwise.
+	// CpuMemoryUsageBytes The CPU memory usage for the training job. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
 	CpuMemoryUsageBytes []TrainingJobMetric `json:"cpu_memory_usage_bytes"`
 
-	// CpuUsage The CPU usage measured in cores. For multinode jobs, this is the CPU usage of the leader unless specified otherwise.
+	// CpuUsage The CPU usage measured in cores. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
 	CpuUsage []TrainingJobMetric `json:"cpu_usage"`
 
 	// EphemeralStorage A metric for a training job.
 	EphemeralStorage StorageMetrics `json:"ephemeral_storage"`
 
-	// GpuMemoryUsageBytes A map of GPU rank to memory usage for the training job. For multinode jobs, this is the memory usage of the leader unless specified otherwise.
+	// GpuMemoryBandwidthUtilization A map of GPU rank to the share of cycles GPU memory is actively reading or writing, from 0 to 1. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
+	GpuMemoryBandwidthUtilization map[string][]TrainingJobMetric `json:"gpu_memory_bandwidth_utilization"`
+
+	// GpuMemoryUsageBytes A map of GPU rank to memory usage for the training job. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
 	GpuMemoryUsageBytes map[string][]TrainingJobMetric `json:"gpu_memory_usage_bytes"`
 
-	// GpuUtilization A map of GPU rank to fractional GPU utilization. For multinode jobs, this is the GPU utilization of the leader unless specified otherwise.
+	// GpuPowerUsageWatts A map of GPU rank to GPU power draw in watts. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
+	GpuPowerUsageWatts map[string][]TrainingJobMetric `json:"gpu_power_usage_watts"`
+
+	// GpuTemperatureCelsius A map of GPU rank to GPU temperature in degrees Celsius. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
+	GpuTemperatureCelsius map[string][]TrainingJobMetric `json:"gpu_temperature_celsius"`
+
+	// GpuTensorCoreUtilization A map of GPU rank to the share of time the GPU tensor cores are active, from 0 to 1. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
+	GpuTensorCoreUtilization map[string][]TrainingJobMetric `json:"gpu_tensor_core_utilization"`
+
+	// GpuUtilization A map of GPU rank to the share of time the GPU's streaming multiprocessors have work assigned, from 0 to 1. This counts any GPU work, not only tensor core math; see gpu_tensor_core_utilization for that. At the top level of a multinode job this is the leader node; under per_node_metrics it is that node.
 	GpuUtilization map[string][]TrainingJobMetric `json:"gpu_utilization"`
 }
 
@@ -10858,6 +11149,18 @@ type UpsertGridConnectionConfigAnthropic struct {
 	SecretName string `json:"secret_name"`
 }
 
+// UpsertGridConnectionConfigAzure defines model for UpsertGridConnectionConfigAzure.
+type UpsertGridConnectionConfigAzure struct {
+	// Provider Provider kind for Microsoft Azure. Route targets name a deployment, which must be named after its Azure model. Claude models (`claude-*`) use the Anthropic Messages API, and other models use the OpenAI-compatible APIs.
+	Provider string `json:"provider"`
+
+	// ResourceName Name of the Azure AI Foundry or Azure OpenAI resource, the subdomain of `<resource_name>.openai.azure.com`.
+	ResourceName string `json:"resource_name"`
+
+	// SecretName Name of an existing secret, owned by the same team, that holds the provider API key.
+	SecretName string `json:"secret_name"`
+}
+
 // UpsertGridConnectionConfigBedrock defines model for UpsertGridConnectionConfigBedrock.
 type UpsertGridConnectionConfigBedrock struct {
 	// Auth How the connection's secret authenticates with Amazon Bedrock.
@@ -11055,6 +11358,42 @@ type ValidateLoopsCheckpointRequest struct {
 // inaccessible or malformed paths, and checkpoints of another LoRA config than
 // “run_id“'s, raise 400.
 type ValidateLoopsCheckpointResponse = map[string]interface{}
+
+// Verification Whether a create request would pass the checks the server runs on it.
+type Verification struct {
+	// Error Why the input fails, as creating it would report. Null when it's valid.
+	Error *string `json:"error,omitempty"`
+
+	// Valid Whether the input passes every check
+	Valid bool `json:"valid"`
+}
+
+// VerifyAccessTrustRuleRequest Request to check a trust rule's condition and audience before saving them.
+type VerifyAccessTrustRuleRequest struct {
+	// Audience The token's `aud` must equal this, or contain it when `aud` is a list. Up to 1,024 characters.
+	Audience string `json:"audience"`
+
+	// Condition A CEL expression over the token's `claims` that must evaluate to true. It must pin a specific `claims.sub` in a top-level `&&` clause, plus any provider-required checks. Up to 4,096 characters.
+	Condition string `json:"condition"`
+
+	// IdentityProviderId The identity provider the rule is for, which decides the claims it must pin
+	IdentityProviderId string `json:"identity_provider_id"`
+}
+
+// VerifyIdentityProviderRequest Request to check an identity provider before adding it.
+type VerifyIdentityProviderRequest struct {
+	// Predefined Settings of the predefined identity provider to check.
+	Predefined VerifyPredefinedIdentityProviderConfig `json:"predefined"`
+}
+
+// VerifyPredefinedIdentityProviderConfig Settings of the predefined identity provider to check.
+type VerifyPredefinedIdentityProviderConfig struct {
+	// IssuerUrl The issuer to check, for AWS IAM, Amazon EKS, Azure managed identity, and Azure Kubernetes Service, in the format the predefined identity providers endpoint shows
+	IssuerUrl *string `json:"issuer_url,omitempty"`
+
+	// Kind An identity provider Baseten supports.
+	Kind PredefinedIdentityProviderKind `json:"kind"`
+}
 
 // VertexTargetConfig defines model for VertexTargetConfig.
 type VertexTargetConfig struct {
@@ -11493,6 +11832,9 @@ type GetV1AccessIdentityProvidersParams struct {
 	// Limit Maximum number of items to return.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
+	// Name Only the provider with this name, ignoring case
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+
 	// PredefinedKind Only this predefined provider's issuers
 	PredefinedKind *PredefinedIdentityProviderKind `form:"predefined_kind,omitempty" json:"predefined_kind,omitempty"`
 }
@@ -11504,6 +11846,9 @@ type GetV1AccessTrustRulesParams struct {
 
 	// Limit Maximum number of items to return.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Name Only the rule with this name, ignoring case
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
 
 	// IdentityProviderId Only this provider's rules
 	IdentityProviderId *string `form:"identity_provider_id,omitempty" json:"identity_provider_id,omitempty"`
@@ -11778,7 +12123,7 @@ type GetV1GridRoutesParams struct {
 	// ForHarnesses Set by harness setup and sync. Returns routes from exactly one team: `team_id`, else the team you belong to; when you belong to several and name none, the request fails with a 400.
 	ForHarnesses *bool `form:"for_harnesses,omitempty" json:"for_harnesses,omitempty"`
 
-	// Name Filter by exact route name. Preserved by the cursor; if repeated, must match the original filter.
+	// Name Filter by exact route name, the value to send in the inference request's `model` field. Matches a route's name or any of its aliases. Preserved by the cursor; if repeated, must match the original filter.
 	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
@@ -11799,7 +12144,7 @@ type GetV1GridRoutesUsageParams struct {
 	// EndDate Exclusive UTC calendar day at the end of the query range. Defaults to the day after the current UTC date so current-day usage is included.
 	EndDate *string `form:"end_date,omitempty" json:"end_date,omitempty"`
 
-	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, or HARNESS. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. Defaults to MODEL.
+	// GroupBy Dimensions to break usage down by, repeated once per dimension: USER, TEAM, MODEL, PROVIDER, INTELLIGENT_ROUTE, HARNESS, or API_KEY. Each result represents one observed combination of the requested dimensions within that day, and results are sorted by those values. Combinations without usage are omitted, so result counts can differ between days. INTELLIGENT_ROUTE returns only usage sent through an intelligent route, one row per intelligent route, or per intelligent route and model with MODEL. These rows repeat usage already counted in other groupings, so don't add them to model totals. HARNESS includes usage with no recorded harness as a null group. API_KEY includes usage without an API key, such as requests authenticated by a signed-in session, as a null group. Defaults to MODEL.
 	GroupBy *[]GridRouteUsageDimension `form:"group_by,omitempty" json:"group_by,omitempty"`
 
 	// UserIds Return only usage from Routes keys created by these user IDs, repeated once per ID.
@@ -11813,6 +12158,9 @@ type GetV1GridRoutesUsageParams struct {
 
 	// Harnesses Return only usage for these harnesses, repeated once per harness. Omit to include all usage, including usage with no recorded harness.
 	Harnesses *[]GridRouteUsageHarness `form:"harnesses,omitempty" json:"harnesses,omitempty"`
+
+	// ApiKeyPrefixes Return only usage made with these API keys, repeated once per key prefix. Omit to include all usage, including usage without an API key.
+	ApiKeyPrefixes *[]string `form:"api_key_prefixes,omitempty" json:"api_key_prefixes,omitempty"`
 }
 
 // GetV1GridTeamSettingsParams defines parameters for GetV1GridTeamSettings.
@@ -12531,6 +12879,9 @@ type GetV1ServiceAccountsParams struct {
 	// Limit Maximum number of items to return.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
+	// Name Only the account with this name, ignoring case
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+
 	// TeamId Only this team's accounts
 	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 
@@ -12679,11 +13030,17 @@ type GetV1VolumesVolumeNamespaceVolumeNameVersionsParams struct {
 // PostV1AccessIdentityProvidersJSONRequestBody defines body for PostV1AccessIdentityProviders for application/json ContentType.
 type PostV1AccessIdentityProvidersJSONRequestBody = CreateIdentityProviderRequest
 
+// PostV1AccessIdentityProvidersVerifyJSONRequestBody defines body for PostV1AccessIdentityProvidersVerify for application/json ContentType.
+type PostV1AccessIdentityProvidersVerifyJSONRequestBody = VerifyIdentityProviderRequest
+
 // PatchV1AccessIdentityProvidersIdentityProviderIdJSONRequestBody defines body for PatchV1AccessIdentityProvidersIdentityProviderId for application/json ContentType.
 type PatchV1AccessIdentityProvidersIdentityProviderIdJSONRequestBody = UpdateIdentityProviderRequest
 
 // PostV1AccessTrustRulesJSONRequestBody defines body for PostV1AccessTrustRules for application/json ContentType.
 type PostV1AccessTrustRulesJSONRequestBody = CreateAccessTrustRuleRequest
+
+// PostV1AccessTrustRulesVerifyJSONRequestBody defines body for PostV1AccessTrustRulesVerify for application/json ContentType.
+type PostV1AccessTrustRulesVerifyJSONRequestBody = VerifyAccessTrustRuleRequest
 
 // PatchV1AccessTrustRulesTrustRuleIdJSONRequestBody defines body for PatchV1AccessTrustRulesTrustRuleId for application/json ContentType.
 type PatchV1AccessTrustRulesTrustRuleIdJSONRequestBody = UpdateAccessTrustRuleRequest
@@ -12780,6 +13137,9 @@ type PostV1LoopsCheckpointsDeployJSONRequestBody = DeployLoopsCheckpointRequest
 
 // PostV1LoopsCheckpointsValidateJSONRequestBody defines body for PostV1LoopsCheckpointsValidate for application/json ContentType.
 type PostV1LoopsCheckpointsValidateJSONRequestBody = ValidateLoopsCheckpointRequest
+
+// PutV1LoopsCheckpointsCheckpointIdTtlJSONRequestBody defines body for PutV1LoopsCheckpointsCheckpointIdTtl for application/json ContentType.
+type PutV1LoopsCheckpointsCheckpointIdTtlJSONRequestBody = SetLoopsCheckpointTtlRequest
 
 // PostV1LoopsDeploymentsDeploymentIdMetricsJSONRequestBody defines body for PostV1LoopsDeploymentsDeploymentIdMetrics for application/json ContentType.
 type PostV1LoopsDeploymentsDeploymentIdMetricsJSONRequestBody = GetLoopsDeploymentMetricsRequest
@@ -13360,6 +13720,21 @@ func (t *AuditLogEntry_EventData) FromAuditLogEventApiKeyLifetimeLimitsUpdated(v
 	return err
 }
 
+// AsAuditLogEventOrganizationApiKeySettingsUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventOrganizationApiKeySettingsUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventOrganizationApiKeySettingsUpdated() (AuditLogEventOrganizationApiKeySettingsUpdated, error) {
+	var body AuditLogEventOrganizationApiKeySettingsUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventOrganizationApiKeySettingsUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventOrganizationApiKeySettingsUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventOrganizationApiKeySettingsUpdated(v AuditLogEventOrganizationApiKeySettingsUpdated) error {
+	v.EventType = "ORGANIZATION_API_KEY_SETTINGS_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 // AsAuditLogEventGatewayEndpointCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventGatewayEndpointCreated
 func (t AuditLogEntry_EventData) AsAuditLogEventGatewayEndpointCreated() (AuditLogEventGatewayEndpointCreated, error) {
 	var body AuditLogEventGatewayEndpointCreated
@@ -13870,6 +14245,141 @@ func (t *AuditLogEntry_EventData) FromAuditLogEventTelemetryExportDeleted(v Audi
 	return err
 }
 
+// AsAuditLogEventServiceAccountCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventServiceAccountCreated
+func (t AuditLogEntry_EventData) AsAuditLogEventServiceAccountCreated() (AuditLogEventServiceAccountCreated, error) {
+	var body AuditLogEventServiceAccountCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventServiceAccountCreated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventServiceAccountCreated
+func (t *AuditLogEntry_EventData) FromAuditLogEventServiceAccountCreated(v AuditLogEventServiceAccountCreated) error {
+	v.EventType = "SERVICE_ACCOUNT_CREATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventServiceAccountUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventServiceAccountUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventServiceAccountUpdated() (AuditLogEventServiceAccountUpdated, error) {
+	var body AuditLogEventServiceAccountUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventServiceAccountUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventServiceAccountUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventServiceAccountUpdated(v AuditLogEventServiceAccountUpdated) error {
+	v.EventType = "SERVICE_ACCOUNT_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventServiceAccountDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventServiceAccountDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventServiceAccountDeleted() (AuditLogEventServiceAccountDeleted, error) {
+	var body AuditLogEventServiceAccountDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventServiceAccountDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventServiceAccountDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventServiceAccountDeleted(v AuditLogEventServiceAccountDeleted) error {
+	v.EventType = "SERVICE_ACCOUNT_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventIdentityProviderCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventIdentityProviderCreated
+func (t AuditLogEntry_EventData) AsAuditLogEventIdentityProviderCreated() (AuditLogEventIdentityProviderCreated, error) {
+	var body AuditLogEventIdentityProviderCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventIdentityProviderCreated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventIdentityProviderCreated
+func (t *AuditLogEntry_EventData) FromAuditLogEventIdentityProviderCreated(v AuditLogEventIdentityProviderCreated) error {
+	v.EventType = "IDENTITY_PROVIDER_CREATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventIdentityProviderUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventIdentityProviderUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventIdentityProviderUpdated() (AuditLogEventIdentityProviderUpdated, error) {
+	var body AuditLogEventIdentityProviderUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventIdentityProviderUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventIdentityProviderUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventIdentityProviderUpdated(v AuditLogEventIdentityProviderUpdated) error {
+	v.EventType = "IDENTITY_PROVIDER_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventIdentityProviderDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventIdentityProviderDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventIdentityProviderDeleted() (AuditLogEventIdentityProviderDeleted, error) {
+	var body AuditLogEventIdentityProviderDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventIdentityProviderDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventIdentityProviderDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventIdentityProviderDeleted(v AuditLogEventIdentityProviderDeleted) error {
+	v.EventType = "IDENTITY_PROVIDER_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventTrustRuleCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventTrustRuleCreated
+func (t AuditLogEntry_EventData) AsAuditLogEventTrustRuleCreated() (AuditLogEventTrustRuleCreated, error) {
+	var body AuditLogEventTrustRuleCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventTrustRuleCreated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventTrustRuleCreated
+func (t *AuditLogEntry_EventData) FromAuditLogEventTrustRuleCreated(v AuditLogEventTrustRuleCreated) error {
+	v.EventType = "TRUST_RULE_CREATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventTrustRuleUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventTrustRuleUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventTrustRuleUpdated() (AuditLogEventTrustRuleUpdated, error) {
+	var body AuditLogEventTrustRuleUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventTrustRuleUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventTrustRuleUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventTrustRuleUpdated(v AuditLogEventTrustRuleUpdated) error {
+	v.EventType = "TRUST_RULE_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventTrustRuleDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventTrustRuleDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventTrustRuleDeleted() (AuditLogEventTrustRuleDeleted, error) {
+	var body AuditLogEventTrustRuleDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventTrustRuleDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventTrustRuleDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventTrustRuleDeleted(v AuditLogEventTrustRuleDeleted) error {
+	v.EventType = "TRUST_RULE_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t AuditLogEntry_EventData) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"event_type"`
@@ -13930,6 +14440,12 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventGridMachineUserDeleted()
 	case "GRID_MACHINE_USER_UPDATED":
 		return t.AsAuditLogEventGridMachineUserUpdated()
+	case "IDENTITY_PROVIDER_CREATED":
+		return t.AsAuditLogEventIdentityProviderCreated()
+	case "IDENTITY_PROVIDER_DELETED":
+		return t.AsAuditLogEventIdentityProviderDeleted()
+	case "IDENTITY_PROVIDER_UPDATED":
+		return t.AsAuditLogEventIdentityProviderUpdated()
 	case "MODEL_DELETED":
 		return t.AsAuditLogEventModelDeleted()
 	case "MODEL_DEPLOYED":
@@ -13954,6 +14470,8 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventModelPromotionControlAction()
 	case "MODEL_RENAMED":
 		return t.AsAuditLogEventModelRenamed()
+	case "ORGANIZATION_API_KEY_SETTINGS_UPDATED":
+		return t.AsAuditLogEventOrganizationApiKeySettingsUpdated()
 	case "PROVIDER_CONNECTION_CREATED":
 		return t.AsAuditLogEventProviderConnectionCreated()
 	case "PROVIDER_CONNECTION_DELETED":
@@ -13968,6 +14486,12 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventSecretDeleted()
 	case "SECRET_UPDATED":
 		return t.AsAuditLogEventSecretUpdated()
+	case "SERVICE_ACCOUNT_CREATED":
+		return t.AsAuditLogEventServiceAccountCreated()
+	case "SERVICE_ACCOUNT_DELETED":
+		return t.AsAuditLogEventServiceAccountDeleted()
+	case "SERVICE_ACCOUNT_UPDATED":
+		return t.AsAuditLogEventServiceAccountUpdated()
 	case "SSH_CERTIFICATE_SIGNED":
 		return t.AsAuditLogEventSshCertificateSigned()
 	case "TELEMETRY_EXPORT_CREATED":
@@ -13976,6 +14500,12 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventTelemetryExportDeleted()
 	case "TELEMETRY_EXPORT_UPDATED":
 		return t.AsAuditLogEventTelemetryExportUpdated()
+	case "TRUST_RULE_CREATED":
+		return t.AsAuditLogEventTrustRuleCreated()
+	case "TRUST_RULE_DELETED":
+		return t.AsAuditLogEventTrustRuleDeleted()
+	case "TRUST_RULE_UPDATED":
+		return t.AsAuditLogEventTrustRuleUpdated()
 	case "USER_INVITED":
 		return t.AsAuditLogEventUserInvited()
 	case "USER_JOINED_ORGANIZATION":
@@ -14231,6 +14761,21 @@ func (t *CreateGridConnectionRequest_Config) FromUpsertGridConnectionConfigBedro
 	return err
 }
 
+// AsUpsertGridConnectionConfigAzure returns the union data inside the CreateGridConnectionRequest_Config as a UpsertGridConnectionConfigAzure
+func (t CreateGridConnectionRequest_Config) AsUpsertGridConnectionConfigAzure() (UpsertGridConnectionConfigAzure, error) {
+	var body UpsertGridConnectionConfigAzure
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromUpsertGridConnectionConfigAzure overwrites any union data inside the CreateGridConnectionRequest_Config as the provided UpsertGridConnectionConfigAzure
+func (t *CreateGridConnectionRequest_Config) FromUpsertGridConnectionConfigAzure(v UpsertGridConnectionConfigAzure) error {
+	v.Provider = "AZURE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t CreateGridConnectionRequest_Config) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"provider"`
@@ -14247,6 +14792,8 @@ func (t CreateGridConnectionRequest_Config) ValueByDiscriminator() (interface{},
 	switch discriminator {
 	case "ANTHROPIC":
 		return t.AsUpsertGridConnectionConfigAnthropic()
+	case "AZURE":
+		return t.AsUpsertGridConnectionConfigAzure()
 	case "BEDROCK":
 		return t.AsUpsertGridConnectionConfigBedrock()
 	case "OPENAI":
@@ -15279,6 +15826,21 @@ func (t *GridConnection_Config) FromGridConnectionConfigBedrock(v GridConnection
 	return err
 }
 
+// AsGridConnectionConfigAzure returns the union data inside the GridConnection_Config as a GridConnectionConfigAzure
+func (t GridConnection_Config) AsGridConnectionConfigAzure() (GridConnectionConfigAzure, error) {
+	var body GridConnectionConfigAzure
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGridConnectionConfigAzure overwrites any union data inside the GridConnection_Config as the provided GridConnectionConfigAzure
+func (t *GridConnection_Config) FromGridConnectionConfigAzure(v GridConnectionConfigAzure) error {
+	v.Provider = "AZURE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t GridConnection_Config) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"provider"`
@@ -15295,6 +15857,8 @@ func (t GridConnection_Config) ValueByDiscriminator() (interface{}, error) {
 	switch discriminator {
 	case "ANTHROPIC":
 		return t.AsGridConnectionConfigAnthropic()
+	case "AZURE":
+		return t.AsGridConnectionConfigAzure()
 	case "BEDROCK":
 		return t.AsGridConnectionConfigBedrock()
 	case "OPENAI":
@@ -16624,6 +17188,21 @@ func (t *UpdateGridConnectionRequest_Config) FromUpsertGridConnectionConfigBedro
 	return err
 }
 
+// AsUpsertGridConnectionConfigAzure returns the union data inside the UpdateGridConnectionRequest_Config as a UpsertGridConnectionConfigAzure
+func (t UpdateGridConnectionRequest_Config) AsUpsertGridConnectionConfigAzure() (UpsertGridConnectionConfigAzure, error) {
+	var body UpsertGridConnectionConfigAzure
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromUpsertGridConnectionConfigAzure overwrites any union data inside the UpdateGridConnectionRequest_Config as the provided UpsertGridConnectionConfigAzure
+func (t *UpdateGridConnectionRequest_Config) FromUpsertGridConnectionConfigAzure(v UpsertGridConnectionConfigAzure) error {
+	v.Provider = "AZURE"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 func (t UpdateGridConnectionRequest_Config) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"provider"`
@@ -16640,6 +17219,8 @@ func (t UpdateGridConnectionRequest_Config) ValueByDiscriminator() (interface{},
 	switch discriminator {
 	case "ANTHROPIC":
 		return t.AsUpsertGridConnectionConfigAnthropic()
+	case "AZURE":
+		return t.AsUpsertGridConnectionConfigAzure()
 	case "BEDROCK":
 		return t.AsUpsertGridConnectionConfigBedrock()
 	case "OPENAI":
