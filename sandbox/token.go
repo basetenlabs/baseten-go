@@ -4,11 +4,11 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/basetenlabs/baseten-go/client"
 	"github.com/basetenlabs/baseten-go/client/managementapi"
+	"github.com/basetenlabs/baseten-go/internal/tokenauth"
 )
 
 // TokenProvider returns the bearer token to send on a request. Called for
@@ -34,7 +34,8 @@ type httpDoer interface {
 }
 
 // Refresh this long before the token's stated expiry, to allow for clock skew
-// between this machine and the server, and for time spent in flight.
+// between this machine and the server, and for time spent in flight. Capped at
+// half the token's lifetime.
 const tokenExpiryLeeway = 60 * time.Second
 
 // A few retries cover a new token being invalidated in the same event as the
@@ -62,18 +63,20 @@ var tokenMintTimeout = 30 * time.Second
 type tokenSource struct {
 	provider   TokenProvider
 	management *client.ManagementClient
-
-	mu      sync.Mutex
-	current *tokenMint
+	// cache is set when tokens are minted through management.
+	cache *tokenauth.Cache
 }
 
-// tokenMint is one exchange, shared by every caller that asks while it is in
-// flight. Its fields are set before done is closed.
-type tokenMint struct {
-	done      chan struct{}
-	token     string
-	expiresAt time.Time
-	err       error
+func newTokenSource(provider TokenProvider, management *client.ManagementClient) *tokenSource {
+	s := &tokenSource{provider: provider, management: management}
+	if provider == nil && management != nil {
+		s.cache = tokenauth.NewCache(tokenauth.CacheOptions{
+			Mint:          s.mint,
+			RefreshLeeway: tokenExpiryLeeway,
+			MintTimeout:   tokenMintTimeout,
+		})
+	}
+	return s
 }
 
 // token returns the token for a request, or the empty string when no
@@ -83,93 +86,28 @@ func (s *tokenSource) token(ctx context.Context, revokedToken string) (string, e
 	if s.provider != nil {
 		return s.provider(ctx, TokenProviderOptions{RevokedToken: revokedToken})
 	}
-	if s.management == nil {
+	if s.cache == nil {
 		return "", nil
 	}
-	for {
-		s.mu.Lock()
-		mint := s.current
-		started := mint == nil
-		if started {
-			mint = s.startMint(ctx)
-			s.current = mint
-		}
-		s.mu.Unlock()
-		select {
-		case <-mint.done:
-		case <-ctx.Done():
-			return "", ctx.Err()
-		}
-		if mint.err != nil {
-			// Another caller's failed exchange gets one more try of this
-			// caller's own; the failed one already left the cache.
-			if !started {
-				continue
-			}
-			return "", mint.err
-		}
-		// A token this caller just minted is used even if already close to
-		// expiry, so a skewed clock cannot loop here forever.
-		if started || time.Now().Before(mint.expiresAt.Add(-tokenExpiryLeeway)) {
-			return mint.token, nil
-		}
-		s.mu.Lock()
-		if s.current == mint {
-			s.current = nil
-		}
-		s.mu.Unlock()
-	}
+	token, err := s.cache.Token(ctx)
+	return token.Value, err
 }
 
-// startMint starts an exchange. It runs without the caller's cancellation,
-// since one caller giving up must not fail the others waiting on it; each only
-// stops waiting on its own. It has its own timeout instead, so a stalled
-// exchange cannot hold every caller. Must be called with mu held.
-func (s *tokenSource) startMint(ctx context.Context) *tokenMint {
-	mint := &tokenMint{done: make(chan struct{})}
-	go func() {
-		mintCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), tokenMintTimeout)
-		defer cancel()
-		minted, err := s.management.API().PostToken(mintCtx, managementapi.CreateTokenRequest{
-			Scopes: []managementapi.TokenScope{managementapi.TokenScope_sandboxes},
-		})
-		if err != nil {
-			mint.err = controlPlaneError(err)
-		} else {
-			mint.token = minted.Token
-			mint.expiresAt = minted.ExpiresAt
-		}
-		if mint.err != nil {
-			// A failed exchange is not cached, so the next request tries
-			// again.
-			s.mu.Lock()
-			if s.current == mint {
-				s.current = nil
-			}
-			s.mu.Unlock()
-		}
-		close(mint.done)
-	}()
-	return mint
+func (s *tokenSource) mint(ctx context.Context) (tokenauth.Token, error) {
+	minted, err := s.management.API().PostToken(ctx, managementapi.CreateTokenRequest{
+		Scopes: []managementapi.TokenScope{managementapi.TokenScope_sandboxes},
+	})
+	if err != nil {
+		return tokenauth.Token{}, controlPlaneError(err)
+	}
+	return tokenauth.Token{Value: minted.Token, ExpiresAt: minted.ExpiresAt}, nil
 }
 
 // invalidate drops a token the server rejected, so the next request gets a
 // new one.
 func (s *tokenSource) invalidate(token string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if s.current == nil {
-		return
-	}
-	select {
-	case <-s.current.done:
-		// Compared by value, so a rejection of an older token never discards
-		// a newer one another request already minted.
-		if s.current.token == token {
-			s.current = nil
-		}
-	default:
-		// Still minting, so the cached token is already a newer one.
+	if s.cache != nil {
+		s.cache.Invalidate(token)
 	}
 }
 
@@ -209,10 +147,15 @@ func (c *authenticatedClient) Do(req *http.Request) (*http.Response, error) {
 		if err != nil {
 			return nil, err
 		}
-		if token == "" || !replayable || retry >= tokenInvalidationMaxRetries || !isTokenRevoked(resp) {
+		if token == "" || !isTokenRevoked(resp) {
 			return resp, nil
 		}
+		// Dropped even when the request is not sent again, so later requests
+		// do not reuse it.
 		c.tokens.invalidate(token)
+		if !replayable || retry >= tokenInvalidationMaxRetries {
+			return resp, nil
+		}
 		io.Copy(io.Discard, resp.Body)
 		resp.Body.Close()
 		revokedToken = token

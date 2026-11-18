@@ -97,7 +97,7 @@ func (s *tokenServer) tokens(t *testing.T) *tokenSource {
 	t.Helper()
 	management, err := client.NewManagementClient(client.ManagementClientOptions{APIKey: "key", BaseURL: s.URL})
 	require.NoError(t, err)
-	return &tokenSource{management: management}
+	return newTokenSource(nil, management)
 }
 
 // echo sends a request through the authenticated client and returns its
@@ -126,9 +126,10 @@ func TestTokenSource(t *testing.T) {
 		require.Equal(t, int32(1), srv.mints.Load())
 	})
 
-	t.Run("RefreshesNearExpiry", func(t *testing.T) {
+	t.Run("RefreshesAtExpiry", func(t *testing.T) {
 		srv := newTokenServer(t)
-		srv.expiresIn = tokenExpiryLeeway / 2
+		// Refresh timing within the lifetime is covered by the tokenauth tests.
+		srv.expiresIn = 0
 		tokens := srv.tokens(t)
 		first, err := tokens.token(t.Context(), "")
 		require.NoError(t, err)
@@ -271,7 +272,8 @@ func TestAuthenticatedClient(t *testing.T) {
 		c := &authenticatedClient{inner: http.DefaultClient, tokens: srv.tokens(t)}
 		status, _ := echo(t, c, srv.URL, nil)
 		require.Equal(t, http.StatusUnauthorized, status)
-		require.Equal(t, int32(tokenInvalidationMaxRetries+1), srv.mints.Load())
+		// The first send and two resends.
+		require.Equal(t, int32(3), srv.mints.Load())
 	})
 
 	t.Run("NonReplayableBodyNotResent", func(t *testing.T) {
@@ -282,6 +284,11 @@ func TestAuthenticatedClient(t *testing.T) {
 		status, _ := echo(t, c, srv.URL, io.MultiReader(strings.NewReader("stream")))
 		require.Equal(t, http.StatusUnauthorized, status)
 		require.Len(t, srv.echoBodies, 1)
+		// Not sent again, but the revoked token is still dropped, so the next
+		// request does not reuse it.
+		status, seen := echo(t, c, srv.URL, nil)
+		require.Equal(t, http.StatusOK, status)
+		require.Equal(t, "token-2", seen)
 	})
 
 	t.Run("ProviderToldRevokedToken", func(t *testing.T) {
@@ -295,7 +302,7 @@ func TestAuthenticatedClient(t *testing.T) {
 			}
 			return "provided-1", nil
 		}
-		c := &authenticatedClient{inner: http.DefaultClient, tokens: &tokenSource{provider: provider}}
+		c := &authenticatedClient{inner: http.DefaultClient, tokens: newTokenSource(provider, nil)}
 		status, seen := echo(t, c, srv.URL, nil)
 		require.Equal(t, http.StatusOK, status)
 		require.Equal(t, "provided-2", seen)
@@ -314,9 +321,31 @@ func TestAuthenticatedClient(t *testing.T) {
 			calls++
 			return "token", nil
 		}
-		c := &authenticatedClient{inner: http.DefaultClient, tokens: &tokenSource{provider: provider}}
+		c := &authenticatedClient{inner: http.DefaultClient, tokens: newTokenSource(provider, nil)}
 		status, _ := echo(t, c, srv.URL, nil)
 		require.Equal(t, http.StatusUnauthorized, status)
 		require.Equal(t, 1, calls)
 	})
+}
+
+func TestIsTokenRevoked(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		status  int
+		headers map[string]string
+		want    bool
+	}{
+		{"Revoked", http.StatusUnauthorized, map[string]string{"x-blaxel-error-code": "TOKEN_REVOKED"}, true},
+		{"InvalidTokenChallenge", http.StatusUnauthorized, map[string]string{"WWW-Authenticate": `Bearer error="invalid_token"`}, false},
+		{"PlainUnauthorized", http.StatusUnauthorized, nil, false},
+		{"Forbidden", http.StatusForbidden, map[string]string{"x-blaxel-error-code": "TOKEN_REVOKED"}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			resp := &http.Response{StatusCode: tc.status, Header: http.Header{}}
+			for k, v := range tc.headers {
+				resp.Header.Set(k, v)
+			}
+			require.Equal(t, tc.want, isTokenRevoked(resp))
+		})
+	}
 }
