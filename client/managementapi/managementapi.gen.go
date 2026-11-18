@@ -737,6 +737,36 @@ func (e DeploymentPatchAction) Valid() bool {
 	}
 }
 
+// Defines values for DeploymentReplicaStatus.
+const (
+	DeploymentReplicaStatus_ACTIVE      DeploymentReplicaStatus = "ACTIVE"
+	DeploymentReplicaStatus_STARTING    DeploymentReplicaStatus = "STARTING"
+	DeploymentReplicaStatus_TERMINATED  DeploymentReplicaStatus = "TERMINATED"
+	DeploymentReplicaStatus_TERMINATING DeploymentReplicaStatus = "TERMINATING"
+	DeploymentReplicaStatus_UNHEALTHY   DeploymentReplicaStatus = "UNHEALTHY"
+	DeploymentReplicaStatus_UNKNOWN     DeploymentReplicaStatus = "UNKNOWN"
+)
+
+// Valid indicates whether the value is a known member of the DeploymentReplicaStatus enum.
+func (e DeploymentReplicaStatus) Valid() bool {
+	switch e {
+	case DeploymentReplicaStatus_ACTIVE:
+		return true
+	case DeploymentReplicaStatus_STARTING:
+		return true
+	case DeploymentReplicaStatus_TERMINATED:
+		return true
+	case DeploymentReplicaStatus_TERMINATING:
+		return true
+	case DeploymentReplicaStatus_UNHEALTHY:
+		return true
+	case DeploymentReplicaStatus_UNKNOWN:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DeploymentStatus.
 const (
 	DeploymentStatus_ACTIVE         DeploymentStatus = "ACTIVE"
@@ -892,12 +922,15 @@ func (e GridProvider) Valid() bool {
 
 // Defines values for GridRouteAliasKind.
 const (
+	GridRouteAliasKind_ALIAS          GridRouteAliasKind = "ALIAS"
 	GridRouteAliasKind_CLAUDE_DESKTOP GridRouteAliasKind = "CLAUDE_DESKTOP"
 )
 
 // Valid indicates whether the value is a known member of the GridRouteAliasKind enum.
 func (e GridRouteAliasKind) Valid() bool {
 	switch e {
+	case GridRouteAliasKind_ALIAS:
+		return true
 	case GridRouteAliasKind_CLAUDE_DESKTOP:
 		return true
 	default:
@@ -2437,7 +2470,7 @@ type AccessTrustRule struct {
 	// IdentityProviderName Name of the identity provider
 	IdentityProviderName string `json:"identity_provider_name"`
 
-	// LastUsedAt Last token exchange through the rule. Null until the first.
+	// LastUsedAt Last time a request authenticated with a token the rule issued, to within an hour. Null until the first.
 	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
 
 	// MaxAccessTokenLifetimeSeconds Longest lifetime of a token the rule issues, in seconds
@@ -4697,6 +4730,9 @@ type CreateTokenRequest struct {
 
 // CreateTrainingJob Configuration for a training job.
 type CreateTrainingJob struct {
+	// Bdn Read-only BDN mounts with the same reference semantics as inference.
+	Bdn *TrainingBDNConfig `json:"bdn,omitempty"`
+
 	// Compute Configuration to specify the compute for a training job.
 	Compute *CreateTrainingJobCompute `json:"compute,omitempty"`
 
@@ -5596,6 +5632,41 @@ type DeploymentPatchPointWithHash struct {
 
 	// Requirements Requirements resolved from the config's requirements file, when it points at one. Empty when requirements are declared inline in the config.
 	Requirements *[]string `json:"requirements,omitempty"`
+}
+
+// DeploymentReplica defines model for DeploymentReplica.
+type DeploymentReplica struct {
+	// AgeSeconds Age in seconds since creation, frozen at termination.
+	AgeSeconds float32 `json:"age_seconds"`
+
+	// CreatedAt Replica creation time in ISO 8601 format.
+	CreatedAt time.Time `json:"created_at"`
+
+	// DeploymentId ID of the replica's deployment.
+	DeploymentId string `json:"deployment_id"`
+
+	// DeploymentName Name of the replica's deployment.
+	DeploymentName string `json:"deployment_name"`
+
+	// Id Pod-name suffix used for replica lookup and termination, usually five characters.
+	Id string `json:"id"`
+
+	// RestartCount Model container lifetime restart count, or null if unavailable.
+	RestartCount *int                    `json:"restart_count"`
+	Status       DeploymentReplicaStatus `json:"status"`
+
+	// TerminatedAt Observed termination completion time in ISO 8601 format, or null if unavailable.
+	TerminatedAt *time.Time `json:"terminated_at"`
+}
+
+// DeploymentReplicaStatus defines model for DeploymentReplicaStatus.
+type DeploymentReplicaStatus string
+
+// DeploymentReplicas defines model for DeploymentReplicas.
+type DeploymentReplicas struct {
+	// Items Items in this page.
+	Items      []DeploymentReplica `json:"items"`
+	Pagination PaginationResponse  `json:"pagination"`
 }
 
 // DeploymentStatus The status of a deployment.
@@ -6718,8 +6789,8 @@ type GridRouteAliasKind string
 
 // GridRouteClassifier defines model for GridRouteClassifier.
 type GridRouteClassifier struct {
-	// DecidableModels Model identities the route classifier picks from.
-	DecidableModels []string `json:"decidable_models"`
+	// DecidableCanonicalModelIds Canonical model ids the route classifier picks from.
+	DecidableCanonicalModelIds []string `json:"decidable_canonical_model_ids"`
 
 	// DisplayName Display name of the route classifier.
 	DisplayName string `json:"display_name"`
@@ -9762,7 +9833,7 @@ type ServiceAccount struct {
 	// Id Service account ID
 	Id string `json:"id"`
 
-	// LastUsedAt Last time a token was exchanged for this account. Null until the first.
+	// LastUsedAt Last time a request authenticated as this account, to within an hour. Null until the first.
 	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
 
 	// Name Name, unique in the organization
@@ -10193,6 +10264,42 @@ type Token struct {
 	Token string `json:"token"`
 }
 
+// TokenExchangeRequest An RFC 8693 token exchange request naming the trust rule to check as its audience.
+type TokenExchangeRequest struct {
+	// AccessTokenLifetimeSeconds Lifetime of the access token, in seconds. At most the rule's maximum.
+	AccessTokenLifetimeSeconds *int `json:"access_token_lifetime_seconds,omitempty"`
+
+	// Audience ID of the trust rule to check the JWT against
+	Audience string `json:"audience"`
+
+	// GrantType Always `urn:ietf:params:oauth:grant-type:token-exchange`
+	GrantType string `json:"grant_type"`
+
+	// RequestedTokenType Optional; only `urn:ietf:params:oauth:token-type:access_token` is issued
+	RequestedTokenType *string `json:"requested_token_type,omitempty"`
+
+	// SubjectToken The identity provider's JWT
+	SubjectToken string `json:"subject_token"`
+
+	// SubjectTokenType `urn:ietf:params:oauth:token-type:jwt` or `urn:ietf:params:oauth:token-type:id_token`
+	SubjectTokenType string `json:"subject_token_type"`
+}
+
+// TokenExchangeResponse defines model for TokenExchangeResponse.
+type TokenExchangeResponse struct {
+	// AccessToken Send as `Authorization: Bearer`
+	AccessToken string `json:"access_token"`
+
+	// ExpiresIn Seconds until the access token expires
+	ExpiresIn int `json:"expires_in"`
+
+	// IssuedTokenType Always `urn:ietf:params:oauth:token-type:access_token`
+	IssuedTokenType string `json:"issued_token_type"`
+
+	// TokenType Always `Bearer`
+	TokenType string `json:"token_type"`
+}
+
 // TokenScope What a token minted by POST /v1/token grants access to.
 type TokenScope string
 
@@ -10276,7 +10383,7 @@ type TrafficRoutingRuleUpsert struct {
 	// SamplingMode How a shadow rule picks which requests to shadow. RANDOM picks each request
 	// independently. USER_SESSION keeps a whole session together, so every request in a sampled
 	// session is shadowed.
-	SamplingMode TrafficRoutingRuleShadowSamplingMode `json:"sampling_mode"`
+	SamplingMode *TrafficRoutingRuleShadowSamplingMode `json:"sampling_mode,omitempty"`
 
 	// Targets Where the rule sends traffic. Exactly one target.
 	Targets []TrafficRoutingTargetUpsert `json:"targets"`
@@ -10313,6 +10420,38 @@ type TrafficRoutingTargetUpsert struct {
 // Mirrored in the bt:// URI as
 // “bt://loops:<trainer_id>/(sampler_weights|weights)/<name>“.
 type TrainerCheckpointTarget string
+
+// TrainingBDNConfig Read-only BDN mounts with the same reference semantics as inference.
+type TrainingBDNConfig struct {
+	Mounts *[]TrainingBDNMount `json:"mounts,omitempty"`
+}
+
+// TrainingBDNConfigResponse defines model for TrainingBDNConfigResponse.
+type TrainingBDNConfigResponse struct {
+	Mounts *[]TrainingBDNMountResponse `json:"mounts,omitempty"`
+}
+
+// TrainingBDNMount A requested read-only BDN dataset mount.
+type TrainingBDNMount struct {
+	// Exclude Relative glob patterns excluding files from the mount; exclusions win.
+	Exclude *[]string `json:"exclude,omitempty"`
+
+	// Include Relative glob patterns selecting files to mount; empty includes all files.
+	Include *[]string `json:"include,omitempty"`
+	Path    string    `json:"path"`
+	Source  string    `json:"source"`
+}
+
+// TrainingBDNMountResponse defines model for TrainingBDNMountResponse.
+type TrainingBDNMountResponse struct {
+	// Exclude Relative glob patterns excluding files from the mount; exclusions win.
+	Exclude *[]string `json:"exclude,omitempty"`
+
+	// Include Relative glob patterns selecting files to mount; empty includes all files.
+	Include *[]string `json:"include,omitempty"`
+	Path    string    `json:"path"`
+	Source  string    `json:"source"`
+}
 
 // TrainingGpuCapacityItem GPU capacity and current usage for one GPU type.
 type TrainingGpuCapacityItem struct {
@@ -10369,7 +10508,8 @@ type TrainingItem_Subtotal struct {
 // TrainingJob defines model for TrainingJob.
 type TrainingJob struct {
 	// AvailabilityModel Capacity a training job or Loops trainer runs on.
-	AvailabilityModel *AvailabilityModel `json:"availability_model,omitempty"`
+	AvailabilityModel *AvailabilityModel         `json:"availability_model,omitempty"`
+	Bdn               *TrainingBDNConfigResponse `json:"bdn,omitempty"`
 
 	// CheckpointSyncStatus Checkpoint sync status of the training job.
 	CheckpointSyncStatus *CheckpointSyncStatus `json:"checkpoint_sync_status,omitempty"`
@@ -12460,6 +12600,18 @@ type GetV1ModelsModelIdDeploymentsDeploymentIdMetricsParams struct {
 	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
 }
 
+// GetV1ModelsModelIdDeploymentsDeploymentIdReplicasParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdReplicas.
+type GetV1ModelsModelIdDeploymentsDeploymentIdReplicasParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Statuses Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.
+	Statuses *[]DeploymentReplicaStatus `form:"statuses,omitempty" json:"statuses,omitempty"`
+}
+
 // GetV1ModelsModelIdDeploymentsDeploymentIdStartupsParams defines parameters for GetV1ModelsModelIdDeploymentsDeploymentIdStartups.
 type GetV1ModelsModelIdDeploymentsDeploymentIdStartupsParams struct {
 	// StartEpochMillis Start of the query window, in epoch milliseconds.
@@ -12554,6 +12706,18 @@ type GetV1ModelsModelIdEnvironmentsEnvNameMetricsParams struct {
 
 	// Metrics Names of the metrics to return; see https://docs.baseten.co/observability/export-metrics/supported-metrics for the available names. When omitted, a default set is returned: baseten_replicas_active, baseten_inference_requests_total, and baseten_end_to_end_response_time_seconds. Unknown names are rejected; valid names that do not apply are omitted from the response.
 	Metrics *[]string `form:"metrics,omitempty" json:"metrics,omitempty"`
+}
+
+// GetV1ModelsModelIdEnvironmentsEnvNameReplicasParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameReplicas.
+type GetV1ModelsModelIdEnvironmentsEnvNameReplicasParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Statuses Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.
+	Statuses *[]DeploymentReplicaStatus `form:"statuses,omitempty" json:"statuses,omitempty"`
 }
 
 // GetV1ModelsModelIdEnvironmentsEnvNameStartupsParams defines parameters for GetV1ModelsModelIdEnvironmentsEnvNameStartups.
@@ -13047,6 +13211,12 @@ type PatchV1AccessTrustRulesTrustRuleIdJSONRequestBody = UpdateAccessTrustRuleRe
 
 // PostV1ApiKeysJSONRequestBody defines body for PostV1ApiKeys for application/json ContentType.
 type PostV1ApiKeysJSONRequestBody = CreateAPIKeyRequest
+
+// PostV1AuthTokenJSONRequestBody defines body for PostV1AuthToken for application/json ContentType.
+type PostV1AuthTokenJSONRequestBody = TokenExchangeRequest
+
+// PostV1AuthTokenFormdataRequestBody defines body for PostV1AuthToken for application/x-www-form-urlencoded ContentType.
+type PostV1AuthTokenFormdataRequestBody = TokenExchangeRequest
 
 // PostV1ChainsChainIdEnvironmentsJSONRequestBody defines body for PostV1ChainsChainIdEnvironments for application/json ContentType.
 type PostV1ChainsChainIdEnvironmentsJSONRequestBody = CreateChainEnvironmentRequest
