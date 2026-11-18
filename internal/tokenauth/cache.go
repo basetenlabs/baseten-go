@@ -1,6 +1,5 @@
 // Package tokenauth holds what every short-lived Baseten token needs: a cache
-// that mints a new token shortly before the current one expires, and sending a
-// request again with a new token when the server refuses the current one.
+// that mints a new token shortly before the current one expires.
 package tokenauth
 
 import (

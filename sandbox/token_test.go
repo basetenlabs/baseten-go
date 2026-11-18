@@ -284,6 +284,11 @@ func TestAuthenticatedClient(t *testing.T) {
 		status, _ := echo(t, c, srv.URL, io.MultiReader(strings.NewReader("stream")))
 		require.Equal(t, http.StatusUnauthorized, status)
 		require.Len(t, srv.echoBodies, 1)
+		// Not sent again, but the revoked token is still dropped, so the next
+		// request does not reuse it.
+		status, seen := echo(t, c, srv.URL, nil)
+		require.Equal(t, http.StatusOK, status)
+		require.Equal(t, "token-2", seen)
 	})
 
 	t.Run("ProviderToldRevokedToken", func(t *testing.T) {
@@ -321,4 +326,26 @@ func TestAuthenticatedClient(t *testing.T) {
 		require.Equal(t, http.StatusUnauthorized, status)
 		require.Equal(t, 1, calls)
 	})
+}
+
+func TestIsTokenRevoked(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		status  int
+		headers map[string]string
+		want    bool
+	}{
+		{"Revoked", http.StatusUnauthorized, map[string]string{"x-blaxel-error-code": "TOKEN_REVOKED"}, true},
+		{"InvalidTokenChallenge", http.StatusUnauthorized, map[string]string{"WWW-Authenticate": `Bearer error="invalid_token"`}, false},
+		{"PlainUnauthorized", http.StatusUnauthorized, nil, false},
+		{"Forbidden", http.StatusForbidden, map[string]string{"x-blaxel-error-code": "TOKEN_REVOKED"}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			resp := &http.Response{StatusCode: tc.status, Header: http.Header{}}
+			for k, v := range tc.headers {
+				resp.Header.Set(k, v)
+			}
+			require.Equal(t, tc.want, isTokenRevoked(resp))
+		})
+	}
 }
