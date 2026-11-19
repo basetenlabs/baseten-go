@@ -247,18 +247,20 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 	})
 
 	t.Run("MalformedSuccess", func(t *testing.T) {
-		for name, body := range map[string]string{
-			"NoAccessToken": `{"token_type":"Bearer","expires_in":60}`,
-			"WrongType":     `{"access_token":"a","token_type":"MAC","expires_in":60}`,
-			"NoExpiry":      `{"access_token":"a","token_type":"Bearer"}`,
+		for name, tc := range map[string]struct{ body, wantErr string }{
+			"NoAccessToken": {`{"token_type":"Bearer","expires_in":60}`, "carried no access_token"},
+			"WrongType":     {`{"access_token":"a","token_type":"MAC","expires_in":60}`, `unsupported token_type "MAC"`},
+			"NoExpiry":      {`{"access_token":"a","token_type":"Bearer"}`, "invalid expires_in 0"},
 		} {
 			t.Run(name, func(t *testing.T) {
 				srv := httptest.NewServer(&fakeTokenServer{t: t, respond: func(w http.ResponseWriter) {
-					fmt.Fprint(w, body)
+					w.Header().Set("Content-Type", "application/json")
+					fmt.Fprint(w, tc.body)
 				}})
 				defer srv.Close()
 				_, err := newTestCredentials(t, srv, WorkloadIdentityCredentialsOptions{}).AccessToken(ctx, AccessTokenOptions{})
 				require.Error(t, err)
+				require.True(t, strings.Contains(err.Error(), tc.wantErr), "want %q in %v", tc.wantErr, err)
 			})
 		}
 	})
