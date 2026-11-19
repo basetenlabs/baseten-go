@@ -1,12 +1,10 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -91,10 +89,9 @@ type WorkloadIdentityCredentialsOptions struct {
 // in memory and replaced shortly before it expires. Safe for concurrent use;
 // concurrent callers share one exchange.
 type WorkloadIdentityCredentials struct {
-	opts        WorkloadIdentityCredentialsOptions
-	exchangeURL string
-	httpClient  httpDoer
-	cache       *tokenauth.Cache
+	opts  WorkloadIdentityCredentialsOptions
+	api   *managementapi.Client
+	cache *tokenauth.Cache
 
 	// now is replaced in tests.
 	now func() time.Time
@@ -125,11 +122,13 @@ func NewWorkloadIdentityCredentials(opts WorkloadIdentityCredentialsOptions) (*W
 	if httpClient == nil {
 		httpClient = NewDefaultHTTPClient()
 	}
+	headers := http.Header{}
+	ApplyUserAgentHeader(headers)
 	c := &WorkloadIdentityCredentials{
-		opts:        opts,
-		exchangeURL: baseURL + "/v1/auth/token",
-		httpClient:  httpClient,
-		now:         time.Now,
+		opts: opts,
+		// No credentials: the identity token in the body is what authenticates.
+		api: &managementapi.Client{BaseURL: baseURL, HTTPClient: httpClient, Headers: headers},
+		now: time.Now,
 	}
 	c.cache = tokenauth.NewCache(tokenauth.CacheOptions{
 		Mint:          c.exchange,
@@ -177,85 +176,51 @@ func (c *WorkloadIdentityCredentials) identityToken(ctx context.Context) (string
 	return token, nil
 }
 
-type tokenExchangeRequest struct {
-	GrantType        string `json:"grant_type"`
-	SubjectToken     string `json:"subject_token"`
-	SubjectTokenType string `json:"subject_token_type"`
-	Audience         string `json:"audience"`
-}
-
-type tokenExchangeResponse struct {
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
-	ExpiresIn   int64  `json:"expires_in"`
-}
-
 // exchange swaps the identity token for a new access token.
 func (c *WorkloadIdentityCredentials) exchange(ctx context.Context) (tokenauth.Token, error) {
 	assertion, err := c.identityToken(ctx)
 	if err != nil {
 		return tokenauth.Token{}, err
 	}
-	body, err := json.Marshal(tokenExchangeRequest{
+	// Taken before sending, so the computed expiry errs early.
+	issuedAt := c.now()
+	resp, err := c.api.PostAuthToken(ctx, managementapi.TokenExchangeRequest{
 		GrantType:        tokenExchangeGrantType,
 		SubjectToken:     assertion,
 		SubjectTokenType: jwtTokenType,
 		Audience:         c.opts.TrustRuleID,
 	})
 	if err != nil {
-		return tokenauth.Token{}, err
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.exchangeURL, bytes.NewReader(body))
-	if err != nil {
-		return tokenauth.Token{}, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-	ApplyUserAgentHeader(req.Header)
-
-	// Taken before sending, so the computed expiry errs early.
-	issuedAt := c.now()
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: %w", err)
-	}
-	defer resp.Body.Close()
-	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
-	if err != nil {
-		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: reading response: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		respErr := &managementapi.ResponseError{StatusCode: resp.StatusCode, Body: strings.TrimSpace(string(respBody))}
 		// The server sends every refusal as the same OAuth invalid_grant, so
 		// the hint covers each possible cause.
-		var oauthErr struct {
-			Error string `json:"error"`
-		}
-		if json.Unmarshal(respBody, &oauthErr) == nil && oauthErr.Error == "invalid_grant" {
+		var respErr *managementapi.ResponseError
+		if errors.As(err, &respErr) && isInvalidGrant(respErr.Body) {
 			return tokenauth.Token{}, fmt.Errorf(
 				"workload identity token exchange refused for trust rule %s "+
 					"(the trust rule may not exist or may not match the identity token's issuer, audience, or claims, "+
 					"or the identity token may have expired): %w",
-				c.opts.TrustRuleID, respErr)
+				c.opts.TrustRuleID, err)
 		}
-		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: %w", respErr)
+		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: %w", err)
 	}
-	var decoded tokenExchangeResponse
-	if err := json.Unmarshal(respBody, &decoded); err != nil {
-		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: decoding response: %w", err)
-	}
-	if decoded.AccessToken == "" {
+	if resp.AccessToken == "" {
 		return tokenauth.Token{}, errors.New("workload identity token exchange: the response carried no access_token")
 	}
-	if !strings.EqualFold(decoded.TokenType, "Bearer") {
-		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: unsupported token_type %q", decoded.TokenType)
+	if !strings.EqualFold(resp.TokenType, "Bearer") {
+		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: unsupported token_type %q", resp.TokenType)
 	}
-	if decoded.ExpiresIn <= 0 {
-		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: invalid expires_in %d", decoded.ExpiresIn)
+	if resp.ExpiresIn <= 0 {
+		return tokenauth.Token{}, fmt.Errorf("workload identity token exchange: invalid expires_in %d", resp.ExpiresIn)
 	}
-	lifetime := time.Duration(decoded.ExpiresIn) * time.Second
-	return tokenauth.Token{Value: decoded.AccessToken, ExpiresAt: issuedAt.Add(lifetime)}, nil
+	lifetime := time.Duration(resp.ExpiresIn) * time.Second
+	return tokenauth.Token{Value: resp.AccessToken, ExpiresAt: issuedAt.Add(lifetime)}, nil
+}
+
+func isInvalidGrant(body string) bool {
+	var oauthErr struct {
+		Error string `json:"error"`
+	}
+	return json.Unmarshal([]byte(body), &oauthErr) == nil && oauthErr.Error == "invalid_grant"
 }
 
 // workloadIdentityExchangeTimeout bounds one identity token exchange, which

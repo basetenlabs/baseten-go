@@ -268,6 +268,7 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 		fake := &fakeTokenServer{t: t, expiresIn: 3600}
 		fake.respond = func(w http.ResponseWriter) {
 			<-release
+			w.Header().Set("Content-Type", "application/json")
 			fmt.Fprint(w, `{"access_token":"shared","token_type":"Bearer","expires_in":3600}`)
 		}
 		srv := httptest.NewServer(fake)
