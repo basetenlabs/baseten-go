@@ -332,6 +332,17 @@ func (c *Client) DeleteModelsEnvironments(ctx context.Context, modelId string, e
 	})
 }
 
+// DeleteModelsEnvironmentsReplicas: Terminates a replica in an environment
+func (c *Client) DeleteModelsEnvironmentsReplicas(ctx context.Context, modelId string, envName string, replicaId string) (*TerminateReplicaResponse, error) {
+	return doJSON[TerminateReplicaResponse](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/models/%s/environments/%s/replicas/%s",
+		pathArgs:     []any{modelId, envName, replicaId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // DeleteSandbox: Delete a sandbox
 func (c *Client) DeleteSandbox(ctx context.Context, sandboxName string, params DeleteSandboxParams) (*Sandbox, error) {
 	return doJSON[Sandbox](c, ctx, apiRequest{
@@ -1390,6 +1401,29 @@ func (c *Client) GetModelsDeploymentsProduction(ctx context.Context, modelId str
 	})
 }
 
+// GetModelsDeploymentsReplicas: Lists replicas for a deployment
+func (c *Client) GetModelsDeploymentsReplicas(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdReplicasParams) (*DeploymentReplicas, error) {
+	return doJSON[DeploymentReplicas](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/models/%s/deployments/%s/replicas",
+		pathArgs:     []any{modelId, deploymentId},
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetModelsDeploymentsReplicasReplicaId: Gets a replica in a deployment
+func (c *Client) GetModelsDeploymentsReplicasReplicaId(ctx context.Context, modelId string, deploymentId string, replicaId string) (*DeploymentReplica, error) {
+	return doJSON[DeploymentReplica](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/models/%s/deployments/%s/replicas/%s",
+		pathArgs:     []any{modelId, deploymentId, replicaId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // GetModelsDeploymentsStartups: Lists the startups of a model deployment
 func (c *Client) GetModelsDeploymentsStartups(ctx context.Context, modelId string, deploymentId string, params GetV1ModelsModelIdDeploymentsDeploymentIdStartupsParams) (*StartupAttempts, error) {
 	return doJSON[StartupAttempts](c, ctx, apiRequest{
@@ -1455,6 +1489,29 @@ func (c *Client) GetModelsEnvironmentsMetrics(ctx context.Context, modelId strin
 		pathFmt:      "/v1/models/%s/environments/%s/metrics",
 		pathArgs:     []any{modelId, envName},
 		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetModelsEnvironmentsReplicas: Lists replicas for an environment
+func (c *Client) GetModelsEnvironmentsReplicas(ctx context.Context, modelId string, envName string, params GetV1ModelsModelIdEnvironmentsEnvNameReplicasParams) (*DeploymentReplicas, error) {
+	return doJSON[DeploymentReplicas](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/models/%s/environments/%s/replicas",
+		pathArgs:     []any{modelId, envName},
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetModelsEnvironmentsReplicasReplicaId: Gets a replica in an environment
+func (c *Client) GetModelsEnvironmentsReplicasReplicaId(ctx context.Context, modelId string, envName string, replicaId string) (*DeploymentReplica, error) {
+	return doJSON[DeploymentReplica](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/models/%s/environments/%s/replicas/%s",
+		pathArgs:     []any{modelId, envName, replicaId},
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -2471,6 +2528,18 @@ func (c *Client) PostApiKeys(ctx context.Context, body CreateAPIKeyRequest) (*AP
 	return doJSON[APIKey](c, ctx, apiRequest{
 		method:       "POST",
 		pathFmt:      "/v1/api_keys",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PostAuthToken: Exchanges an identity provider's JWT for an access token
+func (c *Client) PostAuthToken(ctx context.Context, body TokenExchangeRequest) (*TokenExchangeResponse, error) {
+	return doJSON[TokenExchangeResponse](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/auth/token",
 		pathArgs:     nil,
 		body:         body,
 		successCodes: []int{200},

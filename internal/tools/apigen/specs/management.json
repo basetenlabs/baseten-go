@@ -3831,6 +3831,88 @@
                 }
             ]
         },
+        "/v1/models/{model_id}/deployments/{deployment_id}/replicas": {
+            "get": {
+                "summary": "Lists replicas for a deployment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Includes terminated replicas and lifecycle information without metrics. Replicas are ordered by creation time, oldest first, with replica ID as a tie-breaker. For subsequent pages, pass pagination.cursor as cursor with unchanged filters. Cursors expire after one hour. Replica status may change between requests.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "statuses",
+                        "in": "query",
+                        "required": false,
+                        "description": "Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/DeploymentReplicaStatusV1"
+                            },
+                            "title": "Statuses",
+                            "type": "array"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeploymentReplicasV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/deployment_id"
+                }
+            ]
+        },
         "/v1/models/{model_id}/deployments/{deployment_id}/replicas/{replica_id}": {
             "delete": {
                 "summary": "Terminates a replica in a deployment",
@@ -3844,7 +3926,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas/{replica_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Terminates a deployment replica and returns the termination status.",
+                "description": "Terminates a deployment replica and returns the termination status. Returns 404 if no replica matches the replica ID. Returns 400 without requesting termination if multiple replicas match the replica ID.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -3868,7 +3950,33 @@
                 {
                     "$ref": "#/components/parameters/replica_id"
                 }
-            ]
+            ],
+            "get": {
+                "summary": "Gets a replica in a deployment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas/{replica_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/deployments/{deployment_id}/replicas/{replica_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Returns lifecycle information without metrics, including for terminated replicas. Returns 404 if the replica does not exist in the specified deployment. Returns 400 if multiple replicas match the replica ID.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeploymentReplicaV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         },
         "/v1/models/{model_id}/deployments/{deployment_id}/ssh/sign": {
             "post": {
@@ -4979,6 +5087,153 @@
                     "$ref": "#/components/parameters/env_name"
                 }
             ]
+        },
+        "/v1/models/{model_id}/environments/{env_name}/replicas": {
+            "get": {
+                "summary": "Lists replicas for an environment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Includes retained terminated replicas from deployments active in the preceding hour. Orders replicas oldest first, with replica ID breaking ties. Pass pagination.cursor with unchanged filters for subsequent pages. Cursors pin deployment membership and expire after one hour.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "statuses",
+                        "in": "query",
+                        "required": false,
+                        "description": "Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/components/schemas/DeploymentReplicaStatusV1"
+                            },
+                            "title": "Statuses",
+                            "type": "array"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeploymentReplicasV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/env_name"
+                }
+            ]
+        },
+        "/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id}": {
+            "delete": {
+                "summary": "Terminates a replica in an environment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Requests replica termination in the environment's current deployment. Returns 404 if the environment has no current deployment or no replica matches the replica ID. Returns 400 without requesting termination if multiple replicas in the current deployment match the replica ID.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TerminateReplicaResponseV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/model_id"
+                },
+                {
+                    "$ref": "#/components/parameters/env_name"
+                },
+                {
+                    "$ref": "#/components/parameters/replica_id"
+                }
+            ],
+            "get": {
+                "summary": "Gets a replica in an environment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/models/{model_id}/environments/{env_name}/replicas/{replica_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Searches deployments active in the environment during the preceding hour. Includes retained terminated replicas. Returns 404 if the replica is outside this scope. Returns 400 if multiple replicas match the replica ID.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeploymentReplicaV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         },
         "/v1/chains": {
             "get": {
@@ -6116,11 +6371,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_job\": {\n    \"image\": {\n      \"base_image\": \"hello-world\",\n      \"docker_auth\": null\n    },\n    \"compute\": {\n      \"node_count\": 1,\n      \"cpu_count\": 1,\n      \"memory\": \"2Gi\",\n      \"accelerator\": {\n        \"accelerator\": \"H100\",\n        \"count\": 2\n      },\n      \"availability_model\": \"spot\"\n    },\n    \"runtime\": {\n      \"start_commands\": [\n        \"python main.py\"\n      ],\n      \"environment_variables\": {\n        \"API_KEY\": \"your_api_key_here\",\n        \"PATH\": \"/usr/bin\"\n      },\n      \"enable_cache\": true,\n      \"cache_config\": {\n        \"enable_legacy_hf_mount\": true,\n        \"enabled\": true,\n        \"mount_base_path\": \"/root/.cache\",\n        \"persistent_home\": false,\n        \"require_cache_affinity\": true\n      },\n      \"checkpointing_config\": {\n        \"enabled\": true,\n        \"checkpoint_path\": \"/mnt/ckpts\",\n        \"volume_size_gib\": 10\n      },\n      \"load_checkpoint_config\": null\n    },\n    \"name\": \"gpt-oss-job\",\n    \"truss_user_env\": null,\n    \"interactive_session\": null,\n    \"weights\": [\n      {\n        \"allow_patterns\": null,\n        \"auth\": null,\n        \"auth_secret_name\": null,\n        \"ignore_patterns\": null,\n        \"mount_location\": \"/app/models/base\",\n        \"source\": \"hf://meta-llama/Llama-3-8B@main\"\n      }\n    ],\n    \"enable_baseten_workdir\": false,\n    \"priority\": 0\n  }\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"training_job\": {\n    \"bdn\": {},\n    \"image\": {\n      \"base_image\": \"hello-world\",\n      \"docker_auth\": null\n    },\n    \"compute\": {\n      \"node_count\": 1,\n      \"cpu_count\": 1,\n      \"memory\": \"2Gi\",\n      \"accelerator\": {\n        \"accelerator\": \"H100\",\n        \"count\": 2\n      },\n      \"availability_model\": \"spot\"\n    },\n    \"runtime\": {\n      \"start_commands\": [\n        \"python main.py\"\n      ],\n      \"environment_variables\": {\n        \"API_KEY\": \"your_api_key_here\",\n        \"PATH\": \"/usr/bin\"\n      },\n      \"enable_cache\": true,\n      \"cache_config\": {\n        \"enable_legacy_hf_mount\": true,\n        \"enabled\": true,\n        \"mount_base_path\": \"/root/.cache\",\n        \"persistent_home\": false,\n        \"require_cache_affinity\": true\n      },\n      \"checkpointing_config\": {\n        \"enabled\": true,\n        \"checkpoint_path\": \"/mnt/ckpts\",\n        \"volume_size_gib\": 10\n      },\n      \"load_checkpoint_config\": null\n    },\n    \"name\": \"gpt-oss-job\",\n    \"truss_user_env\": null,\n    \"interactive_session\": null,\n    \"weights\": [\n      {\n        \"allow_patterns\": null,\n        \"auth\": null,\n        \"auth_secret_name\": null,\n        \"ignore_patterns\": null,\n        \"mount_location\": \"/app/models/base\",\n        \"source\": \"hf://meta-llama/Llama-3-8B@main\"\n      }\n    ],\n    \"enable_baseten_workdir\": false,\n    \"priority\": 0\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_job': {'image': {'base_image': 'hello-world', 'docker_auth': None}, 'compute': {'node_count': 1, 'cpu_count': 1, 'memory': '2Gi', 'accelerator': {'accelerator': 'H100', 'count': 2}, 'availability_model': 'spot'}, 'runtime': {'start_commands': ['python main.py'], 'environment_variables': {'API_KEY': 'your_api_key_here', 'PATH': '/usr/bin'}, 'enable_cache': True, 'cache_config': {'enable_legacy_hf_mount': True, 'enabled': True, 'mount_base_path': '/root/.cache', 'persistent_home': False, 'require_cache_affinity': True}, 'checkpointing_config': {'enabled': True, 'checkpoint_path': '/mnt/ckpts', 'volume_size_gib': 10}, 'load_checkpoint_config': None}, 'name': 'gpt-oss-job', 'truss_user_env': None, 'interactive_session': None, 'weights': [{'allow_patterns': None, 'auth': None, 'auth_secret_name': None, 'ignore_patterns': None, 'mount_location': '/app/models/base', 'source': 'hf://meta-llama/Llama-3-8B@main'}], 'enable_baseten_workdir': False, 'priority': 0}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'training_job': {'bdn': {}, 'image': {'base_image': 'hello-world', 'docker_auth': None}, 'compute': {'node_count': 1, 'cpu_count': 1, 'memory': '2Gi', 'accelerator': {'accelerator': 'H100', 'count': 2}, 'availability_model': 'spot'}, 'runtime': {'start_commands': ['python main.py'], 'environment_variables': {'API_KEY': 'your_api_key_here', 'PATH': '/usr/bin'}, 'enable_cache': True, 'cache_config': {'enable_legacy_hf_mount': True, 'enabled': True, 'mount_base_path': '/root/.cache', 'persistent_home': False, 'require_cache_affinity': True}, 'checkpointing_config': {'enabled': True, 'checkpoint_path': '/mnt/ckpts', 'volume_size_gib': 10}, 'load_checkpoint_config': None}, 'name': 'gpt-oss-job', 'truss_user_env': None, 'interactive_session': None, 'weights': [{'allow_patterns': None, 'auth': None, 'auth_secret_name': None, 'ignore_patterns': None, 'mount_location': '/app/models/base', 'source': 'hf://meta-llama/Llama-3-8B@main'}], 'enable_baseten_workdir': False, 'priority': 0}}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Creates a training job with the specified configuration.",
@@ -8217,7 +8472,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/loops/deployments/{deployment_id}/logs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'start_epoch_millis': None, 'end_epoch_millis': None, 'direction': None, 'limit': None, 'min_level': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Fetches logs from the trainer pods of a Loops deployment. Visible to any member of the deployment's team.",
+                "description": "Fetches logs from the trainer pods of a Loops deployment. Visible to anyone with training access to the deployment's team.",
                 "parameters": [
                     {
                         "name": "start_epoch_millis",
@@ -8686,7 +8941,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training/capacity\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns on-demand and spot GPU quotas and current usage for the organization and its teams.",
+                "description": "Returns on-demand and spot GPU quotas and current usage for the teams you can view, plus organization-wide totals when you have organization-level access.",
                 "responses": {
                     "200": {
                         "description": "",
@@ -11237,6 +11492,41 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/AccessTrustRuleV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/auth/token": {
+            "post": {
+                "summary": "Exchanges an identity provider's JWT for an access token",
+                "security": [],
+                "description": "Exchanges a JWT from your identity provider for a short-lived Baseten access token, as described in RFC 8693. Send no API key: the JWT is the credential. Name the trust rule to check the JWT against as the `audience`, and send the access token as `Authorization: Bearer` on later requests. Errors follow RFC 6749 section 5.2: a 400 response with an `error` of `invalid_request`, `unsupported_grant_type`, or `invalid_grant`. A well-formed request that is refused always returns `invalid_grant`, whatever the reason.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TokenExchangeRequestV1"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TokenExchangeRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TokenExchangeResponseV1"
                                 }
                             }
                         }
@@ -26827,6 +27117,146 @@
                 "title": "GetStartupSummaryRequestV1",
                 "type": "object"
             },
+            "DeploymentReplicaStatusV1": {
+                "enum": [
+                    "STARTING",
+                    "ACTIVE",
+                    "UNHEALTHY",
+                    "TERMINATING",
+                    "TERMINATED",
+                    "UNKNOWN"
+                ],
+                "title": "DeploymentReplicaStatusV1",
+                "type": "string"
+            },
+            "DeploymentReplicaV1": {
+                "properties": {
+                    "id": {
+                        "description": "Pod-name suffix used for replica lookup and termination, usually five characters.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "description": "ID of the replica's deployment.",
+                        "title": "Deployment Id",
+                        "type": "string"
+                    },
+                    "deployment_name": {
+                        "description": "Name of the replica's deployment.",
+                        "title": "Deployment Name",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/DeploymentReplicaStatusV1",
+                        "description": "Current replica lifecycle status."
+                    },
+                    "created_at": {
+                        "description": "Replica creation time in ISO 8601 format.",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "type": "string"
+                    },
+                    "terminated_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Observed termination completion time in ISO 8601 format, or null if unavailable.",
+                        "title": "Terminated At"
+                    },
+                    "age_seconds": {
+                        "description": "Age in seconds since creation, frozen at termination.",
+                        "title": "Age Seconds",
+                        "type": "number"
+                    },
+                    "restart_count": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Model container lifetime restart count, or null if unavailable.",
+                        "title": "Restart Count"
+                    }
+                },
+                "required": [
+                    "id",
+                    "deployment_id",
+                    "deployment_name",
+                    "status",
+                    "created_at",
+                    "terminated_at",
+                    "age_seconds",
+                    "restart_count"
+                ],
+                "title": "DeploymentReplicaV1",
+                "type": "object"
+            },
+            "DeploymentReplicasV1": {
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentReplicaV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "DeploymentReplicasV1",
+                "type": "object"
+            },
+            "DeploymentReplicasRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "statuses": {
+                        "description": "Replica statuses to include. Repeat the statuses query parameter to filter by multiple statuses. Omit to include all statuses, including terminated replicas.",
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentReplicaStatusV1"
+                        },
+                        "title": "Statuses",
+                        "type": "array"
+                    }
+                },
+                "title": "DeploymentReplicasRequestV1",
+                "type": "object"
+            },
             "TerminateReplicaResponseV1": {
                 "description": "The response to a request to terminate a replica in a deployment.",
                 "properties": {
@@ -27919,7 +28349,8 @@
                     },
                     "sampling_mode": {
                         "$ref": "#/components/schemas/TrafficRoutingRuleShadowSamplingModeV1",
-                        "description": "How requests are picked for shadowing"
+                        "default": "USER_SESSION",
+                        "description": "How requests are picked for shadowing. Defaults to USER_SESSION."
                     },
                     "propagate_client_cancellation": {
                         "description": "Whether a shadow request is cancelled when the original client disconnects",
@@ -27932,7 +28363,6 @@
                     "targets",
                     "percent_traffic",
                     "expires_at",
-                    "sampling_mode",
                     "propagate_client_cancellation"
                 ],
                 "title": "TrafficRoutingRuleUpsertV1",
@@ -29391,8 +29821,58 @@
                 "title": "CheckpointSyncStatus",
                 "type": "string"
             },
+            "TrainingBDNConfigResponseV1": {
+                "properties": {
+                    "mounts": {
+                        "items": {
+                            "$ref": "#/components/schemas/TrainingBDNMountResponseV1"
+                        },
+                        "title": "Mounts",
+                        "type": "array"
+                    }
+                },
+                "title": "TrainingBDNConfigResponseV1",
+                "type": "object"
+            },
+            "TrainingBDNMountResponseV1": {
+                "properties": {
+                    "source": {
+                        "title": "Source",
+                        "type": "string"
+                    },
+                    "path": {
+                        "title": "Path",
+                        "type": "string"
+                    },
+                    "include": {
+                        "description": "Relative glob patterns selecting files to mount; empty includes all files.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Include",
+                        "type": "array"
+                    },
+                    "exclude": {
+                        "description": "Relative glob patterns excluding files from the mount; exclusions win.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Exclude",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "source",
+                    "path"
+                ],
+                "title": "TrainingBDNMountResponseV1",
+                "type": "object"
+            },
             "TrainingJobV1": {
                 "properties": {
+                    "bdn": {
+                        "$ref": "#/components/schemas/TrainingBDNConfigResponseV1"
+                    },
                     "id": {
                         "description": "Unique identifier of the training job.",
                         "title": "Id",
@@ -30374,6 +30854,9 @@
             "CreateTrainingJobV1": {
                 "description": "Configuration for a training job.",
                 "properties": {
+                    "bdn": {
+                        "$ref": "#/components/schemas/TrainingBDNConfigV1"
+                    },
                     "image": {
                         "$ref": "#/components/schemas/CreateTrainingJobImageV1",
                         "examples": [
@@ -30848,6 +31331,58 @@
                     "name"
                 ],
                 "title": "SecretReferenceV1",
+                "type": "object"
+            },
+            "TrainingBDNConfigV1": {
+                "additionalProperties": false,
+                "description": "Read-only BDN mounts with the same reference semantics as inference.",
+                "properties": {
+                    "mounts": {
+                        "items": {
+                            "$ref": "#/components/schemas/TrainingBDNMountV1"
+                        },
+                        "maxItems": 32,
+                        "title": "Mounts",
+                        "type": "array"
+                    }
+                },
+                "title": "TrainingBDNConfigV1",
+                "type": "object"
+            },
+            "TrainingBDNMountV1": {
+                "additionalProperties": false,
+                "description": "A requested read-only BDN dataset mount.",
+                "properties": {
+                    "source": {
+                        "title": "Source",
+                        "type": "string"
+                    },
+                    "path": {
+                        "title": "Path",
+                        "type": "string"
+                    },
+                    "include": {
+                        "description": "Relative glob patterns selecting files to mount; empty includes all files.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Include",
+                        "type": "array"
+                    },
+                    "exclude": {
+                        "description": "Relative glob patterns excluding files from the mount; exclusions win.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Exclude",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "source",
+                    "path"
+                ],
+                "title": "TrainingBDNMountV1",
                 "type": "object"
             },
             "TrainingWeightAuthV1": {
@@ -39757,7 +40292,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Last time a token was exchanged for this account. Null until the first.",
+                        "description": "Last time a request authenticated as this account, to within an hour. Null until the first.",
                         "title": "Last Used At"
                     },
                     "created_at": {
@@ -40635,7 +41170,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Last token exchange through the rule. Null until the first.",
+                        "description": "Last time a request authenticated with a token the rule issued, to within an hour. Null until the first.",
                         "title": "Last Used At"
                     },
                     "created_by": {
@@ -40982,6 +41517,112 @@
                     }
                 },
                 "title": "UpdateAccessTrustRuleRequestV1",
+                "type": "object"
+            },
+            "TokenExchangeRequestV1": {
+                "description": "An RFC 8693 token exchange request naming the trust rule to check as its audience.",
+                "properties": {
+                    "grant_type": {
+                        "description": "Always `urn:ietf:params:oauth:grant-type:token-exchange`",
+                        "examples": [
+                            "urn:ietf:params:oauth:grant-type:token-exchange"
+                        ],
+                        "title": "Grant Type",
+                        "type": "string"
+                    },
+                    "subject_token": {
+                        "description": "The identity provider's JWT",
+                        "examples": [
+                            "<identity provider JWT>"
+                        ],
+                        "maxLength": 16384,
+                        "title": "Subject Token",
+                        "type": "string"
+                    },
+                    "subject_token_type": {
+                        "description": "`urn:ietf:params:oauth:token-type:jwt` or `urn:ietf:params:oauth:token-type:id_token`",
+                        "examples": [
+                            "urn:ietf:params:oauth:token-type:jwt"
+                        ],
+                        "title": "Subject Token Type",
+                        "type": "string"
+                    },
+                    "audience": {
+                        "description": "ID of the trust rule to check the JWT against",
+                        "examples": [
+                            "abcd1234"
+                        ],
+                        "maxLength": 64,
+                        "title": "Audience",
+                        "type": "string"
+                    },
+                    "requested_token_type": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Optional; only `urn:ietf:params:oauth:token-type:access_token` is issued",
+                        "title": "Requested Token Type"
+                    },
+                    "access_token_lifetime_seconds": {
+                        "anyOf": [
+                            {
+                                "minimum": 1,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Lifetime of the access token, in seconds. At most the rule's maximum.",
+                        "title": "Access Token Lifetime Seconds"
+                    }
+                },
+                "required": [
+                    "grant_type",
+                    "subject_token",
+                    "subject_token_type",
+                    "audience"
+                ],
+                "title": "TokenExchangeRequestV1",
+                "type": "object"
+            },
+            "TokenExchangeResponseV1": {
+                "properties": {
+                    "access_token": {
+                        "description": "Send as `Authorization: Bearer`",
+                        "title": "Access Token",
+                        "type": "string"
+                    },
+                    "issued_token_type": {
+                        "description": "Always `urn:ietf:params:oauth:token-type:access_token`",
+                        "title": "Issued Token Type",
+                        "type": "string"
+                    },
+                    "token_type": {
+                        "description": "Always `Bearer`",
+                        "title": "Token Type",
+                        "type": "string"
+                    },
+                    "expires_in": {
+                        "description": "Seconds until the access token expires",
+                        "title": "Expires In",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "access_token",
+                    "issued_token_type",
+                    "token_type",
+                    "expires_in"
+                ],
+                "title": "TokenExchangeResponseV1",
                 "type": "object"
             },
             "GatewayEventTokensV1": {
@@ -41617,7 +42258,8 @@
             },
             "GridRouteAliasKindV1": {
                 "enum": [
-                    "CLAUDE_DESKTOP"
+                    "CLAUDE_DESKTOP",
+                    "ALIAS"
                 ],
                 "title": "GridRouteAliasKindV1",
                 "type": "string"
@@ -41631,7 +42273,7 @@
                     },
                     "kind": {
                         "$ref": "#/components/schemas/GridRouteAliasKindV1",
-                        "description": "Purpose of the alias. CLAUDE_DESKTOP is for Claude Code desktop, which rejects model names without a `claude` substring."
+                        "description": "Purpose of the alias. CLAUDE_DESKTOP is for Claude Code desktop, which rejects model names without a `claude` substring. ALIAS is any other name the team's clients send for the route."
                     }
                 },
                 "required": [
@@ -41673,8 +42315,8 @@
                         "title": "Supported Tradeoffs",
                         "type": "array"
                     },
-                    "decidable_models": {
-                        "description": "Model identities the route classifier picks from.",
+                    "decidable_canonical_model_ids": {
+                        "description": "Canonical model ids the route classifier picks from.",
                         "examples": [
                             [
                                 "zai-org/GLM-5.3",
@@ -41684,7 +42326,7 @@
                         "items": {
                             "type": "string"
                         },
-                        "title": "Decidable Models",
+                        "title": "Decidable Canonical Model Ids",
                         "type": "array"
                     }
                 },
@@ -41692,7 +42334,7 @@
                     "id",
                     "display_name",
                     "supported_tradeoffs",
-                    "decidable_models"
+                    "decidable_canonical_model_ids"
                 ],
                 "title": "GridRouteClassifierV1",
                 "type": "object"
