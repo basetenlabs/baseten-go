@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/basetenlabs/baseten-go/client"
-	"github.com/basetenlabs/baseten-go/client/managementapi"
 	"github.com/basetenlabs/baseten-go/internal/volume"
 )
 
@@ -773,7 +772,7 @@ func TestManagementClientCarriesTheHosting(t *testing.T) {
 	ctx := context.Background()
 	ref := client.VolumeRef{Namespace: fakeNamespace, Volume: fakeVolume}
 	store := fakePublicStore{download: fake.downloader()}
-	hosting := managementapi.VolumeHosting_SINGLE_TENANT
+	hosting := client.VolumeHostingSingleTenant
 
 	if _, err := api.PushVolume(ctx, client.PushVolumeOptions{
 		Ref: ref, Hosting: hosting, SourceDir: root, SourceURI: "file:///fixture", Hasher: newBlake3,

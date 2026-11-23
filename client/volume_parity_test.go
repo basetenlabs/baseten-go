@@ -174,6 +174,7 @@ func TestVolumeVocabularyIsClassified(t *testing.T) {
 		"VolumePhase":       "defined string type; its values mirror the internal phase strings and cross the boundary as a cast — VolumeProgress's parity covers the field that carries it",
 		"VolumeWarningKind": "defined uint8 type crossing the boundary as a positional cast; TestVolumeWarningKindCastIsValueExact guards the mirror value by value with a count leg, and VolumeWarning's parity covers the field that carries it",
 		"VolumeErrorReason": "defined string type mirroring the service's wire reason strings, so a reason the service adds flows through without new API",
+		"VolumeHosting":     "defined string type with no engine counterpart: it chooses the token exchange's hosting, and apiHosting's switch translates it to the management API's value, which TestVolumeHostingTranslation pins",
 		"VolumeError":       "deliberately narrower than the internal error: Reason and Message are the caller's API, Err wraps the whole original chain, and the internal Code and Domain stay internal — volumeOpError owns the translation",
 		"VolumeObjectStore": "the seam interface; its two halves are the internal DownloadObject and Decompress function pair, excepted per pair in the table",
 		"VolumeEntryKind":   "defined string type; volume.EntryKind is a uint8 iota, so the two are related by volumeEntryKind's switch rather than by fields, and VolumeEntry's parity covers the field that carries it",

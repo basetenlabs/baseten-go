@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/basetenlabs/baseten-go/client/managementapi"
 	"github.com/basetenlabs/baseten-go/internal/require"
 	"github.com/basetenlabs/baseten-go/internal/volume"
 	"github.com/basetenlabs/baseten-go/internal/volume/bdn"
@@ -729,4 +730,38 @@ func TestConcurrencyOptionsReachBothEngines(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestVolumeHostingTranslation(t *testing.T) {
+	for hosting, want := range map[VolumeHosting]managementapi.VolumeHosting{
+		"":                        "",
+		VolumeHostingBasetenCloud: managementapi.VolumeHosting_BASETEN_CLOUD,
+		VolumeHostingSingleTenant: managementapi.VolumeHosting_SINGLE_TENANT,
+		VolumeHostingSelfHosted:   managementapi.VolumeHosting_SELF_HOSTED,
+	} {
+		got, err := hosting.apiHosting()
+		require.NoError(t, err)
+		require.Equal(t, want, got)
+	}
+}
+
+// TestUnknownVolumeHostingFailsBeforeAnyRequest pins that a hosting the SDK
+// does not know is refused locally rather than sent to the exchange.
+func TestUnknownVolumeHostingFailsBeforeAnyRequest(t *testing.T) {
+	var requests atomic.Int64
+	server := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		requests.Add(1)
+	}))
+	defer server.Close()
+	client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
+	require.NoError(t, err)
+
+	_, err = client.PushVolume(context.Background(), PushVolumeOptions{
+		Ref:       VolumeRef{Namespace: "models", Volume: "gpt2"},
+		Hosting:   "PRIVATE",
+		SourceDir: t.TempDir(), Hasher: stubHasher,
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), `unknown volume hosting "PRIVATE"`)
+	require.Equal(t, int64(0), requests.Load())
 }

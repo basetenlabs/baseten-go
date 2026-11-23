@@ -448,15 +448,21 @@ func volumeEntryFilter(
 func (c *ManagementClient) volumeClient(
 	namespace string,
 	volume string,
-	hosting managementapi.VolumeHosting,
+	hosting VolumeHosting,
 	scopes []string,
 	correlationID string,
 ) (*bdn.Client, *volumeTokenSource, error) {
+	// Translated before any request, so an unknown hosting fails the operation
+	// rather than reaching the exchange.
+	apiHosting, err := hosting.apiHosting()
+	if err != nil {
+		return nil, nil, err
+	}
 	// One HTTP client, the management client's own: the per-operation
 	// override is gone — a program that needs a different transport
 	// configures it once, where every other call already gets it.
 	httpClient := c.api.HTTPClient
-	tokens := c.volumeTokenSource(namespace, volume, hosting, scopes, correlationID)
+	tokens := c.volumeTokenSource(namespace, volume, apiHosting, scopes, correlationID)
 	client, err := bdn.New(bdn.Options{
 		HTTPClient: httpClient,
 		Tokens:     tokens.tokenSource(),
@@ -938,6 +944,36 @@ func (w VolumeWarning) String() string {
 	return w.Path + ": " + w.Detail
 }
 
+// VolumeHosting is where a volume is stored. The same name in two hostings is
+// two different volumes. Empty lets the service pick your organization's only
+// hosting; an organization with more than one must name it.
+type VolumeHosting string
+
+const (
+	// VolumeHostingBasetenCloud is Baseten's shared fleet.
+	VolumeHostingBasetenCloud VolumeHosting = "BASETEN_CLOUD"
+	// VolumeHostingSingleTenant is your organization's single-tenant hosting.
+	VolumeHostingSingleTenant VolumeHosting = "SINGLE_TENANT"
+	// VolumeHostingSelfHosted is hosting in your own cloud account.
+	VolumeHostingSelfHosted VolumeHosting = "SELF_HOSTED"
+)
+
+// apiHosting translates a hosting into the management API's value, empty for
+// empty, which the exchange leaves out.
+func (h VolumeHosting) apiHosting() (managementapi.VolumeHosting, error) {
+	switch h {
+	case "":
+		return "", nil
+	case VolumeHostingBasetenCloud:
+		return managementapi.VolumeHosting_BASETEN_CLOUD, nil
+	case VolumeHostingSingleTenant:
+		return managementapi.VolumeHosting_SINGLE_TENANT, nil
+	case VolumeHostingSelfHosted:
+		return managementapi.VolumeHosting_SELF_HOSTED, nil
+	}
+	return "", fmt.Errorf("unknown volume hosting %q", string(h))
+}
+
 // PushVolumeOptions configures [ManagementClient.PushVolume].
 type PushVolumeOptions struct {
 	// Ref names the volume to publish to. The volume is created if it does not
@@ -954,8 +990,8 @@ type PushVolumeOptions struct {
 
 	// Hosting chooses where the volume is stored. Empty lets the service pick
 	// your organization's only hosting; an organization with more than one
-	// must set it. The same name under two hostings is two different volumes.
-	Hosting managementapi.VolumeHosting
+	// must set it.
+	Hosting VolumeHosting
 
 	// SourceDir is the directory to push. It is walked without following
 	// symlinks, which are recorded as links.
@@ -1092,7 +1128,7 @@ type PullVolumeOptions struct {
 
 	// Hosting chooses where the volume is read from, as for
 	// [PushVolumeOptions.Hosting].
-	Hosting managementapi.VolumeHosting
+	Hosting VolumeHosting
 
 	// DestDir is where the tree ends up. Unless Overwrite is set it must not
 	// exist or must be empty, and the tree is assembled beside it and moved
@@ -1232,7 +1268,7 @@ type FetchVolumeManifestOptions struct {
 
 	// Hosting chooses where the volume is read from, as for
 	// [PushVolumeOptions.Hosting].
-	Hosting managementapi.VolumeHosting
+	Hosting VolumeHosting
 
 	// EntryFilter keeps the entries it returns true for and drops the rest.
 	// Nil keeps everything, which is the whole version and can be very large:
