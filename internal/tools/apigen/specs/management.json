@@ -28,7 +28,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'namespace': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Returns one row per volume in the namespace, each with its tags, head version, version counts, and any scheduled expiry. Pass namespace to choose the namespace, which is required because the volume service has no cross-namespace inventory. Versions live on the versions sub-resource, so this response stays a fixed size per volume no matter how long a volume's history is. A volume with no live versions left, whether deleted or expired, is not listed.",
+                "description": "Returns one row per volume in the namespace, each with its tags, head version, version counts, and any scheduled expiry. Pass namespace to choose the namespace, which is required because the volume service has no cross-namespace inventory. Versions live on the versions sub-resource, so this response stays a fixed size per volume no matter how long a volume's history is. A volume with no live versions left, whether deleted or expired, is not listed. A page can hold fewer volumes than `limit`, or none, while more remain, so keep requesting with the returned cursor until `has_more` is false.",
                 "parameters": [
                     {
                         "name": "cursor",
@@ -92,11 +92,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/token \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"scopes\": null,\n  \"namespaces\": null,\n  \"volumes\": null,\n  \"correlation_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/token \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"scopes\": null,\n  \"namespaces\": null,\n  \"volumes\": null,\n  \"hosting\": null,\n  \"correlation_id\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/token\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'scopes': None, 'namespaces': None, 'volumes': None, 'correlation_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/token\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'scopes': None, 'namespaces': None, 'volumes': None, 'hosting': None, 'correlation_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Exchanges your API key for a short-lived token that authenticates against Baseten volume storage. A volume token is needed only to push and pull volume data; other volume operations use your API key directly. Tokens expire after one hour and cannot be renewed; exchange again for a fresh token. Push and tag capabilities require organization-level model management permission. Pass correlation_id to link the issued token to a client operation in server logs.",
@@ -6344,10 +6344,50 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'limit': None}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Lists all training jobs for the training project.",
+                "description": "Lists the training project's jobs, newest first.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor from the pagination.cursor field of a previous response. Omit both cursor and limit to get every job in one response.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of jobs to return, newest first, up to 1000.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "maximum": 1000,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Limit"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -6948,6 +6988,55 @@
                 },
                 {
                     "$ref": "#/components/parameters/training_job_id"
+                }
+            ]
+        },
+        "/v1/training_projects/{training_project_id}/jobs/{training_job_id}/checkpoints/{checkpoint_id}/ttl": {
+            "put": {
+                "summary": "Sets a training job checkpoint's TTL",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PUT \\\n--url https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/checkpoints/{checkpoint_id}/ttl \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"ttl_seconds\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/training_projects/{training_project_id}/jobs/{training_job_id}/checkpoints/{checkpoint_id}/ttl\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PUT\",\n    url,\n    headers=headers,\n    json={'ttl_seconds': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Sets when a training job checkpoint expires, counted from now, or removes its TTL so it never expires. Once a job stops, a TTL can be set only after its checkpoint upload is confirmed as finished, which usually takes a few minutes. Checkpoints of a job whose upload is never confirmed, such as most that finished before checkpoint expiry was available, can't expire.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SetTrainingJobCheckpointTtlRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TrainingJobCheckpointV1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/training_project_id"
+                },
+                {
+                    "$ref": "#/components/parameters/training_job_id"
+                },
+                {
+                    "$ref": "#/components/parameters/checkpoint_id"
                 }
             ]
         },
@@ -10541,6 +10630,35 @@
                 "x-stability": "unstable"
             }
         },
+        "/v1/users/me/access": {
+            "get": {
+                "summary": "Gets your roles and the permissions they grant",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/users/me/access \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/users/me/access\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists every role you hold: assigned to you or a directory group you're in, or held through organization and team membership. Users and service accounts can call it. Once fine-grained authorization decides your organization's requests, it needs `access.self.read`.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EffectiveAccessV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
         "/v1/users/{user_id}": {
             "get": {
                 "summary": "Gets a user by ID",
@@ -10562,6 +10680,40 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/UserInfoV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/user_id"
+                }
+            ]
+        },
+        "/v1/users/{user_id}/access": {
+            "get": {
+                "summary": "Gets a user's roles and the permissions they grant",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/users/{user_id}/access \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/users/{user_id}/access\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Needs `access.member.read` for the organization.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EffectiveAccessV1"
                                 }
                             }
                         }
@@ -10608,11 +10760,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/organizations/me \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"allow_personal_api_keys\": null,\n  \"allow_service_account_api_keys\": null\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/organizations/me \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"allow_personal_api_keys\": null,\n  \"allow_service_account_api_keys\": null,\n  \"allow_team_admins_to_manage_roles\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/organizations/me\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'allow_personal_api_keys': None, 'allow_service_account_api_keys': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/organizations/me\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'allow_personal_api_keys': None, 'allow_service_account_api_keys': None, 'allow_team_admins_to_manage_roles': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Updates settings of the organization of the user making the request. Only organization admins can call it. Omitted fields are unchanged.",
@@ -10891,6 +11043,40 @@
                 },
                 "x-stability": "unstable"
             }
+        },
+        "/v1/service_accounts/{service_account_id}/access": {
+            "get": {
+                "summary": "Gets a service account's roles and the permissions they grant",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/service_accounts/{service_account_id}/access \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/service_accounts/{service_account_id}/access\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Needs `service_account.read` where the account belongs.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EffectiveAccessV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/service_account_id"
+                }
+            ]
         },
         "/v1/access/predefined_identity_providers": {
             "get": {
@@ -11492,6 +11678,558 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/AccessTrustRuleV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/access/permissions": {
+            "get": {
+                "summary": "Lists permissions and their categories",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/access/permissions \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/permissions\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Every caller gets the same permissions and categories; only `available` depends on your organization. Users and service accounts can call it, with the same access as `GET /v1/users/me/access`.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessPermissionsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/access/roles": {
+            "get": {
+                "summary": "Lists roles",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/access/roles \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/roles\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None, 'name': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Lists built-in roles and your organization's custom roles, sorted by name. Needs `access.role.read`, or `access.role.write` in the team you pass as `team_id`.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "team_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "ID of a team. Lists only the roles available there: built-in roles and the team roles it can use.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Team Id"
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "description": "Lists only the roles with this name",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Name"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessRolesV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "post": {
+                "summary": "Creates a custom role",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/roles \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": null,\n  \"kind\": \"ORGANIZATION\",\n  \"team_id\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/roles\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'name': None, 'kind': 'ORGANIZATION', 'team_id': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Needs `access.role.write` for the organization, or in the role's team while your organization lets team admins manage roles. Unknown, reserved, or unavailable permissions return 400 with the `reason` in the error details.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateAccessRoleRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessRoleV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/access/roles/{role_id}": {
+            "delete": {
+                "summary": "Deletes a custom role",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/access/roles/{role_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/roles/{role_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Needs `access.role.delete` where the role applies; for a team's role, for the organization unless it lets team admins manage roles. While any assignment uses the role, it returns 409 with reason `ROLE_IN_USE`. Built-in roles return 400.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessRoleTombstoneV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/role_id"
+                }
+            ],
+            "get": {
+                "summary": "Gets a role",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/access/roles/{role_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/roles/{role_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'team_id': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Needs `access.role.read`, or `access.role.write` in the role's team. Pass `team_id` to get the role as that team's role list shows it: `access.role.write` in that team is then enough, and a role the list leaves out returns 404.",
+                "parameters": [
+                    {
+                        "name": "team_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "ID of a team. Gets the role only if `GET /v1/access/roles` lists it for that team, and checks your access in that team.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Team Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessRoleV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "patch": {
+                "summary": "Updates a custom role",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/access/roles/{role_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"name\": null,\n  \"description\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/roles/{role_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'name': None, 'description': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Changes the fields you send. `permissions` and `include_role_ids` add to the role's lists, and the `_to_delete` fields remove from them. Needs `access.role.write` where the role applies; for a team's role, for the organization unless it lets team admins manage roles. Built-in roles return 400.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateAccessRoleRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessRoleV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/access/assignments": {
+            "get": {
+                "summary": "Lists role assignments",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/access/assignments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/assignments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'team_id': None, 'role_id': None, 'subject_type': None, 'subject_id': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Needs `access.member.read` for the organization, or in the team you pass as `team_id`. Roles held through organization and team membership aren't listed.",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Cursor"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of items to return.",
+                        "schema": {
+                            "default": 100,
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "title": "Limit",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "team_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "ID of a team. Lists only the assignments in it.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Team Id"
+                        }
+                    },
+                    {
+                        "name": "role_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "ID of a role. Lists only its assignments.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Role Id"
+                        }
+                    },
+                    {
+                        "name": "subject_type",
+                        "in": "query",
+                        "required": false,
+                        "description": "Lists only the assignments to this type of subject",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/AccessSubjectTypeV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "subject_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "ID of a user, service account, or directory group. Lists only its assignments.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Subject Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessAssignmentsV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "post": {
+                "summary": "Assigns a role",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/assignments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"role_id\": null,\n  \"subject_type\": \"USER\",\n  \"subject_id\": null,\n  \"team_id\": null,\n  \"resources\": null,\n  \"environments\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/assignments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'role_id': None, 'subject_type': 'USER', 'subject_id': None, 'team_id': None, 'resources': None, 'environments': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Gives a user, service account, or directory group a role, for the organization or in a team. Needs `access.member.write` there, or `access.group.write` for a directory group. A service account's roles also need `service_account.write` where the account belongs.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateAccessAssignmentRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessAssignmentV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/access/assignments/{assignment_id}": {
+            "delete": {
+                "summary": "Removes a role assignment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/access/assignments/{assignment_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/assignments/{assignment_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Needs `access.member.delete` where the role applies, or `access.group.write` for a directory group. A service account's roles also need `service_account.write` where the account belongs.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessAssignmentTombstoneV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/assignment_id"
+                }
+            ],
+            "get": {
+                "summary": "Gets a role assignment",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request GET \\\n--url https://api.baseten.co/v1/access/assignments/{assignment_id} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\"\n"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/assignments/{assignment_id}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Needs `access.member.read` where the role applies.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessAssignmentV1"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/access/check": {
+            "post": {
+                "summary": "Checks whether you hold permissions",
+                "x-codeSamples": [
+                    {
+                        "lang": "bash",
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/check \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"checks\": null\n}'"
+                    },
+                    {
+                        "lang": "python",
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/check\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'checks': None}\n)\n\nprint(response.text)"
+                    }
+                ],
+                "description": "Answers each check as fine-grained authorization decides it. Users and service accounts can call it, with the same access as `GET /v1/users/me/access`. Returns 503 while authorization is unavailable.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CheckAccessRequestV1"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CheckAccessResponseV1"
                                 }
                             }
                         }
@@ -15860,6 +16598,16 @@
                 "title": "ListVolumesRequestV1",
                 "type": "object"
             },
+            "VolumeHostingV1": {
+                "description": "Where volumes are stored. The same name under two hostings is two different volumes.\n\n- ``BASETEN_CLOUD``: Baseten's shared fleet.\n- ``SINGLE_TENANT``: your organization's single-tenant workload planes.\n- ``SELF_HOSTED``: workload planes in your own cloud account.",
+                "enum": [
+                    "BASETEN_CLOUD",
+                    "SINGLE_TENANT",
+                    "SELF_HOSTED"
+                ],
+                "title": "VolumeHostingV1",
+                "type": "string"
+            },
             "VolumeTokenScopeV1": {
                 "description": "Capability a volume token grants.\n\n- ``PULL``: read volume data.\n- ``INSPECT``: read volume metadata without data access.\n- ``PUSH``: upload and commit volume versions.\n- ``TAG``: move or remove tags.",
                 "enum": [
@@ -15900,6 +16648,18 @@
                         "minItems": 1,
                         "title": "Volumes",
                         "type": "array"
+                    },
+                    "hosting": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeHostingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
                     },
                     "correlation_id": {
                         "anyOf": [
@@ -15962,6 +16722,10 @@
                         "title": "Volumes",
                         "type": "array"
                     },
+                    "hosting": {
+                        "$ref": "#/components/schemas/VolumeHostingV1",
+                        "description": "Where the granted volumes are stored."
+                    },
                     "bdn_endpoint": {
                         "anyOf": [
                             {
@@ -15981,6 +16745,7 @@
                     "scopes",
                     "namespaces",
                     "volumes",
+                    "hosting",
                     "bdn_endpoint"
                 ],
                 "title": "CreateVolumeTokenResponseV1",
@@ -19515,6 +20280,9 @@
                                 "GATEWAY_ENDPOINT_CREATED": "#/components/schemas/AuditLogEventGatewayEndpointCreatedV1",
                                 "GATEWAY_ENDPOINT_DELETED": "#/components/schemas/AuditLogEventGatewayEndpointDeletedV1",
                                 "GATEWAY_ENDPOINT_UPDATED": "#/components/schemas/AuditLogEventGatewayEndpointUpdatedV1",
+                                "GRID_GUARDRAIL_CREATED": "#/components/schemas/AuditLogEventGridGuardrailCreatedV1",
+                                "GRID_GUARDRAIL_DELETED": "#/components/schemas/AuditLogEventGridGuardrailDeletedV1",
+                                "GRID_GUARDRAIL_UPDATED": "#/components/schemas/AuditLogEventGridGuardrailUpdatedV1",
                                 "GRID_MACHINE_USER_CREATED": "#/components/schemas/AuditLogEventGridMachineUserCreatedV1",
                                 "GRID_MACHINE_USER_DELETED": "#/components/schemas/AuditLogEventGridMachineUserDeletedV1",
                                 "GRID_MACHINE_USER_UPDATED": "#/components/schemas/AuditLogEventGridMachineUserUpdatedV1",
@@ -19676,6 +20444,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventGridMachineUserDeletedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventGridGuardrailCreatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventGridGuardrailUpdatedV1"
+                            },
+                            {
+                                "$ref": "#/components/schemas/AuditLogEventGridGuardrailDeletedV1"
                             },
                             {
                                 "$ref": "#/components/schemas/AuditLogEventUserInvitedV1"
@@ -22232,6 +23009,213 @@
                 "title": "AuditLogEventGatewayEndpointUpdatedV1",
                 "type": "object"
             },
+            "AuditLogEventGridGuardrailCreatedV1": {
+                "description": "A Grid guardrail was added to a team.",
+                "properties": {
+                    "event_type": {
+                        "const": "GRID_GUARDRAIL_CREATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "grid_guardrail_id": {
+                        "title": "Grid Guardrail Id",
+                        "type": "string"
+                    },
+                    "guardrail_name": {
+                        "title": "Guardrail Name",
+                        "type": "string"
+                    },
+                    "provider": {
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "provider_guardrail_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Provider Guardrail Id"
+                    },
+                    "provider_guardrail_version": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Provider Guardrail Version"
+                    },
+                    "enabled": {
+                        "title": "Enabled",
+                        "type": "boolean"
+                    },
+                    "team_id": {
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "title": "Team Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "grid_guardrail_id",
+                    "guardrail_name",
+                    "provider",
+                    "provider_guardrail_id",
+                    "provider_guardrail_version",
+                    "enabled",
+                    "team_id",
+                    "team_name"
+                ],
+                "title": "AuditLogEventGridGuardrailCreatedV1",
+                "type": "object"
+            },
+            "AuditLogEventGridGuardrailDeletedV1": {
+                "description": "A Grid guardrail was removed from a team.",
+                "properties": {
+                    "event_type": {
+                        "const": "GRID_GUARDRAIL_DELETED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "grid_guardrail_id": {
+                        "title": "Grid Guardrail Id",
+                        "type": "string"
+                    },
+                    "guardrail_name": {
+                        "title": "Guardrail Name",
+                        "type": "string"
+                    },
+                    "provider": {
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "provider_guardrail_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Provider Guardrail Id"
+                    },
+                    "provider_guardrail_version": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Provider Guardrail Version"
+                    },
+                    "enabled": {
+                        "title": "Enabled",
+                        "type": "boolean"
+                    },
+                    "team_id": {
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "title": "Team Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "grid_guardrail_id",
+                    "guardrail_name",
+                    "provider",
+                    "provider_guardrail_id",
+                    "provider_guardrail_version",
+                    "enabled",
+                    "team_id",
+                    "team_name"
+                ],
+                "title": "AuditLogEventGridGuardrailDeletedV1",
+                "type": "object"
+            },
+            "AuditLogEventGridGuardrailUpdatedV1": {
+                "description": "A Grid guardrail was renamed, reconfigured, or turned on or off.",
+                "properties": {
+                    "event_type": {
+                        "const": "GRID_GUARDRAIL_UPDATED",
+                        "title": "Event Type",
+                        "type": "string"
+                    },
+                    "grid_guardrail_id": {
+                        "title": "Grid Guardrail Id",
+                        "type": "string"
+                    },
+                    "guardrail_name": {
+                        "title": "Guardrail Name",
+                        "type": "string"
+                    },
+                    "provider": {
+                        "title": "Provider",
+                        "type": "string"
+                    },
+                    "provider_guardrail_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Provider Guardrail Id"
+                    },
+                    "provider_guardrail_version": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Provider Guardrail Version"
+                    },
+                    "enabled": {
+                        "title": "Enabled",
+                        "type": "boolean"
+                    },
+                    "team_id": {
+                        "title": "Team Id",
+                        "type": "string"
+                    },
+                    "team_name": {
+                        "title": "Team Name",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "event_type",
+                    "grid_guardrail_id",
+                    "guardrail_name",
+                    "provider",
+                    "provider_guardrail_id",
+                    "provider_guardrail_version",
+                    "enabled",
+                    "team_id",
+                    "team_name"
+                ],
+                "title": "AuditLogEventGridGuardrailUpdatedV1",
+                "type": "object"
+            },
             "AuditLogEventGridMachineUserCreatedV1": {
                 "description": "A Grid machine user was created.",
                 "properties": {
@@ -24036,6 +25020,9 @@
                     "GRID_MACHINE_USER_CREATED",
                     "GRID_MACHINE_USER_UPDATED",
                     "GRID_MACHINE_USER_DELETED",
+                    "GRID_GUARDRAIL_CREATED",
+                    "GRID_GUARDRAIL_UPDATED",
+                    "GRID_GUARDRAIL_DELETED",
                     "USER_INVITED",
                     "USER_JOINED_ORGANIZATION",
                     "WEBHOOK_SIGNING_SECRET_CREATED",
@@ -24218,13 +25205,19 @@
             "AuditLogEventVolumeDeletedV1": {
                 "description": "A volume was deleted, tombstoning every version it still held.",
                 "properties": {
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "hosting": {
+                        "default": "BASETEN_CLOUD",
+                        "description": "Where the volume is stored: BASETEN_CLOUD, SINGLE_TENANT, or SELF_HOSTED. The same volume_ref under two hostings names two different volumes.",
+                        "title": "Hosting",
+                        "type": "string"
+                    },
                     "event_type": {
                         "const": "VOLUME_DELETED",
                         "title": "Event Type",
-                        "type": "string"
-                    },
-                    "volume_ref": {
-                        "title": "Volume Ref",
                         "type": "string"
                     },
                     "namespace": {
@@ -24241,8 +25234,8 @@
                     }
                 },
                 "required": [
-                    "event_type",
                     "volume_ref",
+                    "event_type",
                     "namespace",
                     "volume_name",
                     "versions_deleted"
@@ -24253,13 +25246,19 @@
             "AuditLogEventVolumeTagDeletedV1": {
                 "description": "Deleting a volume tag succeeded. `deleted` is false if the tag was already absent.",
                 "properties": {
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "hosting": {
+                        "default": "BASETEN_CLOUD",
+                        "description": "Where the volume is stored: BASETEN_CLOUD, SINGLE_TENANT, or SELF_HOSTED. The same volume_ref under two hostings names two different volumes.",
+                        "title": "Hosting",
+                        "type": "string"
+                    },
                     "event_type": {
                         "const": "VOLUME_TAG_DELETED",
                         "title": "Event Type",
-                        "type": "string"
-                    },
-                    "volume_ref": {
-                        "title": "Volume Ref",
                         "type": "string"
                     },
                     "tag": {
@@ -24272,8 +25271,8 @@
                     }
                 },
                 "required": [
-                    "event_type",
                     "volume_ref",
+                    "event_type",
                     "tag",
                     "deleted"
                 ],
@@ -24283,13 +25282,19 @@
             "AuditLogEventVolumeTagSetV1": {
                 "description": "A volume tag was set on a version.",
                 "properties": {
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "hosting": {
+                        "default": "BASETEN_CLOUD",
+                        "description": "Where the volume is stored: BASETEN_CLOUD, SINGLE_TENANT, or SELF_HOSTED. The same volume_ref under two hostings names two different volumes.",
+                        "title": "Hosting",
+                        "type": "string"
+                    },
                     "event_type": {
                         "const": "VOLUME_TAG_SET",
                         "title": "Event Type",
-                        "type": "string"
-                    },
-                    "volume_ref": {
-                        "title": "Volume Ref",
                         "type": "string"
                     },
                     "tag": {
@@ -24302,8 +25307,8 @@
                     }
                 },
                 "required": [
-                    "event_type",
                     "volume_ref",
+                    "event_type",
                     "tag",
                     "digest"
                 ],
@@ -24313,13 +25318,19 @@
             "AuditLogEventVolumeUpdatedV1": {
                 "description": "A volume's settings were updated.",
                 "properties": {
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "hosting": {
+                        "default": "BASETEN_CLOUD",
+                        "description": "Where the volume is stored: BASETEN_CLOUD, SINGLE_TENANT, or SELF_HOSTED. The same volume_ref under two hostings names two different volumes.",
+                        "title": "Hosting",
+                        "type": "string"
+                    },
                     "event_type": {
                         "const": "VOLUME_UPDATED",
                         "title": "Event Type",
-                        "type": "string"
-                    },
-                    "volume_ref": {
-                        "title": "Volume Ref",
                         "type": "string"
                     },
                     "expires_at": {
@@ -24348,8 +25359,8 @@
                     }
                 },
                 "required": [
-                    "event_type",
                     "volume_ref",
+                    "event_type",
                     "expires_at",
                     "previous_expires_at"
                 ],
@@ -24359,13 +25370,19 @@
             "AuditLogEventVolumeVersionDeletedV1": {
                 "description": "One version of a volume was deleted.",
                 "properties": {
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "hosting": {
+                        "default": "BASETEN_CLOUD",
+                        "description": "Where the volume is stored: BASETEN_CLOUD, SINGLE_TENANT, or SELF_HOSTED. The same volume_ref under two hostings names two different volumes.",
+                        "title": "Hosting",
+                        "type": "string"
+                    },
                     "event_type": {
                         "const": "VOLUME_VERSION_DELETED",
                         "title": "Event Type",
-                        "type": "string"
-                    },
-                    "volume_ref": {
-                        "title": "Volume Ref",
                         "type": "string"
                     },
                     "namespace": {
@@ -24386,8 +25403,8 @@
                     }
                 },
                 "required": [
-                    "event_type",
                     "volume_ref",
+                    "event_type",
                     "namespace",
                     "volume_name",
                     "version",
@@ -24399,13 +25416,19 @@
             "AuditLogEventVolumeVersionRestoredV1": {
                 "description": "A deleted version of a volume was restored.",
                 "properties": {
+                    "volume_ref": {
+                        "title": "Volume Ref",
+                        "type": "string"
+                    },
+                    "hosting": {
+                        "default": "BASETEN_CLOUD",
+                        "description": "Where the volume is stored: BASETEN_CLOUD, SINGLE_TENANT, or SELF_HOSTED. The same volume_ref under two hostings names two different volumes.",
+                        "title": "Hosting",
+                        "type": "string"
+                    },
                     "event_type": {
                         "const": "VOLUME_VERSION_RESTORED",
                         "title": "Event Type",
-                        "type": "string"
-                    },
-                    "volume_ref": {
-                        "title": "Volume Ref",
                         "type": "string"
                     },
                     "namespace": {
@@ -24426,8 +25449,8 @@
                     }
                 },
                 "required": [
-                    "event_type",
                     "volume_ref",
+                    "event_type",
                     "namespace",
                     "volume_name",
                     "version",
@@ -30207,13 +31230,53 @@
                         },
                         "title": "Training Jobs",
                         "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
                     }
                 },
                 "required": [
                     "training_project",
-                    "training_jobs"
+                    "training_jobs",
+                    "pagination"
                 ],
                 "title": "ListTrainingJobsResponseV1",
+                "type": "object"
+            },
+            "ListTrainingJobsRequestV1": {
+                "description": "A request to list a training project's jobs.",
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor from the pagination.cursor field of a previous response. Omit both cursor and limit to get every job in one response.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "anyOf": [
+                            {
+                                "maximum": 1000,
+                                "minimum": 1,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Maximum number of jobs to return, newest first, up to 1000.",
+                        "title": "Limit"
+                    }
+                },
+                "title": "ListTrainingJobsRequestV1",
                 "type": "object"
             },
             "AuthMethod": {
@@ -30828,17 +31891,14 @@
             "CreateTrainingJobS3Artifact": {
                 "properties": {
                     "s3_bucket": {
-                        "description": "S3 bucket for the uploaded runtime artifact.",
-                        "examples": [
-                            "my-s3-bucket"
-                        ],
+                        "description": "S3 bucket of the uploaded runtime artifact. Use the `s3_bucket` returned by `GET /v1/blobs/credentials/train`.",
                         "title": "S3 Bucket",
                         "type": "string"
                     },
                     "s3_key": {
-                        "description": "S3 key for the uploaded runtime artifact.",
+                        "description": "S3 key of the uploaded runtime artifact. Use the `s3_key` returned by `GET /v1/blobs/credentials/train`.",
                         "examples": [
-                            "my-s3-key"
+                            "organizations/abc123/training/1f0e8c2a-7b3d-4e5f-9a6b-2c4d8e0f1a3b/scripts.tgz"
                         ],
                         "title": "S3 Key",
                         "type": "string"
@@ -32197,8 +33257,14 @@
                 "description": "A checkpoint for a training job.",
                 "properties": {
                     "checkpoint_id": {
-                        "description": "The ID of the checkpoint.",
+                        "deprecated": true,
+                        "description": "Deprecated: use `checkpoint_name`, which has the same value.",
                         "title": "Checkpoint Id",
+                        "type": "string"
+                    },
+                    "checkpoint_name": {
+                        "description": "The checkpoint's name, for example `checkpoint-500`. To refer to the checkpoint in a URL, use its `id`.",
+                        "title": "Checkpoint Name",
                         "type": "string"
                     },
                     "created_at": {
@@ -32255,20 +33321,41 @@
                         "description": "Sync state of the checkpoint: SYNCING or COMPLETE.",
                         "title": "Sync Status"
                     },
+                    "id": {
+                        "description": "The checkpoint's unique ID, used in checkpoint URLs.",
+                        "title": "Id",
+                        "type": "string"
+                    },
                     "training_job_id": {
                         "description": "The ID of the training job.",
                         "title": "Training Job Id",
                         "type": "string"
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "When the checkpoint expires and is deleted. Null means it never expires.",
+                        "title": "Expires At"
                     }
                 },
                 "required": [
                     "checkpoint_id",
+                    "checkpoint_name",
                     "created_at",
                     "checkpoint_type",
                     "base_model",
                     "lora_adapter_config",
                     "size_bytes",
-                    "training_job_id"
+                    "id",
+                    "training_job_id",
+                    "expires_at"
                 ],
                 "title": "TrainingJobCheckpointV1",
                 "type": "object"
@@ -32294,6 +33381,29 @@
                     "checkpoints"
                 ],
                 "title": "GetTrainingJobCheckpointsResponseV1",
+                "type": "object"
+            },
+            "SetTrainingJobCheckpointTtlRequestV1": {
+                "properties": {
+                    "ttl_seconds": {
+                        "anyOf": [
+                            {
+                                "maximum": 315360000,
+                                "minimum": 3600,
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Seconds from now until the checkpoint expires and is deleted, from 3600 (1 hour) to 315360000 (10 years). Null removes the TTL, so the checkpoint never expires.",
+                        "title": "Ttl Seconds"
+                    }
+                },
+                "required": [
+                    "ttl_seconds"
+                ],
+                "title": "SetTrainingJobCheckpointTtlRequestV1",
                 "type": "object"
             },
             "CheckpointFile": {
@@ -32964,6 +34074,95 @@
                 "title": "EnablementDetailsV1",
                 "type": "object"
             },
+            "LoopsServerlessPricingV1": {
+                "description": "A model's current serverless Loops prices for this workspace, in USD per million tokens.\n\nPrices come from the workspace's plan, so they include its price overrides. A meter the plan\ndoes not price is null.",
+                "properties": {
+                    "cost_per_million_uncached_prefill_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "USD per million prompt tokens that miss the prefix cache.",
+                        "examples": [
+                            "0.15"
+                        ],
+                        "title": "Cost Per Million Uncached Prefill Tokens"
+                    },
+                    "cost_per_million_cached_prefill_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "USD per million prompt tokens served from the prefix cache.",
+                        "examples": [
+                            "0.03"
+                        ],
+                        "title": "Cost Per Million Cached Prefill Tokens"
+                    },
+                    "cost_per_million_sample_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "USD per million tokens the sampler generates.",
+                        "examples": [
+                            "0.6"
+                        ],
+                        "title": "Cost Per Million Sample Tokens"
+                    },
+                    "cost_per_million_train_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "USD per million tokens the trainer processes.",
+                        "examples": [
+                            "1.2"
+                        ],
+                        "title": "Cost Per Million Train Tokens"
+                    }
+                },
+                "required": [
+                    "cost_per_million_uncached_prefill_tokens",
+                    "cost_per_million_cached_prefill_tokens",
+                    "cost_per_million_sample_tokens",
+                    "cost_per_million_train_tokens"
+                ],
+                "title": "LoopsServerlessPricingV1",
+                "type": "object"
+            },
             "SupportedModelV1": {
                 "description": "A model supported by the Loops server.",
                 "properties": {
@@ -33012,6 +34211,18 @@
                         "default": null,
                         "description": "Early access only. Whether this workspace can use serverless Loops for this model.",
                         "title": "Serverless"
+                    },
+                    "serverless_pricing": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LoopsServerlessPricingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Early access only. This workspace's current serverless prices for the model. Present only when 'serverless' is true and the workspace's plan prices the model."
                     },
                     "enablement_details": {
                         "anyOf": [
@@ -33722,8 +34933,14 @@
                 "description": "A checkpoint saved by a Loops run.",
                 "properties": {
                     "checkpoint_id": {
-                        "description": "The ID of the checkpoint.",
+                        "deprecated": true,
+                        "description": "Deprecated: use `checkpoint_name`, which has the same value.",
                         "title": "Checkpoint Id",
+                        "type": "string"
+                    },
+                    "checkpoint_name": {
+                        "description": "The checkpoint's name, for example `checkpoint-500`. To refer to the checkpoint in a URL, use its `id`.",
+                        "title": "Checkpoint Name",
                         "type": "string"
                     },
                     "created_at": {
@@ -33781,7 +34998,7 @@
                         "title": "Sync Status"
                     },
                     "id": {
-                        "description": "The checkpoint ID.",
+                        "description": "The checkpoint's unique ID, used in checkpoint URLs.",
                         "title": "Id",
                         "type": "string"
                     },
@@ -33821,6 +35038,7 @@
                 },
                 "required": [
                     "checkpoint_id",
+                    "checkpoint_name",
                     "created_at",
                     "checkpoint_type",
                     "base_model",
@@ -34510,8 +35728,14 @@
                         "type": "string"
                     },
                     "checkpoint_id": {
-                        "description": "The name the checkpoint was saved under.",
+                        "deprecated": true,
+                        "description": "Deprecated: use `checkpoint_name`, which has the same value.",
                         "title": "Checkpoint Id",
+                        "type": "string"
+                    },
+                    "checkpoint_name": {
+                        "description": "The name the checkpoint was saved under.",
+                        "title": "Checkpoint Name",
                         "type": "string"
                     },
                     "target": {
@@ -34528,6 +35752,7 @@
                     "id",
                     "run_id",
                     "checkpoint_id",
+                    "checkpoint_name",
                     "target",
                     "path"
                 ],
@@ -34674,7 +35899,7 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Seconds from now until the checkpoint expires and is deleted, from 3600 (1 hour) to 315360000 (10 years). Null removes the TTL, so the checkpoint is kept until you delete it.",
+                        "description": "Seconds from now until the checkpoint expires and is deleted, from 3600 (1 hour) to 315360000 (10 years). Null removes the TTL, so the checkpoint never expires.",
                         "title": "Ttl Seconds"
                     }
                 },
@@ -40027,6 +41252,357 @@
                 "title": "UsersRequestV1",
                 "type": "object"
             },
+            "AccessAssignmentV1": {
+                "description": "A role held by a user, service account, or directory group, for the organization or in a\nteam.",
+                "properties": {
+                    "id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Unique identifier of the role assignment. Null for a built-in role held through organization or team membership.",
+                        "title": "Id"
+                    },
+                    "granted_via": {
+                        "$ref": "#/components/schemas/AccessGrantedViaV1",
+                        "description": "`ASSIGNMENT` for a role assignment, or `MEMBERSHIP` for a built-in role held as an organization or team member"
+                    },
+                    "role_id": {
+                        "description": "ID of the role",
+                        "title": "Role Id",
+                        "type": "string"
+                    },
+                    "role_name": {
+                        "description": "Name of the role",
+                        "title": "Role Name",
+                        "type": "string"
+                    },
+                    "subject_type": {
+                        "$ref": "#/components/schemas/AccessSubjectTypeV1",
+                        "description": "Type of the subject that holds the role"
+                    },
+                    "subject_id": {
+                        "description": "ID of the user, service account, or directory group that holds the role",
+                        "title": "Subject Id",
+                        "type": "string"
+                    },
+                    "subject_name": {
+                        "description": "Name of the user, service account, or directory group that holds the role",
+                        "title": "Subject Name",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "ID of the team the role applies in. Null for the organization.",
+                        "title": "Team Id"
+                    },
+                    "team_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Name of the team the role applies in. Null for the organization.",
+                        "title": "Team Name"
+                    },
+                    "resources": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/AccessResourceV1"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Resources the role applies to. Null for every resource where it applies.",
+                        "title": "Resources"
+                    },
+                    "environments": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Names of the environments the role applies in, such as `production`. Null for every environment.",
+                        "title": "Environments"
+                    },
+                    "created_by": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "ID of the user who assigned the role. Null for a role held through membership, or one no user assigned.",
+                        "title": "Created By"
+                    },
+                    "created_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Time the role was assigned. Null for a role held through membership.",
+                        "title": "Created At"
+                    }
+                },
+                "required": [
+                    "id",
+                    "granted_via",
+                    "role_id",
+                    "role_name",
+                    "subject_type",
+                    "subject_id",
+                    "subject_name",
+                    "team_id",
+                    "team_name",
+                    "resources",
+                    "environments",
+                    "created_by",
+                    "created_at"
+                ],
+                "title": "AccessAssignmentV1",
+                "type": "object"
+            },
+            "AccessGrantedViaV1": {
+                "description": "How a role is held.",
+                "enum": [
+                    "ASSIGNMENT",
+                    "MEMBERSHIP"
+                ],
+                "title": "AccessGrantedViaV1",
+                "type": "string"
+            },
+            "AccessResourceTypeV1": {
+                "description": "Type of a resource a role assignment can select.",
+                "enum": [
+                    "CHAIN",
+                    "GATEWAY_ENDPOINT",
+                    "GATEWAY_GROUP",
+                    "GATEWAY_KEY",
+                    "GRID_CONNECTION",
+                    "GRID_ROUTE",
+                    "LIBRARY_LISTING",
+                    "MODEL",
+                    "MODEL_API",
+                    "SANDBOX",
+                    "SECRET",
+                    "SERVICE_ACCOUNT",
+                    "TRAINING_JOB",
+                    "TRAINING_LOOP",
+                    "TRAINING_PROJECT",
+                    "VOLUME",
+                    "WEBHOOK_SECRET"
+                ],
+                "title": "AccessResourceTypeV1",
+                "type": "string"
+            },
+            "AccessResourceV1": {
+                "description": "A resource a role assignment selects.",
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/AccessResourceTypeV1",
+                        "description": "Type of the resource"
+                    },
+                    "identifier": {
+                        "description": "Unique identifier of the resource, such as a model's ID",
+                        "title": "Identifier",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "identifier"
+                ],
+                "title": "AccessResourceV1",
+                "type": "object"
+            },
+            "AccessSubjectTypeV1": {
+                "description": "Who holds a role.",
+                "enum": [
+                    "USER",
+                    "SERVICE_ACCOUNT",
+                    "DIRECTORY_GROUP"
+                ],
+                "title": "AccessSubjectTypeV1",
+                "type": "string"
+            },
+            "EffectiveAccessGrantV1": {
+                "description": "A place a permission is held: the organization, a team, a resource, or an environment.",
+                "properties": {
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "ID of the team. Null for the organization.",
+                        "title": "Team Id"
+                    },
+                    "team_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Name of the team. Null for the organization.",
+                        "title": "Team Name"
+                    },
+                    "resource": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AccessResourceV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The resource. Null when the grant isn't limited to one resource."
+                    },
+                    "environment": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Name of the environment, such as `production`. Null for every environment. Permission checks don't take an environment yet, so these grants aren't confirmed.",
+                        "title": "Environment"
+                    }
+                },
+                "required": [
+                    "team_id",
+                    "team_name",
+                    "resource",
+                    "environment"
+                ],
+                "title": "EffectiveAccessGrantV1",
+                "type": "object"
+            },
+            "EffectiveAccessPermissionV1": {
+                "description": "A permission a user or service account holds, and where.",
+                "properties": {
+                    "name": {
+                        "description": "Name of the permission, such as `model.deployment.write`",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "display_name": {
+                        "description": "Short human-readable name",
+                        "title": "Display Name",
+                        "type": "string"
+                    },
+                    "category": {
+                        "description": "Name of the permission's category, such as `model.deployment`",
+                        "title": "Category",
+                        "type": "string"
+                    },
+                    "grants": {
+                        "description": "Where it's held, one entry for each place a role grants it",
+                        "items": {
+                            "$ref": "#/components/schemas/EffectiveAccessGrantV1"
+                        },
+                        "title": "Grants",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "name",
+                    "display_name",
+                    "category",
+                    "grants"
+                ],
+                "title": "EffectiveAccessPermissionV1",
+                "type": "object"
+            },
+            "EffectiveAccessV1": {
+                "description": "The roles a user or service account holds, and the permissions they grant it.",
+                "properties": {
+                    "subject_type": {
+                        "$ref": "#/components/schemas/AccessSubjectTypeV1",
+                        "description": "`USER` or `SERVICE_ACCOUNT`"
+                    },
+                    "subject_id": {
+                        "description": "ID of the user or service account",
+                        "title": "Subject Id",
+                        "type": "string"
+                    },
+                    "subject_name": {
+                        "description": "Name of the user or service account",
+                        "title": "Subject Name",
+                        "type": "string"
+                    },
+                    "assignments": {
+                        "description": "Every role held: assigned to the user or service account, or to a directory group it is in, or held through organization or team membership",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessAssignmentV1"
+                        },
+                        "title": "Assignments",
+                        "type": "array"
+                    },
+                    "permissions": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/EffectiveAccessPermissionV1"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Every permission held, and where. Null until fine-grained authorization decides your organization's requests.",
+                        "title": "Permissions"
+                    }
+                },
+                "required": [
+                    "subject_type",
+                    "subject_id",
+                    "subject_name",
+                    "assignments",
+                    "permissions"
+                ],
+                "title": "EffectiveAccessV1",
+                "type": "object"
+            },
             "AwsAssumeRoleV1": {
                 "description": "AWS AssumeRole trust-policy inputs for the organization.",
                 "properties": {
@@ -40096,6 +41672,19 @@
                         "description": "Whether new team and organization API keys can be created. Existing keys keep working.",
                         "title": "Allow Service Account Api Keys",
                         "type": "boolean"
+                    },
+                    "allow_team_admins_to_manage_roles": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Whether team admins create, change, and delete their team's custom roles. When false, only organization admins do, and team admins still assign roles in their team. Null when custom roles aren't available to your organization, or you can't read its roles.",
+                        "title": "Allow Team Admins To Manage Roles"
                     }
                 },
                 "required": [
@@ -40136,6 +41725,19 @@
                         "default": null,
                         "description": "Whether new team and organization API keys can be created. Null is not accepted.",
                         "title": "Allow Service Account Api Keys"
+                    },
+                    "allow_team_admins_to_manage_roles": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Whether team admins create, change, and delete their team's custom roles. Needs `access.role.write` for the organization. Null is not accepted.",
+                        "title": "Allow Team Admins To Manage Roles"
                     }
                 },
                 "title": "UpdateOrganizationRequestV1",
@@ -41519,6 +43121,788 @@
                 "title": "UpdateAccessTrustRuleRequestV1",
                 "type": "object"
             },
+            "AccessPermissionCategoryV1": {
+                "description": "A group of related permissions, such as the permissions on model deployments.",
+                "properties": {
+                    "name": {
+                        "description": "Name of the category, such as `model.deployment`. The names of its permissions start with it.",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "display_name": {
+                        "description": "Short human-readable name",
+                        "title": "Display Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "What the category covers",
+                        "title": "Description",
+                        "type": "string"
+                    },
+                    "resource_types": {
+                        "description": "Types of resource a role assignment can select for these permissions, such as `MODEL`. Empty when assignments can't select resources for them.",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessResourceTypeV1"
+                        },
+                        "title": "Resource Types",
+                        "type": "array"
+                    },
+                    "supports_environments": {
+                        "description": "Whether a role assignment can limit these permissions to environments",
+                        "title": "Supports Environments",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "name",
+                    "display_name",
+                    "description",
+                    "resource_types",
+                    "supports_environments"
+                ],
+                "title": "AccessPermissionCategoryV1",
+                "type": "object"
+            },
+            "AccessPermissionV1": {
+                "description": "A permission roles can grant.",
+                "properties": {
+                    "name": {
+                        "description": "Name of the permission, such as `model.deployment.write`. It starts with its category's name.",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "category": {
+                        "description": "Name of the permission's category, such as `model.deployment`",
+                        "title": "Category",
+                        "type": "string"
+                    },
+                    "display_name": {
+                        "description": "Short human-readable name",
+                        "title": "Display Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "What the permission allows",
+                        "title": "Description",
+                        "type": "string"
+                    },
+                    "role_kinds": {
+                        "description": "Kinds of custom role that can hold it: `ORGANIZATION`, `TEAM`, or both",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessRoleKindV1"
+                        },
+                        "title": "Role Kinds",
+                        "type": "array"
+                    },
+                    "reserved": {
+                        "description": "Whether the permission is reserved for built-in admin roles. Custom roles can't hold it.",
+                        "title": "Reserved",
+                        "type": "boolean"
+                    },
+                    "available": {
+                        "description": "Whether your organization has the features the permission needs. Custom roles can hold a permission only when it's available and not reserved.",
+                        "title": "Available",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "name",
+                    "category",
+                    "display_name",
+                    "description",
+                    "role_kinds",
+                    "reserved",
+                    "available"
+                ],
+                "title": "AccessPermissionV1",
+                "type": "object"
+            },
+            "AccessRoleKindV1": {
+                "description": "Where a role is assigned.",
+                "enum": [
+                    "ORGANIZATION",
+                    "TEAM",
+                    "MEMBERSHIP"
+                ],
+                "title": "AccessRoleKindV1",
+                "type": "string"
+            },
+            "AccessPermissionsV1": {
+                "description": "Every permission and permission category.",
+                "properties": {
+                    "categories": {
+                        "description": "Every permission category",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessPermissionCategoryV1"
+                        },
+                        "title": "Categories",
+                        "type": "array"
+                    },
+                    "permissions": {
+                        "description": "Every permission, including those for features your organization doesn't have. Only `available` differs between organizations.",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessPermissionV1"
+                        },
+                        "title": "Permissions",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "categories",
+                    "permissions"
+                ],
+                "title": "AccessPermissionsV1",
+                "type": "object"
+            },
+            "AccessRoleV1": {
+                "description": "A set of permissions you assign to users, service accounts, and directory groups. Baseten\ndefines the built-in roles, and your organization defines its custom roles.",
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier of the role. Built-in role IDs start with `baseten:`, such as `baseten:reader`.",
+                        "title": "Id",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name of the role",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Description of the role",
+                        "title": "Description",
+                        "type": "string"
+                    },
+                    "built_in": {
+                        "description": "Whether Baseten defines the role. Built-in roles are read-only.",
+                        "title": "Built In",
+                        "type": "boolean"
+                    },
+                    "kind": {
+                        "$ref": "#/components/schemas/AccessRoleKindV1",
+                        "description": "Where the role is assigned: `ORGANIZATION` roles for the whole organization, and `TEAM` roles in a team. `MEMBERSHIP` roles are built-in roles held only through organization membership, such as Admin and Creator, and can't be assigned."
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "ID of the only team a team role can be assigned in. Null when any team can use it, and for other kinds of role.",
+                        "title": "Team Id"
+                    },
+                    "team_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Name of the only team a team role can be assigned in",
+                        "title": "Team Name"
+                    },
+                    "permissions": {
+                        "description": "Names of the role's own permissions",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Permissions",
+                        "type": "array"
+                    },
+                    "include_role_ids": {
+                        "description": "IDs of the built-in roles whose permissions this role also grants, including permissions Baseten adds to them later",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Include Role Ids",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "built_in",
+                    "kind",
+                    "team_id",
+                    "team_name",
+                    "permissions",
+                    "include_role_ids"
+                ],
+                "title": "AccessRoleV1",
+                "type": "object"
+            },
+            "AccessRolesV1": {
+                "description": "A page of roles.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessRoleV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "AccessRolesV1",
+                "type": "object"
+            },
+            "AccessRolesRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of a team. Lists only the roles available there: built-in roles and the team roles it can use.",
+                        "title": "Team Id"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Lists only the roles with this name",
+                        "title": "Name"
+                    }
+                },
+                "title": "AccessRolesRequestV1",
+                "type": "object"
+            },
+            "CreateAccessRoleRequestV1": {
+                "description": "A custom role to create.",
+                "properties": {
+                    "name": {
+                        "description": "Name of the role, unique in your organization",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "kind": {
+                        "$ref": "#/components/schemas/AccessRoleKindV1",
+                        "description": "`ORGANIZATION` to assign the role for the whole organization, or `TEAM` to assign it in teams"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "For a team role, ID of the only team it can be assigned in. Omit to let any team use it.",
+                        "title": "Team Id"
+                    },
+                    "description": {
+                        "default": "",
+                        "description": "Description of the role",
+                        "title": "Description",
+                        "type": "string"
+                    },
+                    "permissions": {
+                        "description": "Names of the permissions the role grants",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Permissions",
+                        "type": "array"
+                    },
+                    "include_role_ids": {
+                        "description": "IDs of built-in roles whose permissions the role also grants, such as `baseten:reader`",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Include Role Ids",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "name",
+                    "kind"
+                ],
+                "title": "CreateAccessRoleRequestV1",
+                "type": "object"
+            },
+            "AccessRoleTombstoneV1": {
+                "description": "A deleted custom role.",
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier of the deleted role",
+                        "title": "Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id"
+                ],
+                "title": "AccessRoleTombstoneV1",
+                "type": "object"
+            },
+            "AccessRoleRequestV1": {
+                "properties": {
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of a team. Gets the role only if `GET /v1/access/roles` lists it for that team, and checks your access in that team.",
+                        "title": "Team Id"
+                    }
+                },
+                "title": "AccessRoleRequestV1",
+                "type": "object"
+            },
+            "UpdateAccessRoleRequestV1": {
+                "description": "Changes to a custom role. Omitted fields are unchanged.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "maxLength": 255,
+                                "minLength": 1,
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "New name of the role",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "New description of the role",
+                        "title": "Description"
+                    },
+                    "permissions": {
+                        "description": "Names of permissions to add to the role",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Permissions",
+                        "type": "array"
+                    },
+                    "permissions_to_delete": {
+                        "description": "Names of permissions to remove from the role",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Permissions To Delete",
+                        "type": "array"
+                    },
+                    "include_role_ids": {
+                        "description": "IDs of built-in roles for the role to include",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Include Role Ids",
+                        "type": "array"
+                    },
+                    "include_role_ids_to_delete": {
+                        "description": "IDs of built-in roles for the role to stop including",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "Include Role Ids To Delete",
+                        "type": "array"
+                    }
+                },
+                "title": "UpdateAccessRoleRequestV1",
+                "type": "object"
+            },
+            "AccessAssignmentsV1": {
+                "description": "A page of role assignments.",
+                "properties": {
+                    "items": {
+                        "description": "Items in this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessAssignmentV1"
+                        },
+                        "title": "Items",
+                        "type": "array"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationResponseV1",
+                        "description": "Pagination metadata for the page."
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ],
+                "title": "AccessAssignmentsV1",
+                "type": "object"
+            },
+            "AccessAssignmentsRequestV1": {
+                "properties": {
+                    "cursor": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Opaque cursor returned by a previous page. Omit to fetch the first page.",
+                        "title": "Cursor"
+                    },
+                    "limit": {
+                        "default": 100,
+                        "description": "Maximum number of items to return.",
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "title": "Limit",
+                        "type": "integer"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of a team. Lists only the assignments in it.",
+                        "title": "Team Id"
+                    },
+                    "role_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of a role. Lists only its assignments.",
+                        "title": "Role Id"
+                    },
+                    "subject_type": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AccessSubjectTypeV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Lists only the assignments to this type of subject"
+                    },
+                    "subject_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of a user, service account, or directory group. Lists only its assignments.",
+                        "title": "Subject Id"
+                    }
+                },
+                "title": "AccessAssignmentsRequestV1",
+                "type": "object"
+            },
+            "AccessResourceUpdateV1": {
+                "description": "A resource for a role assignment to select, or a permission check to ask about.",
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/AccessResourceTypeV1",
+                        "description": "Type of the resource"
+                    },
+                    "identifier": {
+                        "description": "Unique identifier of the resource, such as a model's ID",
+                        "title": "Identifier",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "identifier"
+                ],
+                "title": "AccessResourceUpdateV1",
+                "type": "object"
+            },
+            "CreateAccessAssignmentRequestV1": {
+                "description": "A role to give a user, service account, or directory group.",
+                "properties": {
+                    "role_id": {
+                        "description": "ID of the role to assign",
+                        "title": "Role Id",
+                        "type": "string"
+                    },
+                    "subject_type": {
+                        "$ref": "#/components/schemas/AccessSubjectTypeV1",
+                        "description": "Type of the subject to give the role to"
+                    },
+                    "subject_id": {
+                        "description": "ID of the user, service account, or directory group to give the role to",
+                        "title": "Subject Id",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of the team to assign a team role in. Omit for an organization role.",
+                        "title": "Team Id"
+                    },
+                    "resources": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/AccessResourceUpdateV1"
+                                },
+                                "minItems": 1,
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Resources the role applies to. Omit for every resource where it applies.",
+                        "title": "Resources"
+                    },
+                    "environments": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "minItems": 1,
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Names of the environments the role applies in, such as `production`, for the team's models and chains. An environment needs no environment group, and a name no deployment uses yet applies once one does. Omit for every environment.",
+                        "title": "Environments"
+                    }
+                },
+                "required": [
+                    "role_id",
+                    "subject_type",
+                    "subject_id"
+                ],
+                "title": "CreateAccessAssignmentRequestV1",
+                "type": "object"
+            },
+            "AccessAssignmentTombstoneV1": {
+                "description": "A removed role assignment.",
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier of the removed role assignment",
+                        "title": "Id",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id"
+                ],
+                "title": "AccessAssignmentTombstoneV1",
+                "type": "object"
+            },
+            "AccessCheckV1": {
+                "description": "A permission to check: for the organization, in a team, or on a resource.",
+                "properties": {
+                    "permission": {
+                        "description": "Name of the permission, such as `model.deployment.write`",
+                        "title": "Permission",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "ID of a team to check the permission in. To check whether you can create a resource, check its write permission in the team you create it in.",
+                        "title": "Team Id"
+                    },
+                    "resource": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AccessResourceUpdateV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "A resource to check the permission on. Omit `team_id` and `resource` to check the permission for the organization."
+                    }
+                },
+                "required": [
+                    "permission"
+                ],
+                "title": "AccessCheckV1",
+                "type": "object"
+            },
+            "CheckAccessRequestV1": {
+                "description": "Permissions to check.",
+                "properties": {
+                    "checks": {
+                        "description": "Permissions to check, at most 100",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessCheckV1"
+                        },
+                        "maxItems": 100,
+                        "minItems": 1,
+                        "title": "Checks",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "checks"
+                ],
+                "title": "CheckAccessRequestV1",
+                "type": "object"
+            },
+            "AccessCheckResultV1": {
+                "description": "Whether you hold a permission where a check asked about it.",
+                "properties": {
+                    "permission": {
+                        "description": "Name of the permission",
+                        "title": "Permission",
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "ID of the team it was checked in, if any",
+                        "title": "Team Id"
+                    },
+                    "resource": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AccessResourceV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The resource it was checked on, if any"
+                    },
+                    "allowed": {
+                        "description": "Whether you hold the permission there",
+                        "title": "Allowed",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "permission",
+                    "team_id",
+                    "resource",
+                    "allowed"
+                ],
+                "title": "AccessCheckResultV1",
+                "type": "object"
+            },
+            "CheckAccessResponseV1": {
+                "description": "Answers to permission checks.",
+                "properties": {
+                    "results": {
+                        "description": "One result per check, in the order you sent them",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessCheckResultV1"
+                        },
+                        "title": "Results",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "results"
+                ],
+                "title": "CheckAccessResponseV1",
+                "type": "object"
+            },
             "TokenExchangeRequestV1": {
                 "description": "An RFC 8693 token exchange request naming the trust rule to check as its audience.",
                 "properties": {
@@ -41951,6 +44335,12 @@
                         "default": false,
                         "description": "OpenAI Chat Completions API support.",
                         "title": "Chat Completions",
+                        "type": "boolean"
+                    },
+                    "gemini": {
+                        "default": false,
+                        "description": "Gemini API `generateContent` support.",
+                        "title": "Gemini",
                         "type": "boolean"
                     }
                 },
@@ -42484,12 +44874,13 @@
                         "description": "Provider list prices in USD per 1M tokens, when available."
                     },
                     "api_formats": {
-                        "description": "API formats the route supports, most preferred first: `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target, keeping only the formats the route supports. Never empty.",
+                        "description": "API formats the route supports, most preferred first: `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions`, `gemini` for any other target, keeping only the formats the route supports. Never empty.",
                         "items": {
                             "enum": [
                                 "messages",
                                 "responses",
-                                "chat_completions"
+                                "chat_completions",
+                                "gemini"
                             ],
                             "title": "GridRouteAPIFormatV1",
                             "type": "string"
@@ -48859,6 +51250,14 @@
                 "in": "path",
                 "required": true
             },
+            "checkpoint_id": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "checkpoint_id",
+                "in": "path",
+                "required": true
+            },
             "session_id": {
                 "schema": {
                     "type": "string"
@@ -48880,14 +51279,6 @@
                     "type": "string"
                 },
                 "name": "sampler_id",
-                "in": "path",
-                "required": true
-            },
-            "checkpoint_id": {
-                "schema": {
-                    "type": "string"
-                },
-                "name": "checkpoint_id",
                 "in": "path",
                 "required": true
             },
@@ -48952,6 +51343,22 @@
                     "type": "string"
                 },
                 "name": "trust_rule_id",
+                "in": "path",
+                "required": true
+            },
+            "role_id": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "role_id",
+                "in": "path",
+                "required": true
+            },
+            "assignment_id": {
+                "schema": {
+                    "type": "string"
+                },
+                "name": "assignment_id",
                 "in": "path",
                 "required": true
             },
