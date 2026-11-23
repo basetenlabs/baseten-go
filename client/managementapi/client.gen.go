@@ -2137,22 +2137,24 @@ func (c *Client) GetVolumesVersions(ctx context.Context, volumeNamespace string,
 }
 
 // GetVolumesVersionsVolumeVersion: Gets one version of a volume
-func (c *Client) GetVolumesVersionsVolumeVersion(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string) (*VolumeVersionDetail, error) {
+func (c *Client) GetVolumesVersionsVolumeVersion(ctx context.Context, volumeNamespace string, volumeName string, volumeVersion string, params GetV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersionParams) (*VolumeVersionDetail, error) {
 	return doJSON[VolumeVersionDetail](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/volumes/%s/%s/versions/%s",
 		pathArgs:     []any{volumeNamespace, volumeName, volumeVersion},
+		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
 }
 
 // GetVolumesVolumeName: Gets a volume
-func (c *Client) GetVolumesVolumeName(ctx context.Context, volumeNamespace string, volumeName string) (*Volume, error) {
+func (c *Client) GetVolumesVolumeName(ctx context.Context, volumeNamespace string, volumeName string, params GetV1VolumesVolumeNamespaceVolumeNameParams) (*Volume, error) {
 	return doJSON[Volume](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/volumes/%s/%s",
 		pathArgs:     []any{volumeNamespace, volumeName},
+		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})

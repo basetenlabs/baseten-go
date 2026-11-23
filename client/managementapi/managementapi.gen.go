@@ -5741,6 +5741,9 @@ type DeleteLoopsRunResponse struct {
 type DeleteVolumeRequest struct {
 	// ExpectedSequence Revision the volume is expected to be at. When set, the delete fails with a conflict if the volume has changed since, so it cannot act on a volume someone else has pushed to. Take the value from a volume's sequence, or from volume_sequence.
 	ExpectedSequence *int `json:"expected_sequence,omitempty"`
+
+	// Hosting Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.
+	Hosting *VolumeHosting `json:"hosting,omitempty"`
 }
 
 // DeleteVolumeResponse defines model for DeleteVolumeResponse.
@@ -5762,6 +5765,9 @@ type DeleteVolumeResponse struct {
 type DeleteVolumeTagRequest struct {
 	// ExpectedSequence Revision the volume is expected to be at. When set, the delete fails with a conflict if the volume has changed since, so it cannot delete a tag someone else has just set on another version. Take the value from volume_sequence.
 	ExpectedSequence *int `json:"expected_sequence,omitempty"`
+
+	// Hosting Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.
+	Hosting *VolumeHosting `json:"hosting,omitempty"`
 }
 
 // DeleteVolumeTagResponse defines model for DeleteVolumeTagResponse.
@@ -5786,6 +5792,9 @@ type DeleteVolumeTagResponse struct {
 type DeleteVolumeVersionRequest struct {
 	// ExpectedSequence Revision the volume is expected to be at. When set, the delete fails with a conflict if the volume has changed since, so a read followed by a delete cannot act on a version a tag has since been moved off. Take the value from volume_sequence.
 	ExpectedSequence *int `json:"expected_sequence,omitempty"`
+
+	// Hosting Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.
+	Hosting *VolumeHosting `json:"hosting,omitempty"`
 }
 
 // DeleteVolumeVersionResponse defines model for DeleteVolumeVersionResponse.
@@ -9379,6 +9388,9 @@ type PatchVolumeRequest struct {
 
 	// ExpiresAt Time at which the volume expires, in ISO 8601 format, with a UTC offset. It must be in the future and at most ten years ahead. Set it to null to clear the expiration time. A body that sets no field is rejected. When the volume expires, all live versions are deleted, all tags are removed, and the volume disappears from listings. Clearing the expiration time afterward does not restore deleted versions. Each deleted version can be restored until its delete_after time. Setting or clearing the expiration time requires the same permission as deleting the volume.
 	ExpiresAt Optional[time.Time] `json:"expires_at,omitzero"`
+
+	// Hosting Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.
+	Hosting *VolumeHosting `json:"hosting,omitempty"`
 }
 
 // PatchVolumeResponse defines model for PatchVolumeResponse.
@@ -9728,6 +9740,9 @@ type ResponseTimeDatapoint struct {
 type RestoreVolumeVersionRequest struct {
 	// ExpectedSequence Revision the volume is expected to be at. When set, the restore fails with a conflict if the volume has changed since. Take the value from volume_sequence.
 	ExpectedSequence *int `json:"expected_sequence,omitempty"`
+
+	// Hosting Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.
+	Hosting *VolumeHosting `json:"hosting,omitempty"`
 }
 
 // RestoreVolumeVersionResponse defines model for RestoreVolumeVersionResponse.
@@ -10530,6 +10545,9 @@ type SetVolumeTagRequest struct {
 	// ExpiresAt Time at which the tag expires, in ISO 8601 format, with a UTC offset. It must be in the future and at most ten years ahead. Omit it for a tag with no expiration time of its own. Omitting it also clears the expiration time of an existing tag. Version or volume expiration still deletes the tag. Do not specify it when setting `head`.
 	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 
+	// Hosting Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.
+	Hosting *VolumeHosting `json:"hosting,omitempty"`
+
 	// Tag Name of the tag to set. Tags are case-sensitive. Setting a tag that already exists overwrites it, and the version it pointed at before stays reachable by digest.
 	Tag string `json:"tag"`
 
@@ -10789,10 +10807,10 @@ type SupportedModel struct {
 	// ModelName The name of the supported model.
 	ModelName string `json:"model_name"`
 
-	// Serverless Early access only. Whether this workspace can use serverless Loops for this model.
-	Serverless *bool `json:"serverless,omitempty"`
+	// Serverless Whether this workspace can use serverless Loops for this model.
+	Serverless bool `json:"serverless"`
 
-	// ServerlessPricing Early access only. This workspace's current serverless prices for the model. Present only when 'serverless' is true and the workspace's plan prices the model.
+	// ServerlessPricing This workspace's current serverless prices for the model. Null unless 'serverless' is true and the workspace's plan prices the model.
 	ServerlessPricing *LoopsServerlessPricing `json:"serverless_pricing,omitempty"`
 
 	// SupportsVisionLanguage Whether the model accepts image inputs alongside text.
@@ -13866,6 +13884,9 @@ type GetV1UsersParams struct {
 
 // GetV1VolumesParams defines parameters for GetV1Volumes.
 type GetV1VolumesParams struct {
+	// Hosting Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.
+	Hosting *VolumeHosting `form:"hosting,omitempty" json:"hosting,omitempty"`
+
 	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 
@@ -13878,6 +13899,9 @@ type GetV1VolumesParams struct {
 
 // GetV1VolumesNamespacesParams defines parameters for GetV1VolumesNamespaces.
 type GetV1VolumesNamespacesParams struct {
+	// Hosting Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.
+	Hosting *VolumeHosting `form:"hosting,omitempty" json:"hosting,omitempty"`
+
 	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 
@@ -13897,10 +13921,25 @@ type GetV1VolumesSyncsParams struct {
 	Ref *string `form:"ref,omitempty" json:"ref,omitempty"`
 }
 
+// GetV1VolumesVolumeNamespaceVolumeNameParams defines parameters for GetV1VolumesVolumeNamespaceVolumeName.
+type GetV1VolumesVolumeNamespaceVolumeNameParams struct {
+	// Hosting Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.
+	Hosting *VolumeHosting `form:"hosting,omitempty" json:"hosting,omitempty"`
+}
+
 // GetV1VolumesVolumeNamespaceVolumeNameVersionsParams defines parameters for GetV1VolumesVolumeNamespaceVolumeNameVersions.
 type GetV1VolumesVolumeNamespaceVolumeNameVersionsParams struct {
+	// Hosting Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.
+	Hosting *VolumeHosting `form:"hosting,omitempty" json:"hosting,omitempty"`
+
 	// IncludeTombstoned Whether to include deleted and expired versions. Such a version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.
 	IncludeTombstoned *bool `form:"include_tombstoned,omitempty" json:"include_tombstoned,omitempty"`
+}
+
+// GetV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersionParams defines parameters for GetV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersion.
+type GetV1VolumesVolumeNamespaceVolumeNameVersionsVolumeVersionParams struct {
+	// Hosting Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.
+	Hosting *VolumeHosting `form:"hosting,omitempty" json:"hosting,omitempty"`
 }
 
 // PostV1AccessAssignmentsJSONRequestBody defines body for PostV1AccessAssignments for application/json ContentType.
