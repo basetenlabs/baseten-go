@@ -56,7 +56,7 @@ func (c *ManagementClient) PushVolume(ctx context.Context, opts PushVolumeOption
 	// translation, so the namespace the capability token is scoped to and
 	// the one the transfer addresses cannot drift apart.
 	client, _, err := c.volumeClient(
-		push.Namespace, push.Volume, volumePushScopes(opts), newVolumeCorrelationID())
+		push.Namespace, push.Volume, opts.Hosting, volumePushScopes(opts), newVolumeCorrelationID())
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,8 @@ func (c *ManagementClient) PullVolume(ctx context.Context, opts PullVolumeOption
 	}
 
 	client, _, err := c.volumeClient(
-		pull.Ref.Namespace, pull.Ref.Volume, []string{volumeScopePull}, newVolumeCorrelationID())
+		pull.Ref.Namespace, pull.Ref.Volume, opts.Hosting, []string{volumeScopePull},
+		newVolumeCorrelationID())
 	if err != nil {
 		return nil, err
 	}
@@ -354,7 +355,8 @@ func (c *ManagementClient) FetchVolumeManifest(
 	}
 
 	client, _, err := c.volumeClient(
-		fetch.Ref.Namespace, fetch.Ref.Volume, []string{volumeScopePull}, newVolumeCorrelationID())
+		fetch.Ref.Namespace, fetch.Ref.Volume, opts.Hosting, []string{volumeScopePull},
+		newVolumeCorrelationID())
 	if err != nil {
 		return nil, err
 	}
@@ -446,6 +448,7 @@ func volumeEntryFilter(
 func (c *ManagementClient) volumeClient(
 	namespace string,
 	volume string,
+	hosting managementapi.VolumeHosting,
 	scopes []string,
 	correlationID string,
 ) (*bdn.Client, *volumeTokenSource, error) {
@@ -453,7 +456,7 @@ func (c *ManagementClient) volumeClient(
 	// override is gone — a program that needs a different transport
 	// configures it once, where every other call already gets it.
 	httpClient := c.api.HTTPClient
-	tokens := c.volumeTokenSource(namespace, volume, scopes, correlationID)
+	tokens := c.volumeTokenSource(namespace, volume, hosting, scopes, correlationID)
 	client, err := bdn.New(bdn.Options{
 		HTTPClient: httpClient,
 		Tokens:     tokens.tokenSource(),
@@ -572,12 +575,17 @@ type volumeToken struct {
 // per API key, and a transfer's worth of simultaneous exchanges would spend
 // that budget on a single expiry.
 func (c *ManagementClient) volumeTokenSource(
-	namespace string, volume string, scopes []string, correlationID string,
+	namespace string,
+	volume string,
+	hosting managementapi.VolumeHosting,
+	scopes []string,
+	correlationID string,
 ) *volumeTokenSource {
 	return &volumeTokenSource{
 		client:        c,
 		namespace:     namespace,
 		volume:        volume,
+		hosting:       hosting,
 		scopes:        scopes,
 		correlationID: correlationID,
 		proactive:     true,
@@ -588,6 +596,7 @@ type volumeTokenSource struct {
 	client        *ManagementClient
 	namespace     string
 	volume        string
+	hosting       managementapi.VolumeHosting
 	scopes        []string
 	correlationID string
 
@@ -631,7 +640,7 @@ func (s *volumeTokenSource) get(ctx context.Context, rejected string) (*volumeTo
 	exchangeCtx, cancel := context.WithTimeout(ctx, tokenExchangeTimeout)
 	defer cancel()
 	exchanged, err := s.client.exchangeVolumeToken(
-		exchangeCtx, s.namespace, s.volume, s.scopes, s.correlationID)
+		exchangeCtx, s.namespace, s.volume, s.hosting, s.scopes, s.correlationID)
 	if err != nil {
 		return nil, err
 	}
@@ -681,6 +690,7 @@ func (c *ManagementClient) exchangeVolumeToken(
 	ctx context.Context,
 	namespace string,
 	volume string,
+	hosting managementapi.VolumeHosting,
 	scopes []string,
 	correlationID string,
 ) (*volumeToken, error) {
@@ -691,6 +701,9 @@ func (c *ManagementClient) exchangeVolumeToken(
 	}
 	for _, scope := range scopes {
 		req.Scopes = append(req.Scopes, managementapi.VolumeTokenScope(scope))
+	}
+	if hosting != "" {
+		req.Hosting = &hosting
 	}
 	if correlationID != "" {
 		req.CorrelationId = &correlationID
@@ -939,6 +952,11 @@ type PushVolumeOptions struct {
 	// Use [ParseVolumeRef] to read one from a string.
 	Ref VolumeRef
 
+	// Hosting chooses where the volume is stored. Empty lets the service pick
+	// your organization's only hosting; an organization with more than one
+	// must set it. The same name under two hostings is two different volumes.
+	Hosting managementapi.VolumeHosting
+
 	// SourceDir is the directory to push. It is walked without following
 	// symlinks, which are recorded as links.
 	SourceDir string
@@ -1071,6 +1089,10 @@ type PullVolumeOptions struct {
 	//
 	// Use [ParseVolumeRef] to read one from a string.
 	Ref VolumeRef
+
+	// Hosting chooses where the volume is read from, as for
+	// [PushVolumeOptions.Hosting].
+	Hosting managementapi.VolumeHosting
 
 	// DestDir is where the tree ends up. Unless Overwrite is set it must not
 	// exist or must be empty, and the tree is assembled beside it and moved
@@ -1207,6 +1229,10 @@ type FetchVolumeManifestOptions struct {
 	//
 	// Use [ParseVolumeRef] to read one from a string.
 	Ref VolumeRef
+
+	// Hosting chooses where the volume is read from, as for
+	// [PushVolumeOptions.Hosting].
+	Hosting managementapi.VolumeHosting
 
 	// EntryFilter keeps the entries it returns true for and drops the rest.
 	// Nil keeps everything, which is the whole version and can be very large:

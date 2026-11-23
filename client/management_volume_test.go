@@ -134,7 +134,7 @@ func TestVolumeTokenExchange(t *testing.T) {
 	client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
 	require.NoError(t, err)
 
-	tokens := client.volumeTokenSource("models", "llama", []string{"PUSH", "TAG"}, "corr-1").tokenSource()
+	tokens := client.volumeTokenSource("models", "llama", "", []string{"PUSH", "TAG"}, "corr-1").tokenSource()
 	token, host, err := tokens(context.Background(), "")
 	require.NoError(t, err)
 	require.Equal(t, "capability-token", token)
@@ -256,7 +256,7 @@ func TestVolumeTokenExchangeFailures(t *testing.T) {
 			client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
 			require.NoError(t, err)
 
-			_, _, err = client.volumeTokenSource("models", "llama", []string{"PULL"}, "").tokenSource()(context.Background(), "")
+			_, _, err = client.volumeTokenSource("models", "llama", "", []string{"PULL"}, "").tokenSource()(context.Background(), "")
 			require.Error(t, err)
 			require.Contains(t, err.Error(), "exchange volume token")
 			require.Contains(t, err.Error(), tc.want)
@@ -369,7 +369,7 @@ func TestTokenExchangeCollapsesASimultaneousExpiry(t *testing.T) {
 
 	client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
 	require.NoError(t, err)
-	tokens := client.volumeTokenSource("models", "llama", []string{"PULL"}, "").tokenSource()
+	tokens := client.volumeTokenSource("models", "llama", "", []string{"PULL"}, "").tokenSource()
 
 	first, _, err := tokens(context.Background(), "")
 	require.NoError(t, err)
@@ -418,7 +418,7 @@ func TestTokenRefreshesAheadOfExpiry(t *testing.T) {
 
 	client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
 	require.NoError(t, err)
-	tokens := client.volumeTokenSource("models", "llama", []string{"PULL"}, "").tokenSource()
+	tokens := client.volumeTokenSource("models", "llama", "", []string{"PULL"}, "").tokenSource()
 
 	// A token good for an hour is reused.
 	first, _, err := tokens(context.Background(), "")
@@ -525,7 +525,7 @@ func TestRefreshCollapsesWithAHealthyReplacement(t *testing.T) {
 
 	client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
 	require.NoError(t, err)
-	tokens := client.volumeTokenSource("models", "llama", []string{"PULL"}, "corr").tokenSource()
+	tokens := client.volumeTokenSource("models", "llama", "", []string{"PULL"}, "corr").tokenSource()
 
 	// A token already inside the refresh margin, held by everything in flight.
 	ttl.Store(int64(10 * time.Second))
@@ -561,7 +561,7 @@ func TestRefreshCollapsesWhenReplacementsStayShort(t *testing.T) {
 
 	client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
 	require.NoError(t, err)
-	tokens := client.volumeTokenSource("models", "llama", []string{"PULL"}, "corr").tokenSource()
+	tokens := client.volumeTokenSource("models", "llama", "", []string{"PULL"}, "corr").tokenSource()
 
 	if _, _, err := tokens(context.Background(), ""); err != nil {
 		t.Fatal(err)
@@ -634,7 +634,7 @@ func TestRefreshStopsWhenItBuysNothing(t *testing.T) {
 
 	client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
 	require.NoError(t, err)
-	tokens := client.volumeTokenSource("models", "llama", []string{"PULL"}, "corr").tokenSource()
+	tokens := client.volumeTokenSource("models", "llama", "", []string{"PULL"}, "corr").tokenSource()
 
 	// The first call exchanges; the second finds the replacement no better and
 	// gives up on refreshing ahead of time. Everything after reuses it.
@@ -668,7 +668,7 @@ func TestNoVolumeAPIIsDistinguishable(t *testing.T) {
 	client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
 	require.NoError(t, err)
 
-	_, _, err = client.volumeTokenSource("models", "llama", []string{"PULL"}, "").tokenSource()(context.Background(), "")
+	_, _, err = client.volumeTokenSource("models", "llama", "", []string{"PULL"}, "").tokenSource()(context.Background(), "")
 	require.Error(t, err)
 	require.True(t, errors.Is(err, ErrNoVolumeAPI), "expected ErrNoVolumeAPI, got %v", err)
 }
@@ -687,7 +687,7 @@ func TestEmptyEndpointIsNotMissingAPI(t *testing.T) {
 	client, err := NewManagementClient(ManagementClientOptions{APIKey: "api-key", BaseURL: server.URL})
 	require.NoError(t, err)
 
-	_, _, err = client.volumeTokenSource("models", "llama", []string{"PULL"}, "").tokenSource()(context.Background(), "")
+	_, _, err = client.volumeTokenSource("models", "llama", "", []string{"PULL"}, "").tokenSource()(context.Background(), "")
 	require.Error(t, err)
 	require.False(t, errors.Is(err, ErrNoVolumeAPI), "an empty endpoint must not read as a missing volume API: %v", err)
 	require.True(t, errors.Is(err, ErrMalformedVolumeEndpoint), "the empty shape should carry its own sentinel: %v", err)

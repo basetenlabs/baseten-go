@@ -25,11 +25,28 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None, 'namespace': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'hosting': None, 'cursor': None, 'namespace': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Returns one row per volume in the namespace, each with its tags, head version, version counts, and any scheduled expiry. Pass namespace to choose the namespace, which is required because the volume service has no cross-namespace inventory. Versions live on the versions sub-resource, so this response stays a fixed size per volume no matter how long a volume's history is. A volume with no live versions left, whether deleted or expired, is not listed. A page can hold fewer volumes than `limit`, or none, while more remain, so keep requesting with the returned cursor until `has_more` is false.",
                 "parameters": [
+                    {
+                        "name": "hosting",
+                        "in": "query",
+                        "required": false,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/VolumeHostingV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
                     {
                         "name": "cursor",
                         "in": "query",
@@ -92,11 +109,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/token \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"scopes\": null,\n  \"namespaces\": null,\n  \"volumes\": null,\n  \"hosting\": null,\n  \"correlation_id\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/token \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"hosting\": null,\n  \"scopes\": null,\n  \"namespaces\": null,\n  \"volumes\": null,\n  \"correlation_id\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/token\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'scopes': None, 'namespaces': None, 'volumes': None, 'hosting': None, 'correlation_id': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/token\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'hosting': None, 'scopes': None, 'namespaces': None, 'volumes': None, 'correlation_id': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Exchanges your API key for a short-lived token that authenticates against Baseten volume storage. A volume token is needed only to push and pull volume data; other volume operations use your API key directly. Tokens expire after one hour and cannot be renewed; exchange again for a fresh token. Push and tag capabilities require organization-level model management permission. Pass correlation_id to link the issued token to a client operation in server logs.",
@@ -134,11 +151,28 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/namespaces\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'cursor': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/namespaces\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'hosting': None, 'cursor': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Returns the namespaces that hold volumes your API key can read, in lowercase. Namespaces are not created directly: a namespace comes into existence when the first volume is pushed into it.",
                 "parameters": [
+                    {
+                        "name": "hosting",
+                        "in": "query",
+                        "required": false,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/VolumeHostingV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
                     {
                         "name": "cursor",
                         "in": "query",
@@ -371,11 +405,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"expected_sequence\": null\n}'"
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"hosting\": null,\n  \"expected_sequence\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={'expected_sequence': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={'hosting': None, 'expected_sequence': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Deletes every live version of the volume, after which the volume stops appearing in listings. The data is not erased: each version stays restorable until its recovery deadline passes, and the versions sub-resource still reports them when you pass include_tombstoned. Deleting a volume that has no live versions left succeeds and reports zero versions deleted.",
@@ -419,10 +453,29 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'hosting': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Returns a volume with its tags, head version, version counts, and any scheduled expiry. Versions live on the versions sub-resource so they can be paged separately. A volume whose versions have all been deleted or have expired is still returned, with zero live versions.",
+                "parameters": [
+                    {
+                        "name": "hosting",
+                        "in": "query",
+                        "required": false,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/VolumeHostingV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -441,11 +494,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"expires_at\": \"2030-01-01T00:00:00Z\",\n  \"expected_sequence\": null\n}'"
+                        "source": "curl --request PATCH \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"hosting\": null,\n  \"expires_at\": \"2030-01-01T00:00:00Z\",\n  \"expected_sequence\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'expires_at': '2030-01-01T00:00:00Z', 'expected_sequence': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"PATCH\",\n    url,\n    headers=headers,\n    json={'hosting': None, 'expires_at': '2030-01-01T00:00:00Z', 'expected_sequence': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Updates a volume's settings, such as its expiration time. Only the settings in the request change.",
@@ -483,11 +536,28 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'hosting': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Returns every live version of the volume, newest first, each with its digest, size, lifecycle, the tags pointing at it, and any scheduled expiry. Pass include_tombstoned to list deleted and expired versions alongside them.",
                 "parameters": [
+                    {
+                        "name": "hosting",
+                        "in": "query",
+                        "required": false,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/VolumeHostingV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    },
                     {
                         "name": "include_tombstoned",
                         "in": "query",
@@ -528,11 +598,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"expected_sequence\": null\n}'"
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"hosting\": null,\n  \"expected_sequence\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={'expected_sequence': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={'hosting': None, 'expected_sequence': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Deletes the version the address names, along with every tag pointing at it. Addressing the version by tag deletes the version the tag points at, not the tag. The data is not erased: the version stays restorable until the recovery deadline in the response passes. Deleting a version that is already deleted is a conflict, not a repeat success.",
@@ -579,10 +649,29 @@
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    json={}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"GET\",\n    url,\n    headers=headers,\n    params={'hosting': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Returns a single version of the volume. Address it with `:<tag>` for a tag, `@<digest>` for a full content digest or a prefix of at least 12 hexadecimal characters, or `head` for the version a reference with no tag or digest resolves to. A digest prefix that matches more than one version is rejected: supply more characters.",
+                "parameters": [
+                    {
+                        "name": "hosting",
+                        "in": "query",
+                        "required": false,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/VolumeHostingV1"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -603,11 +692,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}/restore \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"expected_sequence\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}/restore \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"hosting\": null,\n  \"expected_sequence\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}/restore\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'expected_sequence': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/versions/{volume_version}/restore\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'hosting': None, 'expected_sequence': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Returns a deleted or expired version to service, provided its recovery deadline has not passed. The tags the version carried are not restored with it, so re-tag it if anything depended on those, and a restored version never expires until something sets a new expiry. Address the version by digest: a tombstoned version has no tags left to name it by.",
@@ -652,11 +741,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"tag\": \"nightly\",\n  \"version\": \"head\",\n  \"expires_at\": null,\n  \"expected_sequence\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"hosting\": null,\n  \"tag\": \"nightly\",\n  \"version\": \"head\",\n  \"expires_at\": null,\n  \"expected_sequence\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'tag': 'nightly', 'version': 'head', 'expires_at': None, 'expected_sequence': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'hosting': None, 'tag': 'nightly', 'version': 'head', 'expires_at': None, 'expected_sequence': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Setting an existing tag overwrites it. The previous version remains available by digest. Pass `expires_at` to set the tag's expiration time. Omit `expires_at` to clear any expiration time on the tag. Version or volume expiration still deletes the tag. Setting `head` changes the version used by references without a tag or digest. You cannot set `head` on an expiring version or supply `expires_at` when setting `head`.",
@@ -698,11 +787,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags/{volume_tag} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"expected_sequence\": null\n}'"
+                        "source": "curl --request DELETE \\\n--url https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags/{volume_tag} \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"hosting\": null,\n  \"expected_sequence\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags/{volume_tag}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={'expected_sequence': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/{volume_namespace}/{volume_name}/tags/{volume_tag}\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"DELETE\",\n    url,\n    headers=headers,\n    json={'hosting': None, 'expected_sequence': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "The version remains available by digest and any other tags. If the tag is absent, the request succeeds with `deleted` set to `false`. Deleting `head` makes references without a tag or digest stop resolving until `head` is set again.",
@@ -16563,8 +16652,30 @@
                 "title": "ListVolumesResponseV1",
                 "type": "object"
             },
+            "VolumeHostingV1": {
+                "description": "Where volumes are stored. The same name under two hostings is two different volumes.\n\n- ``BASETEN_CLOUD``: Baseten's shared fleet.\n- ``SINGLE_TENANT``: your organization's single-tenant workload planes.\n- ``SELF_HOSTED``: workload planes in your own cloud account.",
+                "enum": [
+                    "BASETEN_CLOUD",
+                    "SINGLE_TENANT",
+                    "SELF_HOSTED"
+                ],
+                "title": "VolumeHostingV1",
+                "type": "string"
+            },
             "ListVolumesRequestV1": {
                 "properties": {
+                    "hosting": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeHostingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
+                    },
                     "cursor": {
                         "anyOf": [
                             {
@@ -16598,16 +16709,6 @@
                 "title": "ListVolumesRequestV1",
                 "type": "object"
             },
-            "VolumeHostingV1": {
-                "description": "Where volumes are stored. The same name under two hostings is two different volumes.\n\n- ``BASETEN_CLOUD``: Baseten's shared fleet.\n- ``SINGLE_TENANT``: your organization's single-tenant workload planes.\n- ``SELF_HOSTED``: workload planes in your own cloud account.",
-                "enum": [
-                    "BASETEN_CLOUD",
-                    "SINGLE_TENANT",
-                    "SELF_HOSTED"
-                ],
-                "title": "VolumeHostingV1",
-                "type": "string"
-            },
             "VolumeTokenScopeV1": {
                 "description": "Capability a volume token grants.\n\n- ``PULL``: read volume data.\n- ``INSPECT``: read volume metadata without data access.\n- ``PUSH``: upload and commit volume versions.\n- ``TAG``: move or remove tags.",
                 "enum": [
@@ -16622,6 +16723,18 @@
             "CreateVolumeTokenRequestV1": {
                 "additionalProperties": false,
                 "properties": {
+                    "hosting": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeHostingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
+                    },
                     "scopes": {
                         "description": "Capabilities the token grants, at least one. Requesting PUSH or TAG requires organization-level model management permission.",
                         "items": {
@@ -16648,18 +16761,6 @@
                         "minItems": 1,
                         "title": "Volumes",
                         "type": "array"
-                    },
-                    "hosting": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/VolumeHostingV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
                     },
                     "correlation_id": {
                         "anyOf": [
@@ -16776,6 +16877,18 @@
             },
             "ListVolumeNamespacesRequestV1": {
                 "properties": {
+                    "hosting": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeHostingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
+                    },
                     "cursor": {
                         "anyOf": [
                             {
@@ -17607,6 +17720,18 @@
             "DeleteVolumeRequestV1": {
                 "additionalProperties": false,
                 "properties": {
+                    "hosting": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeHostingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
+                    },
                     "expected_sequence": {
                         "anyOf": [
                             {
@@ -17657,9 +17782,40 @@
                 "title": "DeleteVolumeResponseV1",
                 "type": "object"
             },
+            "VolumeHostingRequestV1": {
+                "description": "Selects the hosting a volume request addresses.",
+                "properties": {
+                    "hosting": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeHostingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
+                    }
+                },
+                "title": "VolumeHostingRequestV1",
+                "type": "object"
+            },
             "PatchVolumeRequestV1": {
                 "additionalProperties": false,
                 "properties": {
+                    "hosting": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeHostingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
+                    },
                     "expires_at": {
                         "anyOf": [
                             {
@@ -17890,6 +18046,18 @@
             },
             "ListVolumeVersionsRequestV1": {
                 "properties": {
+                    "hosting": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeHostingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
+                    },
                     "include_tombstoned": {
                         "default": false,
                         "description": "Whether to include deleted and expired versions. Such a version carries a TOMBSTONED lifecycle and stays restorable until its recovery deadline passes.",
@@ -17903,6 +18071,18 @@
             "DeleteVolumeVersionRequestV1": {
                 "additionalProperties": false,
                 "properties": {
+                    "hosting": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeHostingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
+                    },
                     "expected_sequence": {
                         "anyOf": [
                             {
@@ -18123,6 +18303,18 @@
             "RestoreVolumeVersionRequestV1": {
                 "additionalProperties": false,
                 "properties": {
+                    "hosting": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeHostingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
+                    },
                     "expected_sequence": {
                         "anyOf": [
                             {
@@ -18188,6 +18380,18 @@
             "SetVolumeTagRequestV1": {
                 "additionalProperties": false,
                 "properties": {
+                    "hosting": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeHostingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
+                    },
                     "tag": {
                         "description": "Name of the tag to set. Tags are case-sensitive. Setting a tag that already exists overwrites it, and the version it pointed at before stays reachable by digest.",
                         "examples": [
@@ -18302,6 +18506,18 @@
             "DeleteVolumeTagRequestV1": {
                 "additionalProperties": false,
                 "properties": {
+                    "hosting": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeHostingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
+                    },
                     "expected_sequence": {
                         "anyOf": [
                             {
@@ -34200,17 +34416,9 @@
                         "type": "boolean"
                     },
                     "serverless": {
-                        "anyOf": [
-                            {
-                                "type": "boolean"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Early access only. Whether this workspace can use serverless Loops for this model.",
-                        "title": "Serverless"
+                        "description": "Whether this workspace can use serverless Loops for this model.",
+                        "title": "Serverless",
+                        "type": "boolean"
                     },
                     "serverless_pricing": {
                         "anyOf": [
@@ -34222,7 +34430,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "Early access only. This workspace's current serverless prices for the model. Present only when 'serverless' is true and the workspace's plan prices the model."
+                        "description": "This workspace's current serverless prices for the model. Null unless 'serverless' is true and the workspace's plan prices the model."
                     },
                     "enablement_details": {
                         "anyOf": [
@@ -34241,7 +34449,8 @@
                     "model_name",
                     "max_seq_len",
                     "max_context_length",
-                    "supports_vision_language"
+                    "supports_vision_language",
+                    "serverless"
                 ],
                 "title": "SupportedModelV1",
                 "type": "object"

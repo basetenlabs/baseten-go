@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/basetenlabs/baseten-go/client"
+	"github.com/basetenlabs/baseten-go/client/managementapi"
 	"github.com/basetenlabs/baseten-go/internal/volume"
 )
 
@@ -44,6 +45,7 @@ func newManagementAPI(t *testing.T, fake *fakeService, exchanges *atomic.Int64) 
 			Scopes        []string `json:"scopes"`
 			Namespaces    []string `json:"namespaces"`
 			Volumes       []string `json:"volumes"`
+			Hosting       *string  `json:"hosting"`
 			CorrelationID string   `json:"correlation_id"`
 		}
 		decoder := json.NewDecoder(r.Body)
@@ -58,6 +60,15 @@ func newManagementAPI(t *testing.T, fake *fakeService, exchanges *atomic.Int64) 
 		// an exchange, and tests that count exchanges mean the ones that
 		// minted a token.
 		exchanges.Add(1)
+		// The real endpoint picks the organization's only hosting when none
+		// is named; the fake's organization has only Baseten Cloud.
+		requested, hosting := "", "BASETEN_CLOUD"
+		if request.Hosting != nil {
+			requested, hosting = *request.Hosting, *request.Hosting
+		}
+		fake.mu.Lock()
+		fake.exchangeHostings = append(fake.exchangeHostings, requested)
+		fake.mu.Unlock()
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"token": fake.token(), "bdn_endpoint": fake.server.URL,
@@ -65,7 +76,7 @@ func newManagementAPI(t *testing.T, fake *fakeService, exchanges *atomic.Int64) 
 			// Echoed as granted, which is what a caller reads to learn what it
 			// actually got.
 			"scopes": request.Scopes, "namespaces": request.Namespaces,
-			"volumes": request.Volumes,
+			"volumes": request.Volumes, "hosting": hosting,
 		})
 	}))
 	t.Cleanup(server.Close)
@@ -742,5 +753,56 @@ func TestDownloadDeliversResolvedOriginToTheStore(t *testing.T) {
 	}
 	if sized == 0 {
 		t.Error("no request carried an expected size — the manifest-recorded chunk lengths were dropped")
+	}
+}
+
+// TestManagementClientCarriesTheHosting checks that a hosting named on a push,
+// a manifest fetch, or a pull reaches the token exchange, which is the only
+// place it decides anything, and that an operation naming none sends none.
+func TestManagementClientCarriesTheHosting(t *testing.T) {
+	root := buildTree(t)
+	fake := newFakeService(t)
+	var exchanges atomic.Int64
+	api, err := client.NewManagementClient(client.ManagementClientOptions{
+		APIKey:  "api-key",
+		BaseURL: newManagementAPI(t, fake, &exchanges),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := context.Background()
+	ref := client.VolumeRef{Namespace: fakeNamespace, Volume: fakeVolume}
+	store := fakePublicStore{download: fake.downloader()}
+	hosting := managementapi.VolumeHosting_SINGLE_TENANT
+
+	if _, err := api.PushVolume(ctx, client.PushVolumeOptions{
+		Ref: ref, Hosting: hosting, SourceDir: root, SourceURI: "file:///fixture", Hasher: newBlake3,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := api.FetchVolumeManifest(ctx, client.FetchVolumeManifestOptions{
+		Ref: ref, Hosting: hosting, Hasher: newBlake3, Store: store,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	dest := t.TempDir()
+	if _, err := api.PullVolume(ctx, client.PullVolumeOptions{
+		Ref: ref, Hosting: hosting, DestDir: dest, Hasher: newBlake3, Store: store,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(filepath.Join(dest, "assets"), 0o755) })
+	if _, err := api.FetchVolumeManifest(ctx, client.FetchVolumeManifestOptions{
+		Ref: ref, Hasher: newBlake3, Store: store,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	want := []string{"SINGLE_TENANT", "SINGLE_TENANT", "SINGLE_TENANT", ""}
+	fake.mu.Lock()
+	got := append([]string(nil), fake.exchangeHostings...)
+	fake.mu.Unlock()
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("exchanges asked for hostings %q, want %q", got, want)
 	}
 }

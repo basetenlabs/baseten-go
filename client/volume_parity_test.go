@@ -53,6 +53,7 @@ func volumeTwinPairs() []twinPair {
 	seamOnly := map[string]string{
 		"Store": "the public seam is one VolumeObjectStore interface; internally it is the DownloadObject and Decompress function pair",
 	}
+	const tokenOnly = "the hosting chooses which capability token the exchange mints; the engine is handed the token"
 	seamInternal := map[string]string{
 		"DownloadObject": "half of the public Store interface",
 		"Decompress":     "half of the public Store interface",
@@ -93,14 +94,15 @@ func volumeTwinPairs() []twinPair {
 		{
 			name: "FetchVolumeManifestOptions", public: FetchVolumeManifestOptions{}, internal: transfer.ManifestOptions{},
 			renamed:      map[string]string{"Hasher": "NewHasher"},
-			publicOnly:   seamOnly,
+			publicOnly:   map[string]string{"Store": seamOnly["Store"], "Hosting": tokenOnly},
 			internalOnly: seamInternal,
 		},
 		{
 			name: "PushVolumeOptions", public: PushVolumeOptions{}, internal: transfer.PushOptions{},
 			renamed: map[string]string{"Hasher": "NewHasher"},
 			publicOnly: map[string]string{
-				"Store": seamOnly["Store"],
+				"Store":   seamOnly["Store"],
+				"Hosting": tokenOnly,
 				"Ref": "a push names its volume with one VolumeRef; the engine is handed the two parts it needs, " +
 					"since it never sees a selector or a path and a ref it cannot fully honour would invite one",
 			},
@@ -119,7 +121,7 @@ func volumeTwinPairs() []twinPair {
 			// one the ref already named: a second spelling of it could
 			// disagree with the first.
 			renamed:      map[string]string{"Hasher": "NewHasher", "StripRefPath": "StripPrefix"},
-			publicOnly:   seamOnly,
+			publicOnly:   map[string]string{"Store": seamOnly["Store"], "Hosting": tokenOnly},
 			internalOnly: seamInternal,
 		},
 	}
