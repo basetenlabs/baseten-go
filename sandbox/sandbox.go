@@ -21,6 +21,7 @@ type Sandbox struct {
 	process  *ProcessService
 	fs       *FileSystemService
 	previews *PreviewService
+	drives   *DriveService
 }
 
 func (c *Client) newSandbox(name, url string) *Sandbox {
@@ -39,6 +40,7 @@ func (c *Client) newSandbox(name, url string) *Sandbox {
 	sandbox.process = newProcessService(sandbox)
 	sandbox.fs = newFileSystemService(sandbox)
 	sandbox.previews = newPreviewService(sandbox)
+	sandbox.drives = newDriveService(sandbox)
 	return sandbox
 }
 
@@ -68,6 +70,11 @@ func (s *Sandbox) FS() *FileSystemService {
 // no name.
 func (s *Sandbox) Previews() *PreviewService {
 	return s.previews
+}
+
+// Drives mounts drives in the sandbox.
+func (s *Sandbox) Drives() *DriveService {
+	return s.drives
 }
 
 // API returns the underlying generated execution API client for this

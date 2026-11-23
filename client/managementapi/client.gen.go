@@ -58,6 +58,19 @@ func (c *Client) CleanupImages(ctx context.Context, params CleanupImagesParams) 
 	})
 }
 
+// CreateDrive: Create a drive
+func (c *Client) CreateDrive(ctx context.Context, params CreateDriveParams, body CreateSandboxDriveRequest) (*SandboxDrive, error) {
+	return doJSON[SandboxDrive](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/drives/instances",
+		pathArgs:     nil,
+		queryParams:  params,
+		body:         body,
+		successCodes: []int{201},
+		errorCodes:   nil,
+	})
+}
+
 // CreateSandbox: Create a sandbox
 func (c *Client) CreateSandbox(ctx context.Context, params CreateSandboxParams, body CreateSandboxRequest) (*Sandbox, error) {
 	return doJSON[Sandbox](c, ctx, apiRequest{
@@ -183,6 +196,18 @@ func (c *Client) DeleteChainsDeployments(ctx context.Context, chainId string, ch
 		pathFmt:      "/v1/chains/%s/deployments/%s",
 		pathArgs:     []any{chainId, chainDeploymentId},
 		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// DeleteDrive: Delete a drive
+func (c *Client) DeleteDrive(ctx context.Context, driveName string, params DeleteDriveParams) (*SandboxDrive, error) {
+	return doJSON[SandboxDrive](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/drives/instances/%s",
+		pathArgs:     []any{driveName},
+		queryParams:  params,
+		successCodes: []int{202},
 		errorCodes:   nil,
 	})
 }
@@ -786,6 +811,18 @@ func (c *Client) GetChainsEnvironmentsEnvName(ctx context.Context, chainId strin
 		method:       "GET",
 		pathFmt:      "/v1/chains/%s/environments/%s",
 		pathArgs:     []any{chainId, envName},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetDrive: Get a drive
+func (c *Client) GetDrive(ctx context.Context, driveName string, params GetDriveParams) (*SandboxDrive, error) {
+	return doJSON[SandboxDrive](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/drives/instances/%s",
+		pathArgs:     []any{driveName},
+		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -2153,6 +2190,18 @@ func (c *Client) GetVolumesVolumeName(ctx context.Context, volumeNamespace strin
 		method:       "GET",
 		pathFmt:      "/v1/volumes/%s/%s",
 		pathArgs:     []any{volumeNamespace, volumeName},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// ListDrives: List drives
+func (c *Client) ListDrives(ctx context.Context, params ListDrivesParams) (*ListSandboxDrivesResponse, error) {
+	return doJSON[ListSandboxDrivesResponse](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/drives/instances",
+		pathArgs:     nil,
+		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -3664,6 +3713,19 @@ func (c *Client) PutTrainingProjectsJobsCheckpointsTtl(ctx context.Context, trai
 		method:       "PUT",
 		pathFmt:      "/v1/training_projects/%s/jobs/%s/checkpoints/%s/ttl",
 		pathArgs:     []any{trainingProjectId, trainingJobId, checkpointId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// UpdateDrive: Update a drive
+func (c *Client) UpdateDrive(ctx context.Context, driveName string, params UpdateDriveParams, body UpdateSandboxDriveRequest) (*SandboxDrive, error) {
+	return doJSON[SandboxDrive](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/drives/instances/%s",
+		pathArgs:     []any{driveName},
+		queryParams:  params,
 		body:         body,
 		successCodes: []int{200},
 		errorCodes:   nil,

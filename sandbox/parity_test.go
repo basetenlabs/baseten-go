@@ -99,6 +99,22 @@ func TestTypeParity(t *testing.T) {
 			oursOnly: map[string]string{"SizeMegabytes": "the integer form of Size"},
 		},
 		{name: "VolumeMount", ours: VolumeMount{}, generated: managementapi.SandboxVolumeAttachment{}},
+		{
+			name: "DriveMount/Info", ours: DriveMount{}, generated: sandboxapi.DriveMountInfo{},
+			generatedOnly: map[string]string{
+				"GidMap": "ownership remapping is not exposed",
+				"UidMap": "ownership remapping is not exposed",
+			},
+		},
+		{
+			name: "DriveMount/Response", ours: DriveMount{}, generated: sandboxapi.DriveMountResponse{},
+			generatedOnly: map[string]string{
+				"GidMap":  "ownership remapping is not exposed",
+				"UidMap":  "ownership remapping is not exposed",
+				"Message": "reported in the error when Success is false",
+				"Success": "false becomes an error",
+			},
+		},
 	} {
 		t.Run(pair.name, func(t *testing.T) {
 			generated := map[string]bool{}

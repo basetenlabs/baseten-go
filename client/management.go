@@ -48,7 +48,8 @@ type ManagementClientOptions struct {
 
 // ManagementClient provides access to the Baseten management API.
 type ManagementClient struct {
-	api *managementapi.Client
+	api    *managementapi.Client
+	drives *DriveClient
 }
 
 // NewManagementClient creates a new ManagementClient.
@@ -83,11 +84,12 @@ func NewManagementClient(opts ManagementClientOptions) (*ManagementClient, error
 	}
 	ApplyUserAgentHeader(headers)
 
-	return &ManagementClient{api: &managementapi.Client{
+	api := &managementapi.Client{
 		BaseURL:    baseURL,
 		HTTPClient: httpClient,
 		Headers:    headers,
-	}}, nil
+	}
+	return &ManagementClient{api: api, drives: newDriveClient(api)}, nil
 }
 
 // API returns the underlying generated management API client. The generated

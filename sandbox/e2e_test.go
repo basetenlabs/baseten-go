@@ -19,6 +19,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/basetenlabs/baseten-go/client"
+	"github.com/basetenlabs/baseten-go/client/managementapi"
 	"github.com/basetenlabs/baseten-go/internal/require"
 	"github.com/basetenlabs/baseten-go/sandbox"
 )
@@ -455,6 +457,96 @@ func TestE2EVolume(t *testing.T) {
 		})
 		t.Logf("volume deletable %v after sandbox delete returned", elapsed)
 		require.Equal(t, sandbox.VolumeStatusDeleting, deleted.Status)
+	})
+}
+
+func TestE2EDrive(t *testing.T) {
+	skipOrFailE2E(t)
+	managementOpts := client.ManagementClientOptions{APIKey: e2eAPIKey, BaseURL: "https://api." + e2eDomain}
+	if e2eDebug {
+		managementOpts.HTTPClient = debugClient{}
+	}
+	management, err := client.NewManagementClient(managementOpts)
+	require.NoError(t, err)
+	drives := management.Drives()
+	ctx := t.Context()
+	started := time.Now()
+	driveName := uniqueName()
+	t.Logf("drive %s", driveName)
+	step := func(name string, run func(t *testing.T)) {
+		t.Helper()
+		require.True(t, t.Run(name, run), "step %s failed", name)
+	}
+
+	t.Cleanup(func() {
+		_, err := drives.Delete(context.Background(), client.DriveDeleteOptions{Name: driveName})
+		var responseErr *managementapi.ResponseError
+		if !errors.As(err, &responseErr) || responseErr.StatusCode != http.StatusNotFound {
+			require.NoError(t, err)
+		}
+	})
+
+	step("CRUD", func(t *testing.T) {
+		labels := maps.Clone(e2eLabels)
+		labels["step"] = "create"
+		created, err := drives.Create(ctx, client.DriveCreateOptions{Name: driveName, Region: e2eRegion, Labels: labels})
+		require.NoError(t, err)
+		require.Equal(t, driveName, created.Name)
+		require.Equal(t, e2eRegion, created.Region)
+		require.NotEqual(t, "", created.CreatedBy)
+		requireWithinRun(t, "drive createdAt", started, created.CreatedAt)
+
+		info, err := drives.GetInfo(ctx, client.DriveGetInfoOptions{Name: driveName})
+		require.NoError(t, err)
+		require.MapEqual(t, info.Labels, "step", "create")
+
+		found := false
+		for listed, err := range drives.List(ctx, client.DriveListOptions{Query: driveName}) {
+			require.NoError(t, err)
+			found = found || listed.Name == driveName
+		}
+		require.True(t, found, "drive %s not listed", driveName)
+
+		labels = maps.Clone(e2eLabels)
+		labels["step"] = "update"
+		updated, err := drives.Update(ctx, client.DriveUpdateOptions{Name: driveName, Labels: labels})
+		require.NoError(t, err)
+		require.MapEqual(t, updated.Labels, "step", "update")
+	})
+
+	step("Mount", func(t *testing.T) {
+		sb := sharedSandboxHandle(t)
+		firstPath, secondPath := "/mnt/"+driveName+"-a", "/mnt/"+driveName+"-b"
+		t.Cleanup(func() {
+			for _, mountPath := range []string{firstPath, secondPath} {
+				sb.Drives().Unmount(context.Background(), sandbox.DriveUnmountOptions{MountPath: mountPath})
+			}
+		})
+
+		mounted, err := sb.Drives().Mount(ctx, sandbox.DriveMountOptions{Name: driveName, MountPath: firstPath})
+		require.NoError(t, err)
+		require.Equal(t, driveName, mounted.DriveName)
+		require.Equal(t, firstPath, mounted.MountPath)
+		mounts, err := sb.Drives().ListMounts(ctx)
+		require.NoError(t, err)
+		require.True(t, slices.ContainsFunc(mounts, func(m sandbox.DriveMount) bool {
+			return m.DriveName == driveName && m.MountPath == firstPath
+		}), "mount not listed in %v", mounts)
+		require.NoError(t, sb.FS().Write(ctx, sandbox.FileSystemWriteOptions{Path: firstPath + "/persisted.txt", Content: "persisted"}))
+		require.NoError(t, sb.Drives().Unmount(ctx, sandbox.DriveUnmountOptions{MountPath: firstPath}))
+
+		_, err = sb.Drives().Mount(ctx, sandbox.DriveMountOptions{Name: driveName, MountPath: secondPath})
+		require.NoError(t, err)
+		content, err := sb.FS().ReadBytes(ctx, sandbox.FileSystemReadBytesOptions{Path: secondPath + "/persisted.txt"})
+		require.NoError(t, err)
+		require.Equal(t, "persisted", string(content))
+		require.NoError(t, sb.Drives().Unmount(ctx, sandbox.DriveUnmountOptions{MountPath: secondPath}))
+	})
+
+	step("Delete", func(t *testing.T) {
+		deleted, err := drives.Delete(ctx, client.DriveDeleteOptions{Name: driveName})
+		require.NoError(t, err)
+		require.Equal(t, client.DriveStatusDeleting, deleted.Status)
 	})
 }
 
