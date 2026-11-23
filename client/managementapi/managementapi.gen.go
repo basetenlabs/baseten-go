@@ -38,6 +38,129 @@ func (e APIKeyCategory) Valid() bool {
 	}
 }
 
+// Defines values for AccessGrantedVia.
+const (
+	AccessGrantedVia_ASSIGNMENT AccessGrantedVia = "ASSIGNMENT"
+	AccessGrantedVia_MEMBERSHIP AccessGrantedVia = "MEMBERSHIP"
+)
+
+// Valid indicates whether the value is a known member of the AccessGrantedVia enum.
+func (e AccessGrantedVia) Valid() bool {
+	switch e {
+	case AccessGrantedVia_ASSIGNMENT:
+		return true
+	case AccessGrantedVia_MEMBERSHIP:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AccessResourceType.
+const (
+	AccessResourceType_CHAIN            AccessResourceType = "CHAIN"
+	AccessResourceType_GATEWAY_ENDPOINT AccessResourceType = "GATEWAY_ENDPOINT"
+	AccessResourceType_GATEWAY_GROUP    AccessResourceType = "GATEWAY_GROUP"
+	AccessResourceType_GATEWAY_KEY      AccessResourceType = "GATEWAY_KEY"
+	AccessResourceType_GRID_CONNECTION  AccessResourceType = "GRID_CONNECTION"
+	AccessResourceType_GRID_ROUTE       AccessResourceType = "GRID_ROUTE"
+	AccessResourceType_LIBRARY_LISTING  AccessResourceType = "LIBRARY_LISTING"
+	AccessResourceType_MODEL            AccessResourceType = "MODEL"
+	AccessResourceType_MODEL_API        AccessResourceType = "MODEL_API"
+	AccessResourceType_SANDBOX          AccessResourceType = "SANDBOX"
+	AccessResourceType_SECRET           AccessResourceType = "SECRET"
+	AccessResourceType_SERVICE_ACCOUNT  AccessResourceType = "SERVICE_ACCOUNT"
+	AccessResourceType_TRAINING_JOB     AccessResourceType = "TRAINING_JOB"
+	AccessResourceType_TRAINING_LOOP    AccessResourceType = "TRAINING_LOOP"
+	AccessResourceType_TRAINING_PROJECT AccessResourceType = "TRAINING_PROJECT"
+	AccessResourceType_VOLUME           AccessResourceType = "VOLUME"
+	AccessResourceType_WEBHOOK_SECRET   AccessResourceType = "WEBHOOK_SECRET"
+)
+
+// Valid indicates whether the value is a known member of the AccessResourceType enum.
+func (e AccessResourceType) Valid() bool {
+	switch e {
+	case AccessResourceType_CHAIN:
+		return true
+	case AccessResourceType_GATEWAY_ENDPOINT:
+		return true
+	case AccessResourceType_GATEWAY_GROUP:
+		return true
+	case AccessResourceType_GATEWAY_KEY:
+		return true
+	case AccessResourceType_GRID_CONNECTION:
+		return true
+	case AccessResourceType_GRID_ROUTE:
+		return true
+	case AccessResourceType_LIBRARY_LISTING:
+		return true
+	case AccessResourceType_MODEL:
+		return true
+	case AccessResourceType_MODEL_API:
+		return true
+	case AccessResourceType_SANDBOX:
+		return true
+	case AccessResourceType_SECRET:
+		return true
+	case AccessResourceType_SERVICE_ACCOUNT:
+		return true
+	case AccessResourceType_TRAINING_JOB:
+		return true
+	case AccessResourceType_TRAINING_LOOP:
+		return true
+	case AccessResourceType_TRAINING_PROJECT:
+		return true
+	case AccessResourceType_VOLUME:
+		return true
+	case AccessResourceType_WEBHOOK_SECRET:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AccessRoleKind.
+const (
+	AccessRoleKind_MEMBERSHIP   AccessRoleKind = "MEMBERSHIP"
+	AccessRoleKind_ORGANIZATION AccessRoleKind = "ORGANIZATION"
+	AccessRoleKind_TEAM         AccessRoleKind = "TEAM"
+)
+
+// Valid indicates whether the value is a known member of the AccessRoleKind enum.
+func (e AccessRoleKind) Valid() bool {
+	switch e {
+	case AccessRoleKind_MEMBERSHIP:
+		return true
+	case AccessRoleKind_ORGANIZATION:
+		return true
+	case AccessRoleKind_TEAM:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AccessSubjectType.
+const (
+	AccessSubjectType_DIRECTORY_GROUP AccessSubjectType = "DIRECTORY_GROUP"
+	AccessSubjectType_SERVICE_ACCOUNT AccessSubjectType = "SERVICE_ACCOUNT"
+	AccessSubjectType_USER            AccessSubjectType = "USER"
+)
+
+// Valid indicates whether the value is a known member of the AccessSubjectType enum.
+func (e AccessSubjectType) Valid() bool {
+	switch e {
+	case AccessSubjectType_DIRECTORY_GROUP:
+		return true
+	case AccessSubjectType_SERVICE_ACCOUNT:
+		return true
+	case AccessSubjectType_USER:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for AuditLogActorType.
 const (
 	AuditLogActorType_API_KEY         AuditLogActorType = "API_KEY"
@@ -180,6 +303,9 @@ const (
 	AuditLogEventType_GATEWAY_ENDPOINT_CREATED                               AuditLogEventType = "GATEWAY_ENDPOINT_CREATED"
 	AuditLogEventType_GATEWAY_ENDPOINT_DELETED                               AuditLogEventType = "GATEWAY_ENDPOINT_DELETED"
 	AuditLogEventType_GATEWAY_ENDPOINT_UPDATED                               AuditLogEventType = "GATEWAY_ENDPOINT_UPDATED"
+	AuditLogEventType_GRID_GUARDRAIL_CREATED                                 AuditLogEventType = "GRID_GUARDRAIL_CREATED"
+	AuditLogEventType_GRID_GUARDRAIL_DELETED                                 AuditLogEventType = "GRID_GUARDRAIL_DELETED"
+	AuditLogEventType_GRID_GUARDRAIL_UPDATED                                 AuditLogEventType = "GRID_GUARDRAIL_UPDATED"
 	AuditLogEventType_GRID_MACHINE_USER_CREATED                              AuditLogEventType = "GRID_MACHINE_USER_CREATED"
 	AuditLogEventType_GRID_MACHINE_USER_DELETED                              AuditLogEventType = "GRID_MACHINE_USER_DELETED"
 	AuditLogEventType_GRID_MACHINE_USER_UPDATED                              AuditLogEventType = "GRID_MACHINE_USER_UPDATED"
@@ -274,6 +400,12 @@ func (e AuditLogEventType) Valid() bool {
 	case AuditLogEventType_GATEWAY_ENDPOINT_DELETED:
 		return true
 	case AuditLogEventType_GATEWAY_ENDPOINT_UPDATED:
+		return true
+	case AuditLogEventType_GRID_GUARDRAIL_CREATED:
+		return true
+	case AuditLogEventType_GRID_GUARDRAIL_DELETED:
+		return true
+	case AuditLogEventType_GRID_GUARDRAIL_UPDATED:
 		return true
 	case AuditLogEventType_GRID_MACHINE_USER_CREATED:
 		return true
@@ -962,6 +1094,7 @@ func (e GridRouteClassifierSupportedTradeoffs) Valid() bool {
 // Defines values for GridRouteMetadataApiFormats.
 const (
 	GridRouteMetadataApiFormats_chat_completions GridRouteMetadataApiFormats = "chat_completions"
+	GridRouteMetadataApiFormats_gemini           GridRouteMetadataApiFormats = "gemini"
 	GridRouteMetadataApiFormats_messages         GridRouteMetadataApiFormats = "messages"
 	GridRouteMetadataApiFormats_responses        GridRouteMetadataApiFormats = "responses"
 )
@@ -970,6 +1103,8 @@ const (
 func (e GridRouteMetadataApiFormats) Valid() bool {
 	switch e {
 	case GridRouteMetadataApiFormats_chat_completions:
+		return true
+	case GridRouteMetadataApiFormats_gemini:
 		return true
 	case GridRouteMetadataApiFormats_messages:
 		return true
@@ -2318,6 +2453,27 @@ func (e V1InteractiveSessionTrigger) Valid() bool {
 	}
 }
 
+// Defines values for VolumeHosting.
+const (
+	VolumeHosting_BASETEN_CLOUD VolumeHosting = "BASETEN_CLOUD"
+	VolumeHosting_SELF_HOSTED   VolumeHosting = "SELF_HOSTED"
+	VolumeHosting_SINGLE_TENANT VolumeHosting = "SINGLE_TENANT"
+)
+
+// Valid indicates whether the value is a known member of the VolumeHosting enum.
+func (e VolumeHosting) Valid() bool {
+	switch e {
+	case VolumeHosting_BASETEN_CLOUD:
+		return true
+	case VolumeHosting_SELF_HOSTED:
+		return true
+	case VolumeHosting_SINGLE_TENANT:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for VolumeSyncStatus.
 const (
 	VolumeSyncStatus_CANCELED VolumeSyncStatus = "CANCELED"
@@ -2443,6 +2599,214 @@ type AWSCredentials struct {
 	// AwsSessionToken The AWS session token
 	AwsSessionToken string `json:"aws_session_token"`
 }
+
+// AccessAssignment A role held by a user, service account, or directory group, for the organization or in a
+// team.
+type AccessAssignment struct {
+	// CreatedAt Time the role was assigned. Null for a role held through membership.
+	CreatedAt *time.Time `json:"created_at"`
+
+	// CreatedBy ID of the user who assigned the role. Null for a role held through membership, or one no user assigned.
+	CreatedBy *string `json:"created_by"`
+
+	// Environments Names of the environments the role applies in, such as `production`. Null for every environment.
+	Environments *[]string `json:"environments"`
+
+	// GrantedVia How a role is held.
+	GrantedVia AccessGrantedVia `json:"granted_via"`
+
+	// Id Unique identifier of the role assignment. Null for a built-in role held through organization or team membership.
+	Id *string `json:"id"`
+
+	// Resources Resources the role applies to. Null for every resource where it applies.
+	Resources *[]AccessResource `json:"resources"`
+
+	// RoleId ID of the role
+	RoleId string `json:"role_id"`
+
+	// RoleName Name of the role
+	RoleName string `json:"role_name"`
+
+	// SubjectId ID of the user, service account, or directory group that holds the role
+	SubjectId string `json:"subject_id"`
+
+	// SubjectName Name of the user, service account, or directory group that holds the role
+	SubjectName string `json:"subject_name"`
+
+	// SubjectType Who holds a role.
+	SubjectType AccessSubjectType `json:"subject_type"`
+
+	// TeamId ID of the team the role applies in. Null for the organization.
+	TeamId *string `json:"team_id"`
+
+	// TeamName Name of the team the role applies in. Null for the organization.
+	TeamName *string `json:"team_name"`
+}
+
+// AccessAssignmentTombstone A removed role assignment.
+type AccessAssignmentTombstone struct {
+	// Id Unique identifier of the removed role assignment
+	Id string `json:"id"`
+}
+
+// AccessAssignments A page of role assignments.
+type AccessAssignments struct {
+	// Items Items in this page.
+	Items      []AccessAssignment `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
+// AccessCheck A permission to check: for the organization, in a team, or on a resource.
+type AccessCheck struct {
+	// Permission Name of the permission, such as `model.deployment.write`
+	Permission string `json:"permission"`
+
+	// Resource A resource to check the permission on. Omit `team_id` and `resource` to check the permission for the organization.
+	Resource *AccessResourceUpdate `json:"resource,omitempty"`
+
+	// TeamId ID of a team to check the permission in. To check whether you can create a resource, check its write permission in the team you create it in.
+	TeamId *string `json:"team_id,omitempty"`
+}
+
+// AccessCheckResult Whether you hold a permission where a check asked about it.
+type AccessCheckResult struct {
+	// Allowed Whether you hold the permission there
+	Allowed bool `json:"allowed"`
+
+	// Permission Name of the permission
+	Permission string `json:"permission"`
+
+	// Resource The resource it was checked on, if any
+	Resource *AccessResource `json:"resource"`
+
+	// TeamId ID of the team it was checked in, if any
+	TeamId *string `json:"team_id"`
+}
+
+// AccessGrantedVia How a role is held.
+type AccessGrantedVia string
+
+// AccessPermission A permission roles can grant.
+type AccessPermission struct {
+	// Available Whether your organization has the features the permission needs. Custom roles can hold a permission only when it's available and not reserved.
+	Available bool `json:"available"`
+
+	// Category Name of the permission's category, such as `model.deployment`
+	Category string `json:"category"`
+
+	// Description What the permission allows
+	Description string `json:"description"`
+
+	// DisplayName Short human-readable name
+	DisplayName string `json:"display_name"`
+
+	// Name Name of the permission, such as `model.deployment.write`. It starts with its category's name.
+	Name string `json:"name"`
+
+	// Reserved Whether the permission is reserved for built-in admin roles. Custom roles can't hold it.
+	Reserved bool `json:"reserved"`
+
+	// RoleKinds Kinds of custom role that can hold it: `ORGANIZATION`, `TEAM`, or both
+	RoleKinds []AccessRoleKind `json:"role_kinds"`
+}
+
+// AccessPermissionCategory A group of related permissions, such as the permissions on model deployments.
+type AccessPermissionCategory struct {
+	// Description What the category covers
+	Description string `json:"description"`
+
+	// DisplayName Short human-readable name
+	DisplayName string `json:"display_name"`
+
+	// Name Name of the category, such as `model.deployment`. The names of its permissions start with it.
+	Name string `json:"name"`
+
+	// ResourceTypes Types of resource a role assignment can select for these permissions, such as `MODEL`. Empty when assignments can't select resources for them.
+	ResourceTypes []AccessResourceType `json:"resource_types"`
+
+	// SupportsEnvironments Whether a role assignment can limit these permissions to environments
+	SupportsEnvironments bool `json:"supports_environments"`
+}
+
+// AccessPermissions Every permission and permission category.
+type AccessPermissions struct {
+	// Categories Every permission category
+	Categories []AccessPermissionCategory `json:"categories"`
+
+	// Permissions Every permission, including those for features your organization doesn't have. Only `available` differs between organizations.
+	Permissions []AccessPermission `json:"permissions"`
+}
+
+// AccessResource A resource a role assignment selects.
+type AccessResource struct {
+	// Identifier Unique identifier of the resource, such as a model's ID
+	Identifier string `json:"identifier"`
+
+	// Type Type of a resource a role assignment can select.
+	Type AccessResourceType `json:"type"`
+}
+
+// AccessResourceType Type of a resource a role assignment can select.
+type AccessResourceType string
+
+// AccessResourceUpdate A resource for a role assignment to select, or a permission check to ask about.
+type AccessResourceUpdate struct {
+	// Identifier Unique identifier of the resource, such as a model's ID
+	Identifier string `json:"identifier"`
+
+	// Type Type of a resource a role assignment can select.
+	Type AccessResourceType `json:"type"`
+}
+
+// AccessRole A set of permissions you assign to users, service accounts, and directory groups. Baseten
+// defines the built-in roles, and your organization defines its custom roles.
+type AccessRole struct {
+	// BuiltIn Whether Baseten defines the role. Built-in roles are read-only.
+	BuiltIn bool `json:"built_in"`
+
+	// Description Description of the role
+	Description string `json:"description"`
+
+	// Id Unique identifier of the role. Built-in role IDs start with `baseten:`, such as `baseten:reader`.
+	Id string `json:"id"`
+
+	// IncludeRoleIds IDs of the built-in roles whose permissions this role also grants, including permissions Baseten adds to them later
+	IncludeRoleIds []string `json:"include_role_ids"`
+
+	// Kind Where a role is assigned.
+	Kind AccessRoleKind `json:"kind"`
+
+	// Name Name of the role
+	Name string `json:"name"`
+
+	// Permissions Names of the role's own permissions
+	Permissions []string `json:"permissions"`
+
+	// TeamId ID of the only team a team role can be assigned in. Null when any team can use it, and for other kinds of role.
+	TeamId *string `json:"team_id"`
+
+	// TeamName Name of the only team a team role can be assigned in
+	TeamName *string `json:"team_name"`
+}
+
+// AccessRoleKind Where a role is assigned.
+type AccessRoleKind string
+
+// AccessRoleTombstone A deleted custom role.
+type AccessRoleTombstone struct {
+	// Id Unique identifier of the deleted role
+	Id string `json:"id"`
+}
+
+// AccessRoles A page of roles.
+type AccessRoles struct {
+	// Items Items in this page.
+	Items      []AccessRole       `json:"items"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
+// AccessSubjectType Who holds a role.
+type AccessSubjectType string
 
 // AccessTrustRule Which tokens from an identity provider may act as a service account.
 type AccessTrustRule struct {
@@ -2975,6 +3339,45 @@ type AuditLogEventGatewayEndpointUpdated struct {
 	Slug              string  `json:"slug"`
 }
 
+// AuditLogEventGridGuardrailCreated A Grid guardrail was added to a team.
+type AuditLogEventGridGuardrailCreated struct {
+	Enabled                  bool    `json:"enabled"`
+	EventType                string  `json:"event_type"`
+	GridGuardrailId          string  `json:"grid_guardrail_id"`
+	GuardrailName            string  `json:"guardrail_name"`
+	Provider                 string  `json:"provider"`
+	ProviderGuardrailId      *string `json:"provider_guardrail_id"`
+	ProviderGuardrailVersion *string `json:"provider_guardrail_version"`
+	TeamId                   string  `json:"team_id"`
+	TeamName                 string  `json:"team_name"`
+}
+
+// AuditLogEventGridGuardrailDeleted A Grid guardrail was removed from a team.
+type AuditLogEventGridGuardrailDeleted struct {
+	Enabled                  bool    `json:"enabled"`
+	EventType                string  `json:"event_type"`
+	GridGuardrailId          string  `json:"grid_guardrail_id"`
+	GuardrailName            string  `json:"guardrail_name"`
+	Provider                 string  `json:"provider"`
+	ProviderGuardrailId      *string `json:"provider_guardrail_id"`
+	ProviderGuardrailVersion *string `json:"provider_guardrail_version"`
+	TeamId                   string  `json:"team_id"`
+	TeamName                 string  `json:"team_name"`
+}
+
+// AuditLogEventGridGuardrailUpdated A Grid guardrail was renamed, reconfigured, or turned on or off.
+type AuditLogEventGridGuardrailUpdated struct {
+	Enabled                  bool    `json:"enabled"`
+	EventType                string  `json:"event_type"`
+	GridGuardrailId          string  `json:"grid_guardrail_id"`
+	GuardrailName            string  `json:"guardrail_name"`
+	Provider                 string  `json:"provider"`
+	ProviderGuardrailId      *string `json:"provider_guardrail_id"`
+	ProviderGuardrailVersion *string `json:"provider_guardrail_version"`
+	TeamId                   string  `json:"team_id"`
+	TeamName                 string  `json:"team_name"`
+}
+
 // AuditLogEventGridMachineUserCreated A Grid machine user was created.
 type AuditLogEventGridMachineUserCreated struct {
 	EventType       string `json:"event_type"`
@@ -3430,27 +3833,36 @@ type AuditLogEventUserTeamRoleUpdated struct {
 
 // AuditLogEventVolumeDeleted A volume was deleted, tombstoning every version it still held.
 type AuditLogEventVolumeDeleted struct {
-	EventType       string `json:"event_type"`
-	Namespace       string `json:"namespace"`
-	VersionsDeleted int    `json:"versions_deleted"`
-	VolumeName      string `json:"volume_name"`
-	VolumeRef       string `json:"volume_ref"`
+	EventType string `json:"event_type"`
+
+	// Hosting Where the volume is stored: BASETEN_CLOUD, SINGLE_TENANT, or SELF_HOSTED. The same volume_ref under two hostings names two different volumes.
+	Hosting         *string `json:"hosting,omitempty"`
+	Namespace       string  `json:"namespace"`
+	VersionsDeleted int     `json:"versions_deleted"`
+	VolumeName      string  `json:"volume_name"`
+	VolumeRef       string  `json:"volume_ref"`
 }
 
 // AuditLogEventVolumeTagDeleted Deleting a volume tag succeeded. `deleted` is false if the tag was already absent.
 type AuditLogEventVolumeTagDeleted struct {
 	Deleted   bool   `json:"deleted"`
 	EventType string `json:"event_type"`
-	Tag       string `json:"tag"`
-	VolumeRef string `json:"volume_ref"`
+
+	// Hosting Where the volume is stored: BASETEN_CLOUD, SINGLE_TENANT, or SELF_HOSTED. The same volume_ref under two hostings names two different volumes.
+	Hosting   *string `json:"hosting,omitempty"`
+	Tag       string  `json:"tag"`
+	VolumeRef string  `json:"volume_ref"`
 }
 
 // AuditLogEventVolumeTagSet A volume tag was set on a version.
 type AuditLogEventVolumeTagSet struct {
 	Digest    string `json:"digest"`
 	EventType string `json:"event_type"`
-	Tag       string `json:"tag"`
-	VolumeRef string `json:"volume_ref"`
+
+	// Hosting Where the volume is stored: BASETEN_CLOUD, SINGLE_TENANT, or SELF_HOSTED. The same volume_ref under two hostings names two different volumes.
+	Hosting   *string `json:"hosting,omitempty"`
+	Tag       string  `json:"tag"`
+	VolumeRef string  `json:"volume_ref"`
 }
 
 // AuditLogEventVolumeUpdated A volume's settings were updated.
@@ -3460,6 +3872,9 @@ type AuditLogEventVolumeUpdated struct {
 	// ExpiresAt The volume's expiration time after the update, as an ISO 8601 string. Null when the update cleared it.
 	ExpiresAt *string `json:"expires_at"`
 
+	// Hosting Where the volume is stored: BASETEN_CLOUD, SINGLE_TENANT, or SELF_HOSTED. The same volume_ref under two hostings names two different volumes.
+	Hosting *string `json:"hosting,omitempty"`
+
 	// PreviousExpiresAt The expiration time the update replaced, as an ISO 8601 string. Null when the volume had none.
 	PreviousExpiresAt *string `json:"previous_expires_at"`
 	VolumeRef         string  `json:"volume_ref"`
@@ -3467,22 +3882,28 @@ type AuditLogEventVolumeUpdated struct {
 
 // AuditLogEventVolumeVersionDeleted One version of a volume was deleted.
 type AuditLogEventVolumeVersionDeleted struct {
-	Digest     string `json:"digest"`
-	EventType  string `json:"event_type"`
-	Namespace  string `json:"namespace"`
-	Version    string `json:"version"`
-	VolumeName string `json:"volume_name"`
-	VolumeRef  string `json:"volume_ref"`
+	Digest    string `json:"digest"`
+	EventType string `json:"event_type"`
+
+	// Hosting Where the volume is stored: BASETEN_CLOUD, SINGLE_TENANT, or SELF_HOSTED. The same volume_ref under two hostings names two different volumes.
+	Hosting    *string `json:"hosting,omitempty"`
+	Namespace  string  `json:"namespace"`
+	Version    string  `json:"version"`
+	VolumeName string  `json:"volume_name"`
+	VolumeRef  string  `json:"volume_ref"`
 }
 
 // AuditLogEventVolumeVersionRestored A deleted version of a volume was restored.
 type AuditLogEventVolumeVersionRestored struct {
-	Digest     string `json:"digest"`
-	EventType  string `json:"event_type"`
-	Namespace  string `json:"namespace"`
-	Version    string `json:"version"`
-	VolumeName string `json:"volume_name"`
-	VolumeRef  string `json:"volume_ref"`
+	Digest    string `json:"digest"`
+	EventType string `json:"event_type"`
+
+	// Hosting Where the volume is stored: BASETEN_CLOUD, SINGLE_TENANT, or SELF_HOSTED. The same volume_ref under two hostings names two different volumes.
+	Hosting    *string `json:"hosting,omitempty"`
+	Namespace  string  `json:"namespace"`
+	Version    string  `json:"version"`
+	VolumeName string  `json:"volume_name"`
+	VolumeRef  string  `json:"volume_ref"`
 }
 
 // AuditLogEventWebhookSigningSecretCreated A webhook signing secret was created.
@@ -4020,6 +4441,18 @@ type Chains struct {
 	Chains []Chain `json:"chains"`
 }
 
+// CheckAccessRequest Permissions to check.
+type CheckAccessRequest struct {
+	// Checks Permissions to check, at most 100
+	Checks []AccessCheck `json:"checks"`
+}
+
+// CheckAccessResponse Answers to permission checks.
+type CheckAccessResponse struct {
+	// Results One result per check, in the order you sent them
+	Results []AccessCheckResult `json:"results"`
+}
+
 // CheckpointFile defines model for CheckpointFile.
 type CheckpointFile struct {
 	LastModified     string `json:"last_modified"`
@@ -4063,6 +4496,48 @@ type CreateAPIKeyRequest struct {
 
 	// Type Enum representing the category of an API key.
 	Type APIKeyCategory `json:"type"`
+}
+
+// CreateAccessAssignmentRequest A role to give a user, service account, or directory group.
+type CreateAccessAssignmentRequest struct {
+	// Environments Names of the environments the role applies in, such as `production`, for the team's models and chains. An environment needs no environment group, and a name no deployment uses yet applies once one does. Omit for every environment.
+	Environments *[]string `json:"environments,omitempty"`
+
+	// Resources Resources the role applies to. Omit for every resource where it applies.
+	Resources *[]AccessResourceUpdate `json:"resources,omitempty"`
+
+	// RoleId ID of the role to assign
+	RoleId string `json:"role_id"`
+
+	// SubjectId ID of the user, service account, or directory group to give the role to
+	SubjectId string `json:"subject_id"`
+
+	// SubjectType Who holds a role.
+	SubjectType AccessSubjectType `json:"subject_type"`
+
+	// TeamId ID of the team to assign a team role in. Omit for an organization role.
+	TeamId *string `json:"team_id,omitempty"`
+}
+
+// CreateAccessRoleRequest A custom role to create.
+type CreateAccessRoleRequest struct {
+	// Description Description of the role
+	Description *string `json:"description,omitempty"`
+
+	// IncludeRoleIds IDs of built-in roles whose permissions the role also grants, such as `baseten:reader`
+	IncludeRoleIds *[]string `json:"include_role_ids,omitempty"`
+
+	// Kind Where a role is assigned.
+	Kind AccessRoleKind `json:"kind"`
+
+	// Name Name of the role, unique in your organization
+	Name string `json:"name"`
+
+	// Permissions Names of the permissions the role grants
+	Permissions *[]string `json:"permissions,omitempty"`
+
+	// TeamId For a team role, ID of the only team it can be assigned in. Omit to let any team use it.
+	TeamId *string `json:"team_id,omitempty"`
 }
 
 // CreateAccessTrustRuleRequest Request to create a trust rule.
@@ -4870,10 +5345,10 @@ type CreateTrainingJobRuntime_EnvironmentVariables_AdditionalProperties struct {
 
 // CreateTrainingJobS3Artifact defines model for CreateTrainingJobS3Artifact.
 type CreateTrainingJobS3Artifact struct {
-	// S3Bucket S3 bucket for the uploaded runtime artifact.
+	// S3Bucket S3 bucket of the uploaded runtime artifact. Use the `s3_bucket` returned by `GET /v1/blobs/credentials/train`.
 	S3Bucket string `json:"s3_bucket"`
 
-	// S3Key S3 key for the uploaded runtime artifact.
+	// S3Key S3 key of the uploaded runtime artifact. Use the `s3_key` returned by `GET /v1/blobs/credentials/train`.
 	S3Key string `json:"s3_key"`
 }
 
@@ -4896,6 +5371,9 @@ type CreateVolumeTokenRequest struct {
 	// CorrelationId Optional client-chosen identifier, at most 128 printable ASCII characters. Echoed into server logs to link the issued token to a client operation.
 	CorrelationId *string `json:"correlation_id,omitempty"`
 
+	// Hosting Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.
+	Hosting *VolumeHosting `json:"hosting,omitempty"`
+
 	// Namespaces Volume namespaces the token is limited to, lowercase ASCII, at least one. Pass only the namespaces the operation needs.
 	Namespaces []string `json:"namespaces"`
 
@@ -4913,6 +5391,13 @@ type CreateVolumeTokenResponse struct {
 
 	// ExpiresAt Token expiry in ISO 8601 format. Tokens cannot be renewed; exchange again for a fresh token.
 	ExpiresAt time.Time `json:"expires_at"`
+
+	// Hosting Where volumes are stored. The same name under two hostings is two different volumes.
+	//
+	// - ``BASETEN_CLOUD``: Baseten's shared fleet.
+	// - ``SINGLE_TENANT``: your organization's single-tenant workload planes.
+	// - ``SELF_HOSTED``: workload planes in your own cloud account.
+	Hosting VolumeHosting `json:"hosting"`
 
 	// Namespaces Effective namespaces granted, in canonical lowercase form.
 	Namespaces []string `json:"namespaces"`
@@ -5731,6 +6216,54 @@ type DownloadTrainingJobResponse struct {
 	ArtifactPresignedUrls []string `json:"artifact_presigned_urls"`
 }
 
+// EffectiveAccess The roles a user or service account holds, and the permissions they grant it.
+type EffectiveAccess struct {
+	// Assignments Every role held: assigned to the user or service account, or to a directory group it is in, or held through organization or team membership
+	Assignments []AccessAssignment `json:"assignments"`
+
+	// Permissions Every permission held, and where. Null until fine-grained authorization decides your organization's requests.
+	Permissions *[]EffectiveAccessPermission `json:"permissions"`
+
+	// SubjectId ID of the user or service account
+	SubjectId string `json:"subject_id"`
+
+	// SubjectName Name of the user or service account
+	SubjectName string `json:"subject_name"`
+
+	// SubjectType Who holds a role.
+	SubjectType AccessSubjectType `json:"subject_type"`
+}
+
+// EffectiveAccessGrant A place a permission is held: the organization, a team, a resource, or an environment.
+type EffectiveAccessGrant struct {
+	// Environment Name of the environment, such as `production`. Null for every environment. Permission checks don't take an environment yet, so these grants aren't confirmed.
+	Environment *string `json:"environment"`
+
+	// Resource The resource. Null when the grant isn't limited to one resource.
+	Resource *AccessResource `json:"resource"`
+
+	// TeamId ID of the team. Null for the organization.
+	TeamId *string `json:"team_id"`
+
+	// TeamName Name of the team. Null for the organization.
+	TeamName *string `json:"team_name"`
+}
+
+// EffectiveAccessPermission A permission a user or service account holds, and where.
+type EffectiveAccessPermission struct {
+	// Category Name of the permission's category, such as `model.deployment`
+	Category string `json:"category"`
+
+	// DisplayName Short human-readable name
+	DisplayName string `json:"display_name"`
+
+	// Grants Where it's held, one entry for each place a role grants it
+	Grants []EffectiveAccessGrant `json:"grants"`
+
+	// Name Name of the permission, such as `model.deployment.write`
+	Name string `json:"name"`
+}
+
 // EffectiveModelConfig defines model for EffectiveModelConfig.
 type EffectiveModelConfig struct {
 	RateLimits *[]EffectiveRateLimit `json:"rate_limits,omitempty"`
@@ -6072,6 +6605,9 @@ type ExploreMetadata struct {
 type ExploreMetadataAPIFormats struct {
 	// ChatCompletions OpenAI Chat Completions API support.
 	ChatCompletions *bool `json:"chat_completions,omitempty"`
+
+	// Gemini Gemini API `generateContent` support.
+	Gemini *bool `json:"gemini,omitempty"`
 
 	// Messages Anthropic Messages API support.
 	Messages *bool `json:"messages,omitempty"`
@@ -6814,7 +7350,7 @@ type GridRouteClassifiersResponse struct {
 
 // GridRouteMetadata defines model for GridRouteMetadata.
 type GridRouteMetadata struct {
-	// ApiFormats API formats the route supports, most preferred first: `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions` for any other target, keeping only the formats the route supports. Never empty.
+	// ApiFormats API formats the route supports, most preferred first: `chat_completions`, `messages`, `responses` for a BASETEN_MODEL_API target and `messages`, `responses`, `chat_completions`, `gemini` for any other target, keeping only the formats the route supports. Never empty.
 	ApiFormats []GridRouteMetadataApiFormats `json:"api_formats"`
 
 	// ContextWindow Total context window in tokens.
@@ -7533,6 +8069,8 @@ type ListSandboxesResponse struct {
 
 // ListTrainingJobsResponse A response to list training jobs.
 type ListTrainingJobsResponse struct {
+	Pagination PaginationResponse `json:"pagination"`
+
 	// TrainingJobs List of training jobs.
 	TrainingJobs    []TrainingJob   `json:"training_jobs"`
 	TrainingProject TrainingProject `json:"training_project"`
@@ -7646,8 +8184,12 @@ type LoopsCheckpoint struct {
 	// BaseModel The base model of the checkpoint.
 	BaseModel *string `json:"base_model"`
 
-	// CheckpointId The ID of the checkpoint.
+	// CheckpointId Deprecated: use `checkpoint_name`, which has the same value.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	CheckpointId string `json:"checkpoint_id"`
+
+	// CheckpointName The checkpoint's name, for example `checkpoint-500`. To refer to the checkpoint in a URL, use its `id`.
+	CheckpointName string `json:"checkpoint_name"`
 
 	// CheckpointType The type of checkpoint.
 	CheckpointType string `json:"checkpoint_type"`
@@ -7658,7 +8200,7 @@ type LoopsCheckpoint struct {
 	// ExpiresAt When the checkpoint expires and is deleted, set from the TTL it was saved with. Null means it's kept until you delete it. A checkpoint that's still in use when it expires, for example deployed, is deleted once it's released.
 	ExpiresAt *time.Time `json:"expires_at"`
 
-	// Id The checkpoint ID.
+	// Id The checkpoint's unique ID, used in checkpoint URLs.
 	Id string `json:"id"`
 
 	// LoraAdapterConfig The adapter config of the checkpoint.
@@ -7731,8 +8273,12 @@ type LoopsCheckpointSourceResponse_Source struct {
 
 // LoopsCheckpointTombstone A Loops checkpoint whose delete was accepted.
 type LoopsCheckpointTombstone struct {
-	// CheckpointId The name the checkpoint was saved under.
+	// CheckpointId Deprecated: use `checkpoint_name`, which has the same value.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	CheckpointId string `json:"checkpoint_id"`
+
+	// CheckpointName The name the checkpoint was saved under.
+	CheckpointName string `json:"checkpoint_name"`
 
 	// Id The deleted checkpoint ID.
 	Id string `json:"id"`
@@ -8029,6 +8575,68 @@ type LoopsSampler struct {
 type LoopsSamplerStatus struct {
 	// Name The status of a deployment.
 	Name DeploymentStatus `json:"name"`
+}
+
+// LoopsServerlessPricing A model's current serverless Loops prices for this workspace, in USD per million tokens.
+//
+// Prices come from the workspace's plan, so they include its price overrides. A meter the plan
+// does not price is null.
+type LoopsServerlessPricing struct {
+	// CostPerMillionCachedPrefillTokens USD per million prompt tokens served from the prefix cache.
+	CostPerMillionCachedPrefillTokens *LoopsServerlessPricing_CostPerMillionCachedPrefillTokens `json:"cost_per_million_cached_prefill_tokens"`
+
+	// CostPerMillionSampleTokens USD per million tokens the sampler generates.
+	CostPerMillionSampleTokens *LoopsServerlessPricing_CostPerMillionSampleTokens `json:"cost_per_million_sample_tokens"`
+
+	// CostPerMillionTrainTokens USD per million tokens the trainer processes.
+	CostPerMillionTrainTokens *LoopsServerlessPricing_CostPerMillionTrainTokens `json:"cost_per_million_train_tokens"`
+
+	// CostPerMillionUncachedPrefillTokens USD per million prompt tokens that miss the prefix cache.
+	CostPerMillionUncachedPrefillTokens *LoopsServerlessPricing_CostPerMillionUncachedPrefillTokens `json:"cost_per_million_uncached_prefill_tokens"`
+}
+
+// LoopsServerlessPricingCostPerMillionCachedPrefillTokens0 defines model for .
+type LoopsServerlessPricingCostPerMillionCachedPrefillTokens0 = float32
+
+// LoopsServerlessPricingCostPerMillionCachedPrefillTokens1 defines model for .
+type LoopsServerlessPricingCostPerMillionCachedPrefillTokens1 = string
+
+// LoopsServerlessPricing_CostPerMillionCachedPrefillTokens USD per million prompt tokens served from the prefix cache.
+type LoopsServerlessPricing_CostPerMillionCachedPrefillTokens struct {
+	union json.RawMessage
+}
+
+// LoopsServerlessPricingCostPerMillionSampleTokens0 defines model for .
+type LoopsServerlessPricingCostPerMillionSampleTokens0 = float32
+
+// LoopsServerlessPricingCostPerMillionSampleTokens1 defines model for .
+type LoopsServerlessPricingCostPerMillionSampleTokens1 = string
+
+// LoopsServerlessPricing_CostPerMillionSampleTokens USD per million tokens the sampler generates.
+type LoopsServerlessPricing_CostPerMillionSampleTokens struct {
+	union json.RawMessage
+}
+
+// LoopsServerlessPricingCostPerMillionTrainTokens0 defines model for .
+type LoopsServerlessPricingCostPerMillionTrainTokens0 = float32
+
+// LoopsServerlessPricingCostPerMillionTrainTokens1 defines model for .
+type LoopsServerlessPricingCostPerMillionTrainTokens1 = string
+
+// LoopsServerlessPricing_CostPerMillionTrainTokens USD per million tokens the trainer processes.
+type LoopsServerlessPricing_CostPerMillionTrainTokens struct {
+	union json.RawMessage
+}
+
+// LoopsServerlessPricingCostPerMillionUncachedPrefillTokens0 defines model for .
+type LoopsServerlessPricingCostPerMillionUncachedPrefillTokens0 = float32
+
+// LoopsServerlessPricingCostPerMillionUncachedPrefillTokens1 defines model for .
+type LoopsServerlessPricingCostPerMillionUncachedPrefillTokens1 = string
+
+// LoopsServerlessPricing_CostPerMillionUncachedPrefillTokens USD per million prompt tokens that miss the prefix cache.
+type LoopsServerlessPricing_CostPerMillionUncachedPrefillTokens struct {
+	union json.RawMessage
 }
 
 // LoopsSession defines model for LoopsSession.
@@ -8676,6 +9284,9 @@ type OrganizationInfo struct {
 
 	// AllowServiceAccountApiKeys Whether new team and organization API keys can be created. Existing keys keep working.
 	AllowServiceAccountApiKeys bool `json:"allow_service_account_api_keys"`
+
+	// AllowTeamAdminsToManageRoles Whether team admins create, change, and delete their team's custom roles. When false, only organization admins do, and team admins still assign roles in their team. Null when custom roles aren't available to your organization, or you can't read its roles.
+	AllowTeamAdminsToManageRoles *bool `json:"allow_team_admins_to_manage_roles,omitempty"`
 
 	// AwsAssumeRole AWS AssumeRole trust-policy inputs; null while the method is not enabled for the organization
 	AwsAssumeRole *AwsAssumeRole `json:"aws_assume_role,omitempty"`
@@ -9901,7 +10512,13 @@ type ServiceAccounts struct {
 
 // SetLoopsCheckpointTtlRequest defines model for SetLoopsCheckpointTtlRequest.
 type SetLoopsCheckpointTtlRequest struct {
-	// TtlSeconds Seconds from now until the checkpoint expires and is deleted, from 3600 (1 hour) to 315360000 (10 years). Null removes the TTL, so the checkpoint is kept until you delete it.
+	// TtlSeconds Seconds from now until the checkpoint expires and is deleted, from 3600 (1 hour) to 315360000 (10 years). Null removes the TTL, so the checkpoint never expires.
+	TtlSeconds *int `json:"ttl_seconds"`
+}
+
+// SetTrainingJobCheckpointTtlRequest defines model for SetTrainingJobCheckpointTtlRequest.
+type SetTrainingJobCheckpointTtlRequest struct {
+	// TtlSeconds Seconds from now until the checkpoint expires and is deleted, from 3600 (1 hour) to 315360000 (10 years). Null removes the TTL, so the checkpoint never expires.
 	TtlSeconds *int `json:"ttl_seconds"`
 }
 
@@ -10174,6 +10791,9 @@ type SupportedModel struct {
 
 	// Serverless Early access only. Whether this workspace can use serverless Loops for this model.
 	Serverless *bool `json:"serverless,omitempty"`
+
+	// ServerlessPricing Early access only. This workspace's current serverless prices for the model. Present only when 'serverless' is true and the workspace's plan prices the model.
+	ServerlessPricing *LoopsServerlessPricing `json:"serverless_pricing,omitempty"`
 
 	// SupportsVisionLanguage Whether the model accepts image inputs alongside text.
 	SupportsVisionLanguage bool `json:"supports_vision_language"`
@@ -10556,14 +11176,24 @@ type TrainingJobCheckpoint struct {
 	// BaseModel The base model of the checkpoint.
 	BaseModel *string `json:"base_model"`
 
-	// CheckpointId The ID of the checkpoint.
+	// CheckpointId Deprecated: use `checkpoint_name`, which has the same value.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	CheckpointId string `json:"checkpoint_id"`
+
+	// CheckpointName The checkpoint's name, for example `checkpoint-500`. To refer to the checkpoint in a URL, use its `id`.
+	CheckpointName string `json:"checkpoint_name"`
 
 	// CheckpointType The type of checkpoint.
 	CheckpointType string `json:"checkpoint_type"`
 
 	// CreatedAt The timestamp of the checkpoint in ISO 8601 format.
 	CreatedAt time.Time `json:"created_at"`
+
+	// ExpiresAt When the checkpoint expires and is deleted. Null means it never expires.
+	ExpiresAt *time.Time `json:"expires_at"`
+
+	// Id The checkpoint's unique ID, used in checkpoint URLs.
+	Id string `json:"id"`
 
 	// LoraAdapterConfig The adapter config of the checkpoint.
 	LoraAdapterConfig *map[string]interface{} `json:"lora_adapter_config"`
@@ -10769,6 +11399,27 @@ type TrussUserEnv struct {
 	PydanticVersion      *string  `json:"pydantic_version,omitempty"`
 	PythonVersion        *string  `json:"python_version,omitempty"`
 	TrussClientVersion   *string  `json:"truss_client_version,omitempty"`
+}
+
+// UpdateAccessRoleRequest Changes to a custom role. Omitted fields are unchanged.
+type UpdateAccessRoleRequest struct {
+	// Description New description of the role
+	Description *string `json:"description,omitempty"`
+
+	// IncludeRoleIds IDs of built-in roles for the role to include
+	IncludeRoleIds *[]string `json:"include_role_ids,omitempty"`
+
+	// IncludeRoleIdsToDelete IDs of built-in roles for the role to stop including
+	IncludeRoleIdsToDelete *[]string `json:"include_role_ids_to_delete,omitempty"`
+
+	// Name New name of the role
+	Name *string `json:"name,omitempty"`
+
+	// Permissions Names of permissions to add to the role
+	Permissions *[]string `json:"permissions,omitempty"`
+
+	// PermissionsToDelete Names of permissions to remove from the role
+	PermissionsToDelete *[]string `json:"permissions_to_delete,omitempty"`
 }
 
 // UpdateAccessTrustRuleRequest Request to update a trust rule. Only the fields sent change.
@@ -11127,6 +11778,9 @@ type UpdateOrganizationRequest struct {
 
 	// AllowServiceAccountApiKeys Whether new team and organization API keys can be created. Null is not accepted.
 	AllowServiceAccountApiKeys *bool `json:"allow_service_account_api_keys,omitempty"`
+
+	// AllowTeamAdminsToManageRoles Whether team admins create, change, and delete their team's custom roles. Needs `access.role.write` for the organization. Null is not accepted.
+	AllowTeamAdminsToManageRoles *bool `json:"allow_team_admins_to_manage_roles,omitempty"`
 }
 
 // UpdatePromotionSettings Promotion settings for model promotion
@@ -11589,6 +12243,13 @@ type Volume struct {
 	VersionsUntagged int `json:"versions_untagged"`
 }
 
+// VolumeHosting Where volumes are stored. The same name under two hostings is two different volumes.
+//
+// - “BASETEN_CLOUD“: Baseten's shared fleet.
+// - “SINGLE_TENANT“: your organization's single-tenant workload planes.
+// - “SELF_HOSTED“: workload planes in your own cloud account.
+type VolumeHosting string
+
 // VolumeSync Current state and result of a volume sync.
 type VolumeSync struct {
 	// CompletedAt Time at which the sync reached a terminal state.
@@ -11964,6 +12625,27 @@ type SandboxError429 interface{}
 // SandboxError500 defines model for SandboxError500.
 type SandboxError500 interface{}
 
+// GetV1AccessAssignmentsParams defines parameters for GetV1AccessAssignments.
+type GetV1AccessAssignmentsParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// TeamId ID of a team. Lists only the assignments in it.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// RoleId ID of a role. Lists only its assignments.
+	RoleId *string `form:"role_id,omitempty" json:"role_id,omitempty"`
+
+	// SubjectType Lists only the assignments to this type of subject
+	SubjectType *AccessSubjectType `form:"subject_type,omitempty" json:"subject_type,omitempty"`
+
+	// SubjectId ID of a user, service account, or directory group. Lists only its assignments.
+	SubjectId *string `form:"subject_id,omitempty" json:"subject_id,omitempty"`
+}
+
 // GetV1AccessIdentityProvidersParams defines parameters for GetV1AccessIdentityProviders.
 type GetV1AccessIdentityProvidersParams struct {
 	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
@@ -11977,6 +12659,27 @@ type GetV1AccessIdentityProvidersParams struct {
 
 	// PredefinedKind Only this predefined provider's issuers
 	PredefinedKind *PredefinedIdentityProviderKind `form:"predefined_kind,omitempty" json:"predefined_kind,omitempty"`
+}
+
+// GetV1AccessRolesParams defines parameters for GetV1AccessRoles.
+type GetV1AccessRolesParams struct {
+	// Cursor Opaque cursor returned by a previous page. Omit to fetch the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// TeamId ID of a team. Lists only the roles available there: built-in roles and the team roles it can use.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Name Lists only the roles with this name
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
+// GetV1AccessRolesRoleIdParams defines parameters for GetV1AccessRolesRoleId.
+type GetV1AccessRolesRoleIdParams struct {
+	// TeamId ID of a team. Gets the role only if `GET /v1/access/roles` lists it for that team, and checks your access in that team.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
 // GetV1AccessTrustRulesParams defines parameters for GetV1AccessTrustRules.
@@ -13101,6 +13804,15 @@ type GetV1TrainingProjectsParams struct {
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// GetV1TrainingProjectsTrainingProjectIdJobsParams defines parameters for GetV1TrainingProjectsTrainingProjectIdJobs.
+type GetV1TrainingProjectsTrainingProjectIdJobsParams struct {
+	// Cursor Opaque cursor from the pagination.cursor field of a previous response. Omit both cursor and limit to get every job in one response.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of jobs to return, newest first, up to 1000.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams defines parameters for GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFiles.
 type GetV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointFilesParams struct {
 	// PageSize Max files per page (default 1000).
@@ -13191,6 +13903,12 @@ type GetV1VolumesVolumeNamespaceVolumeNameVersionsParams struct {
 	IncludeTombstoned *bool `form:"include_tombstoned,omitempty" json:"include_tombstoned,omitempty"`
 }
 
+// PostV1AccessAssignmentsJSONRequestBody defines body for PostV1AccessAssignments for application/json ContentType.
+type PostV1AccessAssignmentsJSONRequestBody = CreateAccessAssignmentRequest
+
+// PostV1AccessCheckJSONRequestBody defines body for PostV1AccessCheck for application/json ContentType.
+type PostV1AccessCheckJSONRequestBody = CheckAccessRequest
+
 // PostV1AccessIdentityProvidersJSONRequestBody defines body for PostV1AccessIdentityProviders for application/json ContentType.
 type PostV1AccessIdentityProvidersJSONRequestBody = CreateIdentityProviderRequest
 
@@ -13199,6 +13917,12 @@ type PostV1AccessIdentityProvidersVerifyJSONRequestBody = VerifyIdentityProvider
 
 // PatchV1AccessIdentityProvidersIdentityProviderIdJSONRequestBody defines body for PatchV1AccessIdentityProvidersIdentityProviderId for application/json ContentType.
 type PatchV1AccessIdentityProvidersIdentityProviderIdJSONRequestBody = UpdateIdentityProviderRequest
+
+// PostV1AccessRolesJSONRequestBody defines body for PostV1AccessRoles for application/json ContentType.
+type PostV1AccessRolesJSONRequestBody = CreateAccessRoleRequest
+
+// PatchV1AccessRolesRoleIdJSONRequestBody defines body for PatchV1AccessRolesRoleId for application/json ContentType.
+type PatchV1AccessRolesRoleIdJSONRequestBody = UpdateAccessRoleRequest
 
 // PostV1AccessTrustRulesJSONRequestBody defines body for PostV1AccessTrustRules for application/json ContentType.
 type PostV1AccessTrustRulesJSONRequestBody = CreateAccessTrustRuleRequest
@@ -13460,6 +14184,9 @@ type PostV1TrainingProjectsTrainingProjectIdJobsJSONRequestBody = CreateTraining
 
 // PatchV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdJSONRequestBody defines body for PatchV1TrainingProjectsTrainingProjectIdJobsTrainingJobId for application/json ContentType.
 type PatchV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdJSONRequestBody = UpdateTrainingJobRequest
+
+// PutV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointsCheckpointIdTtlJSONRequestBody defines body for PutV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointsCheckpointIdTtl for application/json ContentType.
+type PutV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdCheckpointsCheckpointIdTtlJSONRequestBody = SetTrainingJobCheckpointTtlRequest
 
 // PatchV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdInteractiveSessionsSessionIdJSONRequestBody defines body for PatchV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdInteractiveSessionsSessionId for application/json ContentType.
 type PatchV1TrainingProjectsTrainingProjectIdJobsTrainingJobIdInteractiveSessionsSessionIdJSONRequestBody = PatchInteractiveSessionRequest
@@ -14040,6 +14767,51 @@ func (t *AuditLogEntry_EventData) FromAuditLogEventGridMachineUserDeleted(v Audi
 	return err
 }
 
+// AsAuditLogEventGridGuardrailCreated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventGridGuardrailCreated
+func (t AuditLogEntry_EventData) AsAuditLogEventGridGuardrailCreated() (AuditLogEventGridGuardrailCreated, error) {
+	var body AuditLogEventGridGuardrailCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventGridGuardrailCreated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventGridGuardrailCreated
+func (t *AuditLogEntry_EventData) FromAuditLogEventGridGuardrailCreated(v AuditLogEventGridGuardrailCreated) error {
+	v.EventType = "GRID_GUARDRAIL_CREATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventGridGuardrailUpdated returns the union data inside the AuditLogEntry_EventData as a AuditLogEventGridGuardrailUpdated
+func (t AuditLogEntry_EventData) AsAuditLogEventGridGuardrailUpdated() (AuditLogEventGridGuardrailUpdated, error) {
+	var body AuditLogEventGridGuardrailUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventGridGuardrailUpdated overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventGridGuardrailUpdated
+func (t *AuditLogEntry_EventData) FromAuditLogEventGridGuardrailUpdated(v AuditLogEventGridGuardrailUpdated) error {
+	v.EventType = "GRID_GUARDRAIL_UPDATED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsAuditLogEventGridGuardrailDeleted returns the union data inside the AuditLogEntry_EventData as a AuditLogEventGridGuardrailDeleted
+func (t AuditLogEntry_EventData) AsAuditLogEventGridGuardrailDeleted() (AuditLogEventGridGuardrailDeleted, error) {
+	var body AuditLogEventGridGuardrailDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditLogEventGridGuardrailDeleted overwrites any union data inside the AuditLogEntry_EventData as the provided AuditLogEventGridGuardrailDeleted
+func (t *AuditLogEntry_EventData) FromAuditLogEventGridGuardrailDeleted(v AuditLogEventGridGuardrailDeleted) error {
+	v.EventType = "GRID_GUARDRAIL_DELETED"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
 // AsAuditLogEventUserInvited returns the union data inside the AuditLogEntry_EventData as a AuditLogEventUserInvited
 func (t AuditLogEntry_EventData) AsAuditLogEventUserInvited() (AuditLogEventUserInvited, error) {
 	var body AuditLogEventUserInvited
@@ -14604,6 +15376,12 @@ func (t AuditLogEntry_EventData) ValueByDiscriminator() (interface{}, error) {
 		return t.AsAuditLogEventGatewayEndpointDeleted()
 	case "GATEWAY_ENDPOINT_UPDATED":
 		return t.AsAuditLogEventGatewayEndpointUpdated()
+	case "GRID_GUARDRAIL_CREATED":
+		return t.AsAuditLogEventGridGuardrailCreated()
+	case "GRID_GUARDRAIL_DELETED":
+		return t.AsAuditLogEventGridGuardrailDeleted()
+	case "GRID_GUARDRAIL_UPDATED":
+		return t.AsAuditLogEventGridGuardrailUpdated()
 	case "GRID_MACHINE_USER_CREATED":
 		return t.AsAuditLogEventGridMachineUserCreated()
 	case "GRID_MACHINE_USER_DELETED":
@@ -16453,6 +17231,158 @@ func (t LoopsResourceItem_Subtotal) MarshalJSON() ([]byte, error) {
 }
 
 func (t *LoopsResourceItem_Subtotal) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsLoopsServerlessPricingCostPerMillionCachedPrefillTokens0 returns the union data inside the LoopsServerlessPricing_CostPerMillionCachedPrefillTokens as a LoopsServerlessPricingCostPerMillionCachedPrefillTokens0
+func (t LoopsServerlessPricing_CostPerMillionCachedPrefillTokens) AsLoopsServerlessPricingCostPerMillionCachedPrefillTokens0() (LoopsServerlessPricingCostPerMillionCachedPrefillTokens0, error) {
+	var body LoopsServerlessPricingCostPerMillionCachedPrefillTokens0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsServerlessPricingCostPerMillionCachedPrefillTokens0 overwrites any union data inside the LoopsServerlessPricing_CostPerMillionCachedPrefillTokens as the provided LoopsServerlessPricingCostPerMillionCachedPrefillTokens0
+func (t *LoopsServerlessPricing_CostPerMillionCachedPrefillTokens) FromLoopsServerlessPricingCostPerMillionCachedPrefillTokens0(v LoopsServerlessPricingCostPerMillionCachedPrefillTokens0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsLoopsServerlessPricingCostPerMillionCachedPrefillTokens1 returns the union data inside the LoopsServerlessPricing_CostPerMillionCachedPrefillTokens as a LoopsServerlessPricingCostPerMillionCachedPrefillTokens1
+func (t LoopsServerlessPricing_CostPerMillionCachedPrefillTokens) AsLoopsServerlessPricingCostPerMillionCachedPrefillTokens1() (LoopsServerlessPricingCostPerMillionCachedPrefillTokens1, error) {
+	var body LoopsServerlessPricingCostPerMillionCachedPrefillTokens1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsServerlessPricingCostPerMillionCachedPrefillTokens1 overwrites any union data inside the LoopsServerlessPricing_CostPerMillionCachedPrefillTokens as the provided LoopsServerlessPricingCostPerMillionCachedPrefillTokens1
+func (t *LoopsServerlessPricing_CostPerMillionCachedPrefillTokens) FromLoopsServerlessPricingCostPerMillionCachedPrefillTokens1(v LoopsServerlessPricingCostPerMillionCachedPrefillTokens1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t LoopsServerlessPricing_CostPerMillionCachedPrefillTokens) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *LoopsServerlessPricing_CostPerMillionCachedPrefillTokens) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsLoopsServerlessPricingCostPerMillionSampleTokens0 returns the union data inside the LoopsServerlessPricing_CostPerMillionSampleTokens as a LoopsServerlessPricingCostPerMillionSampleTokens0
+func (t LoopsServerlessPricing_CostPerMillionSampleTokens) AsLoopsServerlessPricingCostPerMillionSampleTokens0() (LoopsServerlessPricingCostPerMillionSampleTokens0, error) {
+	var body LoopsServerlessPricingCostPerMillionSampleTokens0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsServerlessPricingCostPerMillionSampleTokens0 overwrites any union data inside the LoopsServerlessPricing_CostPerMillionSampleTokens as the provided LoopsServerlessPricingCostPerMillionSampleTokens0
+func (t *LoopsServerlessPricing_CostPerMillionSampleTokens) FromLoopsServerlessPricingCostPerMillionSampleTokens0(v LoopsServerlessPricingCostPerMillionSampleTokens0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsLoopsServerlessPricingCostPerMillionSampleTokens1 returns the union data inside the LoopsServerlessPricing_CostPerMillionSampleTokens as a LoopsServerlessPricingCostPerMillionSampleTokens1
+func (t LoopsServerlessPricing_CostPerMillionSampleTokens) AsLoopsServerlessPricingCostPerMillionSampleTokens1() (LoopsServerlessPricingCostPerMillionSampleTokens1, error) {
+	var body LoopsServerlessPricingCostPerMillionSampleTokens1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsServerlessPricingCostPerMillionSampleTokens1 overwrites any union data inside the LoopsServerlessPricing_CostPerMillionSampleTokens as the provided LoopsServerlessPricingCostPerMillionSampleTokens1
+func (t *LoopsServerlessPricing_CostPerMillionSampleTokens) FromLoopsServerlessPricingCostPerMillionSampleTokens1(v LoopsServerlessPricingCostPerMillionSampleTokens1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t LoopsServerlessPricing_CostPerMillionSampleTokens) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *LoopsServerlessPricing_CostPerMillionSampleTokens) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsLoopsServerlessPricingCostPerMillionTrainTokens0 returns the union data inside the LoopsServerlessPricing_CostPerMillionTrainTokens as a LoopsServerlessPricingCostPerMillionTrainTokens0
+func (t LoopsServerlessPricing_CostPerMillionTrainTokens) AsLoopsServerlessPricingCostPerMillionTrainTokens0() (LoopsServerlessPricingCostPerMillionTrainTokens0, error) {
+	var body LoopsServerlessPricingCostPerMillionTrainTokens0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsServerlessPricingCostPerMillionTrainTokens0 overwrites any union data inside the LoopsServerlessPricing_CostPerMillionTrainTokens as the provided LoopsServerlessPricingCostPerMillionTrainTokens0
+func (t *LoopsServerlessPricing_CostPerMillionTrainTokens) FromLoopsServerlessPricingCostPerMillionTrainTokens0(v LoopsServerlessPricingCostPerMillionTrainTokens0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsLoopsServerlessPricingCostPerMillionTrainTokens1 returns the union data inside the LoopsServerlessPricing_CostPerMillionTrainTokens as a LoopsServerlessPricingCostPerMillionTrainTokens1
+func (t LoopsServerlessPricing_CostPerMillionTrainTokens) AsLoopsServerlessPricingCostPerMillionTrainTokens1() (LoopsServerlessPricingCostPerMillionTrainTokens1, error) {
+	var body LoopsServerlessPricingCostPerMillionTrainTokens1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsServerlessPricingCostPerMillionTrainTokens1 overwrites any union data inside the LoopsServerlessPricing_CostPerMillionTrainTokens as the provided LoopsServerlessPricingCostPerMillionTrainTokens1
+func (t *LoopsServerlessPricing_CostPerMillionTrainTokens) FromLoopsServerlessPricingCostPerMillionTrainTokens1(v LoopsServerlessPricingCostPerMillionTrainTokens1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t LoopsServerlessPricing_CostPerMillionTrainTokens) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *LoopsServerlessPricing_CostPerMillionTrainTokens) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsLoopsServerlessPricingCostPerMillionUncachedPrefillTokens0 returns the union data inside the LoopsServerlessPricing_CostPerMillionUncachedPrefillTokens as a LoopsServerlessPricingCostPerMillionUncachedPrefillTokens0
+func (t LoopsServerlessPricing_CostPerMillionUncachedPrefillTokens) AsLoopsServerlessPricingCostPerMillionUncachedPrefillTokens0() (LoopsServerlessPricingCostPerMillionUncachedPrefillTokens0, error) {
+	var body LoopsServerlessPricingCostPerMillionUncachedPrefillTokens0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsServerlessPricingCostPerMillionUncachedPrefillTokens0 overwrites any union data inside the LoopsServerlessPricing_CostPerMillionUncachedPrefillTokens as the provided LoopsServerlessPricingCostPerMillionUncachedPrefillTokens0
+func (t *LoopsServerlessPricing_CostPerMillionUncachedPrefillTokens) FromLoopsServerlessPricingCostPerMillionUncachedPrefillTokens0(v LoopsServerlessPricingCostPerMillionUncachedPrefillTokens0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// AsLoopsServerlessPricingCostPerMillionUncachedPrefillTokens1 returns the union data inside the LoopsServerlessPricing_CostPerMillionUncachedPrefillTokens as a LoopsServerlessPricingCostPerMillionUncachedPrefillTokens1
+func (t LoopsServerlessPricing_CostPerMillionUncachedPrefillTokens) AsLoopsServerlessPricingCostPerMillionUncachedPrefillTokens1() (LoopsServerlessPricingCostPerMillionUncachedPrefillTokens1, error) {
+	var body LoopsServerlessPricingCostPerMillionUncachedPrefillTokens1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoopsServerlessPricingCostPerMillionUncachedPrefillTokens1 overwrites any union data inside the LoopsServerlessPricing_CostPerMillionUncachedPrefillTokens as the provided LoopsServerlessPricingCostPerMillionUncachedPrefillTokens1
+func (t *LoopsServerlessPricing_CostPerMillionUncachedPrefillTokens) FromLoopsServerlessPricingCostPerMillionUncachedPrefillTokens1(v LoopsServerlessPricingCostPerMillionUncachedPrefillTokens1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t LoopsServerlessPricing_CostPerMillionUncachedPrefillTokens) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *LoopsServerlessPricing_CostPerMillionUncachedPrefillTokens) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

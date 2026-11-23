@@ -301,6 +301,11 @@ type DockerServer struct {
 	// in any way.
 	NoBuild *bool `json:"no_build,omitempty,omitzero" yaml:"no_build,omitempty"`
 
+	// Deploy the base image without a build. start_command runs through a start
+	// script that uses the image's sh. Rejects requirements, requirements_file,
+	// system_packages, and build_commands. Cannot be set together with no_build.
+	NoBuildWithStartScript *bool `json:"no_build_with_start_script,omitempty,omitzero" yaml:"no_build_with_start_script,omitempty"`
+
 	// The endpoint for inference requests. This is mapped to Baseten's /predict
 	// route.
 	PredictEndpoint string `json:"predict_endpoint" yaml:"predict_endpoint"`
@@ -308,11 +313,6 @@ type DockerServer struct {
 	// The endpoint for readiness probes. Determines when the container can accept
 	// traffic.
 	ReadinessEndpoint string `json:"readiness_endpoint" yaml:"readiness_endpoint"`
-
-	// Do not install packages or rewrite the image entrypoint. Rejects requirements,
-	// requirements_file, system_packages, and build_commands. The base image must
-	// already contain them.
-	RebuildFree *bool `json:"rebuild_free,omitempty,omitzero" yaml:"rebuild_free,omitempty"`
 
 	// The Linux UID to run the server process as inside the container. Use this when
 	// your base image expects a specific non-root user (for example, NVIDIA NIM

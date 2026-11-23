@@ -110,12 +110,34 @@ func (c *Client) CreateSandboxVolume(ctx context.Context, params CreateSandboxVo
 	})
 }
 
+// DeleteAccessAssignments: Removes a role assignment
+func (c *Client) DeleteAccessAssignments(ctx context.Context, assignmentId string) (*AccessAssignmentTombstone, error) {
+	return doJSON[AccessAssignmentTombstone](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/access/assignments/%s",
+		pathArgs:     []any{assignmentId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // DeleteAccessIdentityProviders: Deletes an identity provider
 func (c *Client) DeleteAccessIdentityProviders(ctx context.Context, identityProviderId string) (*DeletedIdentityProvider, error) {
 	return doJSON[DeletedIdentityProvider](c, ctx, apiRequest{
 		method:       "DELETE",
 		pathFmt:      "/v1/access/identity_providers/%s",
 		pathArgs:     []any{identityProviderId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// DeleteAccessRoles: Deletes a custom role
+func (c *Client) DeleteAccessRoles(ctx context.Context, roleId string) (*AccessRoleTombstone, error) {
+	return doJSON[AccessRoleTombstone](c, ctx, apiRequest{
+		method:       "DELETE",
+		pathFmt:      "/v1/access/roles/%s",
+		pathArgs:     []any{roleId},
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -482,6 +504,29 @@ func (c *Client) DeleteVolumesVersions(ctx context.Context, volumeNamespace stri
 	})
 }
 
+// GetAccessAssignments: Lists role assignments
+func (c *Client) GetAccessAssignments(ctx context.Context, params GetV1AccessAssignmentsParams) (*AccessAssignments, error) {
+	return doJSON[AccessAssignments](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/access/assignments",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetAccessAssignmentsAssignmentId: Gets a role assignment
+func (c *Client) GetAccessAssignmentsAssignmentId(ctx context.Context, assignmentId string) (*AccessAssignment, error) {
+	return doJSON[AccessAssignment](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/access/assignments/%s",
+		pathArgs:     []any{assignmentId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // GetAccessIdentityProviders: Lists identity providers
 func (c *Client) GetAccessIdentityProviders(ctx context.Context, params GetV1AccessIdentityProvidersParams) (*IdentityProviders, error) {
 	return doJSON[IdentityProviders](c, ctx, apiRequest{
@@ -505,12 +550,47 @@ func (c *Client) GetAccessIdentityProvidersIdentityProviderId(ctx context.Contex
 	})
 }
 
+// GetAccessPermissions: Lists permissions and their categories
+func (c *Client) GetAccessPermissions(ctx context.Context) (*AccessPermissions, error) {
+	return doJSON[AccessPermissions](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/access/permissions",
+		pathArgs:     nil,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // GetAccessPredefinedIdentityProviders: Lists predefined identity providers
 func (c *Client) GetAccessPredefinedIdentityProviders(ctx context.Context) (*PredefinedIdentityProviders, error) {
 	return doJSON[PredefinedIdentityProviders](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/access/predefined_identity_providers",
 		pathArgs:     nil,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetAccessRoles: Lists roles
+func (c *Client) GetAccessRoles(ctx context.Context, params GetV1AccessRolesParams) (*AccessRoles, error) {
+	return doJSON[AccessRoles](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/access/roles",
+		pathArgs:     nil,
+		queryParams:  params,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetAccessRolesRoleId: Gets a role
+func (c *Client) GetAccessRolesRoleId(ctx context.Context, roleId string, params GetV1AccessRolesRoleIdParams) (*AccessRole, error) {
+	return doJSON[AccessRole](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/access/roles/%s",
+		pathArgs:     []any{roleId},
+		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -1668,6 +1748,17 @@ func (c *Client) GetServiceAccounts(ctx context.Context, params GetV1ServiceAcco
 	})
 }
 
+// GetServiceAccountsAccess: Gets a service account's roles and the permissions they grant
+func (c *Client) GetServiceAccountsAccess(ctx context.Context, serviceAccountId string) (*EffectiveAccess, error) {
+	return doJSON[EffectiveAccess](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/service_accounts/%s/access",
+		pathArgs:     []any{serviceAccountId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // GetServiceAccountsServiceAccountId: Gets a service account
 func (c *Client) GetServiceAccountsServiceAccountId(ctx context.Context, serviceAccountId string) (*ServiceAccount, error) {
 	return doJSON[ServiceAccount](c, ctx, apiRequest{
@@ -1828,11 +1919,12 @@ func (c *Client) GetTrainingProjectsCacheSummary(ctx context.Context, trainingPr
 }
 
 // GetTrainingProjectsJobs: Lists training jobs
-func (c *Client) GetTrainingProjectsJobs(ctx context.Context, trainingProjectId string) (*ListTrainingJobsResponse, error) {
+func (c *Client) GetTrainingProjectsJobs(ctx context.Context, trainingProjectId string, params GetV1TrainingProjectsTrainingProjectIdJobsParams) (*ListTrainingJobsResponse, error) {
 	return doJSON[ListTrainingJobsResponse](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/training_projects/%s/jobs",
 		pathArgs:     []any{trainingProjectId},
+		queryParams:  params,
 		successCodes: []int{200},
 		errorCodes:   nil,
 	})
@@ -1941,11 +2033,33 @@ func (c *Client) GetUsers(ctx context.Context, params GetV1UsersParams) (*UsersR
 	})
 }
 
+// GetUsersAccess: Gets a user's roles and the permissions they grant
+func (c *Client) GetUsersAccess(ctx context.Context, userId string) (*EffectiveAccess, error) {
+	return doJSON[EffectiveAccess](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/users/%s/access",
+		pathArgs:     []any{userId},
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // GetUsersMe: Gets the authenticated user
 func (c *Client) GetUsersMe(ctx context.Context) (*UserInfo, error) {
 	return doJSON[UserInfo](c, ctx, apiRequest{
 		method:       "GET",
 		pathFmt:      "/v1/users/me",
+		pathArgs:     nil,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// GetUsersMeAccess: Gets your roles and the permissions they grant
+func (c *Client) GetUsersMeAccess(ctx context.Context) (*EffectiveAccess, error) {
+	return doJSON[EffectiveAccess](c, ctx, apiRequest{
+		method:       "GET",
+		pathFmt:      "/v1/users/me/access",
 		pathArgs:     nil,
 		successCodes: []int{200},
 		errorCodes:   nil,
@@ -2133,6 +2247,18 @@ func (c *Client) PatchAccessIdentityProviders(ctx context.Context, identityProvi
 		method:       "PATCH",
 		pathFmt:      "/v1/access/identity_providers/%s",
 		pathArgs:     []any{identityProviderId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PatchAccessRoles: Updates a custom role
+func (c *Client) PatchAccessRoles(ctx context.Context, roleId string, body UpdateAccessRoleRequest) (*AccessRole, error) {
+	return doJSON[AccessRole](c, ctx, apiRequest{
+		method:       "PATCH",
+		pathFmt:      "/v1/access/roles/%s",
+		pathArgs:     []any{roleId},
 		body:         body,
 		successCodes: []int{200},
 		errorCodes:   nil,
@@ -2475,6 +2601,30 @@ func (c *Client) PatchVolumes(ctx context.Context, volumeNamespace string, volum
 	})
 }
 
+// PostAccessAssignments: Assigns a role
+func (c *Client) PostAccessAssignments(ctx context.Context, body CreateAccessAssignmentRequest) (*AccessAssignment, error) {
+	return doJSON[AccessAssignment](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/access/assignments",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PostAccessCheck: Checks whether you hold permissions
+func (c *Client) PostAccessCheck(ctx context.Context, body CheckAccessRequest) (*CheckAccessResponse, error) {
+	return doJSON[CheckAccessResponse](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/access/check",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
 // PostAccessIdentityProviders: Adds an identity provider
 func (c *Client) PostAccessIdentityProviders(ctx context.Context, body CreateIdentityProviderRequest) (*IdentityProvider, error) {
 	return doJSON[IdentityProvider](c, ctx, apiRequest{
@@ -2492,6 +2642,18 @@ func (c *Client) PostAccessIdentityProvidersVerify(ctx context.Context, body Ver
 	return doJSON[Verification](c, ctx, apiRequest{
 		method:       "POST",
 		pathFmt:      "/v1/access/identity_providers/verify",
+		pathArgs:     nil,
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PostAccessRoles: Creates a custom role
+func (c *Client) PostAccessRoles(ctx context.Context, body CreateAccessRoleRequest) (*AccessRole, error) {
+	return doJSON[AccessRole](c, ctx, apiRequest{
+		method:       "POST",
+		pathFmt:      "/v1/access/roles",
 		pathArgs:     nil,
 		body:         body,
 		successCodes: []int{200},
@@ -3490,6 +3652,18 @@ func (c *Client) PutLoopsCheckpointsTtl(ctx context.Context, checkpointId string
 		method:       "PUT",
 		pathFmt:      "/v1/loops/checkpoints/%s/ttl",
 		pathArgs:     []any{checkpointId},
+		body:         body,
+		successCodes: []int{200},
+		errorCodes:   nil,
+	})
+}
+
+// PutTrainingProjectsJobsCheckpointsTtl: Sets a training job checkpoint's TTL
+func (c *Client) PutTrainingProjectsJobsCheckpointsTtl(ctx context.Context, trainingProjectId string, trainingJobId string, checkpointId string, body SetTrainingJobCheckpointTtlRequest) (*TrainingJobCheckpoint, error) {
+	return doJSON[TrainingJobCheckpoint](c, ctx, apiRequest{
+		method:       "PUT",
+		pathFmt:      "/v1/training_projects/%s/jobs/%s/checkpoints/%s/ttl",
+		pathArgs:     []any{trainingProjectId, trainingJobId, checkpointId},
 		body:         body,
 		successCodes: []int{200},
 		errorCodes:   nil,
