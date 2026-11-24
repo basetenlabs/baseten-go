@@ -4784,7 +4784,7 @@ type CreateLLMModelRequest struct {
 	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
-	// Bdn BDN configuration: read-only sealed volume mounts, and Hot Load at /bdn on worker pods
+	// Bdn BDN configuration for read-only sealed volume mounts; supports mounts only
 	Bdn *map[string]interface{} `json:"bdn,omitempty"`
 
 	// DeploymentName Name of the deployment, unique within the model. Use only A-Z, a-z, 0-9, '-', '_', and '.'. The name 'development' is reserved. If omitted or empty, a name is generated automatically.
@@ -4832,7 +4832,7 @@ type CreateLLMModelVersionRequest struct {
 	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
-	// Bdn BDN configuration: read-only sealed volume mounts, and Hot Load at /bdn on worker pods
+	// Bdn BDN configuration for read-only sealed volume mounts; supports mounts only
 	Bdn *map[string]interface{} `json:"bdn,omitempty"`
 
 	// DeploymentName Name of the deployment, unique within the model. Use only A-Z, a-z, 0-9, '-', '_', and '.'. The name 'development' is reserved. If omitted or empty, a name is generated automatically.

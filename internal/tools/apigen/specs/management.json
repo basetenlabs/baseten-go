@@ -38775,7 +38775,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "BDN configuration: read-only sealed volume mounts, and Hot Load at /bdn on worker pods",
+                        "description": "BDN configuration for read-only sealed volume mounts; supports mounts only",
                         "title": "Bdn"
                     },
                     "egress_restrictions": {
@@ -39033,7 +39033,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "BDN configuration: read-only sealed volume mounts, and Hot Load at /bdn on worker pods",
+                        "description": "BDN configuration for read-only sealed volume mounts; supports mounts only",
                         "title": "Bdn"
                     },
                     "egress_restrictions": {

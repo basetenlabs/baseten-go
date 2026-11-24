@@ -425,6 +425,21 @@ type HealthChecks struct {
 
 type LoraAdapters map[string]interface{}
 
+// Where Baseten scrapes your model's metrics endpoint for metrics export.
+type MetricsEndpoint struct {
+	// If true, Baseten doesn't scrape this deployment's metrics endpoint, which turns
+	// off metrics export and engine metric graphs for it.
+	DisableScraping bool `json:"disable_scraping,omitempty,omitzero" yaml:"disable_scraping,omitempty"`
+
+	// The URL path that serves metrics, starting with '/'. Defaults to '/metrics'.
+	Path *string `json:"path,omitempty,omitzero" yaml:"path,omitempty"`
+
+	// The container port that serves metrics. Defaults to the model's serving port.
+	Port *int `json:"port,omitempty,omitzero" yaml:"port,omitempty"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
 type ModelCache []ModelRepo
 
 // Configuration for a Truss model deployment.
@@ -491,6 +506,9 @@ type ModelConfig struct {
 	// If true, changes to your model code are automatically reloaded without
 	// restarting the server.
 	LiveReload bool `json:"live_reload,omitempty,omitzero" yaml:"live_reload,omitempty"`
+
+	// Configure the metrics endpoint Baseten scrapes for metrics export.
+	MetricsEndpoint *MetricsEndpoint `json:"metrics_endpoint,omitempty,omitzero" yaml:"metrics_endpoint,omitempty"`
 
 	// Deprecated. Use 'weights' instead. Bundle model weights into your image at
 	// build time.
