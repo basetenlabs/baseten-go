@@ -98,6 +98,10 @@ type fakeService struct {
 	// resolves counts calls, so a test can tell one renewal from a storm.
 	resolves int
 
+	// exchangeHostings records the hosting each accepted token exchange asked
+	// for, in order, with "" for an exchange that named none.
+	exchangeHostings []string
+
 	// onUpload, when set, runs before each object upload is handled, so a test
 	// can interfere partway through a transfer.
 	onUpload func()

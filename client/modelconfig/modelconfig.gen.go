@@ -301,6 +301,11 @@ type DockerServer struct {
 	// in any way.
 	NoBuild *bool `json:"no_build,omitempty,omitzero" yaml:"no_build,omitempty"`
 
+	// Deploy the base image without a build. start_command runs through a start
+	// script that uses the image's sh. Rejects requirements, requirements_file,
+	// system_packages, and build_commands. Cannot be set together with no_build.
+	NoBuildWithStartScript *bool `json:"no_build_with_start_script,omitempty,omitzero" yaml:"no_build_with_start_script,omitempty"`
+
 	// The endpoint for inference requests. This is mapped to Baseten's /predict
 	// route.
 	PredictEndpoint string `json:"predict_endpoint" yaml:"predict_endpoint"`
@@ -308,11 +313,6 @@ type DockerServer struct {
 	// The endpoint for readiness probes. Determines when the container can accept
 	// traffic.
 	ReadinessEndpoint string `json:"readiness_endpoint" yaml:"readiness_endpoint"`
-
-	// Do not install packages or rewrite the image entrypoint. Rejects requirements,
-	// requirements_file, system_packages, and build_commands. The base image must
-	// already contain them.
-	RebuildFree *bool `json:"rebuild_free,omitempty,omitzero" yaml:"rebuild_free,omitempty"`
 
 	// The Linux UID to run the server process as inside the container. Use this when
 	// your base image expects a specific non-root user (for example, NVIDIA NIM
@@ -425,6 +425,21 @@ type HealthChecks struct {
 
 type LoraAdapters map[string]interface{}
 
+// Where Baseten scrapes your model's metrics endpoint for metrics export.
+type MetricsEndpoint struct {
+	// If true, Baseten doesn't scrape this deployment's metrics endpoint, which turns
+	// off metrics export and engine metric graphs for it.
+	DisableScraping bool `json:"disable_scraping,omitempty,omitzero" yaml:"disable_scraping,omitempty"`
+
+	// The URL path that serves metrics, starting with '/'. Defaults to '/metrics'.
+	Path *string `json:"path,omitempty,omitzero" yaml:"path,omitempty"`
+
+	// The container port that serves metrics. Defaults to the model's serving port.
+	Port *int `json:"port,omitempty,omitzero" yaml:"port,omitempty"`
+
+	AdditionalProperties interface{} `mapstructure:",remain"`
+}
+
 type ModelCache []ModelRepo
 
 // Configuration for a Truss model deployment.
@@ -491,6 +506,9 @@ type ModelConfig struct {
 	// If true, changes to your model code are automatically reloaded without
 	// restarting the server.
 	LiveReload bool `json:"live_reload,omitempty,omitzero" yaml:"live_reload,omitempty"`
+
+	// Configure the metrics endpoint Baseten scrapes for metrics export.
+	MetricsEndpoint *MetricsEndpoint `json:"metrics_endpoint,omitempty,omitzero" yaml:"metrics_endpoint,omitempty"`
 
 	// Deprecated. Use 'weights' instead. Bundle model weights into your image at
 	// build time.
