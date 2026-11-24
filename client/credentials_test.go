@@ -71,7 +71,7 @@ func newTestCredentials(t *testing.T, srv *httptest.Server, opts WorkloadIdentit
 		opts.TrustRuleID = "rule-1"
 	}
 	if opts.IdentityToken == nil && opts.IdentityTokenFile == "" {
-		opts.IdentityToken = func(context.Context) (string, error) { return "idp-jwt", nil }
+		opts.IdentityToken = func(context.Context, IdentityTokenOptions) (string, error) { return "idp-jwt", nil }
 	}
 	creds, err := NewWorkloadIdentityCredentials(opts)
 	require.NoError(t, err)
@@ -334,7 +334,7 @@ func TestWorkloadIdentityCredentials(t *testing.T) {
 }
 
 func TestNewWorkloadIdentityCredentialsValidation(t *testing.T) {
-	provider := func(context.Context) (string, error) { return "jwt", nil }
+	provider := func(context.Context, IdentityTokenOptions) (string, error) { return "jwt", nil }
 	for name, opts := range map[string]WorkloadIdentityCredentialsOptions{
 		"NoIdentityToken":   {TrustRuleID: "r"},
 		"BothIdentityToken": {TrustRuleID: "r", IdentityTokenFile: "/f", IdentityToken: provider},
@@ -484,7 +484,7 @@ func TestBearerAuthDoerLeavesOtherHostsAlone(t *testing.T) {
 func TestClientAuthOptionsValidation(t *testing.T) {
 	creds, err := NewWorkloadIdentityCredentials(WorkloadIdentityCredentialsOptions{
 		TrustRuleID:   "r",
-		IdentityToken: func(context.Context) (string, error) { return "jwt", nil },
+		IdentityToken: func(context.Context, IdentityTokenOptions) (string, error) { return "jwt", nil },
 	})
 	require.NoError(t, err)
 
@@ -525,7 +525,7 @@ func TestExchangeDoesNotFollowRedirects(t *testing.T) {
 	defer api.Close()
 
 	creds, err := NewWorkloadIdentityCredentials(WorkloadIdentityCredentialsOptions{
-		IdentityToken: func(context.Context) (string, error) { return "jwt", nil },
+		IdentityToken: func(context.Context, IdentityTokenOptions) (string, error) { return "jwt", nil },
 		TrustRuleID:   "rule",
 		BaseURL:       api.URL,
 	})

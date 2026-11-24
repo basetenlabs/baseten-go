@@ -49,6 +49,11 @@ type AccessTokenOptions struct {
 	RefusedToken string
 }
 
+// IdentityTokenOptions is passed to
+// [WorkloadIdentityCredentialsOptions.IdentityToken]. It is empty for now;
+// fields may be added in later versions.
+type IdentityTokenOptions struct{}
+
 // WorkloadIdentityCredentialsOptions configures WorkloadIdentityCredentials.
 // Credentials are supplied explicitly; the SDK reads no environment variables.
 type WorkloadIdentityCredentialsOptions struct {
@@ -60,7 +65,7 @@ type WorkloadIdentityCredentialsOptions struct {
 
 	// IdentityToken returns the identity provider's JWT. It is called on every
 	// exchange. Exactly one of IdentityTokenFile and IdentityToken is required.
-	IdentityToken func(ctx context.Context) (string, error)
+	IdentityToken func(ctx context.Context, opts IdentityTokenOptions) (string, error)
 
 	// TrustRuleID is the Baseten trust rule the identity token is exchanged
 	// under. Required.
@@ -155,7 +160,7 @@ func (c *WorkloadIdentityCredentials) AccessToken(ctx context.Context, opts Acce
 
 func (c *WorkloadIdentityCredentials) identityToken(ctx context.Context) (string, error) {
 	if c.opts.IdentityToken != nil {
-		token, err := c.opts.IdentityToken(ctx)
+		token, err := c.opts.IdentityToken(ctx, IdentityTokenOptions{})
 		if err != nil {
 			return "", fmt.Errorf("getting identity token: %w", err)
 		}
