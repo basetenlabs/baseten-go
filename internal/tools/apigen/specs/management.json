@@ -843,7 +843,7 @@
                         "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/token\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'scopes': ['sandboxes']}\n)\n\nprint(response.text)"
                     }
                 ],
-                "description": "Exchanges your Baseten credentials for a short-lived token that authenticates against the sandbox API. The token carries every team you belong to. Tokens expire after two hours and cannot be renewed; request a new one when needed. This endpoint is experimental and may change or be removed without notice.",
+                "description": "Exchanges your Baseten credentials for a short-lived token that authenticates against the sandbox API. The token carries every team you belong to. Tokens expire after two hours, or when the workload identity access token that requested them expires, whichever is sooner. They cannot be renewed, so request a new one when needed. This endpoint is experimental and may change or be removed without notice.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -12194,11 +12194,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/assignments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"role_id\": null,\n  \"subject_type\": \"USER\",\n  \"subject_id\": null,\n  \"team_id\": null,\n  \"resources\": null,\n  \"environments\": null\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/access/assignments \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"role_id\": null,\n  \"subject_type\": \"USER\",\n  \"subject_id\": null,\n  \"team_id\": null,\n  \"resource_sets\": null\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/assignments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'role_id': None, 'subject_type': 'USER', 'subject_id': None, 'team_id': None, 'resources': None, 'environments': None}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/access/assignments\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'role_id': None, 'subject_type': 'USER', 'subject_id': None, 'team_id': None, 'resource_sets': None}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Gives a user, service account, or directory group a role, for the organization or in a team. Needs `access.member.write` there, or `access.group.write` for a directory group. A service account's roles also need `service_account.write` where the account belongs.",
@@ -41528,35 +41528,13 @@
                         "description": "Name of the team the role applies in. Null for the organization.",
                         "title": "Team Name"
                     },
-                    "resources": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "$ref": "#/components/schemas/AccessResourceV1"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Resources the role applies to. Null for every resource where it applies.",
-                        "title": "Resources"
-                    },
-                    "environments": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "type": "string"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Names of the environments the role applies in, such as `production`. Null for every environment.",
-                        "title": "Environments"
+                    "resource_sets": {
+                        "description": "Sets of resources the role applies to. It applies to what any set matches, and a set matches what every resource in its `all_of` matches. Empty for every resource where it applies.",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessResourceSetV1"
+                        },
+                        "title": "Resource Sets",
+                        "type": "array"
                     },
                     "created_by": {
                         "anyOf": [
@@ -41594,8 +41572,7 @@
                     "subject_name",
                     "team_id",
                     "team_name",
-                    "resources",
-                    "environments",
+                    "resource_sets",
                     "created_by",
                     "created_at"
                 ],
@@ -41611,10 +41588,29 @@
                 "title": "AccessGrantedViaV1",
                 "type": "string"
             },
+            "AccessResourceSetV1": {
+                "description": "A set of resources a role assignment applies to: what all of them match.",
+                "properties": {
+                    "all_of": {
+                        "description": "Resources the set matches together, every one of them: a resource, an environment of the team's models and chains, or a model or chain in an environment",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessResourceV1"
+                        },
+                        "title": "All Of",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "all_of"
+                ],
+                "title": "AccessResourceSetV1",
+                "type": "object"
+            },
             "AccessResourceTypeV1": {
                 "description": "Type of a resource a role assignment can select.",
                 "enum": [
                     "CHAIN",
+                    "ENVIRONMENT",
                     "GATEWAY_ENDPOINT",
                     "GATEWAY_GROUP",
                     "GATEWAY_KEY",
@@ -41636,14 +41632,14 @@
                 "type": "string"
             },
             "AccessResourceV1": {
-                "description": "A resource a role assignment selects.",
+                "description": "A resource in a resource set: a resource, or an environment by name.",
                 "properties": {
                     "type": {
                         "$ref": "#/components/schemas/AccessResourceTypeV1",
                         "description": "Type of the resource"
                     },
                     "identifier": {
-                        "description": "Unique identifier of the resource, such as a model's ID",
+                        "description": "Unique identifier of the resource, such as a model's ID, or the name of the environment, such as `production`",
                         "title": "Identifier",
                         "type": "string"
                     }
@@ -41666,7 +41662,7 @@
                 "type": "string"
             },
             "EffectiveAccessGrantV1": {
-                "description": "A place a permission is held: the organization, a team, a resource, or an environment.",
+                "description": "A place a permission is held: the organization, a team, or in it what one resource set\nselects.",
                 "properties": {
                     "team_id": {
                         "anyOf": [
@@ -41692,35 +41688,19 @@
                         "description": "Name of the team. Null for the organization.",
                         "title": "Team Name"
                     },
-                    "resource": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/AccessResourceV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The resource. Null when the grant isn't limited to one resource."
-                    },
-                    "environment": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Name of the environment, such as `production`. Null for every environment. Permission checks don't take an environment yet, so these grants aren't confirmed.",
-                        "title": "Environment"
+                    "resource_set": {
+                        "description": "The resource, environment, or resource in an environment the grant is limited to. Empty when it isn't limited.",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessResourceV1"
+                        },
+                        "title": "Resource Set",
+                        "type": "array"
                     }
                 },
                 "required": [
                     "team_id",
                     "team_name",
-                    "resource",
-                    "environment"
+                    "resource_set"
                 ],
                 "title": "EffectiveAccessGrantV1",
                 "type": "object"
@@ -43880,15 +43860,16 @@
                 "title": "AccessAssignmentsRequestV1",
                 "type": "object"
             },
-            "AccessResourceUpdateV1": {
-                "description": "A resource for a role assignment to select, or a permission check to ask about.",
+            "AccessResourceRequestV1": {
+                "additionalProperties": false,
+                "description": "A resource to select or check: a resource, or an environment by name.",
                 "properties": {
                     "type": {
                         "$ref": "#/components/schemas/AccessResourceTypeV1",
                         "description": "Type of the resource"
                     },
                     "identifier": {
-                        "description": "Unique identifier of the resource, such as a model's ID",
+                        "description": "Unique identifier of the resource, such as a model's ID, or the name of an environment, such as `production`, which needs no environment group",
                         "title": "Identifier",
                         "type": "string"
                     }
@@ -43897,10 +43878,31 @@
                     "type",
                     "identifier"
                 ],
-                "title": "AccessResourceUpdateV1",
+                "title": "AccessResourceRequestV1",
+                "type": "object"
+            },
+            "AccessResourceSetRequestV1": {
+                "additionalProperties": false,
+                "description": "A set of resources to assign a role on: what all of them match.",
+                "properties": {
+                    "all_of": {
+                        "description": "Resources the set matches together, every one of them: at most one resource and at most one environment, such as a model in `staging`",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessResourceRequestV1"
+                        },
+                        "minItems": 1,
+                        "title": "All Of",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "all_of"
+                ],
+                "title": "AccessResourceSetRequestV1",
                 "type": "object"
             },
             "CreateAccessAssignmentRequestV1": {
+                "additionalProperties": false,
                 "description": "A role to give a user, service account, or directory group.",
                 "properties": {
                     "role_id": {
@@ -43930,11 +43932,11 @@
                         "description": "ID of the team to assign a team role in. Omit for an organization role.",
                         "title": "Team Id"
                     },
-                    "resources": {
+                    "resource_sets": {
                         "anyOf": [
                             {
                                 "items": {
-                                    "$ref": "#/components/schemas/AccessResourceUpdateV1"
+                                    "$ref": "#/components/schemas/AccessResourceSetRequestV1"
                                 },
                                 "minItems": 1,
                                 "type": "array"
@@ -43944,25 +43946,8 @@
                             }
                         ],
                         "default": null,
-                        "description": "Resources the role applies to. Omit for every resource where it applies.",
-                        "title": "Resources"
-                    },
-                    "environments": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "type": "string"
-                                },
-                                "minItems": 1,
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Names of the environments the role applies in, such as `production`, for the team's models and chains. An environment needs no environment group, and a name no deployment uses yet applies once one does. Omit for every environment.",
-                        "title": "Environments"
+                        "description": "Sets of resources the role applies to. It applies to what any set matches, and a set matches what every resource in its `all_of` matches. For example, one set for a model in staging and another for a different model in production. An environment name no deployment uses yet applies once one does. Omit for every resource where the role applies.",
+                        "title": "Resource Sets"
                     }
                 },
                 "required": [
@@ -43989,7 +43974,8 @@
                 "type": "object"
             },
             "AccessCheckV1": {
-                "description": "A permission to check: for the organization, in a team, or on a resource.",
+                "additionalProperties": false,
+                "description": "A permission to check: for the organization, in a team, or where a resource set selects.",
                 "properties": {
                     "permission": {
                         "description": "Name of the permission, such as `model.deployment.write`",
@@ -44009,17 +43995,14 @@
                         "description": "ID of a team to check the permission in. To check whether you can create a resource, check its write permission in the team you create it in.",
                         "title": "Team Id"
                     },
-                    "resource": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/AccessResourceUpdateV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "A resource to check the permission on. Omit `team_id` and `resource` to check the permission for the organization."
+                    "resource_set": {
+                        "default": [],
+                        "description": "Where to check the permission, as a role assignment's resource set selects it: at most one resource and at most one environment, such as a model in `staging`. With `team_id`, an environment alone checks the team's models and chains there. Omit `team_id` and `resource_set` to check the permission for the organization, and the environment to check it in every environment.",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessResourceRequestV1"
+                        },
+                        "title": "Resource Set",
+                        "type": "array"
                     }
                 },
                 "required": [
@@ -44068,16 +44051,13 @@
                         "description": "ID of the team it was checked in, if any",
                         "title": "Team Id"
                     },
-                    "resource": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/AccessResourceV1"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The resource it was checked on, if any"
+                    "resource_set": {
+                        "description": "Where it was checked, as the check named it; empty for a team or the organization",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessResourceV1"
+                        },
+                        "title": "Resource Set",
+                        "type": "array"
                     },
                     "allowed": {
                         "description": "Whether you hold the permission there",
@@ -44088,7 +44068,7 @@
                 "required": [
                     "permission",
                     "team_id",
-                    "resource",
+                    "resource_set",
                     "allowed"
                 ],
                 "title": "AccessCheckResultV1",

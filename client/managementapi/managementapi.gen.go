@@ -59,6 +59,7 @@ func (e AccessGrantedVia) Valid() bool {
 // Defines values for AccessResourceType.
 const (
 	AccessResourceType_CHAIN            AccessResourceType = "CHAIN"
+	AccessResourceType_ENVIRONMENT      AccessResourceType = "ENVIRONMENT"
 	AccessResourceType_GATEWAY_ENDPOINT AccessResourceType = "GATEWAY_ENDPOINT"
 	AccessResourceType_GATEWAY_GROUP    AccessResourceType = "GATEWAY_GROUP"
 	AccessResourceType_GATEWAY_KEY      AccessResourceType = "GATEWAY_KEY"
@@ -81,6 +82,8 @@ const (
 func (e AccessResourceType) Valid() bool {
 	switch e {
 	case AccessResourceType_CHAIN:
+		return true
+	case AccessResourceType_ENVIRONMENT:
 		return true
 	case AccessResourceType_GATEWAY_ENDPOINT:
 		return true
@@ -2609,17 +2612,14 @@ type AccessAssignment struct {
 	// CreatedBy ID of the user who assigned the role. Null for a role held through membership, or one no user assigned.
 	CreatedBy *string `json:"created_by"`
 
-	// Environments Names of the environments the role applies in, such as `production`. Null for every environment.
-	Environments *[]string `json:"environments"`
-
 	// GrantedVia How a role is held.
 	GrantedVia AccessGrantedVia `json:"granted_via"`
 
 	// Id Unique identifier of the role assignment. Null for a built-in role held through organization or team membership.
 	Id *string `json:"id"`
 
-	// Resources Resources the role applies to. Null for every resource where it applies.
-	Resources *[]AccessResource `json:"resources"`
+	// ResourceSets Sets of resources the role applies to. It applies to what any set matches, and a set matches what every resource in its `all_of` matches. Empty for every resource where it applies.
+	ResourceSets []AccessResourceSet `json:"resource_sets"`
 
 	// RoleId ID of the role
 	RoleId string `json:"role_id"`
@@ -2656,13 +2656,13 @@ type AccessAssignments struct {
 	Pagination PaginationResponse `json:"pagination"`
 }
 
-// AccessCheck A permission to check: for the organization, in a team, or on a resource.
+// AccessCheck A permission to check: for the organization, in a team, or where a resource set selects.
 type AccessCheck struct {
 	// Permission Name of the permission, such as `model.deployment.write`
 	Permission string `json:"permission"`
 
-	// Resource A resource to check the permission on. Omit `team_id` and `resource` to check the permission for the organization.
-	Resource *AccessResourceUpdate `json:"resource,omitempty"`
+	// ResourceSet Where to check the permission, as a role assignment's resource set selects it: at most one resource and at most one environment, such as a model in `staging`. With `team_id`, an environment alone checks the team's models and chains there. Omit `team_id` and `resource_set` to check the permission for the organization, and the environment to check it in every environment.
+	ResourceSet *[]AccessResourceRequest `json:"resource_set,omitempty"`
 
 	// TeamId ID of a team to check the permission in. To check whether you can create a resource, check its write permission in the team you create it in.
 	TeamId *string `json:"team_id,omitempty"`
@@ -2676,8 +2676,8 @@ type AccessCheckResult struct {
 	// Permission Name of the permission
 	Permission string `json:"permission"`
 
-	// Resource The resource it was checked on, if any
-	Resource *AccessResource `json:"resource"`
+	// ResourceSet Where it was checked, as the check named it; empty for a team or the organization
+	ResourceSet []AccessResource `json:"resource_set"`
 
 	// TeamId ID of the team it was checked in, if any
 	TeamId *string `json:"team_id"`
@@ -2737,26 +2737,38 @@ type AccessPermissions struct {
 	Permissions []AccessPermission `json:"permissions"`
 }
 
-// AccessResource A resource a role assignment selects.
+// AccessResource A resource in a resource set: a resource, or an environment by name.
 type AccessResource struct {
-	// Identifier Unique identifier of the resource, such as a model's ID
+	// Identifier Unique identifier of the resource, such as a model's ID, or the name of the environment, such as `production`
 	Identifier string `json:"identifier"`
 
 	// Type Type of a resource a role assignment can select.
 	Type AccessResourceType `json:"type"`
+}
+
+// AccessResourceRequest A resource to select or check: a resource, or an environment by name.
+type AccessResourceRequest struct {
+	// Identifier Unique identifier of the resource, such as a model's ID, or the name of an environment, such as `production`, which needs no environment group
+	Identifier string `json:"identifier"`
+
+	// Type Type of a resource a role assignment can select.
+	Type AccessResourceType `json:"type"`
+}
+
+// AccessResourceSet A set of resources a role assignment applies to: what all of them match.
+type AccessResourceSet struct {
+	// AllOf Resources the set matches together, every one of them: a resource, an environment of the team's models and chains, or a model or chain in an environment
+	AllOf []AccessResource `json:"all_of"`
+}
+
+// AccessResourceSetRequest A set of resources to assign a role on: what all of them match.
+type AccessResourceSetRequest struct {
+	// AllOf Resources the set matches together, every one of them: at most one resource and at most one environment, such as a model in `staging`
+	AllOf []AccessResourceRequest `json:"all_of"`
 }
 
 // AccessResourceType Type of a resource a role assignment can select.
 type AccessResourceType string
-
-// AccessResourceUpdate A resource for a role assignment to select, or a permission check to ask about.
-type AccessResourceUpdate struct {
-	// Identifier Unique identifier of the resource, such as a model's ID
-	Identifier string `json:"identifier"`
-
-	// Type Type of a resource a role assignment can select.
-	Type AccessResourceType `json:"type"`
-}
 
 // AccessRole A set of permissions you assign to users, service accounts, and directory groups. Baseten
 // defines the built-in roles, and your organization defines its custom roles.
@@ -4500,11 +4512,8 @@ type CreateAPIKeyRequest struct {
 
 // CreateAccessAssignmentRequest A role to give a user, service account, or directory group.
 type CreateAccessAssignmentRequest struct {
-	// Environments Names of the environments the role applies in, such as `production`, for the team's models and chains. An environment needs no environment group, and a name no deployment uses yet applies once one does. Omit for every environment.
-	Environments *[]string `json:"environments,omitempty"`
-
-	// Resources Resources the role applies to. Omit for every resource where it applies.
-	Resources *[]AccessResourceUpdate `json:"resources,omitempty"`
+	// ResourceSets Sets of resources the role applies to. It applies to what any set matches, and a set matches what every resource in its `all_of` matches. For example, one set for a model in staging and another for a different model in production. An environment name no deployment uses yet applies once one does. Omit for every resource where the role applies.
+	ResourceSets *[]AccessResourceSetRequest `json:"resource_sets,omitempty"`
 
 	// RoleId ID of the role to assign
 	RoleId string `json:"role_id"`
@@ -6243,13 +6252,11 @@ type EffectiveAccess struct {
 	SubjectType AccessSubjectType `json:"subject_type"`
 }
 
-// EffectiveAccessGrant A place a permission is held: the organization, a team, a resource, or an environment.
+// EffectiveAccessGrant A place a permission is held: the organization, a team, or in it what one resource set
+// selects.
 type EffectiveAccessGrant struct {
-	// Environment Name of the environment, such as `production`. Null for every environment. Permission checks don't take an environment yet, so these grants aren't confirmed.
-	Environment *string `json:"environment"`
-
-	// Resource The resource. Null when the grant isn't limited to one resource.
-	Resource *AccessResource `json:"resource"`
+	// ResourceSet The resource, environment, or resource in an environment the grant is limited to. Empty when it isn't limited.
+	ResourceSet []AccessResource `json:"resource_set"`
 
 	// TeamId ID of the team. Null for the organization.
 	TeamId *string `json:"team_id"`
