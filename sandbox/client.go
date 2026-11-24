@@ -55,6 +55,9 @@ type ClientOptions struct {
 	// TokenProvider is an advanced alternative to APIKey: it returns the
 	// bearer token for each request, for callers that obtain sandbox tokens
 	// themselves.
+	//
+	// Unstable: sandbox tokens are a temporary requirement, and this option
+	// may be removed in the future.
 	TokenProvider TokenProvider
 }
 

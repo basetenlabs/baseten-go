@@ -15822,6 +15822,327 @@
                 "x-stability": "unstable"
             }
         },
+        "/v1/drives/instances": {
+            "get": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Cursor"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Limit"
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search drive names. Search is applied before pagination.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "shared"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Drive statuses. Repeat the query parameter for each status, for example status=DEPLOYED&status=FAILED. Unknown values are rejected.",
+                        "required": false,
+                        "style": "form",
+                        "explode": true,
+                        "schema": {
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {
+                                "$ref": "#/components/schemas/SandboxDriveStatusV1"
+                            }
+                        }
+                    }
+                ],
+                "operationId": "ListDrives",
+                "summary": "List drives",
+                "description": "Return a cursor-paginated page of drives, newest first. Keep q and status unchanged when following a cursor.",
+                "tags": [
+                    "Drives"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListSandboxDrivesResponseV1"
+                                },
+                                "examples": {
+                                    "page": {
+                                        "$ref": "#/components/examples/SandboxDrivesPage"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "post": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "operationId": "CreateDrive",
+                "summary": "Create a drive",
+                "description": "Create a drive, shared storage that outlives sandboxes and can be used by several of them at once. The name is generated when omitted. Drives must be enabled for the team (403 otherwise).",
+                "tags": [
+                    "Drives"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateSandboxDriveRequestV1"
+                            },
+                            "examples": {
+                                "complete": {
+                                    "$ref": "#/components/examples/CreateSandboxDrive"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Drive created. Provisioning may continue; inspect status for readiness.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxDriveV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxDriveReady"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "409": {
+                        "$ref": "#/components/responses/SandboxError409"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
+        "/v1/drives/instances/{drive_name}": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/DriveName"
+                }
+            ],
+            "get": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "operationId": "GetDrive",
+                "summary": "Get a drive",
+                "description": "Return the drive and its status.",
+                "tags": [
+                    "Drives"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxDriveV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxDriveReady"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "patch": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "operationId": "UpdateDrive",
+                "summary": "Update a drive",
+                "description": "Replace the labels of the drive. The name and region are immutable; supplying either returns 400.",
+                "tags": [
+                    "Drives"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateSandboxDriveRequestV1"
+                            },
+                            "examples": {
+                                "complete": {
+                                    "$ref": "#/components/examples/UpdateSandboxDrive"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxDriveV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxDriveReady"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/SandboxError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            },
+            "delete": {
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TeamId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TeamIdHeader"
+                    }
+                ],
+                "operationId": "DeleteDrive",
+                "summary": "Delete a drive",
+                "description": "Permanently delete the drive and its data asynchronously. The returned resource has status DELETING.",
+                "tags": [
+                    "Drives"
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Request accepted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SandboxDriveV1"
+                                },
+                                "examples": {
+                                    "complete": {
+                                        "$ref": "#/components/examples/SandboxDriveDeleting"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/SandboxError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SandboxError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/SandboxError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/SandboxError429"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/SandboxError500"
+                    }
+                },
+                "x-stability": "unstable"
+            }
+        },
         "/v1/sandboxes/library_images": {
             "get": {
                 "operationId": "ListSandboxLibraryImages",
@@ -51308,6 +51629,131 @@
                     "items",
                     "pagination"
                 ]
+            },
+            "SandboxDriveStatusV1": {
+                "type": "string",
+                "description": "Drive status, always uppercase.",
+                "enum": [
+                    "DEPLOYING",
+                    "DEPLOYED",
+                    "FAILED",
+                    "DELETING"
+                ],
+                "example": "DEPLOYED"
+            },
+            "CreateSandboxDriveRequestV1": {
+                "type": "object",
+                "description": "Drive to create. Every field is optional.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Drive name, unique in the team. Generated when omitted.",
+                        "minLength": 1,
+                        "maxLength": 49,
+                        "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+                        "example": "shared-data"
+                    },
+                    "region": {
+                        "type": "string",
+                        "description": "Region of the drive. Defaults to the default sandbox region.",
+                        "example": "us-pdx-1"
+                    },
+                    "labels": {
+                        "$ref": "#/components/schemas/SandboxMetadataLabelsV1"
+                    }
+                }
+            },
+            "UpdateSandboxDriveRequestV1": {
+                "type": "object",
+                "description": "Drive fields to change. name and region cannot be changed.",
+                "properties": {
+                    "labels": {
+                        "description": "Labels replacing all current labels, not merged with them.",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxMetadataLabelsV1"
+                            }
+                        ]
+                    }
+                },
+                "minProperties": 1
+            },
+            "SandboxDriveV1": {
+                "type": "object",
+                "description": "Drive.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Drive name, used in drive_name path parameters.",
+                        "readOnly": true,
+                        "example": "shared-data"
+                    },
+                    "region": {
+                        "type": "string",
+                        "description": "Region of the drive.",
+                        "example": "us-pdx-1"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/SandboxDriveStatusV1"
+                    },
+                    "labels": {
+                        "description": "Labels.",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SandboxMetadataLabelsV1"
+                            }
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "example": "2026-10-12T12:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "example": "2026-10-12T12:00:00Z"
+                    },
+                    "created_by": {
+                        "type": "string",
+                        "description": "User or service account that created the drive.",
+                        "readOnly": true,
+                        "example": "sandbox-automation"
+                    },
+                    "updated_by": {
+                        "type": "string",
+                        "description": "User or service account that last updated the drive.",
+                        "readOnly": true,
+                        "example": "sandbox-automation"
+                    }
+                },
+                "required": [
+                    "name",
+                    "region",
+                    "status"
+                ]
+            },
+            "ListSandboxDrivesResponseV1": {
+                "type": "object",
+                "description": "One page of drives.",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "description": "Resources on this page.",
+                        "items": {
+                            "$ref": "#/components/schemas/SandboxDriveV1"
+                        }
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/SandboxApiPaginationV1"
+                    }
+                },
+                "required": [
+                    "items",
+                    "pagination"
+                ]
             }
         },
         "parameters": {
@@ -51705,6 +52151,17 @@
                     "type": "string",
                     "minLength": 1,
                     "example": "datasets"
+                }
+            },
+            "DriveName": {
+                "name": "drive_name",
+                "in": "path",
+                "required": true,
+                "description": "Drive name returned by creation.",
+                "schema": {
+                    "type": "string",
+                    "minLength": 1,
+                    "example": "shared-data"
                 }
             },
             "SandboxImageName": {
@@ -52596,6 +53053,77 @@
                             "region": "us-pdx-1",
                             "status": "DEPLOYED",
                             "attached_to": "baseten-api-review-0916",
+                            "created_at": "2026-10-12T12:00:00Z",
+                            "updated_at": "2026-10-12T12:00:00Z",
+                            "created_by": "sandbox-automation",
+                            "updated_by": "sandbox-automation"
+                        }
+                    ],
+                    "pagination": {
+                        "has_more": false
+                    }
+                }
+            },
+            "CreateSandboxDrive": {
+                "summary": "Drive with labels",
+                "value": {
+                    "name": "shared-data",
+                    "region": "us-pdx-1",
+                    "labels": {
+                        "project": "api-review"
+                    }
+                }
+            },
+            "UpdateSandboxDrive": {
+                "summary": "Replace labels",
+                "value": {
+                    "labels": {
+                        "project": "api-review",
+                        "owner": "data"
+                    }
+                }
+            },
+            "SandboxDriveReady": {
+                "summary": "Ready drive",
+                "value": {
+                    "name": "shared-data",
+                    "region": "us-pdx-1",
+                    "status": "DEPLOYED",
+                    "labels": {
+                        "project": "api-review"
+                    },
+                    "created_at": "2026-10-12T12:00:00Z",
+                    "updated_at": "2026-10-12T12:00:00Z",
+                    "created_by": "sandbox-automation",
+                    "updated_by": "sandbox-automation"
+                }
+            },
+            "SandboxDriveDeleting": {
+                "summary": "Drive being deleted",
+                "value": {
+                    "name": "shared-data",
+                    "region": "us-pdx-1",
+                    "status": "DELETING",
+                    "labels": {
+                        "project": "api-review"
+                    },
+                    "created_at": "2026-10-12T12:00:00Z",
+                    "updated_at": "2026-10-12T12:30:00Z",
+                    "created_by": "sandbox-automation",
+                    "updated_by": "sandbox-automation"
+                }
+            },
+            "SandboxDrivesPage": {
+                "summary": "Last page of drives",
+                "value": {
+                    "items": [
+                        {
+                            "name": "shared-data",
+                            "region": "us-pdx-1",
+                            "status": "DEPLOYED",
+                            "labels": {
+                                "project": "api-review"
+                            },
                             "created_at": "2026-10-12T12:00:00Z",
                             "updated_at": "2026-10-12T12:00:00Z",
                             "created_by": "sandbox-automation",

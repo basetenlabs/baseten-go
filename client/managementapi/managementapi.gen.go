@@ -1790,6 +1790,30 @@ func (e SandboxDateExpirationPolicyType) Valid() bool {
 	}
 }
 
+// Defines values for SandboxDriveStatus.
+const (
+	SandboxDriveStatus_DELETING  SandboxDriveStatus = "DELETING"
+	SandboxDriveStatus_DEPLOYED  SandboxDriveStatus = "DEPLOYED"
+	SandboxDriveStatus_DEPLOYING SandboxDriveStatus = "DEPLOYING"
+	SandboxDriveStatus_FAILED    SandboxDriveStatus = "FAILED"
+)
+
+// Valid indicates whether the value is a known member of the SandboxDriveStatus enum.
+func (e SandboxDriveStatus) Valid() bool {
+	switch e {
+	case SandboxDriveStatus_DELETING:
+		return true
+	case SandboxDriveStatus_DEPLOYED:
+		return true
+	case SandboxDriveStatus_DEPLOYING:
+		return true
+	case SandboxDriveStatus_FAILED:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SandboxImageStatus.
 const (
 	SandboxImageStatus_BUILDING  SandboxImageStatus = "BUILDING"
@@ -5087,6 +5111,18 @@ type CreatePredefinedIdentityProviderConfig struct {
 	Kind PredefinedIdentityProviderKind `json:"kind"`
 }
 
+// CreateSandboxDriveRequest Drive to create. Every field is optional.
+type CreateSandboxDriveRequest struct {
+	// Labels Key-value pairs for organizing and filtering resources. Labels can be used to categorize resources by environment, project, team, or any custom taxonomy.
+	Labels *SandboxMetadataLabels `json:"labels,omitempty"`
+
+	// Name Drive name, unique in the team. Generated when omitted.
+	Name *string `json:"name,omitempty"`
+
+	// Region Region of the drive. Defaults to the default sandbox region.
+	Region *string `json:"region,omitempty"`
+}
+
 // CreateSandboxPreviewRequest defines model for CreateSandboxPreviewRequest.
 type CreateSandboxPreviewRequest struct {
 	// CreateIfNotExists When true, return the existing preview with this name instead of failing with a conflict. Without name, the name is public-<port> or private-<port>, so the same port and visibility return the same preview. Existing configuration is preserved. Defaults to false when omitted.
@@ -8024,6 +8060,15 @@ type ListLoopsSamplersResponse struct {
 	Samplers []LoopsSampler `json:"samplers"`
 }
 
+// ListSandboxDrivesResponse One page of drives.
+type ListSandboxDrivesResponse struct {
+	// Items Resources on this page.
+	Items []SandboxDrive `json:"items"`
+
+	// Pagination Cursor pagination information. The cursor is present only when another page is available.
+	Pagination SandboxApiPagination `json:"pagination"`
+}
+
 // ListSandboxImageTagsResponse One page of image tags.
 type ListSandboxImageTagsResponse struct {
 	Items []SandboxImageTag `json:"items"`
@@ -9935,6 +9980,33 @@ type SandboxDateExpirationPolicyAction string
 
 // SandboxDateExpirationPolicyType defines model for SandboxDateExpirationPolicy.Type.
 type SandboxDateExpirationPolicyType string
+
+// SandboxDrive Drive.
+type SandboxDrive struct {
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// CreatedBy User or service account that created the drive.
+	CreatedBy *string `json:"created_by,omitempty"`
+
+	// Labels Labels.
+	Labels *SandboxMetadataLabels `json:"labels,omitempty"`
+
+	// Name Drive name, used in drive_name path parameters.
+	Name *string `json:"name,omitempty"`
+
+	// Region Region of the drive.
+	Region string `json:"region"`
+
+	// Status Drive status, always uppercase.
+	Status    SandboxDriveStatus `json:"status"`
+	UpdatedAt *time.Time         `json:"updated_at,omitempty"`
+
+	// UpdatedBy User or service account that last updated the drive.
+	UpdatedBy *string `json:"updated_by,omitempty"`
+}
+
+// SandboxDriveStatus Drive status, always uppercase.
+type SandboxDriveStatus string
 
 // SandboxDuration Duration using seconds, minutes, hours, or composite durations such as 1h30m. Whole days and weeks are also supported, for example 7d or 2w, where d is 24h and w is 7 × 24h. Days and weeks cannot be combined with other units, so 1d12h is rejected; use 36h instead. Values are returned exactly as sent, without normalization.
 type SandboxDuration = string
@@ -11853,6 +11925,12 @@ type UpdateRollingDeployConfig struct {
 	StabilizationTimeSeconds *int `json:"stabilization_time_seconds,omitempty"`
 }
 
+// UpdateSandboxDriveRequest Drive fields to change. name and region cannot be changed.
+type UpdateSandboxDriveRequest struct {
+	// Labels Labels replacing all current labels, not merged with them.
+	Labels *SandboxMetadataLabels `json:"labels,omitempty"`
+}
+
 // UpdateSandboxPreviewRequest defines model for UpdateSandboxPreviewRequest.
 type UpdateSandboxPreviewRequest struct {
 	// ExpiresAt Time at which the preview is deleted. Must be in the future.
@@ -12906,6 +12984,48 @@ type GetV1ChainsChainIdDeploymentsChainDeploymentIdChainletsChainletIdLogsParams
 
 	// Excludes Case-sensitive substrings; lines containing any of these are dropped.
 	Excludes *[]string `form:"excludes,omitempty" json:"excludes,omitempty"`
+}
+
+// ListDrivesParams defines parameters for ListDrives.
+type ListDrivesParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+
+	// Cursor Opaque cursor from the previous page; omit for the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Maximum number of items to return.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Q Search drive names. Search is applied before pagination.
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
+
+	// Status Drive statuses. Repeat the query parameter for each status, for example status=DEPLOYED&status=FAILED. Unknown values are rejected.
+	Status *[]SandboxDriveStatus `form:"status,omitempty" json:"status,omitempty"`
+}
+
+// CreateDriveParams defines parameters for CreateDrive.
+type CreateDriveParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// DeleteDriveParams defines parameters for DeleteDrive.
+type DeleteDriveParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// GetDriveParams defines parameters for GetDrive.
+type GetDriveParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
+}
+
+// UpdateDriveParams defines parameters for UpdateDrive.
+type UpdateDriveParams struct {
+	// TeamId Optional team ID. Must match X-Team-Id when both are supplied. If neither selector is supplied, defaults to the caller's only accessible team. Callers with multiple accessible teams must select a team. Requests without access to any team are forbidden.
+	TeamId *string `form:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
 // GetV1ExploreMetadataParams defines parameters for GetV1ExploreMetadata.
@@ -14002,6 +14122,12 @@ type PostV1ChainsChainIdEnvironmentsEnvNameChainletSettingsInstanceTypesUpdateJS
 
 // PostV1ChainsChainIdEnvironmentsEnvNamePromoteJSONRequestBody defines body for PostV1ChainsChainIdEnvironmentsEnvNamePromote for application/json ContentType.
 type PostV1ChainsChainIdEnvironmentsEnvNamePromoteJSONRequestBody = PromoteToChainEnvironmentRequest
+
+// CreateDriveJSONRequestBody defines body for CreateDrive for application/json ContentType.
+type CreateDriveJSONRequestBody = CreateSandboxDriveRequest
+
+// UpdateDriveJSONRequestBody defines body for UpdateDrive for application/json ContentType.
+type UpdateDriveJSONRequestBody = UpdateSandboxDriveRequest
 
 // PatchV1EnvironmentGroupsEnvNameJSONRequestBody defines body for PatchV1EnvironmentGroupsEnvName for application/json ContentType.
 type PatchV1EnvironmentGroupsEnvNameJSONRequestBody = UpdateEnvironmentGroupRequest

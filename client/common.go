@@ -103,6 +103,24 @@ func goVersion() string {
 	return strings.TrimPrefix(runtime.Version(), "go")
 }
 
+// optional returns a pointer to value, or nil for the zero value, so unset
+// fields are omitted from requests.
+func optional[T comparable](value T) *T {
+	var zero T
+	if value == zero {
+		return nil
+	}
+	return &value
+}
+
+func deref[T any](p *T) T {
+	if p == nil {
+		var zero T
+		return zero
+	}
+	return *p
+}
+
 // validateAuthOptions checks that a client is given exactly one way to
 // authenticate.
 func validateAuthOptions(apiKey string, credentials Credentials, deferAuth bool, headers http.Header) error {

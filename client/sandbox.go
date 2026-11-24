@@ -34,8 +34,9 @@ type SandboxClientOptions struct {
 	Headers http.Header
 }
 
-// SandboxClient provides access to the Baseten sandbox API for a specific
-// sandbox.
+// SandboxClient provides access to the raw Baseten sandbox API for a specific
+// sandbox. It is not expected to be used directly. Use the sandbox package's
+// Client instead.
 type SandboxClient struct {
 	api *sandboxapi.Client
 }
