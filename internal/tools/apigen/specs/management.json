@@ -302,11 +302,11 @@
                 "x-codeSamples": [
                     {
                         "lang": "bash",
-                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/syncs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"source\": null,\n  \"destination\": {\n    \"ref\": null\n  }\n}'"
+                        "source": "curl --request POST \\\n--url https://api.baseten.co/v1/volumes/syncs \\\n--header \"Authorization: Bearer $BASETEN_API_KEY\" \\\n--data '{\n  \"hosting\": null,\n  \"source\": null,\n  \"destination\": {\n    \"ref\": null\n  }\n}'"
                     },
                     {
                         "lang": "python",
-                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/syncs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'source': None, 'destination': {'ref': None}}\n)\n\nprint(response.text)"
+                        "source": "import requests\nimport os\nAPI_KEY = os.environ.get(\"BASETEN_API_KEY\", \"<YOUR_API_KEY>\")\nurl = \"https://api.baseten.co/v1/volumes/syncs\"\n\nheaders = {\"Authorization\": f\"Bearer {API_KEY}\"}\n\nresponse = requests.request(\n    \"POST\",\n    url,\n    headers=headers,\n    json={'hosting': None, 'source': None, 'destination': {'ref': None}}\n)\n\nprint(response.text)"
                     }
                 ],
                 "description": "Starts one durable asynchronous transfer from a remote source into a BDN volume.",
@@ -17666,6 +17666,18 @@
                 "additionalProperties": false,
                 "description": "Request to start an asynchronous volume sync.",
                 "properties": {
+                    "hosting": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VolumeHostingV1"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one."
+                    },
                     "source": {
                         "description": "Remote source to sync from.",
                         "discriminator": {
@@ -38775,7 +38787,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "BDN configuration for read-only sealed volume mounts; supports mounts only",
+                        "description": "BDN configuration: read-only sealed volume mounts, and Hot Load at /bdn on worker pods",
                         "title": "Bdn"
                     },
                     "egress_restrictions": {
@@ -39033,7 +39045,7 @@
                             }
                         ],
                         "default": null,
-                        "description": "BDN configuration for read-only sealed volume mounts; supports mounts only",
+                        "description": "BDN configuration: read-only sealed volume mounts, and Hot Load at /bdn on worker pods",
                         "title": "Bdn"
                     },
                     "egress_restrictions": {

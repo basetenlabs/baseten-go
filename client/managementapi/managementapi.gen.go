@@ -4784,7 +4784,7 @@ type CreateLLMModelRequest struct {
 	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
-	// Bdn BDN configuration for read-only sealed volume mounts; supports mounts only
+	// Bdn BDN configuration: read-only sealed volume mounts, and Hot Load at /bdn on worker pods
 	Bdn *map[string]interface{} `json:"bdn,omitempty"`
 
 	// DeploymentName Name of the deployment, unique within the model. Use only A-Z, a-z, 0-9, '-', '_', and '.'. The name 'development' is reserved. If omitted or empty, a name is generated automatically.
@@ -4832,7 +4832,7 @@ type CreateLLMModelVersionRequest struct {
 	// AutoscalingSettings Autoscaling settings for the model
 	AutoscalingSettings *UpdateAutoscalingSettings `json:"autoscaling_settings,omitempty"`
 
-	// Bdn BDN configuration for read-only sealed volume mounts; supports mounts only
+	// Bdn BDN configuration: read-only sealed volume mounts, and Hot Load at /bdn on worker pods
 	Bdn *map[string]interface{} `json:"bdn,omitempty"`
 
 	// DeploymentName Name of the deployment, unique within the model. Use only A-Z, a-z, 0-9, '-', '_', and '.'. The name 'development' is reserved. If omitted or empty, a name is generated automatically.
@@ -5365,6 +5365,9 @@ type CreateTrainingJobS3Artifact struct {
 type CreateVolumeSyncRequest struct {
 	// Destination BDN destination for a volume sync.
 	Destination VolumeSyncDestination `json:"destination"`
+
+	// Hosting Where the volumes are stored. Defaults to your organization's hosting when it has one, and is required when it has more than one.
+	Hosting *VolumeHosting `json:"hosting,omitempty"`
 
 	// Source Remote source to sync from.
 	Source CreateVolumeSyncRequest_Source `json:"source"`
