@@ -92,6 +92,18 @@ func TestBuildModelArchiveBasicWalk(t *testing.T) {
 	require.Equal(t, "model/model.py", entries[2].name)
 }
 
+func TestBuildModelArchiveSymlinkedDir(t *testing.T) {
+	skipWithoutSymlinks(t)
+	root := t.TempDir()
+	writeFile(t, filepath.Join(root, "real", "config.yaml"), "model_name: foo\n")
+	writeFile(t, filepath.Join(root, "real", "model", "model.py"), "M\n")
+	require.NoError(t, os.Symlink("real", filepath.Join(root, "link")))
+
+	rc, err := modelarchive.BuildModelArchive(context.Background(), modelarchive.BuildModelArchiveOptions{Dir: filepath.Join(root, "link")})
+	require.NoError(t, err)
+	require.Equal(t, "config.yaml,model/model.py", strings.Join(entryNames(readArchive(t, rc)), ","))
+}
+
 func TestBuildModelArchiveConfigOverride(t *testing.T) {
 	dir := t.TempDir()
 	writeFile(t, filepath.Join(dir, "config.yaml"), "model_name: on_disk\n")
