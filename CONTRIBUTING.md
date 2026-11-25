@@ -14,6 +14,8 @@ To download the latest specs from Baseten before regenerating:
 cd internal/tools/apigen && go run . -update-specs
 ```
 
+A spec sync PR commits everything `-update-specs` produces, so the generated clients match what Baseten serves. Don't pick parts of a spec or hand-edit generated code; if an endpoint isn't in the published spec yet, wait for it to ship. State the command you ran in the PR description.
+
 ## End-to-End Tests
 
 E2e tests in `client/e2e_test.go` run against a live Baseten environment. They are skipped automatically when `BASETEN_E2E_TEST_API_KEY` is not set.
